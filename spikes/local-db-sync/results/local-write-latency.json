@@ -1,0 +1,33 @@
+{
+  "orders": 2000,
+  "linesPerOrder": 3,
+  "disk": "ext4 on NVMe",
+  "runs": [
+    {
+      "synchronous": "FULL",
+      "latency": {
+        "count": 2000,
+        "p50Ms": 1.574,
+        "p95Ms": 2.043,
+        "p99Ms": 4.113,
+        "maxMs": 6.045,
+        "totalMs": 3294.021
+      },
+      "pagesBytes": 3182592,
+      "fileBytesAfterCheckpoint": 3182592
+    },
+    {
+      "synchronous": "NORMAL",
+      "latency": {
+        "count": 2000,
+        "p50Ms": 0.048,
+        "p95Ms": 0.12,
+        "p99Ms": 3.491,
+        "maxMs": 7.813,
+        "totalMs": 224.477
+      },
+      "pagesBytes": 3182592,
+      "fileBytesAfterCheckpoint": 3182592
+    }
+  ]
+}

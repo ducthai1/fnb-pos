@@ -76,4 +76,18 @@ describe("GET /changes with a bigserial cursor", () => {
     expect(seqs).toEqual([...seqs].sort((a, b) => a - b));
     expect(new Set(seqs).size).toBe(4);
   });
+
+  it("pages in numeric change_seq order once sequence numbers reach two digits", async () => {
+    server = await startSyncServer({ connectionString: await harness.freshDatabase() });
+    const commands = Array.from({ length: 13 }, (_, i) => createCommand(i + 1));
+    await push(server.url, "till-a", commands);
+    const seqs: number[] = [];
+    let cursor = "0";
+    for (let page = await pull(server.url, cursor, 5); ; page = await pull(server.url, cursor, 5)) {
+      seqs.push(...page.changes.map((c) => Number(c.change_seq)));
+      cursor = page.next_cursor;
+      if (!page.has_more) break;
+    }
+    expect(seqs).toEqual(Array.from({ length: 26 }, (_, i) => i + 1));
+  });
 });

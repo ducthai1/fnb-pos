@@ -1,0 +1,117 @@
+{
+  "first": {
+    "writeLatency": {
+      "count": 2000,
+      "p50Ms": 1.59,
+      "p95Ms": 1.994,
+      "p99Ms": 4.212,
+      "maxMs": 6.813,
+      "totalMs": 3305.377
+    },
+    "journalMode": "wal",
+    "offlineAttempt": {
+      "pending": 2000,
+      "caughtUp": false
+    },
+    "sizesAfter2000": {
+      "pagesBytes": 3182592,
+      "dbFile": 3125248,
+      "walFile": 4181832
+    },
+    "syncMs": 2798,
+    "serverPushSpanMs": 2672,
+    "till": {
+      "commands": 2000,
+      "pending": 0,
+      "rejected": 0,
+      "lostEffects": 0,
+      "matchesServer": true,
+      "mismatchedOrders": 0
+    },
+    "server": {
+      "orders": 2000,
+      "lines": 6000,
+      "paidOrders": 0,
+      "changeRows": 8000,
+      "maxChangeSeq": "8000",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    },
+    "stats": {
+      "pushRounds": 21,
+      "pushRequests": 21,
+      "pushFailures": 1,
+      "pullRequests": 9,
+      "pullFailures": 0,
+      "pullsDeferred": 0,
+      "accepted": 2000,
+      "replayed": 0,
+      "rejected": 0,
+      "retriedOutOfOrder": 0,
+      "rejectionCodes": {},
+      "cursorHistory": 9
+    },
+    "cursorNeverDecreased": true,
+    "cursor": "8000"
+  },
+  "second": {
+    "counts": {
+      "created": 500,
+      "linesAdded": 150,
+      "paid": 140
+    },
+    "unplugCount": 20,
+    "drainAfterLastWriteMs": 6719,
+    "cursorAtStart": "8000",
+    "cursorNeverDecreased": true,
+    "till": {
+      "commands": 2790,
+      "pending": 0,
+      "rejected": 0,
+      "lostEffects": 0,
+      "matchesServer": true,
+      "mismatchedOrders": 0
+    },
+    "server": {
+      "orders": 2500,
+      "lines": 7650,
+      "paidOrders": 140,
+      "changeRows": 10440,
+      "maxChangeSeq": "10440",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    },
+    "stats": {
+      "pushRounds": 40,
+      "pushRequests": 113,
+      "pushFailures": 53,
+      "pullRequests": 5,
+      "pullFailures": 1,
+      "pullsDeferred": 0,
+      "accepted": 790,
+      "replayed": 365,
+      "rejected": 0,
+      "retriedOutOfOrder": 690,
+      "rejectionCodes": {},
+      "cursorHistory": 6
+    },
+    "faults": {
+      "requests": 118,
+      "droppedRequests": 6,
+      "droppedResponses": 11,
+      "delayed": 21,
+      "duplicated": 12,
+      "lateDeliveries": 12,
+      "refusedWhileUnplugged": 14,
+      "lostToUnplug": 11
+    },
+    "dbFileBeforeClose": 4128768
+  },
+  "dbFileAfterClose": 4128768
+}

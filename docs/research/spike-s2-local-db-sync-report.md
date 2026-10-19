@@ -18,17 +18,25 @@ Thiết kế "máy quầy giữ SQLite cục bộ + hàng đợi lệnh idempote
 ```
 cd spikes/local-db-sync
 pnpm install --ignore-workspace
+pnpm test                      # 21 test: store, server, sync dưới lỗi mạng, 2 máy
+pnpm typecheck
+pnpm measure:offline-sync      # → results/offline-then-sync.json
+npx tsx src/scenarios/run-local-write-latency-scenario.ts   # → results/local-write-latency.json
+pnpm measure:two-devices       # → results/two-devices.json
+pnpm measure:browser           # → results/browser-opfs.json
 ```
+Số liệu gốc nằm ở `spikes/local-db-sync/results/*.json`. Máy đo: 12 nhân, ext4 trên NVMe. Dữ liệu kịch bản đặt ở `spikes/local-db-sync/tmp/` (ổ thật) vì `/tmp` của máy là tmpfs — trên tmpfs `fsync` miễn phí, số ghi đẹp gấp ~30 lần thực tế (đo được: p50 0,049 ms trên tmpfs so với 1,59 ms trên ổ thật).
 
 ## 4. Kết quả đo
 
 | Kịch bản | Số đo | Kết quả |
 |---|---|---|
-| 2.000 đơn offline rồi đồng bộ | mất / trùng / thời gian | chưa đo |
-| Ghi 1 đơn (đơn + 3 dòng + outbox) — node:sqlite | p50 / p95 | chưa đo |
+| 2.000 đơn offline rồi đồng bộ (mạng sạch, lô 100) | mất / trùng / thời gian | **0 / 0**; 2,8 s (đẩy 2.000 lệnh 2,67 s ≈ 1,3 ms/lệnh vì mỗi lệnh 1 transaction có fsync; kéo 8.000 thay đổi 0,13 s) |
+| Ghi 1 đơn (đơn + 3 dòng + outbox) — node:sqlite, WAL, `synchronous=FULL` | p50 / p95 / p99 | 1,59 / 1,99 / 4,2 ms |
+| Như trên, `synchronous=NORMAL` | p50 / p95 / p99 | 0,048 / 0,12 / 3,5 ms (p99 là lúc checkpoint WAL) |
 | Ghi 1 đơn — WASM/OPFS (opfs-sahpool, Worker) | p50 / p95 | chưa đo |
-| Dung lượng DB cục bộ sau 2.000 đơn | byte | chưa đo |
-| Lần 2 trên cùng DB, +500 đơn, có lỗi mạng | mất / trùng / cursor lùi? | chưa đo |
+| Dung lượng DB cục bộ sau 2.000 đơn (6.000 dòng + 2.000 lệnh outbox) | byte | 3,18 MB (~1,6 KB/đơn) sau checkpoint; WAL lúc đang chạy thêm 4,2 MB |
+| Lần 2: khởi động lại server + mở lại đúng file SQLite, +500 đơn, 150 thêm món, 140 thanh toán, vừa ghi vừa sync, lỗi mạng + 20 lần rút mạng | mất / trùng / cursor lùi? | **0 / 0 / không lùi** (cursor 8.000 → 10.440); 118 request, 53 hỏng; server trả lại kết quả cũ 365 lần; 690 lệnh bị `retry` vì đảo thứ tự; xong 6,7 s sau đơn cuối |
 | 2 thiết bị cùng đẩy | thứ tự change_seq / hội tụ | chưa đo |
 
 ## 5. Bẫy gặp phải
@@ -39,6 +47,9 @@ pnpm install --ignore-workspace
 4. **Từ chối cũng phải lưu**: lệnh bị từ chối mà không lưu thì lần gửi lại có thể được chấp nhận vì trạng thái đã đổi ⇒ cùng một lệnh hai kết quả. `applied_command` lưu cả `rejected` + mã.
 5. **So tổng tiền của lệnh "thêm món" với tổng đơn là sai** khi 2 máy cùng thêm món vào một đơn: server chỉ so tiền của chính dòng đó; lệnh "thanh toán" thì so tổng đơn (khách trả số tiền khác tổng hiện tại là xung đột thật, cần người xử lý).
 6. **`rowid` tái sử dụng**: outbox dùng `INTEGER PRIMARY KEY` thường thì xóa dòng cuối xong số đó được cấp lại ⇒ hai lệnh khác nhau cùng `device_seq`. Phải `AUTOINCREMENT` (có test).
+8. **`ORDER BY` bám vào alias đã ép sang text** (lỗi thật của spike, test tái hiện "pages in numeric change_seq order once sequence numbers reach two digits"): `SELECT change_seq::text AS change_seq … ORDER BY change_seq LIMIT n` sắp theo chữ ("10" < "9"); trang đầy kết thúc sớm, các dòng xếp sau nó **không bao giờ được gửi** — 5/300 đơn lệch ở máy. Test cũ chỉ có 4 thay đổi (một chữ số) nên xanh. Chỉ lộ ra nhờ phép so trạng thái máy = server sau khi đồng bộ. Sửa: không ép kiểu (pg đã trả int8 dạng chuỗi).
+9. **Đo trên tmpfs là đo sai**: `/tmp` máy này là tmpfs, mọi số commit đẹp gấp ~30 lần.
+10. **Pipeline nhiều lô + bắt buộc thứ tự = tốn công**: 3 lô bay cùng lúc dưới mạng trễ ngẫu nhiên ⇒ 690 lệnh bị trả `retry` (đúng, không mất gì) nhưng phí băng thông. Sản phẩm nên để 1 lô/lần (đẩy 2.000 lệnh vẫn < 3 s).
 7. **Kiểu dữ liệu qua biên**: JSON không chở được `bigint` (tiền đi dạng chuỗi); `pg` trả `int8` dạng chuỗi (tốt cho tiền) nhưng trả `date` thành `Date` lúc nửa đêm giờ máy (lệch ngày kinh doanh) ⇒ đặt type parser giữ chuỗi; SQLite trả INTEGER dạng `number` (node:sqlite ném lỗi khi > 2^53 thay vì làm tròn) ⇒ đổi sang `bigint` ở đúng một chỗ đọc.
 
 ## 6. Spike KHÔNG kiểm được

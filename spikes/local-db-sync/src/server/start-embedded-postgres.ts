@@ -24,8 +24,8 @@ export async function findFreePort(): Promise<number> {
 }
 
 /** A fresh, empty data directory owned by this process; removed by `removePostgresDir`. */
-export function makePostgresDir(label: string): string {
-  return mkdtempSync(join(tmpdir(), `spike-pg-${process.pid}-${label}-`));
+export function makePostgresDir(label: string, baseDir: string = tmpdir()): string {
+  return mkdtempSync(join(baseDir, `spike-pg-${process.pid}-${label}-`));
 }
 
 export function removePostgresDir(dataDir: string): void {
