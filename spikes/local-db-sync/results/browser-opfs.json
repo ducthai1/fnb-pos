@@ -1,0 +1,260 @@
+{
+  "chrome": "151.0.7922.108",
+  "firstLoadStatus": 200,
+  "firstOpen": {
+    "sqliteVersion": "3.53.4",
+    "walRequestAnswer": "delete",
+    "pragmaAnswers": [],
+    "journalMode": "delete",
+    "crossOriginIsolated": false,
+    "poolFiles": [
+      "/till-browser.db"
+    ],
+    "poolCapacity": 16,
+    "cursor": "0",
+    "commands": {
+      "pending": 0,
+      "accepted": 0,
+      "rejected": 0
+    }
+  },
+  "offlineWrites": {
+    "latency": {
+      "count": 2000,
+      "p50Ms": 5.7,
+      "p95Ms": 7.3,
+      "p99Ms": 9.3,
+      "maxMs": 13.3,
+      "totalMs": 11541.9
+    },
+    "pagesBytes": 3252224,
+    "exportedFileBytes": 3252224,
+    "storageEstimate": {
+      "quota": 10757344190,
+      "usage": 19925950,
+      "usageDetails": {
+        "fileSystem": 19925950
+      }
+    }
+  },
+  "firstSync": {
+    "syncMs": 4227,
+    "stats": {
+      "pushRounds": 80,
+      "pushRequests": 80,
+      "pushFailures": 0,
+      "pullRequests": 9,
+      "pullFailures": 0,
+      "pullsDeferred": 0,
+      "accepted": 2000,
+      "replayed": 0,
+      "rejected": 0,
+      "retriedOutOfOrder": 0,
+      "rejectionCodes": {},
+      "cursorHistory": [
+        "1000",
+        "2000",
+        "3000",
+        "4000",
+        "5000",
+        "6000",
+        "7000",
+        "8000",
+        "8000"
+      ]
+    }
+  },
+  "firstCheck": {
+    "serverHash": "2685a15665e731ed",
+    "browserHash": "2685a15665e731ed",
+    "till": {
+      "commands": 2000,
+      "pending": 0,
+      "rejected": 0,
+      "lostEffects": 0,
+      "matchesServer": true,
+      "mismatchedOrders": 0
+    },
+    "server": {
+      "orders": 2000,
+      "lines": 6000,
+      "paidOrders": 0,
+      "changeRows": 8000,
+      "maxChangeSeq": "8000",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    },
+    "cursor": "8000",
+    "pagesBytes": 3260416
+  },
+  "reloadStatus": 200,
+  "reopened": {
+    "sqliteVersion": "3.53.4",
+    "walRequestAnswer": "delete",
+    "pragmaAnswers": [],
+    "journalMode": "delete",
+    "crossOriginIsolated": false,
+    "poolFiles": [
+      "/till-browser.db"
+    ],
+    "poolCapacity": 16,
+    "cursor": "8000",
+    "commands": {
+      "pending": 0,
+      "accepted": 2000,
+      "rejected": 0
+    }
+  },
+  "secondRun": {
+    "counts": {
+      "created": 500,
+      "linesAdded": 154,
+      "paid": 140
+    },
+    "unplugCount": 20,
+    "drainMs": 11356,
+    "stats": {
+      "pushRounds": 52,
+      "pushRequests": 52,
+      "pushFailures": 20,
+      "pullRequests": 6,
+      "pullFailures": 2,
+      "pullsDeferred": 0,
+      "accepted": 794,
+      "replayed": 300,
+      "rejected": 0,
+      "retriedOutOfOrder": 0,
+      "rejectionCodes": {},
+      "cursorHistory": [
+        "9000",
+        "10000",
+        "10448",
+        "10448"
+      ]
+    },
+    "faults": {
+      "requests": 58,
+      "droppedRequests": 3,
+      "droppedResponses": 6,
+      "delayed": 11,
+      "duplicated": 5,
+      "lateDeliveries": 5,
+      "refusedWhileUnplugged": 5,
+      "lostToUnplug": 3
+    }
+  },
+  "secondCheck": {
+    "serverHash": "927b9c01885d92ca",
+    "browserHash": "927b9c01885d92ca",
+    "till": {
+      "commands": 2794,
+      "pending": 0,
+      "rejected": 0,
+      "lostEffects": 0,
+      "matchesServer": true,
+      "mismatchedOrders": 0
+    },
+    "server": {
+      "orders": 2500,
+      "lines": 7654,
+      "paidOrders": 140,
+      "changeRows": 10448,
+      "maxChangeSeq": "10448",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    },
+    "cursor": "10448",
+    "pagesBytes": 4161536
+  },
+  "secondTabOpen": {
+    "opened": false,
+    "error": "page.evaluate: Error: Failed to execute 'createSyncAccessHandle' on 'FileSystemFileHandle': Access Handles cannot be created if there is another open Access Handle or Writable stream associated with the same file."
+  },
+  "variants": [
+    {
+      "name": "synchronous NORMAL",
+      "pragmaAnswers": [
+        [
+          "PRAGMA synchronous = NORMAL",
+          null
+        ]
+      ],
+      "journalMode": "delete",
+      "latency": {
+        "count": 500,
+        "p50Ms": 5.1,
+        "p95Ms": 6.5,
+        "p99Ms": 7.6,
+        "maxMs": 9.6,
+        "totalMs": 2602.1
+      }
+    },
+    {
+      "name": "journal PERSIST",
+      "pragmaAnswers": [
+        [
+          "PRAGMA journal_mode = PERSIST",
+          "persist"
+        ]
+      ],
+      "journalMode": "persist",
+      "latency": {
+        "count": 500,
+        "p50Ms": 3.3,
+        "p95Ms": 4.4,
+        "p99Ms": 6,
+        "maxMs": 7.7,
+        "totalMs": 1684.1
+      }
+    },
+    {
+      "name": "exclusive lock + WAL",
+      "pragmaAnswers": [
+        [
+          "PRAGMA locking_mode = EXCLUSIVE",
+          "exclusive"
+        ],
+        [
+          "PRAGMA journal_mode = WAL",
+          "wal"
+        ]
+      ],
+      "journalMode": "wal",
+      "latency": {
+        "count": 500,
+        "p50Ms": 1,
+        "p95Ms": 2.3,
+        "p99Ms": 3.6,
+        "maxMs": 9.1,
+        "totalMs": 610.6
+      }
+    },
+    {
+      "name": "journal OFF (unsafe)",
+      "pragmaAnswers": [
+        [
+          "PRAGMA journal_mode = OFF",
+          "off"
+        ]
+      ],
+      "journalMode": "off",
+      "latency": {
+        "count": 500,
+        "p50Ms": 1,
+        "p95Ms": 1.9,
+        "p99Ms": 2.3,
+        "maxMs": 4.8,
+        "totalMs": 564.5
+      }
+    }
+  ],
+  "pageErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

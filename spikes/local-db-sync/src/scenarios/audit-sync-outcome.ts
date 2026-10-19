@@ -91,7 +91,10 @@ export async function auditServer(pool: pg.Pool): Promise<ServerAudit> {
   };
 }
 
-export async function auditTill(store: LocalStore, server: readonly OrderSnapshot[]): Promise<TillAudit> {
+export async function auditTill(
+  store: Pick<LocalStore, "listCommands" | "listOrderSnapshots">,
+  server: readonly OrderSnapshot[],
+): Promise<TillAudit> {
   const serverOrders = new Map(server.map((s) => [s.order.id, s]));
   const serverLines = new Set(server.flatMap((s) => s.lines.map((line) => line.id)));
   const commands = await store.listCommands();

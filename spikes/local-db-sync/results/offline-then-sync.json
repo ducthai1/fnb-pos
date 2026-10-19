@@ -2,11 +2,11 @@
   "first": {
     "writeLatency": {
       "count": 2000,
-      "p50Ms": 1.59,
-      "p95Ms": 1.994,
-      "p99Ms": 4.212,
-      "maxMs": 6.813,
-      "totalMs": 3305.377
+      "p50Ms": 1.201,
+      "p95Ms": 1.391,
+      "p99Ms": 2.909,
+      "maxMs": 7.191,
+      "totalMs": 2564.981
     },
     "journalMode": "wal",
     "offlineAttempt": {
@@ -18,8 +18,8 @@
       "dbFile": 3125248,
       "walFile": 4181832
     },
-    "syncMs": 2798,
-    "serverPushSpanMs": 2672,
+    "syncMs": 2848,
+    "serverPushSpanMs": 2733,
     "till": {
       "commands": 2000,
       "pending": 0,
@@ -64,7 +64,7 @@
       "paid": 140
     },
     "unplugCount": 20,
-    "drainAfterLastWriteMs": 6719,
+    "drainAfterLastWriteMs": 6303,
     "cursorAtStart": "8000",
     "cursorNeverDecreased": true,
     "till": {
@@ -89,29 +89,29 @@
     },
     "stats": {
       "pushRounds": 40,
-      "pushRequests": 113,
-      "pushFailures": 53,
-      "pullRequests": 5,
-      "pullFailures": 1,
+      "pushRequests": 116,
+      "pushFailures": 54,
+      "pullRequests": 6,
+      "pullFailures": 2,
       "pullsDeferred": 0,
       "accepted": 790,
-      "replayed": 365,
+      "replayed": 275,
       "rejected": 0,
-      "retriedOutOfOrder": 690,
+      "retriedOutOfOrder": 750,
       "rejectionCodes": {},
       "cursorHistory": 6
     },
     "faults": {
-      "requests": 118,
+      "requests": 122,
       "droppedRequests": 6,
-      "droppedResponses": 11,
+      "droppedResponses": 12,
       "delayed": 21,
-      "duplicated": 12,
+      "duplicated": 10,
       "lateDeliveries": 12,
-      "refusedWhileUnplugged": 14,
-      "lostToUnplug": 11
+      "refusedWhileUnplugged": 20,
+      "lostToUnplug": 6
     },
-    "dbFileBeforeClose": 4128768
+    "dbFileBeforeClose": 4132864
   },
-  "dbFileAfterClose": 4128768
+  "dbFileAfterClose": 4132864
 }

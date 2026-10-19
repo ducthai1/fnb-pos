@@ -8,7 +8,8 @@
     "build:browser": "tsx src/browser/build-browser-bundle.ts",
     "measure:offline-sync": "tsx src/scenarios/run-offline-then-sync-scenario.ts",
     "measure:two-devices": "tsx src/scenarios/run-two-devices-scenario.ts",
-    "measure:browser": "tsx src/scenarios/run-browser-opfs-scenario.ts"
+    "measure:browser": "tsx src/scenarios/run-browser-opfs-scenario.ts",
+    "measure:write-latency": "tsx src/scenarios/run-local-write-latency-scenario.ts"
   },
   "dependencies": {
     "@sqlite.org/sqlite-wasm": "3.53.4-build2",
