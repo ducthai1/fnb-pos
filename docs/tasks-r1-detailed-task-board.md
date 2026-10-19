@@ -6,10 +6,11 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 — T00-06 xong: khung monorepo (pnpm 10 + Turborepo + TS 5.9 + Vitest 3 + ESLint 9), `packages/domain` với luật eslint cấm `Date.now`/`Math.random`/`fetch`, CI GitHub Actions chạy `pnpm verify`. Đã thử làm hỏng: test đỏ khi sai, lint đỏ khi domain gọi `Date.now()`.
-- Máy dev: pnpm qua `corepack enable pnpm` (shim nằm trong thư mục bin của nvm). Chưa có Rust và Android SDK — cần cho T00-08.
-- Tiếp theo: **T00-07** (spike DB cục bộ + đồng bộ) — không cần gì từ user.
-- Đang chờ user: hồ sơ quán thí điểm (T00-01), tài khoản dùng thử (T00-02/03), kế toán (T00-05), sandbox SePay/PayOS + nhà cung cấp hóa đơn (T00-09/10).
+- 2026-10-20 01:30 — Đợt code 1 (4 agent song song, worktree riêng, 877k token) đã merge vào `main` + push: lõi đơn hàng (mô hình, cây dòng, máy trạng thái), ngày kinh doanh, làm tròn tiền mặt, menu/tùy chọn/combo/giá, nền móng DB (migration SQL + runner, UUIDv7, Postgres 17 nhúng cho test, tenancy + RLS FORCE + khóa ngoại kép), Fastify `/health`, spike đồng bộ S2 (báo cáo `research/spike-s2-local-db-sync-report.md`).
+- Cổng: `pnpm verify` (247 unit) + `pnpm test:api` (120 tích hợp, ~3s, không cần Docker) đều xanh.
+- **Việc gấp trước R1 (từ spike):** bẫy 12 — giờ cao điểm 2 máy bán cùng lúc thì "chỉ kéo khi hàng đợi trống" làm máy gần như không kéo được, 5–18% lệnh bị từ chối. Cách sửa đề xuất: kết quả `accepted` mang ảnh chụp đơn sau khi áp. Ghi ở Backlog, làm cùng T04-02/03.
+- Tiếp theo: đợt 2 — T02-05 + T02-07 (tổng tiền, phân bổ), T02-09 + T02-11 (hủy/hoàn, property), T01-04…06 (đăng nhập, thiết bị, PIN), T01-07…09 (quyền, duyệt, cấu hình kế thừa).
+- Đang chờ user: T00-01…05, T00-08 (máy in thật), T00-09/10 (sandbox); các câu hỏi đánh dấu "chờ user" trong decision-log (D-022…D-024).
 
 ---
 
@@ -46,6 +47,7 @@
 - **Test:** 2.000 đơn offline; rút/cắm mạng 20 lần; gửi trùng; đến sai thứ tự; chạy tiếp trên dữ liệu lần trước.
 - **Xong khi:** báo cáo số đo: không mất/trùng đơn; thời gian ghi 1 đơn; dung lượng; kết quả trên Safari iOS (nếu có máy) ⇒ khóa D-008.
 - **Phụ thuộc:** T00-06.
+- **Trạng thái:** done (2026-10-20) — 0 mất / 0 trùng với 2.000 đơn offline + 500 đơn chạy tiếp trên dữ liệu cũ có lỗi mạng; ghi 1 đơn node:sqlite ~1,2–1,6 ms (synchronous=FULL); SQLite WASM/OPFS chạy được trong Chrome headless (opfs-sahpool chỉ 1 tab). Lộ bẫy 12 (xem Backlog). D-008 giữ, có điều chỉnh (D-021).
 
 ### T00-08 Spike S1: in ấn — Claude + `user` cắm máy in
 - **Làm:** `spikes/printing/`: mã hóa ESC/POS (tiếng Việt có dấu: thử code page và chế độ ảnh raster) + TSPL (tem); gửi qua TCP 9100 từ Tauri và Capacitor; Bluetooth trên Android; Sunmi nếu có; mở két.
@@ -70,14 +72,17 @@
 ### T01-01 Tooling monorepo
 - **Làm:** turbo pipeline `verify/test:unit/test:api/test:sync/e2e/build`; eslint 0 warning; path alias; script `pnpm verify`.
 - **Xong khi:** mọi lệnh gate chạy được (kể cả khi chưa có test) và trả exit code đúng.
+- **Trạng thái:** một phần (2026-10-20) — đã có `test:api` (turbo, cache: false) + bước CI; `test:sync`/`e2e`/`build` thêm khi có code tương ứng.
 
 ### T01-02 Postgres + migration + helper test
 - **Làm:** docker compose Postgres 16; drizzle-kit; helper tạo DB test riêng mỗi lần chạy, dọn sau.
 - **Test:** `apps/api/test/integration/infra/migrations-apply-cleanly.test.ts`.
+- **Trạng thái:** done (2026-10-20) — migration SQL viết tay + runner (khóa advisory, checksum, 1 transaction/file), Postgres 17.10 nhúng (cổng động, thư mục tạm), role `fnb_owner` (migration) / `fnb_app` (DML). Không dùng Docker (máy không có quyền).
 
 ### T01-03 Tenancy + RLS
 - **Làm:** `organization, brand, branch, area, table(khung), device, user`; RLS mọi bảng; `SET app.tenant_id` mỗi request.
 - **Test:** `apps/api/test/integration/tenancy/rls-blocks-cross-tenant-reads.test.ts` — tenant A không đọc/ghi được của B (đọc, sửa, xóa, liệt kê); tắt RLS thì test đỏ.
+- **Trạng thái:** done (2026-10-20) — 7 bảng tenancy, ENABLE + FORCE RLS, policy `NULLIF(current_setting('app.tenant_id', true), '')::uuid`, UNIQUE (tenant_id, id) + khóa ngoại kép (tenant_id, parent_id) vì kiểm FK bỏ qua RLS; test âm chéo tenant + test owner bị RLS ràng buộc. `withTenant` + Fastify `buildApp` + `/health`.
 
 ### T01-04 Đăng nhập backoffice
 - **Làm:** SĐT/email + mật khẩu; OTP (nhà cung cấp SMS/email để sau, giao diện adapter); phiên; quên mật khẩu.
@@ -120,13 +125,16 @@
 ### T02-02 `resolvePrice`
 - **Luật:** ưu tiên variant > product > category > global; lọc chi nhánh, kênh, ngày, giờ, thứ; giá nhập tay; theo cân (đơn giá × số lượng 3 lẻ).
 - **Test:** `pricing/resolve-price.test.ts` — mỗi tầng ưu tiên; happy hour bật đúng phút; ngoài khung giờ thì về giá thường.
+- **Trạng thái:** done (2026-10-20) — `pricing/resolve-price.ts` + `validatePriceListItem`; ưu tiên variant > product > category > global, rồi branch > null, channel > null, priority, id. Có 3 câu hỏi chờ user (D-022).
 
 ### T02-03 `validateModifierSelection`
 - **Luật:** min/max/bắt buộc; điều kiện theo biến thể; chọn trùng; max theo tùy chọn.
 - **Test:** `catalog/validate-modifier-selection.test.ts` — mỗi luật một ca qua + một ca bị chặn với mã lỗi.
+- **Trạng thái:** done (2026-10-20) — `catalog/validate-modifier-group-config.ts`, `validate-modifier-selection.ts`; bắt buộc ⇔ minSelect ≥ 1; fixture trà sữa trân châu.
 
 ### T02-04 `resolveCombo`
 - **Test:** `catalog/resolve-combo.test.ts` — đổi món có phụ thu; thiếu slot bắt buộc bị chặn.
+- **Trạng thái:** done (2026-10-20) — `catalog/resolve-combo.ts`.
 
 ### T02-05 Cây dòng đơn + `computeOrderTotals`
 - **Luật:** dòng `item | modifier | combo_component | discount`; VAT + phí dịch vụ theo kênh; phí trước/sau khuyến mãi; giá gồm/cộng thuế.
@@ -134,6 +142,7 @@
 
 ### T02-06 Làm tròn
 - **Test:** `totals/rounding.test.ts` — chỉ tiền mặt vs toàn đơn; từng phương pháp.
+- **Trạng thái:** done (2026-10-20) — `rounding/cash-rounding.ts` (`roundToStep`, `cashRoundingAdjustment`).
 
 ### T02-07 Giảm toàn đơn + phân bổ
 - **Luật:** tách một dòng âm mỗi thuế suất; phân bổ theo tỉ lệ, dư đồng lẻ dồn dòng lớn nhất.
@@ -141,6 +150,7 @@
 
 ### T02-08 Máy trạng thái đơn + mã lỗi
 - **Test:** `order/order-state-machine.test.ts` — mọi chuyển hợp lệ; mọi chuyển cấm trả đúng mã (`DOMAIN_ORDER_ALREADY_PAID`…).
+- **Trạng thái:** done (2026-10-20) — `order/` (types, line tree, state machine). Dòng con: quantity tính trên MỘT đơn vị dòng cha (D-020). Dòng âm (hủy/hoàn) chưa có — thêm ở T02-09.
 
 ### T02-09 `voidLine` + `buildRefund`
 - **Luật:** chưa gửi ⇒ sửa; đã gửi ⇒ dòng âm có lý do; đã trả ⇒ đơn hoàn dòng âm, số lượng còn hoàn tính cả đơn hoàn chưa trả, cờ `restock`.
@@ -148,6 +158,7 @@
 
 ### T02-10 `businessDate`
 - **Test:** `time/business-date.test.ts` — 03:59 thuộc hôm trước với giờ cắt 4h; đổi giờ cắt theo chi nhánh; múi giờ.
+- **Trạng thái:** done (2026-10-20) — `time/business-date.ts`. Sau merge phát hiện property test đỏ ngẫu nhiên: `fc.date` của fast-check 4 sinh ngày không hợp lệ ⇒ đã thêm `noInvalidDate: true` (luật mới trong testing-strategy).
 
 ### T02-11 Bộ property test + `domain_version`
 - **Xong khi:** 10.000 đơn ngẫu nhiên: tổng tính 2 lần (mô phỏng client/server) trùng từng đồng; độ phủ domain ≥ 95%.
@@ -312,3 +323,13 @@
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
+
+- 2026-10-20 · **[gấp, trước R1]** Bẫy 12 của spike S2: kết quả `accepted` phải mang ảnh chụp đơn sau khi áp để máy vẫn kéo được khi còn lệnh chờ; cần test hội tụ 2 máy giờ cao điểm (tỉ lệ từ chối ≈ 0). → T04-02/03.
+- 2026-10-20 · Mang các "ratchet test" của spike sang `packages/sync-client` + `apps/api`: không bỏ sót thay đổi khi commit muộn (advisory lock), phân trang qua change_seq 2 chữ số, giao trùng đồng thời, lô đảo thứ tự ⇒ retry, chạy lần 2 trên dữ liệu cũ, trạng thái máy = server (hash), tổng ngày = tổng dòng. → T04-02/03.
+- 2026-10-20 · Kiểm cấu hình nhóm tùy chọn không thể thỏa (min > số option khi không cho trùng, hoặc Σ maxQuantity < min). → T03-02.
+- 2026-10-20 · `validateComboConfig` (slot min/max, option trùng, product id không tồn tại). → T03-02.
+- 2026-10-20 · Kiểm tham chiếu cấp món: khóa `variantRules` và item bảng giá theo variant phải trỏ đúng variant của món; id item bảng giá không trùng. → T03-02.
+- 2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.
+- 2026-10-20 · `newId()` đang ở `@fnb/db`; POS offline cần cùng bộ sinh từ gói không phụ thuộc server ⇒ tách gói `ids` nhỏ khi bắt đầu POS. → T04-01.
+- 2026-10-20 · Đăng ký tổ chức mới chạy bằng role app hay đường riêng — quyết ở T01-04.
+- 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.

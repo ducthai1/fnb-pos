@@ -7,11 +7,11 @@
 
 | ID | Tính năng | Catalog | Task | Test bảo vệ (dự kiến) | Trạng thái |
 |---|---|---|---|---|---|
-| FT-001 | Tenant, chi nhánh, ghép/thu hồi thiết bị | §3 | T01-03, T01-05 | `apps/api/test/integration/tenancy/rls-blocks-cross-tenant-reads.test.ts`, `…/devices/revoked-device-is-rejected.test.ts` | chưa |
+| FT-001 | Tenant, chi nhánh, ghép/thu hồi thiết bị | §3 | T01-03, T01-05 | `apps/api/test/integration/tenancy/rls-blocks-cross-tenant-reads.test.ts`, `…/tenancy/row-level-security-binds-the-owner-role.test.ts`, `…/devices/revoked-device-is-rejected.test.ts` (chưa có) | đang — tenancy + RLS xong; thiết bị chưa |
 | FT-002 | PIN nhân viên, khóa quyền, duyệt tại chỗ, nhật ký | §16 | T01-06…08 | `packages/domain/src/permissions/authorize.test.ts`, `apps/api/test/integration/auth/staff-pin-lockout.test.ts`, `…/auth/manager-approval-is-logged.test.ts` | chưa |
 | FT-003 | Cấu hình kế thừa + công tắc có ràng buộc | §2, §21 | T01-09 | `packages/feature-flags/src/validate-flag-constraints.test.ts`, `…/resolve-inherited-config.test.ts` | chưa |
-| FT-004 | Menu: món, biến thể, nhóm tùy chọn, combo | §4 | T02-03, T02-04, T03-01…05 | `packages/domain/src/catalog/validate-modifier-selection.test.ts`, `…/resolve-combo.test.ts`, `e2e/backoffice/build-milk-tea-menu.spec.ts` | chưa |
-| FT-005 | Giá: theo chi nhánh/kênh/giờ, nhập tay, theo cân | §4 | T02-02, T03-06 | `packages/domain/src/pricing/resolve-price.test.ts` | chưa |
+| FT-004 | Menu: món, biến thể, nhóm tùy chọn, combo | §4 | T02-03, T02-04, T03-01…05 | `packages/domain/src/catalog/{validate-modifier-group-config,validate-modifier-selection,validate-modifier-selection-limits,resolve-combo}.test.ts`, `e2e/backoffice/build-milk-tea-menu.spec.ts` (chưa có) | đang — luật domain xong; schema/API/UI chưa |
+| FT-005 | Giá: theo chi nhánh/kênh/giờ, nhập tay, theo cân | §4 | T02-02, T03-06 | `packages/domain/src/pricing/{resolve-price,price-list-precedence,price-list-schedule,validate-price-list-item}.test.ts` | đang — domain xong; UI bảng giá chưa |
 | FT-006 | Hết món bật tay | §4 | T03-08 | `apps/api/test/integration/catalog/manual-86-hides-item-on-pos.test.ts` | chưa |
 | FT-007 | Mẫu loại quán | §21 | T03-10 | `packages/shop-templates/src/apply-template-is-idempotent.test.ts` | chưa |
 | FT-008 | Nhập/xuất menu Excel | §4 | T03-11 | `apps/api/test/integration/catalog/menu-excel-roundtrip.test.ts` | chưa |
@@ -33,7 +33,7 @@
 | FT-024 | VietQR động, tự xác nhận, khớp tay | §8 | T05-01…04 | `packages/domain/src/payment/vietqr-payload-crc.test.ts`, `apps/api/test/integration/payments/{webhook-is-idempotent,match-under-over-duplicate}.test.ts` | chưa |
 | FT-025 | Hóa đơn điện tử: mỗi lần bán, hàng đợi, gửi cuối ngày | §18 | T05-05…10 | `apps/api/test/integration/einvoice/{one-invoice-per-payment,queued-while-offline,daily-batch-submission}.test.ts` | chưa |
 | FT-026 | Thông tin người mua khi khách yêu cầu | §18 | T05-08 | `e2e/pos/invoice-with-buyer-tax-code.spec.ts` | chưa |
-| FT-027 | Ngày kinh doanh + chốt ngày | §2, §17 | T02-10, T05-11 | `packages/domain/src/time/business-date.test.ts`, `apps/api/test/integration/day-close/end-of-day-close.test.ts` | chưa |
+| FT-027 | Ngày kinh doanh + chốt ngày | §2, §17 | T02-10, T05-11 | `packages/domain/src/time/business-date.test.ts`, `apps/api/test/integration/day-close/end-of-day-close.test.ts` (chưa có) | đang — businessDate xong; chốt ngày chưa |
 | FT-028 | Báo cáo cơ bản (định nghĩa doanh thu cố định) | §17 | T05-12 | `apps/api/test/integration/reports/revenue-definitions.test.ts` | chưa |
 | FT-029 | Vận hành: giám sát, backup, staging, cập nhật app | — | T11-01…05 | `infra/restore-drill.md` (diễn tập ghi kết quả) | chưa |
 

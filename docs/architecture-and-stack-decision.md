@@ -56,7 +56,7 @@ Lý do quyết định (không phải sở thích):
 | Trang khách QR | Vite SPA nhẹ hoặc route Next.js | online-only |
 | API | Node 22 + Fastify + zod → OpenAPI | REST; đối tác/webhook cần REST rõ ràng |
 | ORM | Drizzle | Postgres ở server, SQLite ở client |
-| DB | PostgreSQL 16 | `tenant_id` mọi bảng + Row-Level Security |
+| DB | PostgreSQL 17 | `tenant_id` mọi bảng + Row-Level Security (ENABLE + FORCE), role `fnb_owner` / `fnb_app`, khóa ngoại kép (D-019); test chạy Postgres nhúng (D-017) |
 | Hàng đợi | pg-boss (trên Postgres) | KISS: không thêm Redis lúc đầu |
 | In | `packages/printing`: mẫu → ESC/POS (bill, bếp) + **TSPL** (máy in tem dán ly) [SPIKE] | vỏ native chỉ "đẩy byte" |
 | Test | Vitest (+ fast-check cho domain), Playwright (POS bản web), test tích hợp với Postgres thật | |
@@ -76,7 +76,7 @@ Lý do quyết định (không phải sở thích):
 - **Khi có mạng:** đơn đang mở trên bàn thì server là nguồn thật, khóa lạc quan bằng `version`; xung đột báo **ngay khi lưu**.
 - **Khi mất mạng:** mỗi máy bán đơn của chính nó; đơn tạo offline thì máy khác chỉ thấy sau khi đồng bộ (giống Toast [research D]). Đơn offline giữ `business_date` và ca **lúc bán**, không phải lúc gửi lên.
 - Chế độ "máy chính trong LAN" để nhiều máy chia sẻ bàn khi mất internet: để ở phase 06, có thể tách ra sau.
-- Đã cân nhắc PowerSync / Zero / ElectricSQL: chưa chọn vì POS cần **lệnh được server kiểm**, không chỉ đồng bộ hàng dữ liệu; xem lại nếu spike phase 00 cho thấy tự làm quá đắt.
+- Đã cân nhắc PowerSync / Zero / ElectricSQL: chưa chọn vì POS cần **lệnh được server kiểm**, không chỉ đồng bộ hàng dữ liệu. Spike S2 (2026-10-20, `research/spike-s2-local-db-sync-report.md`) xác nhận thiết kế tự làm: 0 mất / 0 trùng dưới lỗi mạng. Chi tiết giao thức đã đo: D-021. Còn bẫy 12 (kéo bị đói khi hàng đợi bận) phải sửa trước R1 — xem Backlog của bảng task.
 
 ## 6. In ấn & thiết bị
 

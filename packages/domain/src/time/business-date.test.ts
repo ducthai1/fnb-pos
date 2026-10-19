@@ -72,7 +72,11 @@ describe("businessDate", () => {
   });
 
   const instant = fc
-    .date({ min: new Date(Date.UTC(1990, 0, 1)), max: new Date(Date.UTC(2100, 0, 1)) })
+    .date({
+      min: new Date(Date.UTC(1990, 0, 1)),
+      max: new Date(Date.UTC(2100, 0, 1)),
+      noInvalidDate: true,
+    })
     .map((date) => date.getTime());
   const branch = fc.record({
     utcOffsetMinutes: fc.integer({ min: -720, max: 840 }),
