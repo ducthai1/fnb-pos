@@ -3,6 +3,7 @@ import { type Quantity, subtractQuantity } from "../money";
 import { ORDER_ERROR_CODES } from "./order-error-codes";
 import { reversedQuantityOf } from "./order-line-reversal-rules";
 import { buildReversalLines, findReversibleItem } from "./order-line-reversal-builder";
+import { assertNoWholeLineDiscount } from "./order-line-reversal-mirror";
 import { subtreeOf, validateLineTree } from "./order-line-tree";
 import { assertLinesEditable } from "./order-state-machine";
 import type { Order, OrderLine } from "./order-types";
@@ -75,6 +76,7 @@ export function voidLine(
     });
   }
   const original = findReversibleItem(order.lines, request.lineId);
+  assertNoWholeLineDiscount(order.lines, original);
   const { fromUnsent, fromSent } = splitVoid(order.lines, original, request);
   if (fromSent > 0n && request.requireApprovalAfterSent && !hasApprover(request)) {
     throw new DomainError(

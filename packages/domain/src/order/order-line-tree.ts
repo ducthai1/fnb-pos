@@ -53,6 +53,7 @@ export function validateLineTree(lines: readonly OrderLine[], options: LineTreeO
         { lineId: line.id, parentLineId: line.parentLineId },
       );
     }
+    assertWholeLineOnlyOnLineDiscount(line, parentType);
     assertLineQuantity(line, byId, options);
   }
   assertNotOverReversed(lines, byId, options);
@@ -79,6 +80,7 @@ export function subtreeOf(lines: readonly OrderLine[], lineId: string): OrderLin
  * quantities along the path to the root multiply. They are thousandths, so the product is
  * rescaled once at the end; that is only inexact when two fractional quantities meet
  * (1.5 kg × 0.333), and half-up keeps it symmetric for negative (void and refund) lines.
+ * A whole-line discount (wholeParentLine) is the exception: it stands for its own quantity.
  */
 export function effectiveQuantity(lines: readonly OrderLine[], lineId: string): Quantity {
   const byId = indexLines(lines);
@@ -95,10 +97,23 @@ export function effectiveQuantities(lines: readonly OrderLine[]): ReadonlyMap<st
 }
 
 function effectiveOf(byId: LineIndex, line: OrderLine): Quantity {
+  // a whole-line discount is for its item's line as a whole, not per unit of it
+  if (line.wholeParentLine === true) return line.quantity;
   const path = pathToRoot(byId, line);
   const product = path.reduce<bigint>((acc, l) => acc * l.quantity, 1n);
   const scale = QUANTITY_SCALE ** BigInt(path.length - 1);
   return quantityFromThousandths(divideRounded(product, scale, "half-up"));
+}
+
+/** Anywhere else "the whole parent line" would mean nothing, or a topping priced once per line. */
+function assertWholeLineOnlyOnLineDiscount(line: OrderLine, parentType: OrderLineType | null) {
+  if (line.wholeParentLine === undefined || line.wholeParentLine === false) return;
+  if (line.lineType === "discount" && parentType === "item") return;
+  throw new DomainError(
+    ORDER_ERROR_CODES.wholeLineDiscountMisplaced,
+    `${line.lineType} line ${line.id} under ${parentType ?? "the order root"} cannot be whole-line`,
+    { lineId: line.id, parentLineId: line.parentLineId },
+  );
 }
 
 function indexLines(lines: readonly OrderLine[]): LineIndex {

@@ -41,12 +41,29 @@ export function assertReversalsMirrorTargets(
     if (line.reversesLineId === null) continue;
     const target = byId.get(line.reversesLineId);
     if (!target) continue; // assertLineQuantity already refused a reversal of a missing line
+    assertNoWholeLineDiscount(lines, target);
     const field = HEAD_FIELDS.find((name) => line[name] !== target[name]);
     if (field !== undefined) throw mismatch(line, field);
     if (childrenShape(children, shapes, line.id) !== childrenShape(children, shapes, target.id)) {
       throw mismatch(line, "children");
     }
   }
+}
+
+/**
+ * Units of an item carrying a whole-line discount cannot be cancelled. That discount is a fixed
+ * amount, judged against the line as it was, and it stays whole on what is left: 10% of ten cups
+ * would become 100% of the one cup left, a rate nobody approved. Removing the discount, voiding,
+ * and giving it again has it judged on what is left (see projectedDiscountRate).
+ */
+export function assertNoWholeLineDiscount(lines: readonly OrderLine[], item: OrderLine): void {
+  const discount = lines.find((l) => l.parentLineId === item.id && l.wholeParentLine === true);
+  if (discount === undefined) return;
+  throw new DomainError(
+    ORDER_ERROR_CODES.voidBlockedByWholeLineDiscount,
+    `line ${item.id} carries whole-line discount ${discount.id}; remove it before voiding`,
+    { lineId: item.id, discountLineId: discount.id },
+  );
 }
 
 function mismatch(line: OrderLine, field: string): DomainError {
@@ -86,6 +103,7 @@ function childrenShape(
           child.taxRate,
           child.priceSource,
           String(child.quantity),
+          child.wholeParentLine === true,
           childrenShape(children, shapes, child.id),
         ]),
       )

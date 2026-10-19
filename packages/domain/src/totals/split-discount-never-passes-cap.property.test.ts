@@ -6,6 +6,7 @@ import type { OrderLine } from "../order";
 import { order, sequentialIds } from "../order/order-line-test-fixtures";
 import { authorize } from "../permissions";
 import { rateGrant } from "../permissions/permissions-test-helpers";
+import { type LineDiscount, buildLineDiscount } from "./build-line-discount";
 import { type OrderDiscount, buildOrderDiscountLines } from "./build-order-discount-lines";
 import { computeOrderTotals } from "./compute-order-totals";
 import { type DiscountScope, projectedDiscountRate } from "./cumulative-discount-rate";
@@ -59,6 +60,23 @@ const orderStep: fc.Arbitrary<OrderDiscount> = fc.oneof(
   fc.integer({ min: 1, max: 300_000 }).map((a) => ({ kind: "fixed", amount: vnd(a) }) as const),
 );
 
+type Step = (lines: OrderLine[], k: number) => OrderLine[];
+const onTheItem =
+  (discount: LineDiscount): Step =>
+  (lines, k) =>
+    buildLineDiscount(order(lines), "i", discount, sequentialIds(`d${k}`));
+const lineStep: fc.Arbitrary<Step> = fc.oneof(
+  fc
+    .integer({ min: 1, max: 50_000 })
+    .map((a): Step => (_, k) => [discountLine(`d${k}`, "i", a, VAT_8)]),
+  fc
+    .integer({ min: 1, max: 300_000 })
+    .map((a) => onTheItem({ kind: "fixed_for_line", amount: vnd(a) })),
+  fc
+    .integer({ min: 1, max: 10_000 })
+    .map((r) => onTheItem({ kind: "percent", rate: basisPoints(r) })),
+);
+
 /** Exactly what the discounts of the scope's kind take off and the base, from the bill itself. */
 function exactShare(lines: readonly OrderLine[], scope: DiscountScope) {
   const totalsOf = (ls: readonly OrderLine[]) => computeOrderTotals(order(ls), TAX_INCLUSIVE);
@@ -79,7 +97,7 @@ function giveInSteps(
   start: OrderLine[],
   scope: DiscountScope,
   limit: number,
-  steps: readonly ((lines: OrderLine[], k: number) => OrderLine[])[],
+  steps: readonly Step[],
 ): OrderLine[] {
   const key = scope.kind === "line" ? "line_discount" : "order_discount";
   let lines = start;
@@ -104,15 +122,16 @@ function giveInSteps(
 }
 
 describe("splitting a discount into steps never gets it past the cap without approval", () => {
-  it("on one item, however many line discounts it is cut into", () => {
-    const perUnit = fc.array(fc.integer({ min: 1, max: 50_000 }), { minLength: 1, maxLength: 8 });
+  it("on one item, however many line discounts it is cut into, per unit or whole-line", () => {
     fc.assert(
-      fc.property(toppedItem, cap, perUnit, (start, limit, amounts) => {
-        const steps = amounts.map((a) => (_: OrderLine[], k: number) => [
-          discountLine(`d${k}`, "i", a, VAT_8),
-        ]);
-        giveInSteps(start, { kind: "line", lineId: "i" }, limit, steps);
-      }),
+      fc.property(
+        toppedItem,
+        cap,
+        fc.array(lineStep, { minLength: 1, maxLength: 8 }),
+        (start, limit, steps) => {
+          giveInSteps(start, { kind: "line", lineId: "i" }, limit, steps);
+        },
+      ),
       RUNS,
     );
   });

@@ -10,4 +10,5 @@ export const TOTALS_ERROR_CODES = {
   earlierRefundWithoutAmounts: "DOMAIN_TOTALS_EARLIER_REFUND_WITHOUT_AMOUNTS",
   refundAmountsMismatch: "DOMAIN_TOTALS_REFUND_AMOUNTS_MISMATCH",
   invalidDiscountScope: "DOMAIN_TOTALS_INVALID_DISCOUNT_SCOPE",
+  discountOnPartlyVoidedLine: "DOMAIN_TOTALS_DISCOUNT_ON_PARTLY_VOIDED_LINE",
 } as const;
