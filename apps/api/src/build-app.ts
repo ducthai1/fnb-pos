@@ -8,6 +8,7 @@ import { type Clock, systemClock } from "./clock";
 import { deviceAuthHook } from "./devices/device-auth-hook";
 import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
+import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
@@ -70,6 +71,7 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
   registerDeviceRoutes(app, context);
   registerCreateStaffRoute(app, context);
   registerStaffSessionRoutes(app, context);
+  registerCatalogRoutes(app, context);
 
   return app;
 }
