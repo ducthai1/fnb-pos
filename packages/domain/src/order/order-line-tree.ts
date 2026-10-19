@@ -5,7 +5,9 @@ import {
   type LineTreeOptions,
   assertLineQuantity,
   assertNotOverReversed,
+  isRefund,
 } from "./order-line-reversal-rules";
+import { assertReversalsMirrorTargets } from "./order-line-reversal-mirror";
 import type { OrderLine, OrderLineType } from "./order-types";
 
 type LineIndex = ReadonlyMap<string, OrderLine>;
@@ -34,7 +36,9 @@ const WRONG_PARENT_CODE: Readonly<Record<OrderLineType, string>> = {
  * Throws a DomainError for the first rule a line breaks. Structure (unique ids, parents
  * exist, no cycles) is checked before line types, and line types before quantities and
  * reversals, so a corrupt tree reports what is actually wrong instead of a misleading error.
- * Pass `refundOfOrderId` for a refund's lines: they reverse lines of another order.
+ * On an ordinary order a negative item must copy the item it reverses (see
+ * assertReversalsMirrorTargets). Pass `refundOfOrderId` for a refund's lines: they reverse lines
+ * of another order, which validateRefundAgainstSale compares them with.
  */
 export function validateLineTree(lines: readonly OrderLine[], options: LineTreeOptions = {}): void {
   const byId = indexLines(lines);
@@ -52,6 +56,7 @@ export function validateLineTree(lines: readonly OrderLine[], options: LineTreeO
     assertLineQuantity(line, byId, options);
   }
   assertNotOverReversed(lines, byId, options);
+  if (!isRefund(options)) assertReversalsMirrorTargets(lines, byId);
 }
 
 /** Direct children of a line, in the order they appear in `lines`. */

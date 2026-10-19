@@ -33,6 +33,11 @@ import { TOTALS_ERROR_CODES } from "./totals-error-codes";
  * `profile` is the charge profile the sale was priced with, not the branch's current one: a
  * refund mirrors the sale. Earlier refunds that still count (drafts included) must carry their
  * amounts, i.e. come from this function, or what they took back is unknown.
+ *
+ * The server applies a refund as a command carrying the intent (sold line, units, restock) by
+ * calling this same function on the sale and the refunds it holds. It never takes refund lines or
+ * amounts a till built; a refund that arrives as a finished document (made offline) is checked
+ * with validateRefundAgainstSale, which rebuilds it here and compares.
  */
 export function buildRefund(
   paidOrder: Order,

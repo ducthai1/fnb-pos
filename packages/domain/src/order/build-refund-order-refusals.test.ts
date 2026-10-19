@@ -3,8 +3,9 @@ import { quantity } from "../money";
 import { type RefundRequestLine, buildRefundLines } from "./build-refund-order";
 import { earlierRefund, paidMilkTea, teas } from "./build-refund-order-test-fixtures";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
-import { codeOf, line, order, reversal, sequentialIds } from "./order-line-test-fixtures";
+import { codeOf, line, order, sequentialIds } from "./order-line-test-fixtures";
 import type { Order, OrderStatus } from "./order-types";
+import { teaCancel } from "./void-order-line-test-fixtures";
 
 const refundCode = (
   paid: Order,
@@ -23,7 +24,7 @@ const of = (lineId: string, units = 1): RefundRequestLine => ({
 });
 
 /** Tea of 2 sent to the bar, one voided before the customer paid. */
-const voidedBeforePayment = () => paidMilkTea([reversal("void-1", "tea", quantity(-1))]);
+const voidedBeforePayment = () => paidMilkTea(teaCancel("void-1", 1));
 
 describe("buildRefundLines refuses", () => {
   it.each<[OrderStatus, string]>([

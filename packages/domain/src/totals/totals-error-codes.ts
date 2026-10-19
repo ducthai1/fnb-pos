@@ -8,4 +8,5 @@ export const TOTALS_ERROR_CODES = {
   mixedSaleAndRefund: "DOMAIN_TOTALS_MIXED_SALE_AND_REFUND",
   invalidRefundAmounts: "DOMAIN_TOTALS_INVALID_REFUND_AMOUNTS",
   earlierRefundWithoutAmounts: "DOMAIN_TOTALS_EARLIER_REFUND_WITHOUT_AMOUNTS",
+  refundAmountsMismatch: "DOMAIN_TOTALS_REFUND_AMOUNTS_MISMATCH",
 } as const;

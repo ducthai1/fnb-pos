@@ -11,3 +11,4 @@ export type {
   TaxGroupTotals,
 } from "./order-totals-types";
 export { TOTALS_ERROR_CODES } from "./totals-error-codes";
+export { validateRefundAgainstSale } from "./validate-refund-against-sale";

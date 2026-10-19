@@ -5,6 +5,7 @@ import { buildRefundLines } from "./build-refund-order";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
 import {
   codeOf,
+  copyOf,
   item,
   line,
   linesTotal,
@@ -46,7 +47,12 @@ function paidOrder(items: SoldItem[]): { paid: Order; payable: bigint[] } {
     it.toppings.forEach((units, t) =>
       lines.push(line(`i${i}t${t}`, "modifier", `i${i}`, quantity(units))),
     );
-    if (voided > 0n) lines.push(reversal(`i${i}v`, `i${i}`, quantityFromThousandths(-voided)));
+    if (voided > 0n) {
+      lines.push(reversal(`i${i}v`, `i${i}`, quantityFromThousandths(-voided)));
+      it.toppings.forEach((units, t) =>
+        lines.push(copyOf(`i${i}v${t}`, `i${i}t${t}`, "modifier", `i${i}v`, quantity(units))),
+      );
+    }
     return it.sold - voided;
   });
   return { paid: order(lines, { status: "paid" }), payable };
