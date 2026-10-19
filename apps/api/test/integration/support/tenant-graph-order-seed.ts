@@ -1,5 +1,9 @@
 import {
+  appliedCommand,
+  changeLog,
+  deviceSyncState,
   drizzleFor,
+  newId,
   lineVoidRecord,
   payment,
   refundLineAmount,
@@ -19,10 +23,13 @@ export interface OrderSeedIds {
   payment: string;
   line_void_record: string;
   shift: string;
+  applied_command: string;
+  device_sync_state: string;
+  change_log: string;
 }
 
 /**
- * One row in every order table. The order stays a draft: a closed order refuses new rows
+ * One row in every order and sync table. The order stays a draft: a closed order refuses new rows
  * under it, and the tenancy tests insert more of them.
  */
 export async function seedOrderAndSyncRows(
@@ -96,5 +103,29 @@ export async function seedOrderAndSyncRows(
     openedByStaffId: ids.staff,
     openingCash: 500_000n,
     businessDate: "2026-10-20",
+  });
+  const commandId = newId();
+  await db.insert(appliedCommand).values({
+    id: ids.applied_command,
+    tenantId,
+    deviceId: ids.device,
+    commandId,
+    deviceSeq: 1,
+    type: "order.save_draft",
+    status: "accepted",
+    result: { commandId, status: "accepted" },
+  });
+  await db
+    .insert(deviceSyncState)
+    .values({ id: ids.device_sync_state, tenantId, deviceId: ids.device, lastSeq: 1 });
+  // An empty snapshot, as the append-only tests expect to find it untouched.
+  await db.insert(changeLog).values({
+    id: ids.change_log,
+    tenantId,
+    branchId: ids.branch,
+    entity: "order",
+    entityId: order,
+    snapshot: {},
+    commandId,
   });
 }

@@ -1,0 +1,99 @@
+/**
+ * What sync sends over the network. Money is a whole-đồng JSON number (a safe integer),
+ * a quantity a decimal string ("1.5"), a rate integer basis points. These mirror the sync
+ * shapes of the contracts package so the two can be swapped when it lands.
+ */
+
+export interface SyncCommandEnvelope {
+  readonly commandId: string;
+  /** 1, 2, 3… per till, with no gaps: the server applies a till's commands in this order. */
+  readonly deviceSeq: number;
+  readonly type: string;
+  readonly payload: unknown;
+  readonly staffSessionId?: string;
+  readonly approvalId?: string;
+  readonly businessDate: string;
+  /** The domain rules version the till computed with. */
+  readonly domainVersion: string;
+  /** When the till recorded the command; prices are resolved as of this instant. */
+  readonly createdAt: string;
+}
+
+export type SyncCommandStatus = "accepted" | "rejected" | "retry";
+
+export interface SyncCommandResult {
+  readonly commandId: string;
+  readonly status: SyncCommandStatus;
+  readonly code?: string;
+  /** The order as the server holds it after the command (accepted) or now (rejected). */
+  readonly snapshot?: OrderSnapshot;
+}
+
+export interface SyncChange {
+  /** A decimal string: change_seq is a bigint and the cursor is compared as a number. */
+  readonly changeSeq: string;
+  readonly entity: string;
+  readonly entityId: string;
+  readonly snapshot: unknown;
+}
+
+export interface SyncChangesPage {
+  readonly changes: readonly SyncChange[];
+  /** Pass back as `cursor`; equal to the cursor sent when the page is empty. */
+  readonly nextCursor: string;
+}
+
+export interface ServiceChargeRuleSnapshot {
+  readonly rate: number;
+  readonly appliesTo: readonly string[];
+  readonly base: "before_discount" | "after_discount";
+  readonly taxRate: number;
+}
+
+export interface ChargeProfileSnapshot {
+  readonly pricesIncludeTax: boolean;
+  readonly serviceCharge: ServiceChargeRuleSnapshot | null;
+}
+
+export interface OrderLineSnapshot {
+  readonly id: string;
+  readonly parentLineId: string | null;
+  readonly lineType: string;
+  readonly productId: string | null;
+  readonly variantId: string | null;
+  readonly modifierOptionId: string | null;
+  readonly nameSnapshot: string;
+  readonly unitPrice: number;
+  readonly quantity: string;
+  readonly taxRate: number;
+  readonly note: string | null;
+  readonly priceSource: string;
+  readonly reversesLineId: string | null;
+}
+
+export interface PaymentSnapshot {
+  readonly id: string;
+  readonly method: string;
+  readonly amount: number;
+  readonly receivedByStaffId: string;
+}
+
+/** A whole order as one change: a till replaces its copy with this, lines and payments included. */
+export interface OrderSnapshot {
+  readonly id: string;
+  readonly branchId: string;
+  readonly deviceId: string;
+  readonly deviceOrderNo: number;
+  readonly status: string;
+  readonly serviceType: string;
+  readonly channelKey: string | null;
+  readonly businessDate: string;
+  readonly version: number;
+  readonly refundOfOrderId: string | null;
+  readonly officialNo: string | null;
+  readonly callNumber: string | null;
+  readonly tableId: string | null;
+  readonly chargeProfile: ChargeProfileSnapshot;
+  readonly lines: readonly OrderLineSnapshot[];
+  readonly payments: readonly PaymentSnapshot[];
+}

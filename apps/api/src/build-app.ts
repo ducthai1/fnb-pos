@@ -17,6 +17,7 @@ import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
 import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
+import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
 
 export interface AppDependencies {
   /** Connects as the app role: DML only, bound by row level security. */
@@ -80,6 +81,7 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
   registerStaffSessionRoutes(app, context);
   registerApprovalRoutes(app, context);
   registerCatalogRoutes(app, context);
+  registerSyncRoutes(app, context);
 
   return app;
 }

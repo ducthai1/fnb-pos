@@ -1,3 +1,4 @@
+import { newId } from "@fnb/db";
 import type { RowSpec, Sql } from "./tenant-graph-rows";
 
 const aDevice: Sql = { sql: "(SELECT id FROM device ORDER BY id LIMIT 1)" };
@@ -22,8 +23,33 @@ const freshLine = {
   line_id: { sql: "(SELECT id FROM fresh_line)" },
 };
 
-/** RowSpecs of the order tables, merged into the tenant graph's ROWS. */
+// A till has one sync state, so each call needs a till of its own.
+const FRESH_DEVICE =
+  "fresh_device AS (INSERT INTO device (id, tenant_id, branch_id, name) " +
+  "SELECT gen_random_uuid(), tenant_id, id, 'x' FROM branch ORDER BY id LIMIT 1 RETURNING id)";
+
+/** RowSpecs of the order and sync tables, merged into the tenant graph's ROWS. */
 export const ORDER_AND_SYNC_ROWS = {
+  applied_command: {
+    parent: { column: "device_id", table: "device" },
+    values: () => ({
+      command_id: newId(),
+      device_seq: { sql: "(SELECT coalesce(max(device_seq), 0) + 1 FROM applied_command)" },
+      type: "order.save_draft",
+      status: "accepted",
+      result: "{}",
+    }),
+  },
+  change_log: {
+    parent: { column: "branch_id", table: "branch" },
+    values: () => ({ entity: "order", entity_id: newId(), snapshot: "{}" }),
+  },
+  // No parent column: its only parent is a till, and the graph's till already has its
+  // state. The cross-tenant key is checked by the sync ledger test instead.
+  device_sync_state: {
+    values: () => ({ device_id: { sql: "(SELECT id FROM fresh_device)" }, last_seq: 0 }),
+    with: FRESH_DEVICE,
+  },
   line_void_record: {
     parent: { column: "staff_id", table: "staff" },
     values: () => ({

@@ -4,18 +4,21 @@
  */
 export const TENANT_TABLES = [
   "app_user",
+  "applied_command",
   "approval_log",
   "area",
   "audit_log",
   "branch",
   "brand",
   "category",
+  "change_log",
   "combo_slot",
   "combo_slot_option",
   "config_value",
   "device",
   "device_credential",
   "device_pairing_code",
+  "device_sync_state",
   "dining_table",
   "line_void_record",
   "membership",
@@ -48,8 +51,10 @@ export type TenantTable = (typeof TENANT_TABLES)[number];
  * maps to the JSON column the tamper tests try to rewrite; the seeded value is `{}`.
  */
 export const APPEND_ONLY_JSON_COLUMN = {
+  applied_command: "payload",
   approval_log: "payload",
   audit_log: "payload",
+  change_log: "snapshot",
 } as const satisfies Partial<Record<TenantTable, string>>;
 
 export const APPEND_ONLY_TABLES = Object.keys(

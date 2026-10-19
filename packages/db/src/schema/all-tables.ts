@@ -5,6 +5,7 @@ import { configurationTables } from "./configuration-tables";
 import { orderTables } from "./order-tables";
 import { priceListTables } from "./price-list-tables";
 import { staffTables } from "./staff-tables";
+import { syncTables } from "./sync-tables";
 import { tenancyTables } from "./tenancy-tables";
 
 /** Every Drizzle table mirrored from the `public` schema. */
@@ -17,4 +18,5 @@ export const allTables = {
   ...catalogTables,
   ...priceListTables,
   ...orderTables,
+  ...syncTables,
 };

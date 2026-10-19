@@ -3,7 +3,12 @@ import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { postgresErrorCode, postgresRefusal } from "../support/postgres-error-code";
-import { APPEND_ONLY_TABLES, type TenantGraph, seedTenantGraph } from "../support/tenant-graph";
+import {
+  APPEND_ONLY_JSON_COLUMN,
+  APPEND_ONLY_TABLES,
+  type TenantGraph,
+  seedTenantGraph,
+} from "../support/tenant-graph";
 
 const info = inject("testPostgres");
 const INSUFFICIENT_PRIVILEGE = "42501";
@@ -121,14 +126,15 @@ describe("a manager approval granted at the till", () => {
 });
 
 describe.each(APPEND_ONLY_TABLES)("%s is append-only", (table) => {
+  const column = APPEND_ONLY_JSON_COLUMN[table];
   const CHANGES = [
-    `UPDATE ${table} SET payload = '{"forged": true}' WHERE id = $1`,
+    `UPDATE ${table} SET ${column} = '{"forged": true}' WHERE id = $1`,
     `DELETE FROM ${table} WHERE id = $1`,
   ];
 
   const stillThere = async () =>
     withTenant(app, a.tenantId, async (client) => {
-      const result = await client.query(`SELECT payload FROM ${table} WHERE id = $1`, [
+      const result = await client.query(`SELECT ${column} AS payload FROM ${table} WHERE id = $1`, [
         a.ids[table],
       ]);
       return result.rows;
