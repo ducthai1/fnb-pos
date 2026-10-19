@@ -13,13 +13,23 @@ import { PERMISSIONS_ERROR_CODES } from "./permissions-error-codes";
 export type AuthorizationResult = "allowed" | "needs_approval" | "denied";
 
 /**
- * What a staff member is about to do. A rate-limited key carries the discount it gives and
- * an amount-limited key the cash it moves (always a magnitude, in or out alike), because
- * the decision depends on it; other keys carry neither.
+ * What a staff member is about to do. A rate-limited key carries a discount rate and an
+ * amount-limited key an amount of cash, because the decision depends on it; other keys carry
+ * neither. Both are CUMULATIVE: judging each action on its own let anyone go past a cap in
+ * small steps (three 10% discounts on one tea, ten 500.000 đ cash moves).
  */
 export interface PermissionAction {
   readonly key: PermissionKey;
+  /**
+   * The rate the scope is discounted by once this discount is added, everything already on it
+   * included: projectedDiscountRate (the item for line_discount, the order for order_discount).
+   */
   readonly discountRate?: BasisPoints;
+  /**
+   * For cash_move: the cash this staff member has moved in the current shift once this move is
+   * made, this one included, every move counted as a magnitude (in or out alike). The domain
+   * has no shift yet, so the caller adds it up from the shift's cash moves.
+   */
   readonly amount?: Vnd;
 }
 

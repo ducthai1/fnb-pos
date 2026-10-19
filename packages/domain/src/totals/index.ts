@@ -2,6 +2,12 @@ export { type AllocatedShare, type AllocationWeight, allocateAmount } from "./al
 export { type OrderDiscount, buildOrderDiscountLines } from "./build-order-discount-lines";
 export { buildRefund } from "./build-refund";
 export { computeOrderTotals } from "./compute-order-totals";
+export {
+  type DiscountScope,
+  discountRateOfLine,
+  discountRateOfOrder,
+  projectedDiscountRate,
+} from "./cumulative-discount-rate";
 export type {
   LineTotals,
   OrderChargeProfile,
