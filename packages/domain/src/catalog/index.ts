@@ -22,3 +22,9 @@ export {
   type ValidatedModifierSelection,
   validateModifierSelection,
 } from "./validate-modifier-selection";
+export {
+  type ComboSlotSelectionInput,
+  type ResolvedCombo,
+  type ResolvedComboComponent,
+  resolveCombo,
+} from "./resolve-combo";
