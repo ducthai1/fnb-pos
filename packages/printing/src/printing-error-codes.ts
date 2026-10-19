@@ -7,5 +7,5 @@ export const PRINTING_ERROR_CODES = {
   invalidBarcodeData: "PRINTING_INVALID_BARCODE_DATA",
   invalidQrData: "PRINTING_INVALID_QR_DATA",
   invalidHex: "PRINTING_INVALID_HEX",
-  fractionalCupQuantity: "PRINTING_FRACTIONAL_CUP_QUANTITY",
+  invalidCupQuantity: "PRINTING_INVALID_CUP_QUANTITY",
 } as const;

@@ -44,3 +44,48 @@ export {
   tsplSize,
   tsplText,
 } from "./tspl/tspl-commands";
+export {
+  type Label,
+  type LabelLine,
+  type PlacedLabelLine,
+  type TsplProfile,
+  labelColumns,
+  layOutLabel,
+} from "./label/lay-out-label";
+export {
+  type MoreLinesText,
+  renderLabelPreview,
+  renderTspl,
+  renderTsplChunks,
+} from "./label/render-tspl-labels";
+export { layOutDocument } from "./layout/lay-out-document";
+export {
+  type LaidOutLine,
+  PAPER_COLUMNS,
+  type PaperWidth,
+  type PrintBlock,
+  type PrintDocument,
+} from "./layout/print-document";
+export { wrapText } from "./layout/wrap-text";
+export { type EscPosProfile, renderEscPos, renderEscPosChunks } from "./render/render-escpos";
+export { renderPreview } from "./render/render-preview";
+export {
+  type BillInput,
+  type BillLine,
+  type BillLineChild,
+  buildBill,
+} from "./templates/bill-template";
+export { type CupItem, type CupLabelInput, buildCupLabels } from "./templates/cup-label-template";
+export {
+  type KitchenTicketInput,
+  type KitchenTicketLineKind,
+  type KitchenTicketPrintLine,
+  buildKitchenTicket,
+} from "./templates/kitchen-ticket-template";
+export { PRINT_LABELS_VI } from "./templates/print-labels-vi";
+export {
+  type ShiftCloseInput,
+  type ShiftCloseMethod,
+  buildShiftClose,
+} from "./templates/shift-close-template";
+export { printedText } from "./text/printed-text";
