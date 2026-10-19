@@ -1,0 +1,23 @@
+export const CATALOG_ERROR_CODES = {
+  // Modifier group configuration
+  invalidMinSelect: "DOMAIN_CATALOG_INVALID_MIN_SELECT",
+  invalidMaxSelect: "DOMAIN_CATALOG_INVALID_MAX_SELECT",
+  minSelectAboveMaxSelect: "DOMAIN_CATALOG_MIN_SELECT_ABOVE_MAX_SELECT",
+  duplicateOptionId: "DOMAIN_CATALOG_DUPLICATE_OPTION_ID",
+  invalidOptionMaxQuantity: "DOMAIN_CATALOG_INVALID_OPTION_MAX_QUANTITY",
+  negativePriceDelta: "DOMAIN_CATALOG_NEGATIVE_PRICE_DELTA",
+  requiredGroupWithoutOptions: "DOMAIN_CATALOG_REQUIRED_GROUP_WITHOUT_OPTIONS",
+  // Variant lookup
+  unknownVariant: "DOMAIN_CATALOG_UNKNOWN_VARIANT",
+  variantRequired: "DOMAIN_CATALOG_VARIANT_REQUIRED",
+  // Modifier selection
+  unknownModifierGroup: "DOMAIN_CATALOG_UNKNOWN_MODIFIER_GROUP",
+  unknownModifierOption: "DOMAIN_CATALOG_UNKNOWN_MODIFIER_OPTION",
+  modifierGroupHidden: "DOMAIN_CATALOG_MODIFIER_GROUP_HIDDEN",
+  invalidSelectionQuantity: "DOMAIN_CATALOG_INVALID_SELECTION_QUANTITY",
+  tooFewModifierSelections: "DOMAIN_CATALOG_TOO_FEW_MODIFIER_SELECTIONS",
+  tooManyModifierSelections: "DOMAIN_CATALOG_TOO_MANY_MODIFIER_SELECTIONS",
+  duplicateModifierNotAllowed: "DOMAIN_CATALOG_DUPLICATE_MODIFIER_NOT_ALLOWED",
+  optionMaxQuantityExceeded: "DOMAIN_CATALOG_OPTION_MAX_QUANTITY_EXCEEDED",
+  requiredModifierGroupMissing: "DOMAIN_CATALOG_REQUIRED_MODIFIER_GROUP_MISSING",
+} as const;
