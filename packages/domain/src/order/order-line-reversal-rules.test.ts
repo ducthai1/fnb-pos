@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { quantity, quantityFromThousandths } from "../money";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
 import { effectiveQuantity, validateLineTree } from "./order-line-tree";
-import { codeOf, item, line, reversal } from "./order-line-test-fixtures";
+import { codeOf, copyOf, item, line, reversal } from "./order-line-test-fixtures";
 import type { OrderLine } from "./order-types";
 
 const asRefund = { refundOfOrderId: "paid-order" };
@@ -14,7 +14,7 @@ describe("validateLineTree with reversing lines", () => {
       item("tea", quantity(2)),
       line("pearl", "modifier", "tea", quantity(2)),
       reversal("tea-void", "tea", quantity(-1)),
-      line("pearl-void", "modifier", "tea-void", quantity(2)),
+      copyOf("pearl-void", "pearl", "modifier", "tea-void", quantity(2)),
     ];
     expect(codeOf(() => validateLineTree(lines))).toBeUndefined();
     expect(effectiveQuantity(lines, "tea-void")).toBe(quantity(-1));
@@ -40,7 +40,7 @@ describe("validateLineTree with reversing lines", () => {
         item("combo"),
         line("burger", "combo_component", "combo"),
         reversal("r", "combo", quantity(-1)),
-        line("burger-void", "combo_component", "r"),
+        copyOf("burger-void", "burger", "combo_component", "r"),
       ],
     ],
   ])("accepts %s", (_, lines) => {

@@ -9,6 +9,7 @@
     "test:api": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
+    "@fnb/contracts": "workspace:*",
     "@fnb/db": "workspace:*",
     "@fnb/domain": "workspace:*",
     "fastify": "5.12.5",

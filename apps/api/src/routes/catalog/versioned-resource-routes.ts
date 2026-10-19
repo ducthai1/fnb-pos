@@ -1,3 +1,4 @@
+import { catalogIdParamsSchema, catalogIdSchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ZodType, ZodTypeDef } from "zod";
@@ -11,8 +12,7 @@ import {
   parseOrReject,
 } from "../../catalog/catalog-request-error";
 import { putVersionedRow } from "../../catalog/catalog-row-writes";
-import { idParamsSchema, idSchema } from "../../catalog/catalog-schema-parts";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 /** A flat catalog row owned by a brand or a branch: categories and stations. */
 export interface VersionedResource<Input extends { version: number | null }> {
@@ -36,13 +36,13 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
   context: ApiContext,
   resource: VersionedResource<Input>,
 ): void {
-  const session = { onRequest: context.requireSession };
-  const ownerQuery = z.object({ [resource.owner.key]: idSchema });
+  const { read, write } = catalogGates(context);
+  const ownerQuery = z.object({ [resource.owner.key]: catalogIdSchema });
   const readOne = `SELECT ${resource.select} FROM ${resource.table} WHERE id = $1`;
 
   app.get(
     resource.path,
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const ownerId = String(parseOrReject(ownerQuery, request.query)[resource.owner.key]);
       const rows = await withTenant(
@@ -67,9 +67,9 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
 
   app.put(
     `${resource.path}/:id`,
-    session,
+    write,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(resource.body, request.body);
       const writer = writeContextOf(request, context);
       const { created, row } = await withTenant(context.pool, writer.tenantId, async (client) => {
@@ -89,9 +89,9 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
 
   app.delete(
     `${resource.path}/:id`,
-    session,
+    write,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const tenantId = backofficeAuth(request).tenantId;
       const deleted = await withTenant(context.pool, tenantId, (client) =>
         client.query(`DELETE FROM ${resource.table} WHERE id = $1`, [id]),

@@ -30,7 +30,7 @@ export interface OrderLine {
   /** The name at the time of sale: renaming a product later must not rewrite old receipts. */
   readonly nameSnapshot: string;
   readonly unitPrice: Vnd;
-  /** On a child line this is per ONE unit of the parent line; see effectiveQuantity. */
+  /** On a child line this is per ONE unit of the parent line, unless wholeParentLine is set. */
   readonly quantity: Quantity;
   readonly taxRate: BasisPoints;
   readonly note: string | null;
@@ -42,6 +42,13 @@ export interface OrderLine {
    * On a refund order it points at a line of the refunded order, not of this one.
    */
   readonly reversesLineId: string | null;
+  /**
+   * Set only on a discount under an item: its quantity is for the item's line as a whole, not
+   * per unit, so `unitPrice × quantity` is exactly what it takes off however many units the item
+   * holds. "10.000 đ off the line" of three cups has no per-cup price in whole đồng (3.333,33),
+   * and the receipt must show the amount the cashier gave. buildLineDiscount sets it.
+   */
+  readonly wholeParentLine?: boolean;
 }
 
 export interface Order {

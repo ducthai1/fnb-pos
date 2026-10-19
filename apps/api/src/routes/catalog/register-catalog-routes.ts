@@ -5,7 +5,7 @@ import { registerCategoryAndStationRoutes } from "./category-and-station-routes"
 import { registerPriceListRoutes } from "./price-list-routes";
 import { registerProductRoutes } from "./product-routes";
 
-/** The backoffice menu: every route needs a signed-in member of the tenant. */
+/** The backoffice menu: reading needs a signed-in member, writing also edit_menu. */
 export function registerCatalogRoutes(app: FastifyInstance, context: ApiContext): void {
   registerProductRoutes(app, context);
   registerCategoryAndStationRoutes(app, context);

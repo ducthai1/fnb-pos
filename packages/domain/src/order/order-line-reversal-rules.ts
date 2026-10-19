@@ -6,8 +6,9 @@ import type { OrderLine } from "./order-types";
 export interface LineTreeOptions {
   /**
    * The order these lines refund, or null/absent for an ordinary order. A refund's negative
-   * lines reverse lines of that other order, so they cannot be resolved here: the code that
-   * builds a refund checks them against the refunded order and its earlier refunds instead.
+   * lines reverse lines of that other order, so they cannot be resolved here: buildRefund makes
+   * them from the refunded order, and validateRefundAgainstSale checks a refund received from a
+   * till against it and its earlier refunds.
    */
   readonly refundOfOrderId?: string | null;
 }
@@ -95,6 +96,6 @@ export function reversedQuantityOf(lines: readonly OrderLine[], lineId: string):
   return negateQuantity(addQuantity(...reversals.map((line) => line.quantity)));
 }
 
-function isRefund(options: LineTreeOptions): boolean {
+export function isRefund(options: LineTreeOptions): boolean {
   return options.refundOfOrderId !== undefined && options.refundOfOrderId !== null;
 }

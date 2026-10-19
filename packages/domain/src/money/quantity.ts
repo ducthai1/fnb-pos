@@ -66,6 +66,16 @@ function numberToPlainString(value: number): string {
   if (!Number.isFinite(value)) {
     throw new DomainError(MONEY_ERROR_CODES.invalidQuantity, `not a finite quantity: ${value}`);
   }
-  // toString() switches to exponent notation for tiny/huge numbers; quantities never need that.
-  return value.toString().includes("e") ? value.toFixed(3) : value.toString();
+  // toString() gives the shortest decimal that reads back as the same number, so its decimals
+  // are the ones the caller meant. Below 1e-6 it switches to exponent notation; such a number
+  // is never 0 (0 prints as "0"), so it has more than 3 decimals and is refused like 0.0001,
+  // never rounded to a zero quantity. Huge numbers print as "1e+21" and fail the pattern.
+  const text = value.toString();
+  if (text.includes("e") && Math.abs(value) < 1) {
+    throw new DomainError(
+      MONEY_ERROR_CODES.quantityTooPrecise,
+      `quantity has more than 3 decimals: ${text}`,
+    );
+  }
+  return text;
 }

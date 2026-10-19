@@ -1,5 +1,5 @@
 import { quantity, vnd } from "../money";
-import { item, line, order, sequentialIds } from "./order-line-test-fixtures";
+import { item, line, order, reversal, sequentialIds } from "./order-line-test-fixtures";
 import type { Order, OrderLine } from "./order-types";
 import type { VoidLineRequest } from "./void-order-line";
 
@@ -16,6 +16,12 @@ export function milkTeaDraft(extraLines: readonly OrderLine[] = []): Order {
   const lines = [item("tea", quantity(2)), pearl, item("coffee"), ...extraLines];
   return Object.freeze(order(Object.freeze(lines.map((l) => Object.freeze(l))), { version: 4 }));
 }
+
+/** A negative line taking back `units` sent teas of milkTeaDraft, with its copy of the pearls. */
+export const teaCancel = (id: string, units: number): OrderLine[] => [
+  reversal(id, "tea", quantity(-units)),
+  { ...pearl, id: `${id}-pearl`, parentLineId: id },
+];
 
 /** Cancels one tea the kitchen has not seen, by a cashier, at a branch that wants approvals. */
 export function voidRequest(overrides: Partial<VoidLineRequest> = {}): VoidLineRequest {

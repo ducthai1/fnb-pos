@@ -47,11 +47,24 @@ export function codeOf(fn: () => unknown): string | undefined {
 
 export const item = (id: string, qty?: Quantity) => line(id, "item", null, qty);
 
-/** A negative root item taking back `qty` units (pass a negative quantity) of `reversesLineId`. */
+/**
+ * A negative root item taking back `qty` units (pass a negative quantity) of `reversesLineId`,
+ * copying what `item(reversesLineId)` sold, as a cancel must.
+ */
 export const reversal = (id: string, reversesLineId: string, qty: Quantity): OrderLine => ({
-  ...line(id, "item", null, qty),
+  ...line(reversesLineId, "item", null, qty),
+  id,
   reversesLineId,
 });
+
+/** A copy, under a reversal, of the child `line(sourceId, lineType, …)` of the reversed item. */
+export const copyOf = (
+  id: string,
+  sourceId: string,
+  lineType: OrderLineType,
+  parentLineId: string,
+  qty?: Quantity,
+): OrderLine => ({ ...line(sourceId, lineType, parentLineId, qty), id });
 
 /** An ordinary draft order; override any field, e.g. `{ status: "paid" }` or `refundOfOrderId`. */
 export function order(lines: readonly OrderLine[], overrides: Partial<Order> = {}): Order {

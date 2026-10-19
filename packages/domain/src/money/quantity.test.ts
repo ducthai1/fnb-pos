@@ -43,6 +43,39 @@ describe("quantity", () => {
     expect(codeOf(() => quantity("0.1255"))).toBe(MONEY_ERROR_CODES.quantityTooPrecise);
   });
 
+  it.each([1e-7, 4e-7, -1e-7, 5e-324, 0.0001, 0.1 + 0.2])(
+    "rejects the number %d, which has more than three decimals, instead of reading it as 0",
+    (input) => {
+      expect(codeOf(() => quantity(input))).toBe(MONEY_ERROR_CODES.quantityTooPrecise);
+    },
+  );
+
+  it("reads numbers of at most three decimals exactly, and refuses one too large to print", () => {
+    expect([quantity(0.001), quantity(1.005), quantity(-0), quantity(1e20)]).toEqual([
+      1n,
+      1005n,
+      0n,
+      10n ** 23n,
+    ]);
+    expect(codeOf(() => quantity(1e21))).toBe(MONEY_ERROR_CODES.invalidQuantity);
+  });
+
+  it("either refuses a number or reads it exactly, never rounding it", () => {
+    fc.assert(
+      fc.property(fc.double({ noNaN: true, noDefaultInfinity: true }), (value) => {
+        const code = codeOf(() => quantity(value));
+        if (code !== undefined) {
+          expect([
+            MONEY_ERROR_CODES.quantityTooPrecise,
+            MONEY_ERROR_CODES.invalidQuantity,
+          ]).toContain(code);
+          return;
+        }
+        expect(Number(quantityToDecimalString(quantity(value)))).toBe(value === 0 ? 0 : value);
+      }),
+    );
+  });
+
   it.each(["", "abc", "1,5", "1.", ".5", "1e3"])("rejects malformed input %j", (input) => {
     expect(codeOf(() => quantity(input))).toBe(MONEY_ERROR_CODES.invalidQuantity);
   });

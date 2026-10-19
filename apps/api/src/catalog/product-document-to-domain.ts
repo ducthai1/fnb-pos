@@ -1,3 +1,4 @@
+import type { ProductDocumentInput } from "@fnb/contracts";
 import {
   type BasisPoints,
   type ModifierGroupVariantRule,
@@ -6,7 +7,6 @@ import {
   validateProductConfig,
   vnd,
 } from "@fnb/domain";
-import type { ProductDocumentInput } from "./product-document-schema";
 
 export interface CheckedProductDocument {
   product: Product;

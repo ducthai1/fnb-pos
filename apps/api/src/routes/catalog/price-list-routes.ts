@@ -1,22 +1,22 @@
+import { catalogIdParamsSchema, priceListDocumentSchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
-import { idParamsSchema } from "../../catalog/catalog-schema-parts";
-import { checkPriceListItems, priceListDocumentSchema } from "../../catalog/price-list-document";
+import { checkPriceListItems } from "../../catalog/price-list-document";
 import { readPriceList, writePriceList } from "../../catalog/price-list-store";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerPriceListRoutes(app: FastifyInstance, context: ApiContext): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
 
   app.put(
     "/catalog/price-lists/:id",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(priceListDocumentSchema, request.body);
       const items = checkPriceListItems(input);
       const writer = writeContextOf(request, context);
@@ -34,9 +34,9 @@ export function registerPriceListRoutes(app: FastifyInstance, context: ApiContex
 
   app.get(
     "/catalog/price-lists/:id",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const document = await withTenant(context.pool, backofficeAuth(request).tenantId, (client) =>
         readPriceList(client, id),
       );

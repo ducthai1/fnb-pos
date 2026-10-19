@@ -1,8 +1,8 @@
+import type { PriceListDocumentInput } from "@fnb/contracts";
 import type { PriceListItem } from "@fnb/domain";
 import type pg from "pg";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
 import { type CatalogWriteContext, insertCatalogRow, putVersionedRow } from "./catalog-row-writes";
-import type { PriceListDocumentInput } from "./price-list-document";
 import { amountOf } from "./product-document";
 
 const scopeIdOf = (scope: PriceListItem["scope"]): string | null => {

@@ -5,7 +5,9 @@ import {
   type LineTreeOptions,
   assertLineQuantity,
   assertNotOverReversed,
+  isRefund,
 } from "./order-line-reversal-rules";
+import { assertReversalsMirrorTargets } from "./order-line-reversal-mirror";
 import type { OrderLine, OrderLineType } from "./order-types";
 
 type LineIndex = ReadonlyMap<string, OrderLine>;
@@ -34,7 +36,9 @@ const WRONG_PARENT_CODE: Readonly<Record<OrderLineType, string>> = {
  * Throws a DomainError for the first rule a line breaks. Structure (unique ids, parents
  * exist, no cycles) is checked before line types, and line types before quantities and
  * reversals, so a corrupt tree reports what is actually wrong instead of a misleading error.
- * Pass `refundOfOrderId` for a refund's lines: they reverse lines of another order.
+ * On an ordinary order a negative item must copy the item it reverses (see
+ * assertReversalsMirrorTargets). Pass `refundOfOrderId` for a refund's lines: they reverse lines
+ * of another order, which validateRefundAgainstSale compares them with.
  */
 export function validateLineTree(lines: readonly OrderLine[], options: LineTreeOptions = {}): void {
   const byId = indexLines(lines);
@@ -49,9 +53,11 @@ export function validateLineTree(lines: readonly OrderLine[], options: LineTreeO
         { lineId: line.id, parentLineId: line.parentLineId },
       );
     }
+    assertWholeLineOnlyOnLineDiscount(line, parentType);
     assertLineQuantity(line, byId, options);
   }
   assertNotOverReversed(lines, byId, options);
+  if (!isRefund(options)) assertReversalsMirrorTargets(lines, byId);
 }
 
 /** Direct children of a line, in the order they appear in `lines`. */
@@ -74,6 +80,7 @@ export function subtreeOf(lines: readonly OrderLine[], lineId: string): OrderLin
  * quantities along the path to the root multiply. They are thousandths, so the product is
  * rescaled once at the end; that is only inexact when two fractional quantities meet
  * (1.5 kg × 0.333), and half-up keeps it symmetric for negative (void and refund) lines.
+ * A whole-line discount (wholeParentLine) is the exception: it stands for its own quantity.
  */
 export function effectiveQuantity(lines: readonly OrderLine[], lineId: string): Quantity {
   const byId = indexLines(lines);
@@ -90,10 +97,23 @@ export function effectiveQuantities(lines: readonly OrderLine[]): ReadonlyMap<st
 }
 
 function effectiveOf(byId: LineIndex, line: OrderLine): Quantity {
+  // a whole-line discount is for its item's line as a whole, not per unit of it
+  if (line.wholeParentLine === true) return line.quantity;
   const path = pathToRoot(byId, line);
   const product = path.reduce<bigint>((acc, l) => acc * l.quantity, 1n);
   const scale = QUANTITY_SCALE ** BigInt(path.length - 1);
   return quantityFromThousandths(divideRounded(product, scale, "half-up"));
+}
+
+/** Anywhere else "the whole parent line" would mean nothing, or a topping priced once per line. */
+function assertWholeLineOnlyOnLineDiscount(line: OrderLine, parentType: OrderLineType | null) {
+  if (line.wholeParentLine === undefined || line.wholeParentLine === false) return;
+  if (line.lineType === "discount" && parentType === "item") return;
+  throw new DomainError(
+    ORDER_ERROR_CODES.wholeLineDiscountMisplaced,
+    `${line.lineType} line ${line.id} under ${parentType ?? "the order root"} cannot be whole-line`,
+    { lineId: line.id, parentLineId: line.parentLineId },
+  );
 }
 
 function indexLines(lines: readonly OrderLine[]): LineIndex {
