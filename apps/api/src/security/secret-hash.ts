@@ -73,3 +73,6 @@ export async function verifySecret(secret: string, stored: string): Promise<bool
   const actual = await derive(secret, Buffer.from(salt, "base64url"), cost);
   return timingSafeEqual(actual, expected);
 }
+
+/** verifySecret's shape, so a test can count the checks a route really makes. */
+export type SecretVerifier = (secret: string, stored: string) => Promise<boolean>;

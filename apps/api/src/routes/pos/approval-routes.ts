@@ -104,7 +104,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         return reply.code(401).send({ code: STAFF_ERROR_CODES.pinInvalid });
       }
       const approvalId = await withTenant(pool, device.tenantId, async (client) => {
-        await clearPinAttempts(client, approverStaffId);
+        await clearPinAttempts(client, approverStaffId, gate.claimedAttempts);
         // Read in the transaction that records the approval, so a role narrowed a moment
         // ago is the role that is judged.
         if (!canApprove(action, await loadRoleGrants(client, gate.roleId))) return null;

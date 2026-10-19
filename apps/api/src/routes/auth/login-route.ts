@@ -2,11 +2,12 @@ import { newId } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { claimLoginAttempt, createSession, recordLoginSuccess } from "../../auth/account-store";
+import { auditLoginLock } from "../../auth/audit-login-lock";
 import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { type LoginIdentifier, loginIdentifier } from "../../auth/login-identifier";
 import { sessionCookie } from "../../auth/session-cookie";
 import { hashToken, newOpaqueToken } from "../../security/opaque-token";
-import { hashSecret, verifySecret } from "../../security/secret-hash";
+import { hashSecret } from "../../security/secret-hash";
 import { chooseMembership } from "./choose-membership";
 
 interface LoginBody {
@@ -40,16 +41,26 @@ async function checkPassword(
   identifier: LoginIdentifier,
   password: string,
 ): Promise<string | null> {
+  const { pool, verifySecret } = context;
   const now = context.clock.now();
-  const attempt = await claimLoginAttempt(context.pool, identifier, now, context.policy.login);
+  const attempt = await claimLoginAttempt(pool, identifier, now, context.policy.login);
   if (attempt.kind !== "allowed") {
     dummyHash ??= hashSecret("no account has this password");
     await verifySecret(password, await dummyHash);
     return null;
   }
-  if (!(await verifySecret(password, attempt.passwordHash))) return null;
-  await recordLoginSuccess(context.pool, attempt.accountId, now);
-  return attempt.accountId;
+  // The lock is audited while the password is being checked, so the attempt that locks
+  // answers no slower than the same attempt against an account that does not exist.
+  const { accountId, lockedUntil } = attempt;
+  const [right] = await Promise.all([
+    verifySecret(password, attempt.passwordHash),
+    lockedUntil === null
+      ? undefined
+      : auditLoginLock(pool, { accountId, failedAttempts: attempt.claimedAttempts, lockedUntil }),
+  ]);
+  if (!right) return null;
+  await recordLoginSuccess(pool, attempt, now);
+  return accountId;
 }
 
 export function registerLoginRoute(app: FastifyInstance, context: ApiContext): void {
