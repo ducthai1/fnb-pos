@@ -10,6 +10,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "eslint . --max-warnings=0",
     "test:unit": "turbo run test:unit",
+    "test:api": "turbo run test:api",
     "verify": "turbo run typecheck && eslint . --max-warnings=0 && turbo run test:unit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
