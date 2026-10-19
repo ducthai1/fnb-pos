@@ -5,4 +5,5 @@ export const TOTALS_ERROR_CODES = {
   nonPositiveDiscount: "DOMAIN_TOTALS_NON_POSITIVE_DISCOUNT",
   negativeWeight: "DOMAIN_TOTALS_NEGATIVE_WEIGHT",
   nothingToAllocateTo: "DOMAIN_TOTALS_NOTHING_TO_ALLOCATE_TO",
+  mixedSaleAndRefund: "DOMAIN_TOTALS_MIXED_SALE_AND_REFUND",
 } as const;
