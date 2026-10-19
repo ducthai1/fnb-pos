@@ -50,7 +50,9 @@ Trạng thái thực tế (2026-10-20): chỉ có khung monorepo + `packages/dom
 
 - File/thư mục: kebab-case, tên dài mô tả được (`compute-order-totals.ts`, `void-line-after-sent.test.ts`).
 - Mỗi file < 200 dòng; vượt thì tách theo trách nhiệm.
-- Mã lỗi nghiệp vụ: `DOMAIN_<MIỀN>_<LÝ_DO>` (vd `DOMAIN_ORDER_ALREADY_PAID`), khai ở `domain/src/errors.ts`; UI tra mã ra câu tiếng Việt ở `ui/src/messages/vi.ts`.
+- Mã lỗi nghiệp vụ: `DOMAIN_<MIỀN>_<LÝ_DO>` (vd `DOMAIN_ORDER_ALREADY_PAID`). Lớp `DomainError` ở `domain/src/errors.ts`; **mã khai cạnh luật** ở `domain/src/<miền>/<miền>-error-codes.ts` (vd `money/money-error-codes.ts`) để hai việc song song không đụng một file chung. UI tra mã ra câu tiếng Việt ở `ui/src/messages/vi.ts`.
+- Mỗi miền trong `domain/src/<miền>/` có `index.ts` riêng; `domain/src/index.ts` chỉ re-export các miền.
+- Tiền dùng `Vnd` (bigint có brand), số lượng dùng `Quantity` (bigint phần nghìn, 1 món = 1000n), tỉ lệ dùng `BasisPoints`; chia luôn qua `divideRounded(n, d, mode)` với mode tường minh — không bao giờ dùng `/` trên tiền ở chỗ khác.
 - Chuỗi hiển thị: tiếng Việt, gom ở `messages/vi.ts`; không viết cứng chuỗi trong component.
 - Code, comment, commit, tên test: tiếng Anh.
 

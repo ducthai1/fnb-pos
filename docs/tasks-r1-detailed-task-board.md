@@ -115,6 +115,7 @@
 
 ### T02-01 Kiểu tiền / số lượng / tỉ lệ
 - **Test:** `money/money.test.ts` — cộng/nhân/chia làm tròn rõ ràng; từ chối float; định dạng `45.000 ₫`.
+- **Trạng thái:** done (2026-10-20) — `money/{money,quantity,rate,divide-rounded}.ts` + 54 test (gồm property test); đổi `>=` thành `>` trong half-up làm 6 test đỏ.
 
 ### T02-02 `resolvePrice`
 - **Luật:** ưu tiên variant > product > category > global; lọc chi nhánh, kênh, ngày, giờ, thứ; giá nhập tay; theo cân (đơn giá × số lượng 3 lẻ).
