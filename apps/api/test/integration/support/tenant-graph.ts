@@ -22,63 +22,13 @@ import {
 } from "@fnb/db";
 import type pg from "pg";
 import { seedCatalogRows } from "./tenant-graph-catalog-seed";
+import { seedOrderAndSyncRows } from "./tenant-graph-order-seed";
 import { randomSha256Hex } from "./tenant-graph-rows";
+import { TENANT_TABLES, type TenantTable } from "./tenant-table-lists";
 
 export { CHILD_TABLES, insertRow } from "./tenant-graph-rows";
 
-/** Every tenancy table; the catalog test fails if `public` gains a table missing here. */
-export const TENANT_TABLES = [
-  "app_user",
-  "approval_log",
-  "area",
-  "audit_log",
-  "branch",
-  "brand",
-  "category",
-  "combo_slot",
-  "combo_slot_option",
-  "config_value",
-  "device",
-  "device_credential",
-  "device_pairing_code",
-  "dining_table",
-  "membership",
-  "modifier_group",
-  "modifier_group_variant_rule",
-  "modifier_option",
-  "organization",
-  "price_list",
-  "price_list_item",
-  "product",
-  "product_availability",
-  "product_modifier_group",
-  "product_variant",
-  "role",
-  "staff",
-  "staff_branch",
-  "staff_session",
-  "station",
-] as const;
-
-export type TenantTable = (typeof TENANT_TABLES)[number];
-
-/** Evidence tables: the app role may read and add rows, never change or remove them. */
-export const APPEND_ONLY_TABLES = ["approval_log", "audit_log"] as const satisfies TenantTable[];
-
-export const MUTABLE_TENANT_TABLES = TENANT_TABLES.filter(
-  (table) => !(APPEND_ONLY_TABLES as readonly string[]).includes(table),
-);
-
-/** Rows history points at: the app role archives them and may never delete them. */
-export const UNDELETABLE_TABLES = [
-  "modifier_option",
-  "product",
-  "product_variant",
-] as const satisfies TenantTable[];
-
-export const DELETABLE_TENANT_TABLES = MUTABLE_TENANT_TABLES.filter(
-  (table) => !(UNDELETABLE_TABLES as readonly string[]).includes(table),
-);
+export * from "./tenant-table-lists";
 
 export interface TenantGraph {
   tenantId: string;
@@ -174,6 +124,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       entityId: ids.branch,
     });
     await seedCatalogRows(client, tenantId, ids);
+    await seedOrderAndSyncRows(client, tenantId, ids);
   });
   return { tenantId, ids };
 }

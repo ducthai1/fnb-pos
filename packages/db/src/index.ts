@@ -58,6 +58,15 @@ export {
   productVariant,
   station,
 } from "./schema/catalog-tables";
+export {
+  lineVoidRecord,
+  orderTables,
+  payment,
+  refundLineAmount,
+  salesOrder,
+  salesOrderLine,
+  shift,
+} from "./schema/order-tables";
 export { priceList, priceListItem, priceListTables } from "./schema/price-list-tables";
 export { tenantRowColumns } from "./schema/tenant-row-columns";
 export { drizzleFor } from "./tenancy/drizzle-for";

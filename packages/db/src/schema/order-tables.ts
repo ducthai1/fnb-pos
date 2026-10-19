@@ -1,0 +1,113 @@
+import {
+  bigint,
+  boolean,
+  customType,
+  date,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { tenantRowColumns } from "./tenant-row-columns";
+
+const money = (name: string) => bigint(name, { mode: "bigint" });
+
+/**
+ * Quantities are numeric(12,3), read and written as the decimal text pg uses for numeric.
+ * A custom type because Drizzle's numeric prints its SQL type as "numeric(12, 3)", which
+ * would never match what Postgres reports for the column.
+ */
+const quantity = customType<{ data: string; driverData: string }>({
+  dataType: () => "numeric(12,3)",
+});
+
+/** A closed order (paid, posted, cancelled) cannot be edited; see 0011_orders.sql. */
+export const salesOrder = pgTable("sales_order", {
+  ...tenantRowColumns(),
+  branchId: uuid("branch_id").notNull(),
+  deviceId: uuid("device_id").notNull(),
+  status: text("status").notNull(),
+  serviceType: text("service_type").notNull(),
+  channelKey: text("channel_key"),
+  businessDate: date("business_date").notNull(),
+  refundOfOrderId: uuid("refund_of_order_id"),
+  deviceOrderNo: bigint("device_order_no", { mode: "number" }).notNull(),
+  officialNo: text("official_no"),
+  callNumber: text("call_number"),
+  tableId: uuid("table_id"),
+  chargeProfile: jsonb("charge_profile").notNull(),
+  refundPricesIncludeTax: boolean("refund_prices_include_tax"),
+  refundServiceChargeTaxRateBp: integer("refund_service_charge_tax_rate_bp"),
+});
+
+export const salesOrderLine = pgTable("sales_order_line", {
+  ...tenantRowColumns(),
+  orderId: uuid("order_id").notNull(),
+  position: integer("position").notNull(),
+  parentLineId: uuid("parent_line_id"),
+  lineType: text("line_type").notNull(),
+  productId: uuid("product_id"),
+  variantId: uuid("variant_id"),
+  modifierOptionId: uuid("modifier_option_id"),
+  nameSnapshot: text("name_snapshot").notNull(),
+  unitPrice: money("unit_price").notNull(),
+  quantity: quantity("quantity").notNull(),
+  taxRateBp: integer("tax_rate_bp").notNull(),
+  note: text("note"),
+  priceSource: text("price_source").notNull(),
+  reversesLineId: uuid("reverses_line_id"),
+});
+
+export const refundLineAmount = pgTable("refund_line_amount", {
+  ...tenantRowColumns(),
+  orderId: uuid("order_id").notNull(),
+  lineId: uuid("line_id").notNull(),
+  soldLineId: uuid("sold_line_id").notNull(),
+  gross: money("gross").notNull(),
+  discountAllocated: money("discount_allocated").notNull(),
+  tax: money("tax").notNull(),
+  serviceCharge: money("service_charge").notNull(),
+  serviceChargeTax: money("service_charge_tax").notNull(),
+});
+
+export const payment = pgTable("payment", {
+  ...tenantRowColumns(),
+  orderId: uuid("order_id").notNull(),
+  method: text("method").notNull(),
+  amount: money("amount").notNull(),
+  receivedByStaffId: uuid("received_by_staff_id").notNull(),
+});
+
+export const lineVoidRecord = pgTable("line_void_record", {
+  ...tenantRowColumns(),
+  orderId: uuid("order_id").notNull(),
+  lineId: uuid("line_id").notNull(),
+  quantity: quantity("quantity").notNull(),
+  fromUnsent: quantity("from_unsent").notNull(),
+  fromSent: quantity("from_sent").notNull(),
+  reasonCode: text("reason_code").notNull(),
+  staffId: uuid("staff_id").notNull(),
+  approvedByStaffId: uuid("approved_by_staff_id"),
+  approvalId: uuid("approval_id"),
+  reversalLineId: uuid("reversal_line_id"),
+});
+
+export const shift = pgTable("shift", {
+  ...tenantRowColumns(),
+  branchId: uuid("branch_id").notNull(),
+  deviceId: uuid("device_id"),
+  status: text("status").notNull(),
+  openedByStaffId: uuid("opened_by_staff_id").notNull(),
+  openingCash: money("opening_cash").notNull(),
+  businessDate: date("business_date").notNull(),
+});
+
+export const orderTables = {
+  salesOrder,
+  salesOrderLine,
+  refundLineAmount,
+  payment,
+  lineVoidRecord,
+  shift,
+};

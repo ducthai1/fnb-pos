@@ -1,13 +1,14 @@
 import { randomBytes } from "node:crypto";
 import { newId } from "@fnb/db";
 import type { TenantGraph, TenantTable } from "./tenant-graph";
+import { ORDER_AND_SYNC_ROWS } from "./tenant-graph-order-rows";
 
 /** A SQL expression evaluated inside the inserting transaction, instead of a parameter. */
-interface Sql {
+export interface Sql {
   sql: string;
 }
 
-interface RowSpec {
+export interface RowSpec {
   /** The parent key the cross-tenant test points at another tenant. */
   parent?: { column: string; table: TenantTable };
   /** Further required columns. Values unique per table must be fresh on every call. */
@@ -50,6 +51,7 @@ const freshAccount: Sql = {
 };
 
 const ROWS: Record<TenantTable, RowSpec> = {
+  ...ORDER_AND_SYNC_ROWS,
   app_user: { values: () => ({ display_name: "x" }) },
   approval_log: {
     parent: { column: "branch_id", table: "branch" },
