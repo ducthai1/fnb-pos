@@ -35,6 +35,13 @@ export interface OrderLine {
   readonly taxRate: BasisPoints;
   readonly note: string | null;
   readonly priceSource: PriceSource;
+  /**
+   * Set only on a negative root item: the line whose units it takes back. A line that was
+   * already sent to the kitchen or paid for is never shrunk in place, because the ticket or
+   * receipt that showed it must stay explainable; a negative line cancels part of it instead.
+   * On a refund order it points at a line of the refunded order, not of this one.
+   */
+  readonly reversesLineId: string | null;
 }
 
 export interface Order {
@@ -45,6 +52,8 @@ export interface Order {
   /** "YYYY-MM-DD" from businessDate: a sale at 01:00 usually belongs to the previous day. */
   readonly businessDate: string;
   readonly lines: readonly OrderLine[];
+  /** Set on a refund: the paid order this one reverses. Its negative lines point into that order. */
+  readonly refundOfOrderId: string | null;
   /** Bumped on every change so concurrent edits from two devices can be detected. */
   readonly version: number;
 }

@@ -1,6 +1,11 @@
 import { DomainError } from "../errors";
 import { type Quantity, QUANTITY_SCALE, divideRounded, quantityFromThousandths } from "../money";
 import { ORDER_ERROR_CODES } from "./order-error-codes";
+import {
+  type LineTreeOptions,
+  assertLineQuantity,
+  assertNotOverReversed,
+} from "./order-line-reversal-rules";
 import type { OrderLine, OrderLineType } from "./order-types";
 
 type LineIndex = ReadonlyMap<string, OrderLine>;
@@ -27,10 +32,11 @@ const WRONG_PARENT_CODE: Readonly<Record<OrderLineType, string>> = {
 
 /**
  * Throws a DomainError for the first rule a line breaks. Structure (unique ids, parents
- * exist, no cycles) is checked before line types, so a corrupt tree reports what is
- * actually wrong instead of a misleading type error.
+ * exist, no cycles) is checked before line types, and line types before quantities and
+ * reversals, so a corrupt tree reports what is actually wrong instead of a misleading error.
+ * Pass `refundOfOrderId` for a refund's lines: they reverse lines of another order.
  */
-export function validateLineTree(lines: readonly OrderLine[]): void {
+export function validateLineTree(lines: readonly OrderLine[], options: LineTreeOptions = {}): void {
   const byId = indexLines(lines);
   for (const line of lines) pathToRoot(byId, line);
   for (const line of lines) {
@@ -43,16 +49,9 @@ export function validateLineTree(lines: readonly OrderLine[]): void {
         { lineId: line.id, parentLineId: line.parentLineId },
       );
     }
-    // Voids and refunds will be modelled as negative lines later; until that exists, a zero
-    // or negative quantity is a bug in the caller, never a refund.
-    if (line.quantity <= 0n) {
-      throw new DomainError(
-        ORDER_ERROR_CODES.nonPositiveQuantity,
-        `order line ${line.id} must have a positive quantity`,
-        { lineId: line.id, quantity: line.quantity },
-      );
-    }
+    assertLineQuantity(line, byId, options);
   }
+  assertNotOverReversed(lines, byId, options);
 }
 
 /** Direct children of a line, in the order they appear in `lines`. */
@@ -74,7 +73,7 @@ export function subtreeOf(lines: readonly OrderLine[], lineId: string): OrderLin
  * portions each is an item of 2 and a pearl line of 2, and 4 portions are used. So the
  * quantities along the path to the root multiply. They are thousandths, so the product is
  * rescaled once at the end; that is only inexact when two fractional quantities meet
- * (1.5 kg × 0.333), and half-up keeps it symmetric for the negative lines to come.
+ * (1.5 kg × 0.333), and half-up keeps it symmetric for negative (void and refund) lines.
  */
 export function effectiveQuantity(lines: readonly OrderLine[], lineId: string): Quantity {
   const byId = indexLines(lines);
