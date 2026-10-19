@@ -4,6 +4,8 @@ import {
   branch,
   brand,
   device,
+  deviceCredential,
+  devicePairingCode,
   diningTable,
   drizzleFor,
   membership,
@@ -12,6 +14,7 @@ import {
   withTenant,
 } from "@fnb/db";
 import type pg from "pg";
+import { randomSha256Hex } from "./tenant-graph-rows";
 
 export { CHILD_TABLES, insertRow } from "./tenant-graph-rows";
 
@@ -22,6 +25,8 @@ export const TENANT_TABLES = [
   "branch",
   "brand",
   "device",
+  "device_credential",
+  "device_pairing_code",
   "dining_table",
   "membership",
   "organization",
@@ -46,6 +51,8 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     device: newId(),
     app_user: newId(),
     membership: newId(),
+    device_credential: newId(),
+    device_pairing_code: newId(),
   };
   await withTenant(pool, tenantId, async (client) => {
     const db = drizzleFor(client);
@@ -69,6 +76,20 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       tenantId,
       accountId: account.rows[0]?.id ?? "",
       appUserId: ids.app_user,
+    });
+    await db.insert(deviceCredential).values({
+      id: ids.device_credential,
+      tenantId,
+      deviceId: ids.device,
+      tokenHash: randomSha256Hex(),
+    });
+    await db.insert(devicePairingCode).values({
+      id: ids.device_pairing_code,
+      tenantId,
+      branchId: ids.branch,
+      codeHash: randomSha256Hex(),
+      createdByAppUserId: ids.app_user,
+      expiresAt: new Date(),
     });
   });
   return { tenantId, ids };

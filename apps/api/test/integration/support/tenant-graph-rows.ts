@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { newId } from "@fnb/db";
 import type { TenantGraph, TenantTable } from "./tenant-graph";
 
@@ -15,6 +16,12 @@ interface RowSpec {
 
 const named = () => ({ name: "x" });
 
+/** Stands in for a stored token or code hash; fresh on every call, as those are unique. */
+export const randomSha256Hex = () => randomBytes(32).toString("hex");
+
+// Any app_user of the inserting tenant, so only the parent column under test can be wrong.
+const anAppUser: Sql = { sql: "(SELECT id FROM app_user ORDER BY id LIMIT 1)" };
+
 // A membership needs an account of its own: one account belongs to an organization once.
 const freshAccount: Sql = {
   sql: "fnb_auth.create_account(gen_random_uuid(), 'x-' || gen_random_uuid() || '@example.test', NULL, 'x', now())",
@@ -26,6 +33,18 @@ const ROWS: Record<TenantTable, RowSpec> = {
   branch: { parent: { column: "brand_id", table: "brand" }, values: named },
   brand: { values: named },
   device: { parent: { column: "branch_id", table: "branch" }, values: named },
+  device_credential: {
+    parent: { column: "device_id", table: "device" },
+    values: () => ({ token_hash: randomSha256Hex() }),
+  },
+  device_pairing_code: {
+    parent: { column: "branch_id", table: "branch" },
+    values: () => ({
+      code_hash: randomSha256Hex(),
+      created_by_app_user_id: anAppUser,
+      expires_at: new Date(),
+    }),
+  },
   dining_table: { parent: { column: "area_id", table: "area" }, values: named },
   membership: {
     parent: { column: "app_user_id", table: "app_user" },

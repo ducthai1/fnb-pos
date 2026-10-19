@@ -7,7 +7,12 @@ export {
   listMigrationFiles,
 } from "./migrations/list-migration-files";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
-export { accessTables, membership } from "./schema/access-tables";
+export {
+  accessTables,
+  deviceCredential,
+  devicePairingCode,
+  membership,
+} from "./schema/access-tables";
 export { allTables } from "./schema/all-tables";
 export {
   appUser,

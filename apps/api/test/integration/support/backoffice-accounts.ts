@@ -73,3 +73,15 @@ export async function signIn(
   }
   return cookieOf(response);
 }
+
+/** A fresh member of the tenant, already signed in to the backoffice. */
+export async function signedInMember(
+  app: FastifyInstance,
+  pool: pg.Pool,
+  tenantId: string,
+): Promise<{ cookie: string; accountId: string; appUserId: string }> {
+  const email = uniqueEmail("manager");
+  const accountId = await createAccount(pool, { email });
+  const { appUserId } = await addMember(pool, tenantId, accountId);
+  return { cookie: await signIn(app, { email, password: PASSWORD }), accountId, appUserId };
+}

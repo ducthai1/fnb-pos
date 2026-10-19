@@ -10,4 +10,6 @@ export interface ApiContext {
   policy: AuthPolicy;
   /** onRequest hook: sets request.auth from the backoffice session cookie, or answers 401. */
   requireSession: onRequestHookHandler;
+  /** onRequest hook: sets request.device from `Authorization: Device <token>`, or answers 401. */
+  requireDevice: onRequestHookHandler;
 }

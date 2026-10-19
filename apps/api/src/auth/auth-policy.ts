@@ -7,6 +7,8 @@ export interface LockoutPolicy {
 export interface AuthPolicy {
   login: LockoutPolicy;
   sessionTtlMillis: number;
+  /** How long a pairing code shown in the backoffice can be typed into a till. */
+  pairingCodeTtlMillis: number;
 }
 
 const MINUTE = 60_000;
@@ -21,4 +23,5 @@ const MINUTE = 60_000;
 export const DEFAULT_AUTH_POLICY: AuthPolicy = {
   login: { maxAttempts: 5, lockMillis: 15 * MINUTE },
   sessionTtlMillis: 7 * 24 * 60 * MINUTE,
+  pairingCodeTtlMillis: 10 * MINUTE,
 };

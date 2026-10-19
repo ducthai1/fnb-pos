@@ -5,8 +5,11 @@ import { AUTH_ERROR_CODES } from "./auth/auth-error-codes";
 import { type AuthPolicy, DEFAULT_AUTH_POLICY } from "./auth/auth-policy";
 import { backofficeSessionHook } from "./auth/backoffice-session-hook";
 import { type Clock, systemClock } from "./clock";
+import { deviceAuthHook } from "./devices/device-auth-hook";
 import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
+import { registerDeviceRoutes } from "./routes/devices/device-routes";
+import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 
 export interface AppDependencies {
   /** Connects as the app role: DML only, bound by row level security. */
@@ -18,9 +21,9 @@ export interface AppDependencies {
 /**
  * The HTTP API. Tenant scoping rule for every route added here: a request never chooses
  * its tenant. There is deliberately no header, query or body field that sets it; the
- * tenant comes from the authenticated session, and tenant queries run inside
- * `withTenant(pool, session.tenantId, ...)`. Trusting a client-supplied tenant id would
- * turn row level security into a formality.
+ * tenant comes from the authenticated session (request.auth) or the till's credential
+ * (request.device), and tenant queries run inside `withTenant(pool, tenantId, ...)`.
+ * Trusting a client-supplied tenant id would turn row level security into a formality.
  */
 export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInstance {
   const app = Fastify({ logger: false });
@@ -30,9 +33,11 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
     clock: resolvedClock,
     policy: policy ?? DEFAULT_AUTH_POLICY,
     requireSession: backofficeSessionHook(pool, resolvedClock),
+    requireDevice: deviceAuthHook(pool),
   };
 
   app.decorateRequest("auth", null);
+  app.decorateRequest("device", null);
 
   // Error bodies carry a stable code only: no stack, SQL or library message reaches a
   // client, and a malformed request is told apart from a server fault by status alone.
@@ -59,6 +64,8 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
 
   registerLoginRoute(app, context);
   registerSessionRoutes(app, context);
+  registerPairingRoutes(app, context);
+  registerDeviceRoutes(app, context);
 
   return app;
 }
