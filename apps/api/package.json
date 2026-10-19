@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./build-app": "./src/build-app.ts",
+    "./test-support/sync-shop": "./test/integration/support/sync-shop.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",

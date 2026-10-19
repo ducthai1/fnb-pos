@@ -11,6 +11,10 @@
       "dependsOn": ["^typecheck"],
       "cache": false
     },
+    "test:sync": {
+      "dependsOn": ["^typecheck"],
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
