@@ -92,5 +92,6 @@ function orderDiscountLine(id: string, taxRate: BasisPoints, amount: Vnd): Order
     taxRate,
     note: null,
     priceSource: "manual",
+    reversesLineId: null,
   };
 }
