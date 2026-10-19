@@ -8,6 +8,8 @@ export const SYNC_CLIENT_ERROR_CODES = {
   deviceMismatch: "SYNC_CLIENT_DEVICE_MISMATCH",
   /** The server sent a cursor behind the one stored: keeping it would replay or skip changes. */
   cursorRegressed: "SYNC_CLIENT_CURSOR_REGRESSED",
+  /** A cursor that is not the decimal change number the server hands out. */
+  unreadableCursor: "SYNC_CLIENT_UNREADABLE_CURSOR",
   /** A pulled change at or before the stored cursor: the page is not the one asked for. */
   staleChange: "SYNC_CLIENT_STALE_CHANGE",
   /** A server snapshot without a whole-number version cannot be ordered against another. */

@@ -53,7 +53,35 @@ export const FIND_OUTBOX_SQL = "SELECT device_seq FROM outbox WHERE command_id =
 export const READ_PENDING_SQL =
   "SELECT device_seq, envelope FROM outbox WHERE status = 'pending' ORDER BY device_seq LIMIT ?";
 export const COUNT_PENDING_SQL = "SELECT count(*) AS n FROM outbox WHERE status = 'pending'";
+export const COUNT_PENDING_FOR_ENTITY_SQL =
+  "SELECT count(*) AS n FROM outbox WHERE entity = ? AND entity_id = ? AND status = 'pending'";
+export const READ_OUTBOX_ROW_SQL =
+  "SELECT device_seq, entity, entity_id, envelope, status FROM outbox WHERE command_id = ?";
+export const SETTLE_OUTBOX_SQL =
+  "UPDATE outbox SET status = ?, result_code = ? WHERE command_id = ? AND status = 'pending'";
+export const INSERT_REJECTED_SQL =
+  "INSERT INTO rejected_command (command_id, device_seq, entity, entity_id, code, envelope, " +
+  "server_snapshot) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+// The version rule: a server copy replaces the kept one only when it is strictly newer. A
+// command answer can arrive after a newer change of another till was pulled (the answer was
+// lost and the server repeats the stored one, made at the time), and must not roll it back.
+export const UPSERT_SERVER_SQL =
+  "INSERT INTO entity_snapshot (entity, entity_id, source, version, snapshot) " +
+  "VALUES (?, ?, 'server', ?, ?) ON CONFLICT (entity, entity_id, source) DO UPDATE SET " +
+  "version = excluded.version, snapshot = excluded.snapshot " +
+  "WHERE excluded.version > entity_snapshot.version";
+// A deletion carries no version; it keeps the newest version seen so an older copy arriving
+// later cannot bring the row back.
+export const DELETE_SERVER_SQL =
+  "INSERT INTO entity_snapshot (entity, entity_id, source, version, snapshot) " +
+  "VALUES (?, ?, 'server', 0, NULL) ON CONFLICT (entity, entity_id, source) DO UPDATE SET " +
+  "snapshot = NULL";
+export const READ_SERVER_SQL =
+  "SELECT version, snapshot FROM entity_snapshot " +
+  "WHERE entity = ? AND entity_id = ? AND source = 'server'";
+export const DELETE_OPTIMISTIC_SQL =
+  "DELETE FROM entity_snapshot WHERE entity = ? AND entity_id = ? AND source = 'optimistic'";
 export const UPSERT_OPTIMISTIC_SQL =
   "INSERT INTO entity_snapshot (entity, entity_id, source, version, snapshot) " +
   "VALUES (?, ?, 'optimistic', ?, ?) ON CONFLICT (entity, entity_id, source) DO UPDATE SET " +

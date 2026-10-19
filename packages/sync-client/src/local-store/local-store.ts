@@ -1,4 +1,9 @@
-import type { EntitySnapshot, SyncCommandEnvelope } from "@fnb/contracts";
+import type {
+  EntitySnapshot,
+  SyncChangesPage,
+  SyncCommandEnvelope,
+  SyncCommandResult,
+} from "@fnb/contracts";
 
 /** One row the till shows, e.g. { entity: "order", entityId: <order id> }. */
 export interface EntityRef {
@@ -34,6 +39,12 @@ export interface StoreWrite {
   readonly changed: readonly EntityRef[];
 }
 
+export interface RecordedResults extends StoreWrite {
+  /** Commands settled by this write; an answer repeated for a settled command is not counted. */
+  readonly accepted: readonly string[];
+  readonly rejected: readonly string[];
+}
+
 export interface EnqueuedCommand extends StoreWrite {
   /** The command as it will be sent, numbered. */
   readonly command: SyncCommandEnvelope;
@@ -52,6 +63,13 @@ export interface LocalStore {
   /** The oldest commands still waiting, in deviceSeq order. */
   pendingCommands(limit: number): Promise<SyncCommandEnvelope[]>;
   pendingCount(): Promise<number>;
+  /** Settles answered commands and keeps the server rows they carry; retries stay pending. */
+  recordResults(
+    sent: readonly SyncCommandEnvelope[],
+    results: readonly SyncCommandResult[],
+  ): Promise<RecordedResults>;
+  /** Keeps a pulled page and moves the cursor in the same transaction. */
+  applyChanges(page: SyncChangesPage): Promise<StoreWrite>;
   /** The feed position to pull from: "0" before the first pull. */
   cursor(): Promise<string>;
   snapshot(entity: string, entityId: string): Promise<EntityView | null>;

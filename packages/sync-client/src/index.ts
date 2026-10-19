@@ -1,5 +1,6 @@
 export type {
   EnqueuedCommand,
+  RecordedResults,
   EntityRef,
   EntityView,
   LocalCommand,
@@ -15,3 +16,30 @@ export {
   type SyncClientErrorCode,
   isSyncClientError,
 } from "./sync-client-error";
+export {
+  type ChangeListener,
+  type SyncClient,
+  type SyncClientOptions,
+  createSyncClient,
+} from "./sync/create-sync-client";
+export {
+  type HttpRequest,
+  type HttpResponse,
+  type HttpSend,
+  type HttpSyncTransportOptions,
+  createHttpSyncTransport,
+  fetchHttpSend,
+} from "./sync/http-sync-transport";
+export {
+  type BackoffPolicy,
+  DEFAULT_BACKOFF,
+  type SyncClock,
+  backoffDelayMs,
+  systemSyncClock,
+} from "./sync/sync-clock";
+export type { SyncFailure, SyncReport } from "./sync/sync-report";
+export {
+  type SyncTransport,
+  SyncTransportError,
+  type SyncTransportErrorKind,
+} from "./sync/sync-transport";

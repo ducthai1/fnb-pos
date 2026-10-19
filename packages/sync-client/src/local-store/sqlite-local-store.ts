@@ -1,5 +1,6 @@
 import type { EntitySnapshot, SyncCommandEnvelope } from "@fnb/contracts";
 import { SYNC_CLIENT_ERROR_CODES, SyncClientError } from "../sync-client-error";
+import { applyPulledChanges, readCursor } from "./apply-pulled-changes";
 import { ChangeTracker, readView } from "./entity-views";
 import type { EntityView, LocalStore, RejectedCommand } from "./local-store";
 import {
@@ -14,10 +15,9 @@ import {
   UPSERT_OPTIMISTIC_SQL,
   WRITE_META_SQL,
 } from "./local-store-schema-sql";
+import { recordCommandResults } from "./record-command-results";
 import { type SqlRow, type SqliteDriver, inTransaction } from "./sqlite-driver";
 import { validateLocalCommand } from "./validate-local-command";
-
-export const INITIAL_CURSOR = "0";
 
 const readMeta = (driver: SqliteDriver, key: string): string | null => {
   const [row] = driver.all(READ_META_SQL, [key]);
@@ -83,7 +83,11 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
 
     pendingCount: async () => Number(driver.all(COUNT_PENDING_SQL)[0]?.n ?? 0),
 
-    cursor: async () => readMeta(driver, "cursor") ?? INITIAL_CURSOR,
+    recordResults: async (sent, results) => recordCommandResults(driver, sent, results),
+
+    applyChanges: async (page) => applyPulledChanges(driver, page),
+
+    cursor: async () => readCursor(driver),
 
     snapshot: async (entity, entityId) => readView(driver, { entity, entityId }),
 
