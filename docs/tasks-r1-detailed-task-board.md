@@ -6,10 +6,9 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 02:50 — Đợt 3 (4 agent, 1,24M token, 37 phút) đã merge + push: tổng tiền đúng với dòng hủy (gộp vào dòng gốc) và đơn hoàn (đối xứng); `buildRefund` chuyển sang `totals`, đơn hoàn mang `refundAmounts` — Σ các lần hoàn = đúng số khách đã trả từng đồng (property 10.000 vòng đời); gắn khóa quyền vào API backoffice (`requirePermission`), CRUD vai trò, `provisionOrganization` seed 6 vai trò mẫu, duyệt tại chỗ `POST /pos/approvals`; schema + API menu (0007/0008, không DELETE món — chỉ archive) + kiểm cấu hình combo/món/bảng giá.
-- Review sâu đợt 1–2: `research/review-wave-1-2-findings.md` (1 high, 4 medium, 11 low). Tất cả đã chia vào đợt 4 (Backlog).
-- Cổng trên `main`: `pnpm verify` 762 unit · `pnpm test:api` 670 tích hợp — xanh.
-- Tiếp theo (đợt 4): sửa toàn bộ phát hiện review; gắn `edit_menu` vào route menu; `packages/contracts` + định dạng tiền/số lượng trên mạng; schema đơn/thanh toán/ca + endpoint đồng bộ server.
+- 2026-10-20 03:35 — Đợt 4 (4 agent, 1,18M token, 37 phút) đã merge + push: sửa toàn bộ 16 phát hiện review (dòng đảo phải khớp dòng gốc + `validateRefundAgainstSale`; ngưỡng giảm giá theo tỉ lệ TÍCH LŨY; `quantity` chặn số quá nhỏ; `buildLineDiscount` giảm đúng cho cả dòng; migration 0010 tự REVOKE EXECUTE hàm `fnb_auth` khỏi PUBLIC + search_path cố định; khóa PIN leo thang tới 24h + audit; test lần thử song song; uuid chặt ở mọi route); gói `@fnb/contracts` (tiền/số lượng/tỉ lệ/uuid trên mạng, schema menu, phong bì lệnh đồng bộ); `edit_menu` cho mọi route ghi menu; schema đơn hàng 0011 (đơn đã trả bất biến ở DB) + đồng bộ server 0012 (`POST /sync/commands`, `GET /sync/changes`, thứ tự device_seq, khóa advisory theo tenant, kết quả accepted mang ảnh chụp đơn) với 2 lệnh `order.save_draft` (server tự tính giá) và `order.pay`.
+- Cổng trên `main`: `pnpm verify` 1.019 unit · `pnpm test:api` 963 tích hợp — xanh.
+- Tiếp theo (đợt 5): `packages/sync-client` + cổng `test:sync`; lệnh hủy/giảm giá/hoàn/hủy đơn phía server + cấu hình charge profile theo chi nhánh; ca & két; gói in + phiếu bếp (domain).
 - Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log.
 
 ---
@@ -217,12 +216,14 @@
 
 ### T04-01 Schema đơn / thanh toán / ca / in / hủy (server + SQLite)
 - **Test:** `apps/api/test/integration/order/paid-order-is-immutable.test.ts`.
+- **Trạng thái:** một phần (2026-10-20) — 0011_orders.sql: sales_order (charge_profile snapshot), sales_order_line, refund_line_amount, payment, line_void_record, shift (khung); trigger chặn sửa dòng của đơn không ở draft (kể cả owner). Chưa có print_job, kitchen_ticket.
 
 ### T04-02 Sync: kéo bản chụp + thay đổi theo cursor
 - **Test:** `packages/sync-client/test/scenarios/pull-resumes-from-cursor.test.ts`.
 
 ### T04-03 Sync: outbox lệnh + endpoint server
 - **Test:** `packages/sync-client/test/scenarios/{duplicate-command-is-noop,out-of-order-commands,domain-version-mismatch-is-rejected,server-recomputes-totals}.test.ts`.
+- **Trạng thái:** một phần (2026-10-20) — server: 0012_sync.sql (applied_command, device_sync_state, change_log chỉ-thêm), thứ tự device_seq, idempotent (lưu cả kết quả bị từ chối), khóa advisory theo tenant, accepted mang ảnh chụp đơn; lệnh `order.save_draft`, `order.pay`; ratchet test từ spike. Client (`packages/sync-client`) chưa có.
 
 ### T04-04 Màn "cần xử lý"
 - **Test:** `apps/pos/src/features/sync/rejected-commands-panel.test.tsx`.
@@ -364,4 +365,14 @@
 - 2026-10-20 · Đơn đã thanh toán chưa lưu charge profile lúc bán ⇒ lưu snapshot profile trên đơn để hoàn tiền đúng khi chi nhánh đổi cấu hình. → T04-01.
 - 2026-10-20 · Giảm % toàn đơn áp trước khi hủy món giữ số tiền cố định; hủy làm cơ sở nhỏ hơn số giảm ⇒ lỗi. Tầng ứng dụng phải áp lại giảm % sau khi hủy. → T04-17.
 - 2026-10-20 · Bộ unit domain ~10s vì property 10.000 vòng đời — cân nhắc 2.000 khi chạy local, 10.000 trong CI (`FNB_LIFECYCLE_RUNS`).
+- 2026-10-20 · Lệnh đồng bộ còn thiếu: `order.void_line` (save_draft phải chuyển sang cập nhật theo id khi đã có tham chiếu dòng), giảm giá (kiểm `approvalId`: đúng hành động, đúng nhân viên, dùng một lần), `order.refund` (đọc/ghi refund_line_amount), hủy đơn; payload từng lệnh khai trong `@fnb/contracts`. → đợt 5.
+- 2026-10-20 · Charge profile hiện mặc định cứng (giá gồm VAT, không phí dịch vụ) — cần khóa cấu hình theo chi nhánh. → đợt 5.
+- 2026-10-20 · `save_draft` có chặn món đang hết (product_availability) không? Món giá mở/cân chưa có trong ý định dòng. → đợt 5.
+- 2026-10-20 · Lệnh offline × staff session: hiện chỉ đồng bộ khi có staff session đang sống, người tạo = người đang đăng nhập; cần tôn trọng staffSessionId theo từng lệnh. → T04-05.
+- 2026-10-20 · `official_no` / `call_number` không gán được sau khi trả (trigger chỉ cho paid→posted) — luật riêng khi làm hóa đơn điện tử. → T05-07.
+- 2026-10-20 · Làm tròn tiền mặt + tiền thừa: `order.pay` đòi Σ thanh toán = amountDue đúng từng đồng. → T04-08.
+- 2026-10-20 · Giữ change_log bao lâu (trigger chỉ-thêm chặn cả owner) — cần migration/hàm dọn có chủ đích. → T11.
+- 2026-10-20 · PIN khóa tới 24h ⇒ người đứng ở máy quầy có thể khóa quản lý cả ngày — cần thao tác mở khóa của quản lý/backoffice. → T01-10.
+- 2026-10-20 · Sau khi hủy một phần, cây con của món bị "đóng băng" (không đổi topping, không thêm giảm dòng); món có giảm cả dòng phải gỡ giảm trước khi hủy. Chấp nhận ở quầy? (chờ user)
+- 2026-10-20 · Hoàn tiền offline: `validateRefundAgainstSale` cần cùng danh sách hoàn trước mà máy quầy thấy ⇒ đồng bộ hoàn tiền nên là lệnh ý định server dựng lại. → đợt 5.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.

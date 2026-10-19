@@ -36,6 +36,10 @@
 17. Trong `withTenant`, một câu lệnh bị từ chối sẽ hủy cả transaction ⇒ mỗi ca "bị chặn" cần `withTenant` riêng.
 18. Bảng chỉ-thêm mới ⇒ thêm vào `APPEND_ONLY_TABLES`; bảng Drizzle mới ⇒ thêm vào `packages/db/src/schema/all-tables.ts`; mỗi bảng tenant có một `RowSpec` trong `apps/api/test/integration/support/tenant-graph-rows.ts`.
 19. Thời gian trong API test điều khiển bằng `ManualClock`, không `sleep`.
+20. Test đồng thời: pool `max` ≥ số request song song; mở "cửa sổ" giữa hai bước bằng hook giữ lại (vd `observedSecretCheck().hold()`), hoặc giữ transaction sync bằng `withTenant` riêng của test + chờ đối thủ bằng `untilSettledOrWaitingOnLock` — không có seam riêng cho test trong code sản phẩm.
+21. Bảng chỉ-thêm mới có cột JSON ⇒ thêm vào `APPEND_ONLY_JSON_COLUMN` (`support/tenant-table-lists.ts`). Khóa ngoại TRỎ VÀO bảng chỉ-thêm làm TRUNCATE lỗi 0A000 trước trigger ⇒ tránh.
+22. Lệnh đồng bộ của một máy trong test phải dựng ĐÚNG thứ tự gửi (dựng lệch thứ tự sinh retry SYNC_OUT_OF_ORDER trông như lỗi server).
+23. zod 3: refine vẫn chạy sau khi check trước đã lỗi ⇒ refine gọi BigInt/parse phải tự chặn đầu vào xấu trước.
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
 
