@@ -64,13 +64,13 @@ try {
   });
   const load = async () => {
     const response = await page.goto(`${server.url}/spike/index.html`);
-    await page.waitForFunction(() => typeof (window as unknown as { runPhase?: unknown }).runPhase === "function");
+    await page.waitForFunction(() => typeof (window as unknown as { runStep?: unknown }).runStep === "function");
     return response?.status();
   };
-  const run = <T>(phase: string, args: Record<string, unknown> = {}) =>
+  const run = <T>(step: string, args: Record<string, unknown> = {}) =>
     page.evaluate(
-      ([p, a]) => (window as unknown as { runPhase: (p: string, a: unknown) => Promise<unknown> }).runPhase(p, a),
-      [phase, args] as const,
+      ([p, a]) => (window as unknown as { runStep: (p: string, a: unknown) => Promise<unknown> }).runStep(p, a),
+      [step, args] as const,
     ) as Promise<T>;
 
   const firstLoadStatus = await load();
@@ -88,10 +88,10 @@ try {
   // the pool while this one has it.
   const secondTab = await context.newPage();
   await secondTab.goto(`${server.url}/spike/index.html`);
-  await secondTab.waitForFunction(() => typeof (window as unknown as { runPhase?: unknown }).runPhase === "function");
+  await secondTab.waitForFunction(() => typeof (window as unknown as { runStep?: unknown }).runStep === "function");
   const secondTabOpen = await Promise.race([
     secondTab
-      .evaluate(() => (window as unknown as { runPhase: (p: string) => Promise<unknown> }).runPhase("open"))
+      .evaluate(() => (window as unknown as { runStep: (p: string) => Promise<unknown> }).runStep("open"))
       .then((value) => ({ opened: true, value }), (error: Error) => ({ opened: false, error: error.message.split("\n")[0] })),
     new Promise((resolve) => setTimeout(() => resolve({ opened: false, error: "no answer within 15 s" }), 15_000)),
   ]);

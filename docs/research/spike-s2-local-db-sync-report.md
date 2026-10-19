@@ -1,6 +1,6 @@
 # Spike S2 — CSDL cục bộ + đồng bộ tự làm (đo, không phải code sản phẩm)
 
-> Trạng thái: **đã đo xong** (2026-10-20). Code: `spikes/local-db-sync/` (ngoài pnpm workspace). Số liệu gốc: `spikes/local-db-sync/results/*.json`.
+> Trạng thái: **đã đo xong** (2026-10-20; mỗi kịch bản chạy 2–3 lần, bảng ghi khoảng). Code: `spikes/local-db-sync/` (ngoài pnpm workspace). Số liệu gốc: `spikes/local-db-sync/results/*.json`.
 
 ## 1. Câu hỏi cần trả lời
 
@@ -40,14 +40,14 @@ Máy đo: 12 nhân, ext4 trên NVMe, Chrome 151. Dữ liệu kịch bản đặt
 | Như trên — WASM/OPFS trong Chrome (lô 25) | mất / trùng / thời gian | **0 / 0**; 4,2–5,1 s; băm trạng thái trình duyệt = server |
 | Ghi 1 đơn (đơn + 3 dòng + outbox) — node:sqlite, WAL, `synchronous=FULL` | p50 / p95 / p99 | 1,2–1,6 / 1,4–2,0 / 2,9–4,2 ms (3 lần chạy) |
 | Như trên, `synchronous=NORMAL` | p50 / p95 / p99 | 0,048 / 0,12 / 3,5 ms (p99 là lúc checkpoint WAL) |
-| Ghi 1 đơn — WASM `opfs-sahpool` mặc định (journal DELETE; xin WAL bị từ chối) | p50 / p95 / p99 | 5,6–5,7 / 7,3 / 9,1–9,9 ms (2.000 đơn = 11,5 s) |
-| WASM, `synchronous=NORMAL` | p50 / p95 | 5,1 / 6,5 ms |
-| WASM, `journal_mode=PERSIST` | p50 / p95 | 3,3 / 4,4 ms |
-| WASM, `locking_mode=EXCLUSIVE` + `journal_mode=WAL` (chạy được với sahpool) | p50 / p95 | **1,0 / 2,3 ms** |
-| WASM, `journal_mode=OFF` (không an toàn, chỉ để so) | p50 / p95 | 1,0 / 1,9 ms |
+| Ghi 1 đơn — WASM `opfs-sahpool` mặc định (journal DELETE; xin WAL bị từ chối) | p50 / p95 / p99 | 5,6–5,7 / 7,2–7,3 / 9,1–9,9 ms (2.000 đơn = 11,5 s) |
+| WASM, `synchronous=NORMAL` | p50 / p95 | 5,0–5,1 / 6,3–6,5 ms |
+| WASM, `journal_mode=PERSIST` | p50 / p95 | 3,3–3,4 / 4,4–4,7 ms |
+| WASM, `locking_mode=EXCLUSIVE` + `journal_mode=WAL` (chạy được với sahpool) | p50 / p95 | **0,9–1,0 / 2,3–2,4 ms** |
+| WASM, `journal_mode=OFF` (không an toàn, chỉ để so) | p50 / p95 | 1,0 / 1,8–1,9 ms |
 | Dung lượng DB cục bộ sau 2.000 đơn (6.000 dòng + 2.000 lệnh outbox) | byte | native 3,18 MB (~1,6 KB/đơn) sau checkpoint, WAL lúc đang mở thêm 4,2 MB; WASM 3,25 MB, OPFS thực chiếm 9,4 MB (pool cấp sẵn ô) |
 | **Lần 2** node: khởi động lại server + mở lại đúng file SQLite, +500 đơn, 150 thêm món, 140 thanh toán, vừa ghi vừa đồng bộ, lỗi mạng + 20 lần rút mạng, 3 lô bay cùng lúc | mất / trùng / cursor lùi? | **0 / 0 / không lùi** (8.000 → 10.440); 122 request, 54 hỏng; server trả lại kết quả cũ 275 lần; 750 lệnh nhận `retry` vì đảo thứ tự; xong 6,3 s sau đơn cuối |
-| **Lần 2** trình duyệt: **tải lại trang**, worker mới mở lại đúng DB OPFS (cursor 8.000, 2.000 lệnh đã nhận còn nguyên), +500 đơn như trên, 1 lô/lần | mất / trùng / cursor lùi? | **0 / 0 / không lùi** (8.000 → 10.448); băm trình duyệt = server; xong 11,4 s sau đơn cuối |
+| **Lần 2** trình duyệt: **tải lại trang**, worker mới mở lại đúng DB OPFS (cursor 8.000, 2.000 lệnh đã nhận còn nguyên), +500 đơn như trên, 1 lô/lần | mất / trùng / cursor lùi? | **0 / 0 / không lùi** (8.000 → 10.448); băm trình duyệt = server; xong 11,4–11,9 s sau đơn cuối |
 | Tab thứ 2 cùng origin mở DB khi tab 1 đang giữ | | **Không mở được**: `createSyncAccessHandle … another open Access Handle` (bẫy 13) |
 | **2 máy** cùng bán trên 200 đơn chung (mỗi máy 600 thao tác tạo/thêm món/thanh toán trong 3,1 s, lỗi mạng + 20 lần rút mạng mỗi máy) | thứ tự change_seq / hội tụ | **Hội tụ**: băm A = B = server; 0 mất, 0 trùng; thay đổi của mỗi máy giữ đúng thứ tự `device_seq` trong feed (0 vi phạm), xen kẽ giữa 2 máy 49 lần; cursor không lùi. Từ chối hợp lệ A 69, B 123 (`ALREADY_PAID` / `TOTAL_MISMATCH`) trên ~1.390 lệnh; hội tụ xong 8,4 s sau thao tác cuối |
 | Như trên nhưng **bỏ khóa advisory** | | Lần chạy này vẫn hội tụ (lệnh tạo/thanh toán tình cờ tuần tự hóa qua dòng tổng ngày), nhưng máy B nhận **20–38 từ chối giả `SYNC_DEVICE_SEQ_REUSED`** cho lệnh đã được áp (bẫy 11). Việc bỏ sót thay đổi thì test tất định tái hiện được (bẫy 1) |

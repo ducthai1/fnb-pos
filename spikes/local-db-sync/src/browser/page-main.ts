@@ -16,9 +16,9 @@ worker.onerror = (event) => {
   waiting.clear();
 };
 
-(window as unknown as { runPhase: unknown }).runPhase = (phase: string, args: Record<string, unknown> = {}) =>
+(window as unknown as { runStep: unknown }).runStep = (step: string, args: Record<string, unknown> = {}) =>
   new Promise((resolve, reject) => {
     const id = nextId++;
     waiting.set(id, { resolve, reject });
-    worker.postMessage({ id, phase, args });
+    worker.postMessage({ id, step, args });
   });

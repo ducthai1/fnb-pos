@@ -48,7 +48,7 @@ function syncClient(faults: FaultPlan, seed: number) {
   return { client, faulty };
 }
 
-const phases: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
+const steps: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
   async open(args) {
     sqlite3 ??= await sqlite3InitModule();
     pool ??= await sqlite3.installOpfsSAHPoolVfs({ name: "spike-sahpool" });
@@ -140,15 +140,15 @@ const phases: Record<string, (args: Record<string, unknown>) => Promise<unknown>
 };
 
 const scope = self as unknown as {
-  onmessage: (event: MessageEvent<{ id: number; phase: string; args: Record<string, unknown> }>) => void;
+  onmessage: (event: MessageEvent<{ id: number; step: string; args: Record<string, unknown> }>) => void;
   postMessage: (message: unknown) => void;
 };
 
 scope.onmessage = async (event) => {
-  const { id, phase, args } = event.data;
+  const { id, step, args } = event.data;
   try {
-    const run = phases[phase];
-    if (run === undefined) throw new Error(`unknown phase ${phase}`);
+    const run = steps[step];
+    if (run === undefined) throw new Error(`unknown step ${step}`);
     scope.postMessage({ id, ok: true, value: await run(args) });
   } catch (error) {
     scope.postMessage({ id, ok: false, error: error instanceof Error ? `${error.message}\n${error.stack}` : String(error) });
