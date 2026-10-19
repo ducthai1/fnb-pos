@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
     "test:api": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {

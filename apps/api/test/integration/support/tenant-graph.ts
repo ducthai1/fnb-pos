@@ -6,11 +6,14 @@ import {
   device,
   diningTable,
   drizzleFor,
+  membership,
   newId,
   organization,
   withTenant,
 } from "@fnb/db";
 import type pg from "pg";
+
+export { CHILD_TABLES, insertRow } from "./tenant-graph-rows";
 
 /** Every tenancy table; the catalog test fails if `public` gains a table missing here. */
 export const TENANT_TABLES = [
@@ -20,6 +23,7 @@ export const TENANT_TABLES = [
   "brand",
   "device",
   "dining_table",
+  "membership",
   "organization",
 ] as const;
 
@@ -41,6 +45,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     dining_table: newId(),
     device: newId(),
     app_user: newId(),
+    membership: newId(),
   };
   await withTenant(pool, tenantId, async (client) => {
     const db = drizzleFor(client);
@@ -55,37 +60,16 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       .insert(device)
       .values({ id: ids.device, tenantId, branchId: ids.branch, name: "POS 1" });
     await db.insert(appUser).values({ id: ids.app_user, tenantId, displayName: "Thu ngân" });
+    const account = await client.query<{ id: string }>(
+      "SELECT fnb_auth.create_account($1, $2, NULL, 'x', now()) AS id",
+      [newId(), `seed-${tenantId}@example.test`],
+    );
+    await db.insert(membership).values({
+      id: ids.membership,
+      tenantId,
+      accountId: account.rows[0]?.id ?? "",
+      appUserId: ids.app_user,
+    });
   });
   return { tenantId, ids };
-}
-
-const PARENT: Partial<Record<TenantTable, { column: string; table: TenantTable }>> = {
-  branch: { column: "brand_id", table: "brand" },
-  area: { column: "branch_id", table: "branch" },
-  dining_table: { column: "area_id", table: "area" },
-  device: { column: "branch_id", table: "branch" },
-};
-
-/** Tables that point at a parent row other than their organization. */
-export const CHILD_TABLES = TENANT_TABLES.filter((table) => PARENT[table] !== undefined);
-
-/**
- * A parameterized INSERT of one row into `table` with the given tenant_id, whose parent
- * key is taken from `parents`. An organization row is its own tenant, so its id is the
- * tenant id.
- */
-export function insertRow(
-  table: TenantTable,
-  tenantId: string,
-  parents: TenantGraph,
-): { sql: string; values: unknown[] } {
-  const columns = ["id", "tenant_id", table === "app_user" ? "display_name" : "name"];
-  const values: unknown[] = [table === "organization" ? tenantId : newId(), tenantId, "x"];
-  const parent = PARENT[table];
-  if (parent !== undefined) {
-    columns.push(parent.column);
-    values.push(parents.ids[parent.table]);
-  }
-  const placeholders = values.map((_, index) => `$${index + 1}`).join(", ");
-  return { sql: `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`, values };
 }
