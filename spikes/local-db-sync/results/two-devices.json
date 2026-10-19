@@ -1,0 +1,213 @@
+{
+  "locked": {
+    "serializeChanges": true,
+    "workloads": [
+      {
+        "created": 166,
+        "linesAdded": 223,
+        "paid": 205,
+        "blockedLocally": 6
+      },
+      {
+        "created": 170,
+        "linesAdded": 249,
+        "paid": 179,
+        "blockedLocally": 2
+      }
+    ],
+    "workMs": 3136,
+    "drainMs": 8449,
+    "changeFeedDeviceSwitches": 49,
+    "stateHash": {
+      "server": "0ff81420470c6fea",
+      "tills": [
+        "0ff81420470c6fea",
+        "0ff81420470c6fea"
+      ]
+    },
+    "tills": [
+      {
+        "deviceId": "till-a",
+        "audit": {
+          "commands": 694,
+          "pending": 0,
+          "rejected": 69,
+          "lostEffects": 0,
+          "matchesServer": true,
+          "mismatchedOrders": 0
+        },
+        "cursor": "3012",
+        "cursorNeverDecreased": true,
+        "rejectionCodes": {
+          "DOMAIN_ORDER_ALREADY_PAID": 52,
+          "DOMAIN_ORDER_TOTAL_MISMATCH": 17
+        },
+        "replayed": 80,
+        "pushRequests": 52,
+        "pushFailures": 16,
+        "pullRequests": 6,
+        "pullsDeferred": 1,
+        "faults": {
+          "requests": 58,
+          "droppedRequests": 2,
+          "droppedResponses": 2,
+          "delayed": 12,
+          "duplicated": 0,
+          "lateDeliveries": 4,
+          "refusedWhileUnplugged": 5,
+          "lostToUnplug": 3
+        }
+      },
+      {
+        "deviceId": "till-b",
+        "audit": {
+          "commands": 698,
+          "pending": 0,
+          "rejected": 123,
+          "lostEffects": 0,
+          "matchesServer": true,
+          "mismatchedOrders": 0
+        },
+        "cursor": "3012",
+        "cursorNeverDecreased": true,
+        "rejectionCodes": {
+          "DOMAIN_ORDER_ALREADY_PAID": 95,
+          "DOMAIN_ORDER_TOTAL_MISMATCH": 28
+        },
+        "replayed": 140,
+        "pushRequests": 51,
+        "pushFailures": 15,
+        "pullRequests": 8,
+        "pullsDeferred": 1,
+        "faults": {
+          "requests": 59,
+          "droppedRequests": 3,
+          "droppedResponses": 3,
+          "delayed": 6,
+          "duplicated": 2,
+          "lateDeliveries": 3,
+          "refusedWhileUnplugged": 3,
+          "lostToUnplug": 4
+        }
+      }
+    ],
+    "server": {
+      "orders": 536,
+      "lines": 1812,
+      "paidOrders": 260,
+      "changeRows": 3012,
+      "maxChangeSeq": "3012",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    }
+  },
+  "naive": {
+    "serializeChanges": false,
+    "workloads": [
+      {
+        "created": 166,
+        "linesAdded": 223,
+        "paid": 205,
+        "blockedLocally": 6
+      },
+      {
+        "created": 170,
+        "linesAdded": 249,
+        "paid": 180,
+        "blockedLocally": 1
+      }
+    ],
+    "workMs": 3116,
+    "drainMs": 6308,
+    "changeFeedDeviceSwitches": 75,
+    "stateHash": {
+      "server": "23e7517c0b5ab8dd",
+      "tills": [
+        "23e7517c0b5ab8dd",
+        "23e7517c0b5ab8dd"
+      ]
+    },
+    "tills": [
+      {
+        "deviceId": "till-a",
+        "audit": {
+          "commands": 694,
+          "pending": 0,
+          "rejected": 94,
+          "lostEffects": 0,
+          "matchesServer": true,
+          "mismatchedOrders": 0
+        },
+        "cursor": "3020",
+        "cursorNeverDecreased": true,
+        "rejectionCodes": {
+          "DOMAIN_ORDER_ALREADY_PAID": 70,
+          "DOMAIN_ORDER_TOTAL_MISMATCH": 24
+        },
+        "replayed": 114,
+        "pushRequests": 51,
+        "pushFailures": 15,
+        "pullRequests": 6,
+        "pullsDeferred": 1,
+        "faults": {
+          "requests": 57,
+          "droppedRequests": 2,
+          "droppedResponses": 2,
+          "delayed": 12,
+          "duplicated": 0,
+          "lateDeliveries": 4,
+          "refusedWhileUnplugged": 4,
+          "lostToUnplug": 3
+        }
+      },
+      {
+        "deviceId": "till-b",
+        "audit": {
+          "commands": 699,
+          "pending": 0,
+          "rejected": 113,
+          "lostEffects": 0,
+          "matchesServer": true,
+          "mismatchedOrders": 0
+        },
+        "cursor": "3020",
+        "cursorNeverDecreased": true,
+        "rejectionCodes": {
+          "DOMAIN_ORDER_ALREADY_PAID": 62,
+          "DOMAIN_ORDER_TOTAL_MISMATCH": 31,
+          "SYNC_DEVICE_SEQ_REUSED": 20
+        },
+        "replayed": 100,
+        "pushRequests": 49,
+        "pushFailures": 13,
+        "pullRequests": 8,
+        "pullsDeferred": 1,
+        "faults": {
+          "requests": 57,
+          "droppedRequests": 3,
+          "droppedResponses": 3,
+          "delayed": 6,
+          "duplicated": 2,
+          "lateDeliveries": 3,
+          "refusedWhileUnplugged": 2,
+          "lostToUnplug": 3
+        }
+      }
+    ],
+    "server": {
+      "orders": 536,
+      "lines": 1818,
+      "paidOrders": 256,
+      "changeRows": 3020,
+      "maxChangeSeq": "3020",
+      "duplicateChangeRows": 0,
+      "dayOrderCountExcess": 0,
+      "dayPaidCountExcess": 0,
+      "changesOutOfDeviceOrder": 0,
+      "dayPaidVndExcess": "0"
+    }
+  }
+}
