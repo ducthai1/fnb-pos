@@ -14,6 +14,14 @@ export {
 } from "./migrations/list-migration-files";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
 export {
+  accessTables,
+  deviceCredential,
+  devicePairingCode,
+  membership,
+} from "./schema/access-tables";
+export { allTables } from "./schema/all-tables";
+export { role, staff, staffBranch, staffSession, staffTables } from "./schema/staff-tables";
+export {
   appUser,
   area,
   branch,

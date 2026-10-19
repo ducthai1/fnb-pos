@@ -6,14 +6,24 @@ import {
   brand,
   configValue,
   device,
+  deviceCredential,
+  devicePairingCode,
   diningTable,
   drizzleFor,
+  membership,
   newId,
   organization,
   recordApproval,
+  role,
+  staff,
+  staffBranch,
+  staffSession,
   withTenant,
 } from "@fnb/db";
 import type pg from "pg";
+import { randomSha256Hex } from "./tenant-graph-rows";
+
+export { CHILD_TABLES, insertRow } from "./tenant-graph-rows";
 
 /** Every tenancy table; the catalog test fails if `public` gains a table missing here. */
 export const TENANT_TABLES = [
@@ -25,8 +35,15 @@ export const TENANT_TABLES = [
   "brand",
   "config_value",
   "device",
+  "device_credential",
+  "device_pairing_code",
   "dining_table",
+  "membership",
   "organization",
+  "role",
+  "staff",
+  "staff_branch",
+  "staff_session",
 ] as const;
 
 export type TenantTable = (typeof TENANT_TABLES)[number];
@@ -54,6 +71,13 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     dining_table: newId(),
     device: newId(),
     app_user: newId(),
+    membership: newId(),
+    device_credential: newId(),
+    device_pairing_code: newId(),
+    role: newId(),
+    staff: newId(),
+    staff_branch: newId(),
+    staff_session: newId(),
     approval_log: newId(),
     audit_log: newId(),
     config_value: newId(),
@@ -71,6 +95,49 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       .insert(device)
       .values({ id: ids.device, tenantId, branchId: ids.branch, name: "POS 1" });
     await db.insert(appUser).values({ id: ids.app_user, tenantId, displayName: "Thu ngân" });
+    const account = await client.query<{ id: string }>(
+      "SELECT fnb_auth.create_account($1, $2, NULL, 'x', now()) AS id",
+      [newId(), `seed-${tenantId}@example.test`],
+    );
+    await db.insert(membership).values({
+      id: ids.membership,
+      tenantId,
+      accountId: account.rows[0]?.id ?? "",
+      appUserId: ids.app_user,
+    });
+    await db.insert(deviceCredential).values({
+      id: ids.device_credential,
+      tenantId,
+      deviceId: ids.device,
+      tokenHash: randomSha256Hex(),
+    });
+    await db.insert(devicePairingCode).values({
+      id: ids.device_pairing_code,
+      tenantId,
+      branchId: ids.branch,
+      codeHash: randomSha256Hex(),
+      createdByAppUserId: ids.app_user,
+      expiresAt: new Date(),
+    });
+    await db.insert(role).values({ id: ids.role, tenantId, name: "Thu ngân" });
+    await db.insert(staff).values({
+      id: ids.staff,
+      tenantId,
+      displayName: "Lan",
+      roleId: ids.role,
+      pinHash: "x",
+    });
+    await db
+      .insert(staffBranch)
+      .values({ id: ids.staff_branch, tenantId, staffId: ids.staff, branchId: ids.branch });
+    await db.insert(staffSession).values({
+      id: ids.staff_session,
+      tenantId,
+      staffId: ids.staff,
+      deviceId: ids.device,
+      tokenHash: randomSha256Hex(),
+      expiresAt: new Date(),
+    });
     await db.insert(configValue).values({
       id: ids.config_value,
       tenantId,
@@ -96,62 +163,4 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     });
   });
   return { tenantId, ids };
-}
-
-/** The columns besides id and tenant_id one row needs, with parents taken from `parents`. */
-const ROW_COLUMNS: Record<TenantTable, (parents: TenantGraph) => Record<string, unknown>> = {
-  organization: () => ({ name: "x" }),
-  brand: () => ({ name: "x" }),
-  branch: (p) => ({ name: "x", brand_id: p.ids.brand }),
-  area: (p) => ({ name: "x", branch_id: p.ids.branch }),
-  dining_table: (p) => ({ name: "x", area_id: p.ids.area }),
-  device: (p) => ({ name: "x", branch_id: p.ids.branch }),
-  app_user: () => ({ display_name: "x" }),
-  approval_log: (p) => ({
-    action_key: "refund",
-    requested_by_staff_id: newId(),
-    approved_by_staff_id: newId(),
-    branch_id: p.ids.branch,
-    device_id: p.ids.device,
-  }),
-  audit_log: () => ({ actor_kind: "system", action: "x", entity_kind: "x", entity_id: newId() }),
-  config_value: (p) => ({
-    scope_kind: "device",
-    scope_id: p.ids.device,
-    key: `k${newId()}`,
-    value: "true",
-  }),
-};
-
-/** Tables that point at a parent row other than their organization. */
-export const CHILD_TABLES = [
-  "approval_log",
-  "area",
-  "branch",
-  "config_value",
-  "device",
-  "dining_table",
-] as const satisfies TenantTable[];
-
-/**
- * A parameterized INSERT of one row into `table` with the given tenant_id, whose parent
- * keys are taken from `parents`. An organization row is its own tenant, so its id is the
- * tenant id.
- */
-export function insertRow(
-  table: TenantTable,
-  tenantId: string,
-  parents: TenantGraph,
-): { sql: string; values: unknown[] } {
-  const row: Record<string, unknown> = {
-    id: table === "organization" ? tenantId : newId(),
-    tenant_id: tenantId,
-    ...ROW_COLUMNS[table](parents),
-  };
-  const columns = Object.keys(row);
-  const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
-  return {
-    sql: `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`,
-    values: Object.values(row),
-  };
 }

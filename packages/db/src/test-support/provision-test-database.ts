@@ -4,8 +4,9 @@ import { type TestPostgresInfo, testConnectionString } from "./test-postgres-inf
 
 /**
  * Creates the owner and app roles and the shared test database, then migrates it as the
- * owner. The app role gets DML on every table the owner creates in `public` through
- * default privileges, so migrations never need to name roles.
+ * owner. The app role gets DML on every table the owner creates in `public`, and EXECUTE
+ * on every function the owner creates, through default privileges, so migrations never
+ * need to name roles.
  */
 export async function provisionTestDatabase(info: TestPostgresInfo): Promise<void> {
   await asSuperuser(info, "postgres", async (client) => {
@@ -27,6 +28,14 @@ export async function provisionTestDatabase(info: TestPostgresInfo): Promise<voi
     await client.query(
       `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} IN SCHEMA public ` +
         `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${app}`,
+    );
+    // Functions are executable by PUBLIC unless revoked. The owner's SECURITY DEFINER
+    // functions guard sign-in data, so only the app role may call them.
+    await client.query(
+      `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`,
+    );
+    await client.query(
+      `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} GRANT EXECUTE ON FUNCTIONS TO ${app}`,
     );
   });
   await runMigrations(testConnectionString(info, "owner"));

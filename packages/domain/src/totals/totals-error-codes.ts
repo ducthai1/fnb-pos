@@ -1,0 +1,8 @@
+export const TOTALS_ERROR_CODES = {
+  negativeGoodsPrice: "DOMAIN_TOTALS_NEGATIVE_GOODS_PRICE",
+  positiveDiscountPrice: "DOMAIN_TOTALS_POSITIVE_DISCOUNT_PRICE",
+  discountExceedsBase: "DOMAIN_TOTALS_DISCOUNT_EXCEEDS_BASE",
+  nonPositiveDiscount: "DOMAIN_TOTALS_NON_POSITIVE_DISCOUNT",
+  negativeWeight: "DOMAIN_TOTALS_NEGATIVE_WEIGHT",
+  nothingToAllocateTo: "DOMAIN_TOTALS_NOTHING_TO_ALLOCATE_TO",
+} as const;
