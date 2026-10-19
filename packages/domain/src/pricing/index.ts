@@ -11,4 +11,6 @@ export {
   type UnitPriceSource,
   resolveUnitPrice,
 } from "./resolve-price";
+export { validatePriceList } from "./validate-price-list";
 export { validatePriceListItem } from "./validate-price-list-item";
+export { validateProductConfig } from "./validate-product-config";

@@ -64,6 +64,7 @@ export function order(lines: readonly OrderLine[], overrides: Partial<Order> = {
     lines,
     version: 1,
     refundOfOrderId: null,
+    refundAmounts: null,
     ...overrides,
   };
 }

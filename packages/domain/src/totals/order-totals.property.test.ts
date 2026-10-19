@@ -5,24 +5,14 @@ import type { OrderLine } from "../order";
 import { allocateAmount } from "./allocate-amount";
 import { computeOrderTotals } from "./compute-order-totals";
 import { generatedOrder } from "./order-totals-arbitraries";
-import type { OrderTotals, OrderTotalsInput } from "./order-totals-types";
+import type { OrderTotals } from "./order-totals-types";
+import { fromJson, toJson } from "./totals-wire-test-helpers";
 
 const RUNS = { numRuns: 2_000 };
 const sum = (values: readonly bigint[]) => values.reduce((acc, v) => acc + v, 0n);
 
 /** The totals without the per-line snapshot, whose rounding đồng may follow line order. */
 const orderLevel = (totals: OrderTotals) => ({ ...totals, lines: [] });
-
-// The wire format: bigints travel as strings, because JSON has no integer bigger than 2^53.
-const BIGINT_TEXT = /^-?\d+n$/;
-const toJson = (order: OrderTotalsInput) =>
-  JSON.stringify(order, (_, value: unknown) =>
-    typeof value === "bigint" ? `${value.toString()}n` : value,
-  );
-const fromJson = (text: string): OrderTotalsInput =>
-  JSON.parse(text, (_, value: unknown) =>
-    typeof value === "string" && BIGINT_TEXT.test(value) ? BigInt(value.slice(0, -1)) : value,
-  ) as OrderTotalsInput;
 
 describe("computeOrderTotals on random orders", () => {
   it("lines, tax groups and the amount due all add up", () => {
@@ -92,7 +82,7 @@ describe("computeOrderTotals on random orders", () => {
   it("gives the same result after the order goes through JSON, as between POS and server", () => {
     fc.assert(
       fc.property(generatedOrder, ({ order, profile }) => {
-        const received = fromJson(toJson(order));
+        const received = fromJson<typeof order>(toJson(order));
         expect(received.lines.every((l) => typeof l.unitPrice === "bigint")).toBe(true);
         expect(computeOrderTotals(received, profile)).toEqual(computeOrderTotals(order, profile));
       }),

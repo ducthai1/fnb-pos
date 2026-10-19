@@ -16,6 +16,7 @@ export {
   effectiveModifierGroupRule,
 } from "./effective-modifier-group-rule";
 export { findProductVariant } from "./find-product-variant";
+export { validateComboConfig } from "./validate-combo-config";
 export { validateModifierGroupConfig } from "./validate-modifier-group-config";
 export {
   type ModifierSelectionInput,

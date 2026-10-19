@@ -4,6 +4,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { postgresErrorCode } from "../support/postgres-error-code";
 import {
+  DELETABLE_TENANT_TABLES,
   MUTABLE_TENANT_TABLES,
   TENANT_TABLES,
   type TenantGraph,
@@ -75,6 +76,21 @@ describe.each(MUTABLE_TENANT_TABLES)("row level security on changes to %s", (tab
     });
   });
 
+  it("rejects tenant A moving its own row over to tenant B", async () => {
+    const code = await asA((client) =>
+      postgresErrorCode(() =>
+        client.query(`UPDATE ${table} SET tenant_id = $1 WHERE id = $2`, [
+          b.tenantId,
+          a.ids[table],
+        ]),
+      ),
+    );
+    expect(code).toBe(INSUFFICIENT_PRIVILEGE);
+  });
+});
+
+// Undeletable tables refuse DELETE by privilege, which the catalog schema tests prove.
+describe.each(DELETABLE_TENANT_TABLES)("row level security on deletes from %s", (table) => {
   it("lets tenant A delete nothing of tenant B", async () => {
     const deleted = await asA((client) =>
       client.query(`DELETE FROM ${table} WHERE id = $1`, [b.ids[table]]),
@@ -86,18 +102,6 @@ describe.each(MUTABLE_TENANT_TABLES)("row level security on changes to %s", (tab
       deleted: 0,
       remaining: 1,
     });
-  });
-
-  it("rejects tenant A moving its own row over to tenant B", async () => {
-    const code = await asA((client) =>
-      postgresErrorCode(() =>
-        client.query(`UPDATE ${table} SET tenant_id = $1 WHERE id = $2`, [
-          b.tenantId,
-          a.ids[table],
-        ]),
-      ),
-    );
-    expect(code).toBe(INSUFFICIENT_PRIVILEGE);
   });
 });
 

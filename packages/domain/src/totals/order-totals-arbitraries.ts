@@ -59,44 +59,54 @@ const serviceChargeSpec = fc.record({
 });
 
 /** 1–15 items with 0–4 modifiers each over 1–3 tax rates, with or without each kind of charge. */
-export const generatedOrder: fc.Arbitrary<GeneratedOrder> = fc
-  .record({
-    rates: fc.subarray(RATES, { minLength: 1, maxLength: 3 }),
-    items: fc.array(itemSpec, { minLength: 1, maxLength: 15 }),
-    discount: fc.option(discountSpec),
-    serviceCharge: fc.option(serviceChargeSpec),
-    serviceType: fc.constantFrom(...SERVICE_TYPES),
-    pricesIncludeTax: fc.boolean(),
-  })
-  .map((spec) => {
-    const rateAt = (i: number): BasisPoints => spec.rates[i % spec.rates.length] ?? basisPoints(0);
-    const lines: OrderLine[] = [];
-    spec.items.forEach((item, i) => {
-      const id = `i${i}`;
-      lines.push(itemLine(id, item.price, rateAt(item.rate), item.qty));
-      item.modifiers.forEach((m, k) => {
-        lines.push(modifierLine(`${id}m${k}`, id, m.price, rateAt(m.rate), m.qty));
+export const generatedOrder: fc.Arbitrary<GeneratedOrder> = generatedOrderOf(15);
+
+/** generatedOrder with at most `maxItems` items, for properties that run a whole lifecycle. */
+export function generatedOrderOf(maxItems: number): fc.Arbitrary<GeneratedOrder> {
+  return fc
+    .record({
+      rates: fc.subarray(RATES, { minLength: 1, maxLength: 3 }),
+      items: fc.array(itemSpec, { minLength: 1, maxLength: maxItems }),
+      discount: fc.option(discountSpec),
+      serviceCharge: fc.option(serviceChargeSpec),
+      serviceType: fc.constantFrom(...SERVICE_TYPES),
+      pricesIncludeTax: fc.boolean(),
+    })
+    .map((spec) => {
+      const rateAt = (i: number): BasisPoints =>
+        spec.rates[i % spec.rates.length] ?? basisPoints(0);
+      const lines: OrderLine[] = [];
+      spec.items.forEach((item, i) => {
+        const id = `i${i}`;
+        lines.push(itemLine(id, item.price, rateAt(item.rate), item.qty));
+        item.modifiers.forEach((m, k) => {
+          lines.push(modifierLine(`${id}m${k}`, id, m.price, rateAt(m.rate), m.qty));
+        });
+        if (item.lineDiscount !== null) {
+          // per unit of the item and never above its own price, so it always fits the item
+          const perUnit = applyRate(vnd(item.price), basisPoints(item.lineDiscount), "down");
+          const total = multiplyVndByQuantity(perUnit, item.qty, "half-up");
+          if (total > 0n)
+            lines.push(discountLine(`${id}d`, id, Number(perUnit), rateAt(item.rate)));
+        }
       });
-      if (item.lineDiscount !== null) {
-        // per unit of the item and never above its own price, so it always fits the item
-        const perUnit = applyRate(vnd(item.price), basisPoints(item.lineDiscount), "down");
-        const total = multiplyVndByQuantity(perUnit, item.qty, "half-up");
-        if (total > 0n) lines.push(discountLine(`${id}d`, id, Number(perUnit), rateAt(item.rate)));
-      }
+      const profile = {
+        pricesIncludeTax: spec.pricesIncludeTax,
+        serviceCharge: spec.serviceCharge,
+      };
+      const draft = { lines, serviceType: spec.serviceType };
+      const netBefore = computeOrderTotals(draft, profile).netTotal;
+      const request = toDiscount(spec.discount, netBefore);
+      let n = 0;
+      const built = request ? buildOrderDiscountLines(draft, request, () => `o${n++}`) : [];
+      return {
+        order: { lines: [...lines, ...built], serviceType: spec.serviceType },
+        profile,
+        orderDiscount: request ? { request, built } : null,
+        netBeforeOrderDiscount: netBefore,
+      };
     });
-    const profile = { pricesIncludeTax: spec.pricesIncludeTax, serviceCharge: spec.serviceCharge };
-    const draft = { lines, serviceType: spec.serviceType };
-    const netBefore = computeOrderTotals(draft, profile).netTotal;
-    const request = toDiscount(spec.discount, netBefore);
-    let n = 0;
-    const built = request ? buildOrderDiscountLines(draft, request, () => `o${n++}`) : [];
-    return {
-      order: { lines: [...lines, ...built], serviceType: spec.serviceType },
-      profile,
-      orderDiscount: request ? { request, built } : null,
-      netBeforeOrderDiscount: netBefore,
-    };
-  });
+}
 
 function toDiscount(
   spec: { kind: "percent"; rate: number } | { kind: "fixed"; shareOfNet: number } | null,

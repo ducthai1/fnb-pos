@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { basisPoints, quantity, vnd } from "../money";
-import { buildRefund } from "./build-refund-order";
+import { buildRefundLines } from "./build-refund-order";
 import { earlierRefund, paidMilkTea, teas } from "./build-refund-order-test-fixtures";
 import { codeOf, item, linesTotal, sequentialIds } from "./order-line-test-fixtures";
 import { effectiveQuantity, validateLineTree } from "./order-line-tree";
@@ -8,9 +8,9 @@ import type { Order } from "./order-types";
 
 const ids = () => ({ orderId: "refund-1", newLineId: sequentialIds() });
 const refund = (paid: Order, request = [teas(1)], existing: readonly Order[] = []) =>
-  buildRefund(paid, request, existing, ids(), "2026-10-21");
+  buildRefundLines(paid, request, existing, ids(), "2026-10-21");
 
-describe("buildRefund", () => {
+describe("buildRefundLines", () => {
   it("refunds one of two paid teas with its pearls, as a draft on today's business day", () => {
     const { order: built, restockByLineId } = refund(paidMilkTea());
     expect(built).toMatchObject({

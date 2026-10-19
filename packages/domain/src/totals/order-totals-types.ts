@@ -1,8 +1,13 @@
 import type { BasisPoints, Vnd } from "../money";
 import type { Order, ServiceType } from "../order";
 
-/** Only what the totals read, so a caller holding a partial order (a draft on screen) can price it. */
-export type OrderTotalsInput = Pick<Order, "lines" | "serviceType">;
+/**
+ * Only what the totals read, so a caller holding a partial order (a draft on screen) can price
+ * it. Without `refundOfOrderId` the lines are an ordinary order; a refund normally carries the
+ * `refundAmounts` buildRefund gave it.
+ */
+export type OrderTotalsInput = Pick<Order, "lines" | "serviceType"> &
+  Partial<Pick<Order, "refundOfOrderId" | "refundAmounts">>;
 
 export interface ServiceChargeRule {
   readonly rate: BasisPoints;

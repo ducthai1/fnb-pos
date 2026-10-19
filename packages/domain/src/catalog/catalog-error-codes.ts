@@ -7,6 +7,19 @@ export const CATALOG_ERROR_CODES = {
   invalidOptionMaxQuantity: "DOMAIN_CATALOG_INVALID_OPTION_MAX_QUANTITY",
   negativePriceDelta: "DOMAIN_CATALOG_NEGATIVE_PRICE_DELTA",
   requiredGroupWithoutOptions: "DOMAIN_CATALOG_REQUIRED_GROUP_WITHOUT_OPTIONS",
+  unsatisfiableModifierGroup: "DOMAIN_CATALOG_UNSATISFIABLE_MODIFIER_GROUP",
+  // Combo configuration
+  invalidComboSlotLimits: "DOMAIN_CATALOG_INVALID_COMBO_SLOT_LIMITS",
+  duplicateComboSlotId: "DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_ID",
+  duplicateComboSlotOption: "DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_OPTION",
+  requiredComboSlotWithoutOptions: "DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_WITHOUT_OPTIONS",
+  negativeComboUpcharge: "DOMAIN_CATALOG_NEGATIVE_COMBO_UPCHARGE",
+  // Product configuration
+  duplicateVariantId: "DOMAIN_CATALOG_DUPLICATE_VARIANT_ID",
+  duplicateModifierGroupId: "DOMAIN_CATALOG_DUPLICATE_MODIFIER_GROUP_ID",
+  variantRuleForUnknownVariant: "DOMAIN_CATALOG_VARIANT_RULE_FOR_UNKNOWN_VARIANT",
+  negativeProductPrice: "DOMAIN_CATALOG_NEGATIVE_PRODUCT_PRICE",
+  comboDefinitionOnNonCombo: "DOMAIN_CATALOG_COMBO_DEFINITION_ON_NON_COMBO",
   // Variant lookup
   unknownVariant: "DOMAIN_CATALOG_UNKNOWN_VARIANT",
   variantRequired: "DOMAIN_CATALOG_VARIANT_REQUIRED",

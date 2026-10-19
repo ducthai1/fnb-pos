@@ -1,74 +1,40 @@
-import { type Vnd, ZERO_VND, addVnd, applyRate, subtractVnd } from "../money";
-import type { ServiceType } from "../order";
-import { goodsLineAmounts } from "./goods-line-amounts";
-import type {
-  LineTotals,
-  OrderChargeProfile,
-  OrderTotals,
-  OrderTotalsInput,
-  ServiceChargeRule,
-} from "./order-totals-types";
-import { type TaxableAmount, taxByRateGroup } from "./tax-by-rate-group";
+import { DomainError } from "../errors";
+import type { OrderChargeProfile, OrderTotals, OrderTotalsInput } from "./order-totals-types";
+import { pricedOrderTotals } from "./priced-order-totals";
+import { mirroredRefundLines, negateOrderTotals } from "./refund-mirror";
+import { refundTotalsFromAmounts } from "./refund-totals-from-amounts";
+import { TOTALS_ERROR_CODES } from "./totals-error-codes";
 
 /**
  * Everything the bill shows, computed from the order lines alone: the POS (offline) and the
  * server run this on the same data and must agree to the đồng, so nothing here depends on line
  * order beyond tie-breaking which line receives a rounding đồng.
- * Tax rates come from the lines (chosen when the item was added); totals never pick a rate.
+ *
+ * An ordinary order is priced as the customer pays for it, its void lines folded into the items
+ * they cancel. A refund (`refundOfOrderId` set) comes out negative: one built by buildRefund
+ * reads the amounts it carries (its share of what the sale charged); one without them is priced
+ * as the mirror image of a sale of its lines, which is what a refund of the whole order gives
+ * back when the sale had no order discount.
  */
 export function computeOrderTotals(
   order: OrderTotalsInput,
   profile: OrderChargeProfile,
 ): OrderTotals {
-  const goods = goodsLineAmounts(order.lines);
-  const grossTotal = addVnd(...goods.map((g) => g.gross));
-  const discountTotal = addVnd(...goods.map((g) => g.discount));
-  const netTotal = subtractVnd(grossTotal, discountTotal);
-  const serviceCharge = serviceChargeFor(
-    profile.serviceCharge,
-    order.serviceType,
-    grossTotal,
-    netTotal,
-  );
-
-  const taxable: TaxableAmount[] = goods.map((g) => ({
-    rate: g.taxRate,
-    amount: subtractVnd(g.gross, g.discount),
-  }));
-  // Listed last, so the goods keep the same tie-break whether or not a service charge applies.
-  if (profile.serviceCharge && serviceCharge > 0n) {
-    taxable.push({ rate: profile.serviceCharge.taxRate, amount: serviceCharge });
+  const refundOfOrderId = order.refundOfOrderId ?? null;
+  const amounts = order.refundAmounts ?? null;
+  if (refundOfOrderId === null) {
+    if (amounts !== null) {
+      throw new DomainError(
+        TOTALS_ERROR_CODES.mixedSaleAndRefund,
+        "an ordinary order cannot carry refund amounts",
+        { refundLineCount: amounts.lines.length },
+      );
+    }
+    return pricedOrderTotals(order, profile);
   }
-  const { breakdown, shares } = taxByRateGroup(taxable, profile.pricesIncludeTax);
-  const taxTotal = addVnd(...breakdown.map((group) => group.tax));
-
-  const lines: LineTotals[] = goods.map((g, i) => ({
-    lineId: g.lineId,
-    gross: g.gross,
-    discountAllocated: g.discount,
-    net: subtractVnd(g.gross, g.discount),
-    tax: shares[i] ?? ZERO_VND,
-  }));
-  return {
-    lines,
-    grossTotal,
-    discountTotal,
-    netTotal,
-    serviceCharge,
-    // the service charge is the one taxable amount after the goods, when it is there at all
-    serviceChargeTax: shares[goods.length] ?? ZERO_VND,
-    taxBreakdown: breakdown,
-    taxTotal,
-    amountDue: addVnd(netTotal, serviceCharge, profile.pricesIncludeTax ? ZERO_VND : taxTotal),
-  };
-}
-
-function serviceChargeFor(
-  rule: ServiceChargeRule | null,
-  serviceType: ServiceType,
-  grossTotal: Vnd,
-  netTotal: Vnd,
-): Vnd {
-  if (!rule || !rule.appliesTo.includes(serviceType)) return ZERO_VND;
-  return applyRate(rule.base === "before_discount" ? grossTotal : netTotal, rule.rate, "half-up");
+  if (amounts !== null) return refundTotalsFromAmounts(order.lines, refundOfOrderId, amounts);
+  const mirrored = mirroredRefundLines(order.lines, refundOfOrderId);
+  return negateOrderTotals(
+    pricedOrderTotals({ lines: mirrored, serviceType: order.serviceType }, profile),
+  );
 }

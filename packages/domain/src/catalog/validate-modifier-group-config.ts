@@ -12,11 +12,26 @@ import {
  * POS never meets a broken one mid-order. Throws on the first problem found.
  */
 export function validateModifierGroupConfig(group: ModifierGroup): void {
-  assertLimits(group, effectiveModifierGroupRule(group, null), null);
+  // Options first: the reachability check below sums their caps, which must be sound.
   assertOptions(group);
+  assertLimits(group, effectiveModifierGroupRule(group, null), null);
   for (const variantId of Object.keys(group.variantRules)) {
     assertLimits(group, effectiveModifierGroupRule(group, variantId), variantId);
   }
+}
+
+/**
+ * The most units an item can carry in the group: one per option when an option may
+ * not repeat, otherwise each option's own cap (unbounded when it has none).
+ */
+function reachableUnits(group: ModifierGroup): number {
+  let total = 0;
+  for (const option of group.options) {
+    if (!group.allowDuplicates) total += 1;
+    else if (option.maxQuantity === null) return Number.POSITIVE_INFINITY;
+    else total += option.maxQuantity;
+  }
+  return total;
 }
 
 function assertLimits(
@@ -57,6 +72,16 @@ function assertLimits(
       CATALOG_ERROR_CODES.requiredGroupWithoutOptions,
       `group ${group.id} is required but has no options`,
       context,
+    );
+  }
+  // E.g. "pick 3 sugar levels" where each level may be taken once and only 2 exist: the
+  // POS could never complete such an item, so it is refused when saved, not mid-order.
+  const reachable = reachableUnits(group);
+  if (!rule.hidden && rule.minSelect > reachable) {
+    throw new DomainError(
+      CATALOG_ERROR_CODES.unsatisfiableModifierGroup,
+      `group ${group.id} requires more units than its options can provide`,
+      { ...context, reachable },
     );
   }
 }

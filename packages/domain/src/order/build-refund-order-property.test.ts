@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { divideRounded, negateVnd, quantity, quantityFromThousandths } from "../money";
-import { buildRefund } from "./build-refund-order";
+import { buildRefundLines } from "./build-refund-order";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
 import {
   codeOf,
@@ -60,7 +60,7 @@ const mirrored = (lines: readonly OrderLine[]): OrderLine[] =>
       : { ...l, quantity: quantityFromThousandths(-l.quantity), reversesLineId: null },
   );
 
-describe("buildRefund over random sequences of refunds", () => {
+describe("buildRefundLines over random sequences of refunds", () => {
   it("never refunds more than was paid for, and each refund mirrors what it gives back", () => {
     fc.assert(
       fc.property(
@@ -86,12 +86,12 @@ describe("buildRefund over random sequences of refunds", () => {
             }
             const ids = { orderId: `r${n}`, newLineId: sequentialIds(`r${n}`) };
             if (expected !== undefined) {
-              expect(codeOf(() => buildRefund(paid, request, existing, ids, "2026-10-21"))).toBe(
-                expected,
-              );
+              expect(
+                codeOf(() => buildRefundLines(paid, request, existing, ids, "2026-10-21")),
+              ).toBe(expected);
               return;
             }
-            const built = buildRefund(paid, request, existing, ids, "2026-10-21").order;
+            const built = buildRefundLines(paid, request, existing, ids, "2026-10-21").order;
             expect(linesTotal(built.lines)).toBe(negateVnd(linesTotal(mirrored(built.lines))));
             existing.push({ ...built, status: a.thenStatus });
             if (a.thenStatus !== "cancelled") wanted.forEach((w, i) => (refunded[i] = w));

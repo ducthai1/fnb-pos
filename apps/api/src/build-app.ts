@@ -9,6 +9,7 @@ import { deviceAuthHook } from "./devices/device-auth-hook";
 import { requirePermissionHook } from "./permissions/require-permission";
 import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
+import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
@@ -78,6 +79,7 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
   registerUpdateAndDeleteRoleRoutes(app, context);
   registerStaffSessionRoutes(app, context);
   registerApprovalRoutes(app, context);
+  registerCatalogRoutes(app, context);
 
   return app;
 }

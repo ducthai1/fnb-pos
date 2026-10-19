@@ -77,8 +77,21 @@ export function subtreeOf(lines: readonly OrderLine[], lineId: string): OrderLin
  */
 export function effectiveQuantity(lines: readonly OrderLine[], lineId: string): Quantity {
   const byId = indexLines(lines);
-  const path = pathToRoot(byId, lineById(byId, lineId));
-  const product = path.reduce<bigint>((acc, line) => acc * line.quantity, 1n);
+  return effectiveOf(byId, lineById(byId, lineId));
+}
+
+/**
+ * effectiveQuantity of every line, keyed by id, indexing the lines once: pricing an order asks
+ * for all of them, and re-indexing per line made that quadratic in the number of lines.
+ */
+export function effectiveQuantities(lines: readonly OrderLine[]): ReadonlyMap<string, Quantity> {
+  const byId = indexLines(lines);
+  return new Map(lines.map((line) => [line.id, effectiveOf(byId, line)]));
+}
+
+function effectiveOf(byId: LineIndex, line: OrderLine): Quantity {
+  const path = pathToRoot(byId, line);
+  const product = path.reduce<bigint>((acc, l) => acc * l.quantity, 1n);
   const scale = QUANTITY_SCALE ** BigInt(path.length - 1);
   return quantityFromThousandths(divideRounded(product, scale, "half-up"));
 }

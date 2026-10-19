@@ -6,10 +6,12 @@ import {
   addVnd,
   multiplyVndByQuantity,
   negateVnd,
+  quantity,
   subtractVnd,
 } from "../money";
-import { type OrderLine, effectiveQuantity, validateLineTree } from "../order";
+import { type OrderLine, effectiveQuantities, validateLineTree } from "../order";
 import { allocateAmount } from "./allocate-amount";
+import { linesNetOfVoids } from "./lines-net-of-voids";
 import { TOTALS_ERROR_CODES } from "./totals-error-codes";
 
 /** A goods line (item, modifier, combo component): what it costs and the discount it carries. */
@@ -19,6 +21,12 @@ export interface GoodsLineAmount {
   readonly gross: Vnd;
   /** Positive amount taken off `gross` by the discount lines that reach this line. */
   readonly discount: Vnd;
+  /**
+   * false for a void line and for a line none of whose units are left: it carries nothing and
+   * joins no tax group, so the invoice of an order with a void lists the same rates as the
+   * order rung up without the cancelled units.
+   */
+  readonly priced: boolean;
 }
 
 interface WorkingLine {
@@ -28,6 +36,7 @@ interface WorkingLine {
   taxRate: BasisPoints;
   gross: Vnd;
   discount: Vnd;
+  priced: boolean;
 }
 
 interface DiscountBucket {
@@ -43,18 +52,19 @@ interface DiscountBucket {
  * invoice taxes each rate on its base after discount, so a discount must never move base from
  * one rate to another. A discount under an item reduces only that item and its children, and
  * is taken first, so an order discount applies to what the customer still pays for each line.
+ * Void lines are folded into the items they cancel first (see linesNetOfVoids); they are
+ * listed, in place, at zero.
  */
 export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[] {
   validateLineTree(lines);
-  const byId = new Map(lines.map((line) => [line.id, line]));
+  const { priced, voidLineIds } = linesNetOfVoids(lines);
+  const byId = new Map(priced.map((line) => [line.id, line]));
   const goods: WorkingLine[] = [];
   const buckets = new Map<string, DiscountBucket>();
-  for (const line of lines) {
-    const amount = multiplyVndByQuantity(
-      line.unitPrice,
-      effectiveQuantity(lines, line.id),
-      "half-up",
-    );
+  const effective = effectiveQuantities(priced);
+  for (const line of priced) {
+    const units = effective.get(line.id) ?? quantity(0);
+    const amount = multiplyVndByQuantity(line.unitPrice, units, "half-up");
     if (line.lineType === "discount") {
       assertDiscountPrice(line);
       const key = `${line.parentLineId ?? ""}|${line.taxRate}`;
@@ -73,6 +83,7 @@ export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[]
         taxRate: line.taxRate,
         gross: amount,
         discount: ZERO_VND,
+        priced: units !== 0n,
       });
     }
   }
@@ -86,12 +97,14 @@ export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[]
     );
     spreadDiscount(bucket, scope);
   }
-  return goods.map(({ lineId, taxRate, gross, discount }) => ({
-    lineId,
-    taxRate,
-    gross,
-    discount,
-  }));
+  const byLineId = new Map(goods.map((g) => [g.lineId, g]));
+  return lines
+    .filter((line) => line.lineType !== "discount")
+    .map(({ id, taxRate }) => {
+      const g = voidLineIds.has(id) ? undefined : byLineId.get(id);
+      if (!g) return { lineId: id, taxRate, gross: ZERO_VND, discount: ZERO_VND, priced: false };
+      return { lineId: id, taxRate, gross: g.gross, discount: g.discount, priced: g.priced };
+    });
 }
 
 function spreadDiscount({ scope, rate, amount }: DiscountBucket, targets: WorkingLine[]): void {

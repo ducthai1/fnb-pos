@@ -1,7 +1,7 @@
 import { DomainError } from "../errors";
 import { type Quantity, addQuantity, subtractQuantity } from "../money";
 import { ORDER_ERROR_CODES } from "./order-error-codes";
-import { buildReversalLines, findReversibleItem } from "./order-line-reversal-builder";
+import { buildReversalCopies, findReversibleItem } from "./order-line-reversal-builder";
 import { reversedQuantityOf } from "./order-line-reversal-rules";
 import { validateLineTree } from "./order-line-tree";
 import type { Order, OrderLine } from "./order-types";
@@ -20,7 +20,7 @@ export interface RefundIds {
 }
 
 export interface BuiltRefund {
-  /** A draft refund order; paying it out is a normal draft → paid transition. */
+  /** A draft refund order with its amounts; paying it out is a normal draft → paid transition. */
   readonly order: Order;
   /**
    * Restock choice per negative item of the refund, keyed by the refund line's own id: the
@@ -30,26 +30,29 @@ export interface BuiltRefund {
   readonly restockByLineId: Readonly<Record<string, boolean>>;
 }
 
+/** The refund's lines before its amounts are worked out, and where each goods copy came from. */
+export interface RefundLines extends BuiltRefund {
+  /** Refund line id → the sold line it was copied from. */
+  readonly soldLineIdByLineId: ReadonlyMap<string, string>;
+}
+
 /**
- * Builds a refund for part or all of a paid order: a new draft whose negative items point at
- * the sold lines, with copies of their toppings and picks. Names, unit prices and tax rates are
- * copied from the sold lines, so the customer gets back exactly what they paid per unit even if
- * the menu changed since.
- *
- * Not handled yet: an order-wide discount or promotion. The refund lines carry full unit
- * prices, so a partial refund of a discounted order would give back more than was paid; doing
- * it right needs the per-line share of the discount, which the totals module allocates.
+ * The lines of a refund for part or all of a paid order: a new draft whose negative items point
+ * at the sold lines, with copies of their toppings and picks. Names, unit prices and tax rates
+ * are copied from the sold lines, so the refund reads as what was sold even if the menu changed.
+ * What it gives back is not decided here: that is a share of the sale's totals (order discount,
+ * tax, service charge), which buildRefund in the totals module adds. This is internal to it.
  *
  * `businessDate` is the refund's own business day (today's, from businessDate()), not the
  * sale's: the sale's day may already be closed, and the money leaves the drawer today.
  */
-export function buildRefund(
+export function buildRefundLines(
   paidOrder: Order,
   request: readonly RefundRequestLine[],
   existingRefunds: readonly Order[],
   ids: RefundIds,
   businessDate: string,
-): BuiltRefund {
+): RefundLines {
   if (paidOrder.status !== "paid" && paidOrder.status !== "posted") {
     throw new DomainError(
       ORDER_ERROR_CODES.refundRequiresPaidOrder,
@@ -66,6 +69,7 @@ export function buildRefund(
   const earlier = earlierRefundLines(paidOrder, existingRefunds);
   const lines: OrderLine[] = [];
   const restockByLineId: Record<string, boolean> = {};
+  const soldLineIdByLineId = new Map<string, string>();
   for (const wanted of request) {
     const original = refundableLine(paidOrder, wanted);
     // Units voided before payment were never paid for; units on earlier refunds, drafts
@@ -84,9 +88,12 @@ export function buildRefund(
         { lineId: original.id, remaining: left, quantity: wanted.quantity },
       );
     }
-    const reversal = buildReversalLines(paidOrder.lines, original, wanted.quantity, ids.newLineId);
-    restockByLineId[reversal[0].id] = wanted.restock;
-    lines.push(...reversal);
+    const copies = buildReversalCopies(paidOrder.lines, original, wanted.quantity, ids.newLineId);
+    restockByLineId[copies[0].line.id] = wanted.restock;
+    for (const { line, copiedFromId } of copies) {
+      soldLineIdByLineId.set(line.id, copiedFromId);
+      lines.push(line);
+    }
   }
   const refund: Order = {
     id: ids.orderId,
@@ -97,9 +104,10 @@ export function buildRefund(
     lines,
     version: 1,
     refundOfOrderId: paidOrder.id,
+    refundAmounts: null,
   };
   validateLineTree(refund.lines, { refundOfOrderId: refund.refundOfOrderId });
-  return { order: refund, restockByLineId };
+  return { order: refund, restockByLineId, soldLineIdByLineId };
 }
 
 function refundableLine(paidOrder: Order, wanted: RefundRequestLine): OrderLine {
