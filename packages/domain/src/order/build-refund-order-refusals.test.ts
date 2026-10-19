@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { quantity } from "../money";
-import { type RefundRequestLine, buildRefund } from "./build-refund-order";
+import { type RefundRequestLine, buildRefundLines } from "./build-refund-order";
 import { earlierRefund, paidMilkTea, teas } from "./build-refund-order-test-fixtures";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
 import { codeOf, line, order, reversal, sequentialIds } from "./order-line-test-fixtures";
@@ -11,7 +11,10 @@ const refundCode = (
   request: readonly RefundRequestLine[],
   existing: readonly Order[] = [],
   newLineId = sequentialIds(),
-) => codeOf(() => buildRefund(paid, request, existing, { orderId: "r", newLineId }, "2026-10-21"));
+) =>
+  codeOf(() =>
+    buildRefundLines(paid, request, existing, { orderId: "r", newLineId }, "2026-10-21"),
+  );
 
 const of = (lineId: string, units = 1): RefundRequestLine => ({
   lineId,
@@ -22,7 +25,7 @@ const of = (lineId: string, units = 1): RefundRequestLine => ({
 /** Tea of 2 sent to the bar, one voided before the customer paid. */
 const voidedBeforePayment = () => paidMilkTea([reversal("void-1", "tea", quantity(-1))]);
 
-describe("buildRefund refuses", () => {
+describe("buildRefundLines refuses", () => {
   it.each<[OrderStatus, string]>([
     ["draft", C.refundRequiresPaidOrder],
     ["cancelled", C.refundRequiresPaidOrder],

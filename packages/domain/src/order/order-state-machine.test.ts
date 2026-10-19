@@ -34,6 +34,7 @@ function frozenOrder(status: OrderStatus, version = 3): Order {
     lines: Object.freeze([item("tea")]),
     version,
     refundOfOrderId: null,
+    refundAmounts: null,
   };
   // Frozen so that any in-place mutation throws instead of passing unnoticed.
   return Object.freeze(order);

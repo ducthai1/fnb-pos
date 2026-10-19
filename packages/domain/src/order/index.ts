@@ -8,12 +8,11 @@ export type {
   OrderLineType,
   OrderStatus,
   PriceSource,
+  RefundAmounts,
+  RefundLineAmounts,
   ServiceType,
 } from "./order-types";
 export { type VoidLineRequest, type VoidRecord, voidLine } from "./void-order-line";
-export {
-  type BuiltRefund,
-  type RefundIds,
-  type RefundRequestLine,
-  buildRefund,
-} from "./build-refund-order";
+// The refund builder itself is exported by totals: a refund's lines alone do not say what it
+// gives back.
+export type { BuiltRefund, RefundIds, RefundRequestLine } from "./build-refund-order";

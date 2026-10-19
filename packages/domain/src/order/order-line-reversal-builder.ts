@@ -38,6 +38,23 @@ export function buildReversalLines(
   units: Quantity,
   newLineId: () => string,
 ): [OrderLine, ...OrderLine[]] {
+  const [head, ...children] = buildReversalCopies(lines, original, units, newLineId);
+  return [head.line, ...children.map((copy) => copy.line)];
+}
+
+/** A line of a reversal and the line it was copied from. */
+export interface ReversalCopy {
+  readonly line: OrderLine;
+  readonly copiedFromId: string;
+}
+
+/** buildReversalLines, keeping which line each copy came from (a refund prices by it). */
+export function buildReversalCopies(
+  lines: readonly OrderLine[],
+  original: OrderLine,
+  units: Quantity,
+  newLineId: () => string,
+): [ReversalCopy, ...ReversalCopy[]] {
   const children = subtreeOf(lines, original.id).filter((line) => line.id !== original.id);
   const newIds = new Map([original, ...children].map((line) => [line.id, newLineId()] as const));
   const renamed = (id: string): string => newIds.get(id) ?? id;
@@ -49,11 +66,14 @@ export function buildReversalLines(
     reversesLineId: original.id,
   };
   return [
-    head,
+    { line: head, copiedFromId: original.id },
     ...children.map((line) => ({
-      ...line,
-      id: renamed(line.id),
-      parentLineId: line.parentLineId === null ? null : renamed(line.parentLineId),
+      line: {
+        ...line,
+        id: renamed(line.id),
+        parentLineId: line.parentLineId === null ? null : renamed(line.parentLineId),
+      },
+      copiedFromId: line.id,
     })),
   ];
 }

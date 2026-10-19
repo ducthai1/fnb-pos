@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { quantity, vnd } from "../money";
-import { ORDER_ERROR_CODES, type Order, buildRefund } from "../order";
+import { ORDER_ERROR_CODES, type Order, type RefundRequestLine } from "../order";
+import { buildRefundLines } from "../order/build-refund-order";
 import { codeOf, order, sequentialIds } from "../order/order-line-test-fixtures";
 import { computeOrderTotals } from "./compute-order-totals";
-import type { OrderTotals } from "./order-totals-types";
 import { TOTALS_ERROR_CODES as C } from "./totals-error-codes";
 import {
   TAX_EXCLUSIVE,
@@ -15,6 +15,7 @@ import {
   orderOf,
   withServiceCharge,
 } from "./totals-test-helpers";
+import { negated, paid, units } from "./totals-refund-test-helpers";
 import { orderLevel, voidUnits } from "./totals-void-test-helpers";
 
 const profile = withServiceCharge(TAX_EXCLUSIVE);
@@ -23,25 +24,16 @@ const teas = (units: number) => [
   modifierLine("pearl", "tea", 7_000, VAT_8),
 ];
 const burger = [itemLine("burger", 65_000, VAT_10), discountLine("off", "burger", 5_000, VAT_10)];
-const paid = (o: Order): Order => ({ ...o, status: "paid" });
-const units = (lineId: string, n: number) => ({ lineId, quantity: quantity(n), restock: true });
-const refundOf = (sale: Order, request: ReturnType<typeof units>[]) =>
-  buildRefund(sale, request, [], { orderId: "refund-1", newLineId: sequentialIds() }, "2026-10-21")
-    .order;
+const refundOf = (sale: Order, request: RefundRequestLine[]) =>
+  buildRefundLines(
+    sale,
+    request,
+    [],
+    { orderId: "refund-1", newLineId: sequentialIds() },
+    "2026-10-21",
+  ).order;
 
-/** What the customer gets back for a sale: every amount of it, negative. */
-const negated = (t: OrderTotals) => ({
-  ...orderLevel(t),
-  grossTotal: -t.grossTotal,
-  discountTotal: -t.discountTotal,
-  netTotal: -t.netTotal,
-  serviceCharge: -t.serviceCharge,
-  serviceChargeTax: -t.serviceChargeTax,
-  taxBreakdown: t.taxBreakdown.map((g) => ({ rate: g.rate, base: -g.base, tax: -g.tax })),
-  taxTotal: -t.taxTotal,
-  amountDue: -t.amountDue,
-});
-
+// Refunds without the amounts buildRefund adds: priced as the mirror image of their lines.
 describe("computeOrderTotals on a refund", () => {
   it("refunds a whole order at once and gives back exactly what it charged", () => {
     const sale = paid(order([...teas(2), ...burger]));

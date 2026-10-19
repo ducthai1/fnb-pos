@@ -6,4 +6,6 @@ export const TOTALS_ERROR_CODES = {
   negativeWeight: "DOMAIN_TOTALS_NEGATIVE_WEIGHT",
   nothingToAllocateTo: "DOMAIN_TOTALS_NOTHING_TO_ALLOCATE_TO",
   mixedSaleAndRefund: "DOMAIN_TOTALS_MIXED_SALE_AND_REFUND",
+  invalidRefundAmounts: "DOMAIN_TOTALS_INVALID_REFUND_AMOUNTS",
+  earlierRefundWithoutAmounts: "DOMAIN_TOTALS_EARLIER_REFUND_WITHOUT_AMOUNTS",
 } as const;
