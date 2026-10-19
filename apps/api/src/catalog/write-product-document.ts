@@ -1,3 +1,4 @@
+import type { ProductDocumentInput } from "@fnb/contracts";
 import type pg from "pg";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
 import { CatalogRequestError } from "./catalog-request-error";
@@ -8,7 +9,6 @@ import {
   updateCatalogRow,
 } from "./catalog-row-writes";
 import type { CheckedProductDocument } from "./product-document-to-domain";
-import type { ProductDocumentInput } from "./product-document-schema";
 import { writeProductCombo } from "./write-product-combo";
 import { writeProductModifierGroups } from "./write-product-modifier-groups";
 

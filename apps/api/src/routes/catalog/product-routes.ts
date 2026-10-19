@@ -1,12 +1,15 @@
+import {
+  catalogBrandQuerySchema,
+  catalogIdParamsSchema,
+  productDocumentSchema,
+} from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
-import { brandQuerySchema, idParamsSchema } from "../../catalog/catalog-schema-parts";
 import { amountOf } from "../../catalog/product-document";
-import { productDocumentSchema } from "../../catalog/product-document-schema";
 import { checkProductDocument } from "../../catalog/product-document-to-domain";
 import { readProductDocument } from "../../catalog/read-product-document";
 import { writeProductDocument } from "../../catalog/write-product-document";
@@ -20,7 +23,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
     "/catalog/products/:id",
     session,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(productDocumentSchema, request.body);
       // Checked before the transaction opens: a refused menu never takes a lock.
       const checked = checkProductDocument(id, input);
@@ -41,7 +44,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
     "/catalog/products/:id",
     session,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const { tenantId } = backofficeAuth(request);
       const document = await withTenant(context.pool, tenantId, (client) =>
         readProductDocument(client, id),
@@ -57,7 +60,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
     "/catalog/products",
     session,
     catalogHandler(async (request, reply) => {
-      const { brandId } = parseOrReject(brandQuerySchema, request.query);
+      const { brandId } = parseOrReject(catalogBrandQuerySchema, request.query);
       const { tenantId } = backofficeAuth(request);
       const rows = await withTenant(context.pool, tenantId, async (client) => {
         const brand = await client.query("SELECT 1 FROM brand WHERE id = $1", [brandId]);
@@ -91,7 +94,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
     "/catalog/products/:id/archive",
     session,
     catalogHandler(async (request, reply) => {
-      const { id } = parseOrReject(idParamsSchema, request.params);
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const writer = writeContextOf(request, context);
       const row = await withTenant(context.pool, writer.tenantId, async (client) => {
         await client.query(

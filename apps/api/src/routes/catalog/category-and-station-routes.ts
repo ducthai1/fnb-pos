@@ -1,27 +1,8 @@
+import { categoryBodySchema, stationBodySchema } from "@fnb/contracts";
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import type { ApiContext } from "../../api-context";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
-import {
-  countSchema,
-  idSchema,
-  nameSchema,
-  versionSchema,
-} from "../../catalog/catalog-schema-parts";
 import { registerVersionedResourceRoutes } from "./versioned-resource-routes";
-
-const categoryBody = z
-  .object({
-    version: versionSchema,
-    brandId: idSchema,
-    name: nameSchema,
-    sortOrder: countSchema.default(0),
-  })
-  .strict();
-
-const stationBody = z
-  .object({ version: versionSchema, branchId: idSchema, name: nameSchema })
-  .strict();
 
 export function registerCategoryAndStationRoutes(app: FastifyInstance, context: ApiContext): void {
   registerVersionedResourceRoutes(app, context, {
@@ -34,7 +15,7 @@ export function registerCategoryAndStationRoutes(app: FastifyInstance, context: 
       notFoundCode: CATALOG_API_ERROR_CODES.brandNotFound,
     },
     notFoundCode: CATALOG_API_ERROR_CODES.categoryNotFound,
-    body: categoryBody,
+    body: categoryBodySchema,
     ownerOf: (input) => input.brandId,
     cellsOf: (input) => ({ name: input.name, sort_order: input.sortOrder }),
     select: "id, brand_id, name, sort_order, version",
@@ -48,7 +29,6 @@ export function registerCategoryAndStationRoutes(app: FastifyInstance, context: 
     }),
   });
 
-  // Where a branch makes things; kitchen tickets are routed by a product's station.
   registerVersionedResourceRoutes(app, context, {
     path: "/catalog/stations",
     table: "station",
@@ -59,7 +39,7 @@ export function registerCategoryAndStationRoutes(app: FastifyInstance, context: 
       notFoundCode: CATALOG_API_ERROR_CODES.branchNotFound,
     },
     notFoundCode: CATALOG_API_ERROR_CODES.stationNotFound,
-    body: stationBody,
+    body: stationBodySchema,
     ownerOf: (input) => input.branchId,
     cellsOf: (input) => ({ name: input.name }),
     select: "id, branch_id, name, version",
