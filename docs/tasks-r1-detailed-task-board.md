@@ -6,9 +6,9 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 03:35 — Đợt 4 (4 agent, 1,18M token, 37 phút) đã merge + push: sửa toàn bộ 16 phát hiện review (dòng đảo phải khớp dòng gốc + `validateRefundAgainstSale`; ngưỡng giảm giá theo tỉ lệ TÍCH LŨY; `quantity` chặn số quá nhỏ; `buildLineDiscount` giảm đúng cho cả dòng; migration 0010 tự REVOKE EXECUTE hàm `fnb_auth` khỏi PUBLIC + search_path cố định; khóa PIN leo thang tới 24h + audit; test lần thử song song; uuid chặt ở mọi route); gói `@fnb/contracts` (tiền/số lượng/tỉ lệ/uuid trên mạng, schema menu, phong bì lệnh đồng bộ); `edit_menu` cho mọi route ghi menu; schema đơn hàng 0011 (đơn đã trả bất biến ở DB) + đồng bộ server 0012 (`POST /sync/commands`, `GET /sync/changes`, thứ tự device_seq, khóa advisory theo tenant, kết quả accepted mang ảnh chụp đơn) với 2 lệnh `order.save_draft` (server tự tính giá) và `order.pay`.
-- Cổng trên `main`: `pnpm verify` 1.019 unit · `pnpm test:api` 963 tích hợp — xanh.
-- Tiếp theo (đợt 5): `packages/sync-client` + cổng `test:sync`; lệnh hủy/giảm giá/hoàn/hủy đơn phía server + cấu hình charge profile theo chi nhánh; ca & két; gói in + phiếu bếp (domain).
+- 2026-10-20 04:25 — Đợt 5 (4 agent, 1,40M token, 43 phút) đã merge + push: `@fnb/sync-client` (LocalStore node:sqlite, outbox, đẩy 1 lô/lượt, kéo KỂ CẢ khi còn lệnh chờ, không bao giờ lùi version — bẫy 12 đã sửa cả hai phía: 2 máy giờ cao điểm 0 lùi version / 0 lệnh bị từ chối) + cổng `pnpm test:sync`; lệnh server `order.void_line`, `order.apply_discount`/`remove_discount` (ngưỡng tích lũy + duyệt dùng một lần, khớp đúng giá trị), `order.cancel`, `order.refund` (đơn hoàn + payout âm), charge profile theo cấu hình chi nhánh, chặn món đang hết, giá mở cần quyền; ca & két (`shift.open`/`cash_move`/`close`, 1 ca chưa đóng mỗi thiết bị, tiền dự kiến theo mệnh giá, đơn offline muộn giữ ca lúc bán + cờ `recorded_after_shift_close`); `@fnb/printing` (ESC/POS, TSPL, Windows-1258, mẫu bill/tem ly/phiếu bếp/chốt ca 58/80mm, golden) + `diffKitchenTicket`.
+- Cổng trên `main`: `pnpm verify` ~1.170 unit · `pnpm test:api` 1.095 · `pnpm test:sync` 12 — xanh.
+- Tiếp theo (đợt 6): app POS (React + Vite) đầu tiên dùng sync-client; lệnh gửi bếp + print job; bàn cơ bản phía server (04b); hợp nhất 2 bản kiểm approval.
 - Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log.
 
 ---
@@ -220,10 +220,11 @@
 
 ### T04-02 Sync: kéo bản chụp + thay đổi theo cursor
 - **Test:** `packages/sync-client/test/scenarios/pull-resumes-from-cursor.test.ts`.
+- **Trạng thái:** done (2026-10-20) — `@fnb/sync-client`: kéo theo cursor (lưu cùng giao dịch, lùi ⇒ lỗi), giữ snapshot server version cao nhất, không lùi.
 
 ### T04-03 Sync: outbox lệnh + endpoint server
 - **Test:** `packages/sync-client/test/scenarios/{duplicate-command-is-noop,out-of-order-commands,domain-version-mismatch-is-rejected,server-recomputes-totals}.test.ts`.
-- **Trạng thái:** một phần (2026-10-20) — server: 0012_sync.sql (applied_command, device_sync_state, change_log chỉ-thêm), thứ tự device_seq, idempotent (lưu cả kết quả bị từ chối), khóa advisory theo tenant, accepted mang ảnh chụp đơn; lệnh `order.save_draft`, `order.pay`; ratchet test từ spike. Client (`packages/sync-client`) chưa có.
+- **Trạng thái:** done (2026-10-20) — client + server; kịch bản test:sync: pull-resumes-from-cursor, duplicate, out-of-order, domain-version, server-recomputes-totals, offline-sale-then-sync (2.000 đơn), continue-on-previous-state, two-tills-at-peak-converge.
 
 ### T04-04 Màn "cần xử lý"
 - **Test:** `apps/pos/src/features/sync/rejected-commands-panel.test.tsx`.
@@ -248,10 +249,12 @@
 ### T04-10 Phiếu pha chế theo trạm
 - **Làm:** domain `diffKitchenTicket(order, sent)` → dòng mới/sửa ghi chú/hủy theo trạm; bảng `kitchen_ticket(_line)`.
 - **Test:** `packages/domain/src/kitchen/kitchen-ticket-diff.test.ts` — gửi lượt 2 chỉ in món mới; hủy in phiếu hủy đúng trạm.
+- **Trạng thái:** một phần (2026-10-20) — domain `diffKitchenTicket` (theo trạm, HỦY → ĐỔI GHI CHÚ → MÓN MỚI, chỉ ghi nhận đã gửi sau khi in thành công); bảng kitchen_ticket + lệnh gửi bếp chưa có.
 
 ### T04-11 `packages/printing`
 - **Làm:** mẫu bill, tem ly (1 tem/ly, có topping), phiếu pha chế, chốt ca → ESC/POS + TSPL; xem trước dạng chữ.
 - **Test:** `packages/printing/src/templates/*.test.ts` so với `__golden__/`.
+- **Trạng thái:** done (2026-10-20) — `@fnb/printing`: ESC/POS + TSPL + Windows-1258 + ascii-fold, QR, mẫu bill/tem ly/phiếu bếp/chốt ca, golden (`pnpm --filter @fnb/printing golden:update`). Chưa thử máy in thật (T00-08).
 
 ### T04-12 Vỏ Tauri (Windows)
 ### T04-13 Vỏ Capacitor (Android/iOS)
@@ -265,9 +268,11 @@
 
 ### T04-16 Ca & két
 - **Test:** `packages/domain/src/shift/expected-cash.test.ts`; `apps/api/test/integration/shift/{close-with-difference-needs-approval,open-orders-carry-to-next-shift,late-offline-order-keeps-its-shift}.test.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — domain `shift/` (trạng thái, mệnh giá, expectedCash, cumulativeCashMovedBy) + 0014 + lệnh shift.*; UI chưa.
 
 ### T04-17 Hủy dòng / void có duyệt / đơn hoàn (UI + API)
 - **Test:** `e2e/pos/void-after-sent-needs-approval.spec.ts`; `apps/api/test/integration/order/refund-cannot-exceed-original.test.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — `order.void_line`, `order.refund`, `order.cancel`; duyệt tại chỗ dùng một lần (`approval_use`), hạn 10 phút quanh createdAt của máy. UI chưa.
 
 ### T04-18 Offline mode + kiểm thử
 - **Làm:** phát hiện mất mạng; khóa thao tác (catalog §20); badge "chưa đồng bộ N".
@@ -375,4 +380,11 @@
 - 2026-10-20 · PIN khóa tới 24h ⇒ người đứng ở máy quầy có thể khóa quản lý cả ngày — cần thao tác mở khóa của quản lý/backoffice. → T01-10.
 - 2026-10-20 · Sau khi hủy một phần, cây con của món bị "đóng băng" (không đổi topping, không thêm giảm dòng); món có giảm cả dòng phải gỡ giảm trước khi hủy. Chấp nhận ở quầy? (chờ user)
 - 2026-10-20 · Hoàn tiền offline: `validateRefundAgainstSale` cần cùng danh sách hoàn trước mà máy quầy thấy ⇒ đồng bộ hoàn tiền nên là lệnh ý định server dựng lại. → đợt 5.
+- 2026-10-20 · Hai bản kiểm approval: `apps/api/src/sync/shift-command-approval.ts` (ca) và bản của lệnh order.* — hợp nhất thành một; đăng ký lệnh shift.* vào `SYNC_COMMANDS` thay vì nhánh `isShiftCommand`. → đợt 6.
+- 2026-10-20 · Duyệt: approval khớp ĐÚNG giá trị (duyệt 20% không dùng cho 19%)? Gắn approval với một đơn? Kiểm lại vai trò người duyệt lúc dùng? (chờ user)
+- 2026-10-20 · `order.pay` khi máy không có ca mở ⇒ đang nhận với shift_id NULL (tiền mặt không thuộc két nào) — nên từ chối? Ngưỡng chênh lệch đóng ca mặc định 0 đ; theo từng phương thức? (chờ user)
+- 2026-10-20 · Đóng ca có chuyển đơn đã trả sang `posted` không (đang không, để không cản hoàn tiền)?
+- 2026-10-20 · Hoàn 1/3 ly có giảm toàn đơn hiện in gross −28.999 / giảm −3.333 (net đúng −25.666) — bill hoàn nên hiện giá bán gốc + dòng giảm? (chờ user)
+- 2026-10-20 · In: CP1258 trên máy thật có in dấu thanh thành ô riêng không (lệch cột)? — kiểm ở T00-08; combo có thành phần khác trạm; thay topping sau khi đã gửi bếp chưa được phát hiện là thay đổi; bill chưa có dòng "Làm tròn".
+- 2026-10-20 · `applied_command` chưa lưu staff_id của người gửi lệnh.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.
