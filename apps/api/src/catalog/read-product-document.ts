@@ -32,11 +32,7 @@ export async function readProductDocument(
       "ORDER BY sort_order, id",
     [id],
   );
-  const arrangement = await readProductArrangement(
-    client,
-    id,
-    variants.rows.map((variant) => variant.id),
-  );
+  const arrangement = await readProductArrangement(client, id);
   return {
     id: row.id,
     version: row.version,

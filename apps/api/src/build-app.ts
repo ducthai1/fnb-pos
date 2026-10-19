@@ -13,6 +13,7 @@ import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes"
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
+import { registerPosBootstrapRoute } from "./routes/pos/bootstrap-route";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
@@ -85,6 +86,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerUpdateAndDeleteRoleRoutes(app, context);
   registerStaffSessionRoutes(app, context);
   registerApprovalRoutes(app, context);
+  registerPosBootstrapRoute(app, context);
   registerCatalogRoutes(app, context);
   registerSyncRoutes(app, context);
 

@@ -75,3 +75,28 @@ export async function readChangesPage(
   }));
   return { changes, nextCursor: changes.at(-1)?.changeSeq ?? cursor };
 }
+
+/**
+ * Where a till starting from scratch begins pulling: the branch's newest change, or "0".
+ * Writers hold the tenant's feed lock from drawing change_seq until COMMIT, so every change
+ * of the tenant numbered at or below a committed one has committed too; read first in a
+ * transaction, the cursor covers only changes the reads after it can see.
+ */
+export async function readBranchCursor(client: pg.ClientBase, branchId: string): Promise<string> {
+  const { rows } = await client.query<{ seq: string | null }>(
+    "SELECT max(change_seq) AS seq FROM change_log WHERE branch_id = $1",
+    [branchId],
+  );
+  return rows[0]?.seq ?? "0";
+}
+
+/**
+ * A feed position as the version of a till's copy. A JSON number holds change_seq exactly
+ * up to 2^53, which a feed drawing a million numbers a day reaches in 24 000 years; past
+ * it the copy would carry a rounded version, so that throws instead.
+ */
+export function feedVersionOf(changeSeq: string): number {
+  const version = Number(changeSeq);
+  if (!Number.isSafeInteger(version)) throw new RangeError(`change_seq ${changeSeq} is too big`);
+  return version;
+}

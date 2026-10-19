@@ -6,7 +6,9 @@ import type { CatalogShop } from "./catalog-shop";
  * and up to 3 toppings on M or 5 on L, where a topping may be doubled and pudding is
  * capped at 2. Every id is fresh, so each call is a new product.
  */
-export function pearlMilkTeaDocument(shop: CatalogShop) {
+export function pearlMilkTeaDocument(
+  shop: Pick<CatalogShop, "brandId" | "categoryId" | "stationId">,
+) {
   const ids = {
     product: newId(),
     sizeM: newId(),
