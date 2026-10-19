@@ -71,15 +71,16 @@ describe("paging through the feed", () => {
   it("follows change_seq as a number once it gains a digit", async () => {
     let sent: string[] = [];
     let seqs: string[] = [];
-    // Another file drawing numbers at the same moment can push all six past the boundary.
+    // Other files draw numbers at the same moment and can push every draft past the
+    // boundary; a wide margin absorbs a few of their draws, and a retry the rest.
     for (
       let attempt = 0;
-      attempt < 3 && new Set(seqs.map((seq) => seq.length)).size < 2;
+      attempt < 5 && new Set(seqs.map((seq) => seq.length)).size < 2;
       attempt++
     ) {
       const start = (await pullAll(app, s.tillA)).cursor;
-      await moveChangeSeqBelowADigitBoundary(pool, 3);
-      const drafts = Array.from({ length: 6 }, () => saveDraft(s.tillA, [line(s.menu.coffee.id)]));
+      await moveChangeSeqBelowADigitBoundary(pool, 10);
+      const drafts = Array.from({ length: 20 }, () => saveDraft(s.tillA, [line(s.menu.coffee.id)]));
       await push(app, s.tillA, drafts);
       sent = drafts.map(orderIdOf);
       const pages = await pullAll(app, s.tillA, start, 2);
