@@ -10,6 +10,15 @@ export const PERMISSION_ERROR_CODES = {
   invalidAction: "API_PERMISSION_INVALID_ACTION",
 } as const;
 
+export const APPROVAL_ERROR_CODES = {
+  /** The key is never lent (administration, reports): its holder acts in person. */
+  notApprovable: "API_APPROVAL_NOT_APPROVABLE",
+  /** Someone needing approval cannot be their own approver. */
+  selfApproval: "API_APPROVAL_SELF_APPROVAL",
+  /** The approver may not do the action alone either, threshold included. */
+  approverNotPermitted: "API_APPROVAL_APPROVER_NOT_PERMITTED",
+} as const;
+
 const FROM_DOMAIN: Readonly<Record<string, string>> = {
   [PERMISSIONS_ERROR_CODES.unknownKey]: PERMISSION_ERROR_CODES.unknownKey,
   [PERMISSIONS_ERROR_CODES.invalidGrant]: PERMISSION_ERROR_CODES.invalidThreshold,

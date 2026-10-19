@@ -11,6 +11,7 @@ import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
+import { registerApprovalRoutes } from "./routes/pos/approval-routes";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
@@ -76,6 +77,7 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
   registerListAndCreateRoleRoutes(app, context);
   registerUpdateAndDeleteRoleRoutes(app, context);
   registerStaffSessionRoutes(app, context);
+  registerApprovalRoutes(app, context);
 
   return app;
 }

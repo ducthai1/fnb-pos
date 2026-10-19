@@ -41,7 +41,7 @@ async function shiftOn(deviceToken: string): Promise<{ staffId: string; token: s
 }
 
 describe("a staff session", () => {
-  it("names the staff member working the till", async () => {
+  it("names the staff member working the till and what their role allows", async () => {
     const { staffId, token } = await shiftOn(shop.deviceToken);
     expect(await currentStaff(app, shop.deviceToken, token)).toEqual({
       status: 200,
@@ -52,6 +52,10 @@ describe("a staff session", () => {
         expiresAt: new Date(
           clock.now().getTime() + DEFAULT_AUTH_POLICY.staffSessionTtlMillis,
         ).toISOString(),
+        grants: {
+          permissionKeys: ["line_discount", "cash_move", "open_price", "transfer_table"],
+          thresholds: { line_discount: { maxRate: 1_000 }, cash_move: { maxAmount: "500000" } },
+        },
       },
     });
   });
