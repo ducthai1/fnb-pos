@@ -39,6 +39,17 @@ export const SYNC_ERROR_CODES = {
   approvalAlreadyUsed: "SYNC_APPROVAL_ALREADY_USED",
   /** Nobody can lend this permission on the spot. */
   permissionDenied: "SYNC_PERMISSION_DENIED",
+  /** Fewer ids than the discount has lines (one per tax rate on what it reduces). */
+  discountLineIdsTooFew: "SYNC_DISCOUNT_LINE_IDS_TOO_FEW",
+  /** A line to remove that is not a discount line of this order. */
+  discountLineNotFound: "SYNC_DISCOUNT_LINE_NOT_FOUND",
+  /**
+   * The save would make the order discount a larger share of the bill than the staff
+   * member may give alone (fewer goods under the same discount). Remove it and give it again.
+   */
+  discountRateRaised: "SYNC_DISCOUNT_RATE_RAISED",
+  /** The kitchen has units of the order that were never voided; void them first. */
+  orderHasSentItems: "SYNC_ORDER_HAS_SENT_ITEMS",
 } as const;
 
 /** Thrown by a command handler: the command is answered `rejected` with `code` and stored. */

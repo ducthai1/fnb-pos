@@ -2,6 +2,7 @@ import { type SaveDraftPayload, saveDraftPayloadSchema } from "@fnb/contracts";
 import { assertLinesEditable, validateLineTree } from "@fnb/domain";
 import { readDeviceOrderSettings } from "./device-order-settings";
 import { itemsAdding, newlyTypedPrices, refuseSoldOut } from "./draft-additions";
+import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
 import { mergeDraftLines, readVoidedLineIds } from "./draft-line-locks";
 import { insertDraftHeader, lineIdsTakenElsewhere, updateDraftHeader } from "./draft-order-writes";
 import { writeOrderLines } from "./order-line-writes";
@@ -33,6 +34,7 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
     voidedLineIds: await readVoidedLineIds(client, payload.orderId),
   });
   validateLineTree(lines, { refundOfOrderId: null });
+  await refuseRaisedOrderDiscount(context, before, lines);
   const itemIds = payload.lines.map((line) => line.lineId);
   if (await lineIdsTakenElsewhere(client, payload.orderId, itemIds)) {
     throw new CommandRejection(SYNC_ERROR_CODES.lineIdTaken);

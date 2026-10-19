@@ -46,6 +46,14 @@ export async function updateDraftHeader(client: pg.PoolClient, payload: SaveDraf
   );
 }
 
+/** Records that a command changed the order's lines, for tills comparing versions. */
+export async function touchOrder(client: pg.ClientBase, orderId: string) {
+  await client.query(
+    "UPDATE sales_order SET version = version + 1, updated_at = now() WHERE id = $1",
+    [orderId],
+  );
+}
+
 /** Whether any of `lineIds` already belongs to an order other than `orderId`. */
 export async function lineIdsTakenElsewhere(
   client: pg.PoolClient,

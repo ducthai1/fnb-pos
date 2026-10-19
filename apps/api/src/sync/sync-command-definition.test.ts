@@ -27,6 +27,13 @@ describe("sync command definitions", () => {
   });
 
   it("register every order command the tills send", () => {
-    expect([...SYNC_COMMANDS.keys()].sort()).toEqual(["order.pay", "order.save_draft"]);
+    expect([...SYNC_COMMANDS.keys()].sort()).toEqual([
+      "order.apply_discount",
+      "order.cancel",
+      "order.pay",
+      "order.remove_discount",
+      "order.save_draft",
+      "order.void_line",
+    ]);
   });
 });
