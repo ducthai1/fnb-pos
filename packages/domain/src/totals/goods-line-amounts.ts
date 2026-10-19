@@ -23,21 +23,32 @@ export interface GoodsLineAmount {
 
 interface WorkingLine {
   lineId: string;
+  /** The item at the root of this line's tree: a line discount reaches only that item's lines. */
+  rootItemId: string;
   taxRate: BasisPoints;
   gross: Vnd;
   discount: Vnd;
+}
+
+interface DiscountBucket {
+  /** The item a line discount hangs under; null for a discount on the whole order. */
+  readonly scope: string | null;
+  readonly rate: BasisPoints;
+  amount: Vnd;
 }
 
 /**
  * Prices every goods line at unit price × effective quantity, then spreads each discount over
  * the goods of ITS tax rate: a discount line carries the rate of the goods it reduces, and the
  * invoice taxes each rate on its base after discount, so a discount must never move base from
- * one rate to another.
+ * one rate to another. A discount under an item reduces only that item and its children, and
+ * is taken first, so an order discount applies to what the customer still pays for each line.
  */
 export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[] {
   validateLineTree(lines);
+  const byId = new Map(lines.map((line) => [line.id, line]));
   const goods: WorkingLine[] = [];
-  const discountByRate = new Map<BasisPoints, Vnd>();
+  const buckets = new Map<string, DiscountBucket>();
   for (const line of lines) {
     const amount = multiplyVndByQuantity(
       line.unitPrice,
@@ -46,39 +57,72 @@ export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[]
     );
     if (line.lineType === "discount") {
       assertDiscountPrice(line);
-      const sofar = discountByRate.get(line.taxRate) ?? ZERO_VND;
-      discountByRate.set(line.taxRate, addVnd(sofar, negateVnd(amount)));
+      const key = `${line.parentLineId ?? ""}|${line.taxRate}`;
+      const bucket = buckets.get(key) ?? {
+        scope: line.parentLineId,
+        rate: line.taxRate,
+        amount: ZERO_VND,
+      };
+      bucket.amount = addVnd(bucket.amount, negateVnd(amount));
+      buckets.set(key, bucket);
     } else {
       assertGoodsPrice(line);
-      goods.push({ lineId: line.id, taxRate: line.taxRate, gross: amount, discount: ZERO_VND });
+      goods.push({
+        lineId: line.id,
+        rootItemId: rootItemId(byId, line),
+        taxRate: line.taxRate,
+        gross: amount,
+        discount: ZERO_VND,
+      });
     }
   }
-  for (const [rate, discount] of discountByRate) {
-    spreadDiscount(
-      discount,
-      rate,
-      goods.filter((g) => g.taxRate === rate),
+  const all = [...buckets.values()];
+  for (const bucket of [
+    ...all.filter((b) => b.scope !== null),
+    ...all.filter((b) => b.scope === null),
+  ]) {
+    const scope = goods.filter(
+      (g) => g.taxRate === bucket.rate && (bucket.scope === null || g.rootItemId === bucket.scope),
     );
+    spreadDiscount(bucket, scope);
   }
-  return goods.map((g) => ({ ...g }));
+  return goods.map(({ lineId, taxRate, gross, discount }) => ({
+    lineId,
+    taxRate,
+    gross,
+    discount,
+  }));
 }
 
-function spreadDiscount(discount: Vnd, rate: BasisPoints, scope: WorkingLine[]): void {
-  const weights = scope.map((g) => ({ id: g.lineId, weight: subtractVnd(g.gross, g.discount) }));
+function spreadDiscount({ scope, rate, amount }: DiscountBucket, targets: WorkingLine[]): void {
+  const weights = targets.map((g) => ({ id: g.lineId, weight: subtractVnd(g.gross, g.discount) }));
   const base = addVnd(...weights.map((w) => w.weight));
   // Taking more than the goods are worth would leave a negative net, i.e. pay the customer;
   // that is a refund, which is its own document, never a discount.
-  if (discount > base) {
+  if (amount > base) {
     throw new DomainError(
       TOTALS_ERROR_CODES.discountExceedsBase,
-      `discount ${discount} at rate ${rate} exceeds the ${base} it can reduce`,
-      { rate, discount, base },
+      `discount ${amount} at rate ${rate} on ${scope ?? "the order"} exceeds the ${base} it can reduce`,
+      { scope, rate, discount: amount, base },
     );
   }
-  allocateAmount(discount, weights).forEach(({ amount }, i) => {
-    const target = scope[i];
-    if (target) target.discount = addVnd(target.discount, amount);
+  allocateAmount(amount, weights).forEach((share, i) => {
+    const target = targets[i];
+    if (target) target.discount = addVnd(target.discount, share.amount);
   });
+}
+
+/** The tree was validated, so every parent exists and the walk ends at a root item. */
+function rootItemId(byId: ReadonlyMap<string, OrderLine>, line: OrderLine): string {
+  let current = line;
+  for (let parent = parentOf(byId, current); parent; parent = parentOf(byId, current)) {
+    current = parent;
+  }
+  return current.id;
+}
+
+function parentOf(byId: ReadonlyMap<string, OrderLine>, line: OrderLine): OrderLine | undefined {
+  return line.parentLineId === null ? undefined : byId.get(line.parentLineId);
 }
 
 function assertGoodsPrice(line: OrderLine): void {
