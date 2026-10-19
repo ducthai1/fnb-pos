@@ -12,6 +12,7 @@ import { registerSessionRoutes } from "./routes/auth/session-routes";
 import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
+import { registerFloorRoutes } from "./routes/floor/register-floor-routes";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
@@ -86,6 +87,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerStaffSessionRoutes(app, context);
   registerApprovalRoutes(app, context);
   registerCatalogRoutes(app, context);
+  registerFloorRoutes(app, context);
   registerSyncRoutes(app, context);
 
   return app;

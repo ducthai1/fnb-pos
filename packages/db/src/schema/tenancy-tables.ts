@@ -1,4 +1,4 @@
-import { integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { tenantRowColumns } from "./tenant-row-columns";
 
 /** The tenant root: an organization's tenant_id is its own id. */
@@ -26,12 +26,23 @@ export const area = pgTable("area", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
   name: text("name").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 });
 
+/** Archived, never deleted, once an order sat at it; see 0017_floor_plan_and_table_orders.sql. */
 export const diningTable = pgTable("dining_table", {
   ...tenantRowColumns(),
   areaId: uuid("area_id").notNull(),
   name: text("name").notNull(),
+  x: integer("x").notNull().default(0),
+  y: integer("y").notNull().default(0),
+  width: integer("width").notNull().default(80),
+  height: integer("height").notNull().default(80),
+  shape: text("shape").notNull().default("rectangle"),
+  seats: integer("seats").notNull().default(4),
+  sortOrder: integer("sort_order").notNull().default(0),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 });
 
 export const device = pgTable("device", {
