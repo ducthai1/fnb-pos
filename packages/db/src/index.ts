@@ -33,6 +33,21 @@ export {
 } from "./schema/tenancy-tables";
 export { approvalLog, auditLog, auditTables } from "./schema/audit-tables";
 export { configValue, configurationTables } from "./schema/configuration-tables";
+export {
+  catalogTables,
+  category,
+  comboSlot,
+  comboSlotOption,
+  modifierGroup,
+  modifierGroupVariantRule,
+  modifierOption,
+  product,
+  productAvailability,
+  productModifierGroup,
+  productVariant,
+  station,
+} from "./schema/catalog-tables";
+export { priceList, priceListItem, priceListTables } from "./schema/price-list-tables";
 export { tenantRowColumns } from "./schema/tenant-row-columns";
 export { drizzleFor } from "./tenancy/drizzle-for";
 export { withTenant } from "./tenancy/with-tenant";
