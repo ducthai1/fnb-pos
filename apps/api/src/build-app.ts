@@ -10,6 +10,8 @@ import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
+import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
+import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
 
 export interface AppDependencies {
   /** Connects as the app role: DML only, bound by row level security. */
@@ -66,6 +68,8 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
   registerSessionRoutes(app, context);
   registerPairingRoutes(app, context);
   registerDeviceRoutes(app, context);
+  registerCreateStaffRoute(app, context);
+  registerStaffSessionRoutes(app, context);
 
   return app;
 }

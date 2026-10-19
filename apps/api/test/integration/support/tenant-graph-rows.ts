@@ -12,6 +12,8 @@ interface RowSpec {
   parent?: { column: string; table: TenantTable };
   /** Further required columns. Values unique per table must be fresh on every call. */
   values: () => Record<string, unknown>;
+  /** A data-modifying CTE run first, for a co-parent that must be new on every call. */
+  with?: string;
 }
 
 const named = () => ({ name: "x" });
@@ -21,6 +23,12 @@ export const randomSha256Hex = () => randomBytes(32).toString("hex");
 
 // Any app_user of the inserting tenant, so only the parent column under test can be wrong.
 const anAppUser: Sql = { sql: "(SELECT id FROM app_user ORDER BY id LIMIT 1)" };
+const aDevice: Sql = { sql: "(SELECT id FROM device ORDER BY id LIMIT 1)" };
+
+// A staff member is assigned to a branch once, so a second assignment needs a new branch.
+const FRESH_BRANCH =
+  "fresh_branch AS (INSERT INTO branch (id, tenant_id, brand_id, name) " +
+  "SELECT gen_random_uuid(), tenant_id, id, 'x' FROM brand ORDER BY id LIMIT 1 RETURNING id)";
 
 // A membership needs an account of its own: one account belongs to an organization once.
 const freshAccount: Sql = {
@@ -51,6 +59,20 @@ const ROWS: Record<TenantTable, RowSpec> = {
     values: () => ({ account_id: freshAccount }),
   },
   organization: { values: named },
+  role: { values: named },
+  staff: {
+    parent: { column: "role_id", table: "role" },
+    values: () => ({ display_name: "x", pin_hash: "x" }),
+  },
+  staff_branch: {
+    parent: { column: "staff_id", table: "staff" },
+    values: () => ({ branch_id: { sql: "(SELECT id FROM fresh_branch)" } }),
+    with: FRESH_BRANCH,
+  },
+  staff_session: {
+    parent: { column: "staff_id", table: "staff" },
+    values: () => ({ device_id: aDevice, token_hash: randomSha256Hex(), expires_at: new Date() }),
+  },
 };
 
 /** Tables that point at a parent row other than their organization. */
@@ -85,5 +107,7 @@ export function insertRow(
     return `$${values.length}`;
   });
   const columns = Object.keys(cells).join(", ");
-  return { sql: `INSERT INTO ${table} (${columns}) VALUES (${expressions.join(", ")})`, values };
+  const prefix = spec.with === undefined ? "" : `WITH ${spec.with} `;
+  const insert = `INSERT INTO ${table} (${columns}) VALUES (${expressions.join(", ")})`;
+  return { sql: prefix + insert, values };
 }

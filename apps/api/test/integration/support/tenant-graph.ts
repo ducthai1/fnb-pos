@@ -11,6 +11,10 @@ import {
   membership,
   newId,
   organization,
+  role,
+  staff,
+  staffBranch,
+  staffSession,
   withTenant,
 } from "@fnb/db";
 import type pg from "pg";
@@ -30,6 +34,10 @@ export const TENANT_TABLES = [
   "dining_table",
   "membership",
   "organization",
+  "role",
+  "staff",
+  "staff_branch",
+  "staff_session",
 ] as const;
 
 export type TenantTable = (typeof TENANT_TABLES)[number];
@@ -53,6 +61,10 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     membership: newId(),
     device_credential: newId(),
     device_pairing_code: newId(),
+    role: newId(),
+    staff: newId(),
+    staff_branch: newId(),
+    staff_session: newId(),
   };
   await withTenant(pool, tenantId, async (client) => {
     const db = drizzleFor(client);
@@ -89,6 +101,25 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       branchId: ids.branch,
       codeHash: randomSha256Hex(),
       createdByAppUserId: ids.app_user,
+      expiresAt: new Date(),
+    });
+    await db.insert(role).values({ id: ids.role, tenantId, name: "Thu ngân" });
+    await db.insert(staff).values({
+      id: ids.staff,
+      tenantId,
+      displayName: "Lan",
+      roleId: ids.role,
+      pinHash: "x",
+    });
+    await db
+      .insert(staffBranch)
+      .values({ id: ids.staff_branch, tenantId, staffId: ids.staff, branchId: ids.branch });
+    await db.insert(staffSession).values({
+      id: ids.staff_session,
+      tenantId,
+      staffId: ids.staff,
+      deviceId: ids.device,
+      tokenHash: randomSha256Hex(),
       expiresAt: new Date(),
     });
   });

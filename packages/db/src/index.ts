@@ -14,6 +14,7 @@ export {
   membership,
 } from "./schema/access-tables";
 export { allTables } from "./schema/all-tables";
+export { role, staff, staffBranch, staffSession, staffTables } from "./schema/staff-tables";
 export {
   appUser,
   area,
