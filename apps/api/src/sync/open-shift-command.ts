@@ -1,10 +1,11 @@
+import { type OpenShiftPayload, openShiftPayloadSchema } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
 import { transitionShift } from "@fnb/domain/shift";
 import { confirmedCount, insertShiftCount } from "./shift-counts";
-import type { OpenShiftPayload } from "./shift-request-schemas";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
 import { readUnclosedShiftOfDevice } from "./stored-shift";
 import type { SyncCommandContext } from "./sync-command-context";
+import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection } from "./sync-error-codes";
 
 /**
@@ -13,7 +14,7 @@ import { CommandRejection } from "./sync-error-codes";
  * may take payments into it by naming it. The float's notes, when sent, must add up to it.
  * The count happens on the till before the command is sent, so the shift is stored open.
  */
-export async function openShift(context: SyncCommandContext, payload: OpenShiftPayload) {
+async function openShift(context: SyncCommandContext, payload: OpenShiftPayload) {
   const { client, device, staffId, command } = context;
   if ((await readUnclosedShiftOfDevice(client, device.deviceId, true)) !== null) {
     throw new CommandRejection(C.shiftAlreadyOpen);
@@ -53,3 +54,10 @@ export async function openShift(context: SyncCommandContext, payload: OpenShiftP
   }
   return payload.shiftId;
 }
+
+export const openShiftCommand = defineSyncCommand(
+  "shift.open",
+  openShiftPayloadSchema,
+  openShift,
+  "shift",
+);

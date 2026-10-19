@@ -7,7 +7,7 @@ import {
   quantityToDecimalString,
   voidLine,
 } from "@fnb/domain";
-import { redeemApproval } from "./approval-redemption";
+import { approvalIdOf, redeemApproval } from "./approval-redemption";
 import { readDeviceOrderSettings } from "./device-order-settings";
 import { touchOrder } from "./draft-order-writes";
 import { draftOfBranch } from "./editable-order";
@@ -42,7 +42,8 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
     planned.fromSent > 0n &&
     settings.voidAfterSentNeedsApproval &&
     authorize({ key: "void_after_sent" }, await grantsOfStaff(client, staffId)) !== "allowed";
-  const approvalId = needsApprover ? payload.approvalId : undefined;
+  const named = approvalIdOf(context, payload.approvalId);
+  const approvalId = needsApprover ? named : undefined;
   const approvedBy =
     approvalId === undefined
       ? null

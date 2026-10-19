@@ -112,6 +112,7 @@ export async function seedOrderAndSyncRows(
     id: ids.applied_command,
     tenantId,
     deviceId: ids.device,
+    staffId: ids.staff,
     commandId,
     deviceSeq: 1,
     type: "order.save_draft",
