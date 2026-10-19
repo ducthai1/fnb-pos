@@ -84,6 +84,8 @@ export const payOrderPayloadSchema = z.object({
     .max(10),
   /** What the till asked the customer for; the server compares it with its own total. */
   expectedAmountDue: amountSchema,
+  /** The shift the till was in when it took the money; see shiftForPayment. */
+  shiftId: idSchema.optional(),
 });
 
 export type PayOrderPayload = z.infer<typeof payOrderPayloadSchema>;

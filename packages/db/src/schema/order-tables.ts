@@ -7,6 +7,7 @@ import {
   jsonb,
   pgTable,
   text,
+  timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 import { tenantRowColumns } from "./tenant-row-columns";
@@ -27,6 +28,8 @@ export const salesOrder = pgTable("sales_order", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
   deviceId: uuid("device_id").notNull(),
+  /** The shift the order was settled in; null while it is a draft. */
+  shiftId: uuid("shift_id"),
   status: text("status").notNull(),
   serviceType: text("service_type").notNull(),
   channelKey: text("channel_key"),
@@ -77,6 +80,8 @@ export const payment = pgTable("payment", {
   method: text("method").notNull(),
   amount: money("amount").notNull(),
   receivedByStaffId: uuid("received_by_staff_id").notNull(),
+  shiftId: uuid("shift_id"),
+  recordedAfterShiftClose: boolean("recorded_after_shift_close").notNull().default(false),
 });
 
 export const lineVoidRecord = pgTable("line_void_record", {
@@ -93,6 +98,7 @@ export const lineVoidRecord = pgTable("line_void_record", {
   reversalLineId: uuid("reversal_line_id"),
 });
 
+/** A closed shift cannot be edited; see 0014_shift_and_cash.sql. */
 export const shift = pgTable("shift", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
@@ -101,6 +107,13 @@ export const shift = pgTable("shift", {
   openedByStaffId: uuid("opened_by_staff_id").notNull(),
   openingCash: money("opening_cash").notNull(),
   businessDate: date("business_date").notNull(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closedByStaffId: uuid("closed_by_staff_id"),
+  countedCash: money("counted_cash"),
+  expectedCash: money("expected_cash"),
+  difference: money("difference"),
+  closeApprovalId: uuid("close_approval_id"),
+  openOrdersCarried: integer("open_orders_carried"),
 });
 
 export const orderTables = {

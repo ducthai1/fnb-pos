@@ -23,6 +23,7 @@ import {
 import type pg from "pg";
 import { seedCatalogRows } from "./tenant-graph-catalog-seed";
 import { seedOrderAndSyncRows } from "./tenant-graph-order-seed";
+import { seedShiftRows } from "./tenant-graph-shift-seed";
 import { randomSha256Hex } from "./tenant-graph-rows";
 import { TENANT_TABLES, type TenantTable } from "./tenant-table-lists";
 
@@ -125,6 +126,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     });
     await seedCatalogRows(client, tenantId, ids);
     await seedOrderAndSyncRows(client, tenantId, ids);
+    await seedShiftRows(client, tenantId, ids);
   });
   return { tenantId, ids };
 }

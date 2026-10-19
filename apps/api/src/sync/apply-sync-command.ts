@@ -4,10 +4,10 @@ import type { ZodType, ZodTypeDef } from "zod";
 import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { nextExpectedSeq, recordOutcome, storedResultOf } from "./command-ledger";
-import { orderSnapshotOf } from "./order-snapshot";
+import { type CommandSubject, subjectSnapshotOf } from "./command-subject-snapshot";
 import { payOrder } from "./pay-order-command";
 import { saveDraft } from "./save-draft-command";
-import { readStoredOrder } from "./stored-order";
+import { applyShiftCommand, isShiftCommand } from "./shift-commands";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 import { payOrderPayloadSchema, saveDraftPayloadSchema } from "./sync-request-schemas";
@@ -20,8 +20,8 @@ import type { SyncCommandEnvelope, SyncCommandResult } from "./sync-wire-types";
 export const MINIMUM_SUPPORTED_DOMAIN_VERSION = "0.1.0";
 
 type Outcome =
-  | { status: "accepted"; orderId: string }
-  | { status: "rejected"; code: string; orderId: string | null };
+  | { status: "accepted"; subject: CommandSubject }
+  | { status: "rejected"; code: string; subject: CommandSubject | null };
 
 /**
  * Applies one command inside the caller's transaction (one transaction per command) and
@@ -50,11 +50,8 @@ export async function applySyncCommand(
     };
   }
   const outcome = await outcomeOf({ ...sender, client, command });
-  const found =
-    outcome.orderId === null ? null : await readStoredOrder(client, outcome.orderId, false);
-  // A till sees an order of its own branch only, even in the answer to its own command.
   const snapshot =
-    found === null || found.branchId !== device.branchId ? null : orderSnapshotOf(found);
+    outcome.subject === null ? null : await subjectSnapshotOf(client, device, outcome.subject);
   const result: SyncCommandResult = {
     commandId: command.commandId,
     status: outcome.status,
@@ -65,8 +62,8 @@ export async function applySyncCommand(
   if (outcome.status === "accepted" && snapshot !== null) {
     await appendChange(client, device.tenantId, {
       branchId: device.branchId,
-      entity: "order",
-      entityId: outcome.orderId,
+      entity: outcome.subject.entity,
+      entityId: outcome.subject.id,
       snapshot,
       commandId: command.commandId,
     });
@@ -84,16 +81,18 @@ async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   const rejected = (code: string): Outcome => ({
     status: "rejected",
     code,
-    orderId: orderId.success ? orderId.data : null,
+    subject: orderId.success ? { entity: "order", id: orderId.data } : null,
   });
   if (!isSupportedDomainVersion(command.domainVersion, MINIMUM_SUPPORTED_DOMAIN_VERSION)) {
     return rejected(SYNC_ERROR_CODES.domainVersionUnsupported);
   }
   await client.query("SAVEPOINT sync_command");
   try {
-    const appliedTo = await dispatch(context);
+    const subject: CommandSubject = isShiftCommand(command.type)
+      ? { entity: "shift", id: await applyShiftCommand(context) }
+      : { entity: "order", id: await dispatch(context) };
     await client.query("RELEASE SAVEPOINT sync_command");
-    return { status: "accepted", orderId: appliedTo };
+    return { status: "accepted", subject };
   } catch (error) {
     const code =
       error instanceof CommandRejection ? error.code : isDomainError(error) ? error.code : null;

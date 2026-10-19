@@ -1,0 +1,31 @@
+import type pg from "pg";
+import type { DeviceAuth } from "../devices/device-auth-hook";
+import { orderSnapshotOf } from "./order-snapshot";
+import { shiftSnapshotOf } from "./shift-snapshot";
+import { readStoredOrder } from "./stored-order";
+import { readShift } from "./stored-shift";
+import type { CommandSnapshot } from "./sync-wire-types";
+
+/** The row a command was about: its snapshot answers the command and goes into the feed. */
+export interface CommandSubject {
+  readonly entity: "order" | "shift";
+  readonly id: string;
+}
+
+/**
+ * The subject as the server holds it now, or null when there is none to show. A till sees
+ * rows of its own branch only, even in the answer to its own command.
+ */
+export async function subjectSnapshotOf(
+  client: pg.ClientBase,
+  device: DeviceAuth,
+  subject: CommandSubject,
+): Promise<CommandSnapshot | null> {
+  if (subject.entity === "shift") {
+    const shift = await readShift(client, subject.id, false);
+    if (shift === null || shift.branchId !== device.branchId) return null;
+    return shiftSnapshotOf(client, shift);
+  }
+  const found = await readStoredOrder(client, subject.id, false);
+  return found === null || found.branchId !== device.branchId ? null : orderSnapshotOf(found);
+}

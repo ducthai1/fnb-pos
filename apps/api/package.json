@@ -12,12 +12,12 @@
     "@fnb/contracts": "workspace:*",
     "@fnb/db": "workspace:*",
     "@fnb/domain": "workspace:*",
+    "@fnb/feature-flags": "workspace:*",
     "fastify": "5.12.5",
     "pg": "8.23.1",
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@fnb/feature-flags": "workspace:*",
     "@types/node": "22.20.3",
     "@types/pg": "8.23.1",
     "typescript": "5.9.3",

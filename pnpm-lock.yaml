@@ -38,6 +38,9 @@ importers:
       '@fnb/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@fnb/feature-flags':
+        specifier: workspace:*
+        version: link:../../packages/feature-flags
       fastify:
         specifier: 5.12.5
         version: 5.12.5
@@ -48,9 +51,6 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
     devDependencies:
-      '@fnb/feature-flags':
-        specifier: workspace:*
-        version: link:../../packages/feature-flags
       '@types/node':
         specifier: 22.20.3
         version: 22.20.3

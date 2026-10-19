@@ -1,5 +1,6 @@
 import { newId } from "@fnb/db";
 import { addVnd, compareVnd, computeOrderTotals, transitionOrder, vnd } from "@fnb/domain";
+import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
@@ -26,17 +27,29 @@ export async function payOrder(context: SyncCommandContext, payload: PayOrderPay
   if (compareVnd(tendered, amountDue) !== 0) {
     throw new CommandRejection(SYNC_ERROR_CODES.paymentsDoNotMatchAmountDue);
   }
+  const shift = await shiftForPayment(context, payload.shiftId);
   // Payments go in while the order is still a draft: a closed order refuses new rows.
   for (const payment of payload.payments) {
     await client.query(
-      "INSERT INTO payment (id, tenant_id, order_id, method, amount, received_by_staff_id, created_by) " +
-        "VALUES ($1, $2, $3, $4, $5, $6, $6)",
-      [newId(), device.tenantId, payload.orderId, payment.method, payment.amount, staffId],
+      "INSERT INTO payment (id, tenant_id, order_id, method, amount, received_by_staff_id, " +
+        "created_by, shift_id, recorded_after_shift_close) VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8)",
+      [
+        newId(),
+        device.tenantId,
+        payload.orderId,
+        payment.method,
+        payment.amount,
+        staffId,
+        shift.shiftId,
+        shift.afterClose,
+      ],
     );
   }
   await client.query(
-    "UPDATE sales_order SET status = $2, version = $3, updated_at = now() WHERE id = $1",
-    [payload.orderId, paid.status, paid.version],
+    "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, updated_at = now() " +
+      "WHERE id = $1",
+    [payload.orderId, paid.status, paid.version, shift.shiftId],
   );
+  await announceLatePayment(context, shift);
   return payload.orderId;
 }

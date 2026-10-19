@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { newId } from "@fnb/db";
 import type { TenantGraph, TenantTable } from "./tenant-graph";
 import { ORDER_AND_SYNC_ROWS } from "./tenant-graph-order-rows";
+import { SHIFT_ROWS } from "./tenant-graph-shift-rows";
 
 /** A SQL expression evaluated inside the inserting transaction, instead of a parameter. */
 export interface Sql {
@@ -52,6 +53,7 @@ const freshAccount: Sql = {
 
 const ROWS: Record<TenantTable, RowSpec> = {
   ...ORDER_AND_SYNC_ROWS,
+  ...SHIFT_ROWS,
   app_user: { values: () => ({ display_name: "x" }) },
   approval_log: {
     parent: { column: "branch_id", table: "branch" },

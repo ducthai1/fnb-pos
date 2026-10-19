@@ -1,3 +1,5 @@
+import type { ShiftSnapshot } from "./shift-wire-types";
+
 /**
  * What sync sends over the network. Money is a whole-đồng JSON number (a safe integer),
  * a quantity a decimal string ("1.5"), a rate integer basis points. These mirror the sync
@@ -21,12 +23,15 @@ export interface SyncCommandEnvelope {
 
 export type SyncCommandStatus = "accepted" | "rejected" | "retry";
 
-export interface SyncCommandResult {
+/** What a command was about: an order, or a cash shift for the shift.* commands. */
+export type CommandSnapshot = OrderSnapshot | ShiftSnapshot;
+
+export interface SyncCommandResult<Snapshot extends CommandSnapshot = CommandSnapshot> {
   readonly commandId: string;
   readonly status: SyncCommandStatus;
   readonly code?: string;
   /** The order as the server holds it after the command (accepted) or now (rejected). */
-  readonly snapshot?: OrderSnapshot;
+  readonly snapshot?: Snapshot;
 }
 
 export interface SyncChange {

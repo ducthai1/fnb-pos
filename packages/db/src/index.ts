@@ -69,6 +69,7 @@ export {
   shift,
 } from "./schema/order-tables";
 export { priceList, priceListItem, priceListTables } from "./schema/price-list-tables";
+export { cashMove, shiftCount, shiftTables } from "./schema/shift-tables";
 export { tenantRowColumns } from "./schema/tenant-row-columns";
 export { drizzleFor } from "./tenancy/drizzle-for";
 export { withTenant } from "./tenancy/with-tenant";

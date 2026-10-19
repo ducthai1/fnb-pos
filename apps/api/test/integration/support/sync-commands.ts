@@ -90,7 +90,7 @@ export async function push(app: FastifyInstance, till: Till, commands: SyncComma
   if (response.statusCode !== 200) {
     throw new Error(`push answered ${response.statusCode}: ${response.body}`);
   }
-  return response.json().results as SyncCommandResult[];
+  return response.json().results as SyncCommandResult<OrderSnapshot>[];
 }
 
 /** Pushes one command and returns its result. */
