@@ -79,8 +79,8 @@ export function voidLine(
     );
   }
   const reversal =
-    fromSent > 0n ? buildReversalLines(order.lines, original, fromSent, request.newLineId) : [];
-  const lines = [...shrinkLine(order.lines, original, fromUnsent), ...reversal];
+    fromSent > 0n ? buildReversalLines(order.lines, original, fromSent, request.newLineId) : null;
+  const lines = [...shrinkLine(order.lines, original, fromUnsent), ...(reversal ?? [])];
   validateLineTree(lines, options);
   const record: VoidRecord = {
     lineId: original.id,
@@ -90,7 +90,7 @@ export function voidLine(
     reasonCode: request.reasonCode,
     staffId: request.staffId,
     approvedByStaffId: request.approvedByStaffId,
-    reversalLineId: reversal[0]?.id ?? null,
+    reversalLineId: reversal === null ? null : reversal[0].id,
   };
   return { order: { ...order, lines, version: order.version + 1 }, record };
 }

@@ -133,4 +133,12 @@ describe("voidLine on units already sent to the bar", () => {
     expect(linesTotal(after.lines)).toBe(vnd(0));
     expect(codeOf(() => validateLineTree(after.lines))).toBeUndefined();
   });
+
+  it("names the negative item for the cancel ticket even when its topping is listed first", () => {
+    const draft = order([line("pearl", "modifier", "tea"), item("tea")]);
+    const request = voidRequest({ sentQuantity: quantity(1), approvedByStaffId: "m" });
+    const { order: after, record } = voidLine(draft, request);
+    const named = after.lines.find((l) => l.id === record.reversalLineId);
+    expect(named).toMatchObject({ lineType: "item", reversesLineId: "tea" });
+  });
 });

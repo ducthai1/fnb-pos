@@ -29,30 +29,31 @@ export function findReversibleItem(lines: readonly OrderLine[], lineId: string):
  * child keeps its per-unit quantity, so its effective quantity turns negative through the
  * parent and toppings, combo picks and line discounts follow the item. Names, prices and tax
  * rates are copied as sold, so a reversal is worth exactly the negative of what it cancels
- * even after the menu price has changed.
+ * even after the menu price has changed. The negative item comes first whatever order the
+ * source lines are in, because callers name it (cancel ticket, restock flag).
  */
 export function buildReversalLines(
   lines: readonly OrderLine[],
   original: OrderLine,
   units: Quantity,
   newLineId: () => string,
-): OrderLine[] {
-  const subtree = subtreeOf(lines, original.id);
-  const newIds = new Map(subtree.map((line) => [line.id, newLineId()] as const));
+): [OrderLine, ...OrderLine[]] {
+  const children = subtreeOf(lines, original.id).filter((line) => line.id !== original.id);
+  const newIds = new Map([original, ...children].map((line) => [line.id, newLineId()] as const));
   const renamed = (id: string): string => newIds.get(id) ?? id;
-  return subtree.map((line) =>
-    line.id === original.id
-      ? {
-          ...line,
-          id: renamed(line.id),
-          parentLineId: null,
-          quantity: negateQuantity(units),
-          reversesLineId: original.id,
-        }
-      : {
-          ...line,
-          id: renamed(line.id),
-          parentLineId: line.parentLineId === null ? null : renamed(line.parentLineId),
-        },
-  );
+  const head: OrderLine = {
+    ...original,
+    id: renamed(original.id),
+    parentLineId: null,
+    quantity: negateQuantity(units),
+    reversesLineId: original.id,
+  };
+  return [
+    head,
+    ...children.map((line) => ({
+      ...line,
+      id: renamed(line.id),
+      parentLineId: line.parentLineId === null ? null : renamed(line.parentLineId),
+    })),
+  ];
 }
