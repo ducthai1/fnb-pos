@@ -12,4 +12,8 @@ export const PRICING_ERROR_CODES = {
   invalidDaysOfWeek: "DOMAIN_PRICING_INVALID_DAYS_OF_WEEK",
   invalidTimeWindow: "DOMAIN_PRICING_INVALID_TIME_WINDOW",
   invalidPriority: "DOMAIN_PRICING_INVALID_PRIORITY",
+  duplicatePriceListItemId: "DOMAIN_PRICING_DUPLICATE_PRICE_LIST_ITEM_ID",
+  // A product's own price list items
+  scopeVariantNotOnProduct: "DOMAIN_PRICING_SCOPE_VARIANT_NOT_ON_PRODUCT",
+  scopeProductMismatch: "DOMAIN_PRICING_SCOPE_PRODUCT_MISMATCH",
 } as const;

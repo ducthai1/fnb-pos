@@ -109,4 +109,67 @@ describe("validateModifierGroupConfig", () => {
     };
     expect(() => validateModifierGroupConfig(hiddenOnHot)).not.toThrow();
   });
+
+  describe("a minimum the options cannot reach", () => {
+    const capped = (caps: readonly (number | null)[]): ModifierGroup["options"] =>
+      caps.map((maxQuantity, index) => ({
+        id: `option-${index}`,
+        name: `Lựa chọn ${index}`,
+        priceDelta: vnd(0),
+        maxQuantity,
+      }));
+    const group = (overrides: Partial<ModifierGroup>): ModifierGroup => ({
+      ...TOPPINGS,
+      minSelect: 0,
+      maxSelect: 10,
+      variantRules: {},
+      ...overrides,
+    });
+
+    it("accepts picking every option once when repeats are refused, and rejects one more", () => {
+      const options = capped([null, null, null]);
+      const exact = group({ allowDuplicates: false, minSelect: 3, options });
+      expect(() => validateModifierGroupConfig(exact)).not.toThrow();
+      const error = errorOf(() => validateModifierGroupConfig({ ...exact, minSelect: 4 }));
+      expect(error.code).toBe(CATALOG_ERROR_CODES.unsatisfiableModifierGroup);
+      expect(error.details).toMatchObject({ groupId: "topping", minSelect: 4, reachable: 3 });
+    });
+
+    it("counts each option's cap when repeats are allowed, and rejects a minimum above their sum", () => {
+      const options = capped([2, 1]);
+      expect(() =>
+        validateModifierGroupConfig(group({ allowDuplicates: true, minSelect: 3, options })),
+      ).not.toThrow();
+      expect(codeFor(group({ allowDuplicates: true, minSelect: 4, options }))).toBe(
+        CATALOG_ERROR_CODES.unsatisfiableModifierGroup,
+      );
+    });
+
+    it("treats an uncapped option as unlimited only when repeats are allowed", () => {
+      const options = capped([1, null]);
+      expect(() =>
+        validateModifierGroupConfig(group({ allowDuplicates: true, minSelect: 9, options })),
+      ).not.toThrow();
+      expect(codeFor(group({ allowDuplicates: false, minSelect: 3, options }))).toBe(
+        CATALOG_ERROR_CODES.unsatisfiableModifierGroup,
+      );
+    });
+
+    it("checks the minimum a variant raises, unless that variant hides the group", () => {
+      const options = capped([null, null]);
+      const raisedOnL = group({
+        allowDuplicates: false,
+        options,
+        variantRules: { "size-l": { minSelect: 3 } },
+      });
+      const error = errorOf(() => validateModifierGroupConfig(raisedOnL));
+      expect(error.code).toBe(CATALOG_ERROR_CODES.unsatisfiableModifierGroup);
+      expect(error.details).toMatchObject({ variantId: "size-l" });
+      const hiddenOnL = {
+        ...raisedOnL,
+        variantRules: { "size-l": { minSelect: 3, hidden: true } },
+      };
+      expect(() => validateModifierGroupConfig(hiddenOnL)).not.toThrow();
+    });
+  });
 });
