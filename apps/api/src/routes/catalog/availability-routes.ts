@@ -1,41 +1,22 @@
+import { availabilityBodySchema, catalogBranchQuerySchema } from "@fnb/contracts";
 import { newId, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
-import {
-  branchQuerySchema,
-  channelKeySchema,
-  idSchema,
-  instantSchema,
-} from "../../catalog/catalog-schema-parts";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
-
-const availabilityBody = z
-  .object({
-    productId: idSchema,
-    branchId: idSchema,
-    /** null: every channel at the branch; otherwise just that one (e.g. a delivery app). */
-    channelKey: channelKeySchema.nullable().default(null),
-    available: z.boolean(),
-    /** When the product comes back on its own; null keeps it off until someone puts it back. */
-    unavailableUntil: instantSchema.nullable().default(null),
-  })
-  .strict()
-  .refine((body) => !body.available || body.unavailableUntil === null);
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerAvailabilityRoutes(app: FastifyInstance, context: ApiContext): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
 
   // Manual "86": the branch ran out. Putting it back removes the entry for that channel only,
   // so an all-channel entry and a single-channel one are switched independently.
   app.put(
     "/catalog/availability",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
-      const body = parseOrReject(availabilityBody, request.body);
+      const body = parseOrReject(availabilityBodySchema, request.body);
       const writer = writeContextOf(request, context);
       const until = body.unavailableUntil === null ? null : new Date(body.unavailableUntil);
       if (until !== null && until.getTime() <= writer.now.getTime()) {
@@ -76,9 +57,9 @@ export function registerAvailabilityRoutes(app: FastifyInstance, context: ApiCon
   // What is off at a branch right now; an entry past its time no longer counts.
   app.get(
     "/catalog/availability",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
-      const { branchId } = parseOrReject(branchQuerySchema, request.query);
+      const { branchId } = parseOrReject(catalogBranchQuerySchema, request.query);
       const now = context.clock.now();
       const rows = await withTenant(
         context.pool,

@@ -4,7 +4,7 @@ import { ORDER_ERROR_CODES as C } from "./order-error-codes";
 import { codeOf, order, reversal } from "./order-line-test-fixtures";
 import type { Order, OrderStatus } from "./order-types";
 import { type VoidLineRequest, voidLine } from "./void-order-line";
-import { milkTeaDraft, voidRequest } from "./void-order-line-test-fixtures";
+import { milkTeaDraft, teaCancel, voidRequest } from "./void-order-line-test-fixtures";
 
 const sentBy = (approvedByStaffId: string | null): Partial<VoidLineRequest> => ({
   sentQuantity: quantity(2),
@@ -12,7 +12,7 @@ const sentBy = (approvedByStaffId: string | null): Partial<VoidLineRequest> => (
 });
 
 /** Tea of 2, both sent, one already cancelled by a negative line. */
-const oneCancelled = (): Order => milkTeaDraft([reversal("void-1", "tea", quantity(-1))]);
+const oneCancelled = (): Order => milkTeaDraft(teaCancel("void-1", 1));
 
 describe("voidLine refuses", () => {
   it.each<[string, Partial<VoidLineRequest>, string]>([

@@ -10,8 +10,13 @@ export default tseslint.config(
   {
     // The domain and feature-flags packages run identically on the POS (offline) and on
     // the server, so they must stay pure: no network, no clock, no randomness. Callers
-    // pass them in.
-    files: ["packages/domain/**/*.ts", "packages/feature-flags/**/*.ts"],
+    // pass them in. Contracts too: the till and the server must accept or refuse the very
+    // same message, which a schema reading the clock or a store could not promise.
+    files: [
+      "packages/domain/**/*.ts",
+      "packages/feature-flags/**/*.ts",
+      "packages/contracts/**/*.ts",
+    ],
     rules: {
       "no-restricted-globals": [
         "error",
