@@ -16,6 +16,18 @@ const CORRUPT_GRANTS: [string, unknown][] = [
   ["an amount cap on a rate key", { key: "line_discount", threshold: { maxAmount: 100n } }],
   ["a rate cap on an amount key", { key: "cash_move", threshold: { maxRate: 100 } }],
   ["both caps at once", { key: "cash_move", threshold: { maxAmount: 1n, maxRate: 1 } }],
+  [
+    "a rate cap that also carries an amount",
+    { key: "line_discount", threshold: { maxRate: 1_000, maxAmount: 500_000n } },
+  ],
+  [
+    "a rate cap with a field no key is judged by",
+    { key: "order_discount", threshold: { maxRate: 1_000, maxCount: 3 } },
+  ],
+  [
+    "an amount cap with a field no key is judged by",
+    { key: "cash_move", threshold: { maxAmount: 1n, currency: "VND" } },
+  ],
   ["a negative amount cap", { key: "cash_move", threshold: { maxAmount: -1n } }],
   ["an amount cap as a number", { key: "cash_move", threshold: { maxAmount: 100 } }],
   ["a rate cap above 100%", { key: "order_discount", threshold: { maxRate: 10_001 } }],

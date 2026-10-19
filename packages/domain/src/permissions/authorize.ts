@@ -105,23 +105,26 @@ function measuredValue(
   return undefined;
 }
 
+/** The one field a threshold of each kind holds. */
+const THRESHOLD_FIELD = { max_rate: "maxRate", max_amount: "maxAmount" } as const;
+
 function validateGrant(grant: Grant): void {
   const definition = definitionOf(grant.key);
-  const threshold = "threshold" in grant ? grant.threshold : undefined;
+  const threshold: unknown = "threshold" in grant ? grant.threshold : undefined;
   if (threshold === undefined) return;
-  // Stored data can hold anything, and `in` on a number or null would throw a TypeError
-  // instead of the code a bad grant gets.
+  // Exactly the field the key is judged by: a rate cap that also carries an amount (or any other
+  // field) is not a cap anyone wrote on purpose, and which of the two would bind is a guess.
+  // Stored data can hold anything, so a number or null is checked before reading its fields.
+  const field =
+    definition.threshold === undefined ? undefined : THRESHOLD_FIELD[definition.threshold];
+  const fields = typeof threshold === "object" && threshold !== null ? threshold : {};
+  const value: unknown =
+    field === undefined ? undefined : (fields as Record<string, unknown>)[field];
   const valid =
-    typeof threshold !== "object" || threshold === null
-      ? false
-      : definition.threshold === "max_rate"
-        ? "maxRate" in threshold && !("maxAmount" in threshold) && isRate(threshold.maxRate)
-        : definition.threshold === "max_amount"
-          ? "maxAmount" in threshold &&
-            !("maxRate" in threshold) &&
-            typeof threshold.maxAmount === "bigint" &&
-            threshold.maxAmount >= 0n
-          : false;
+    field !== undefined &&
+    Object.keys(fields).length === 1 &&
+    Object.hasOwn(fields, field) &&
+    (field === "maxRate" ? isRate(value) : typeof value === "bigint" && value >= 0n);
   if (!valid) {
     throw new DomainError(
       PERMISSIONS_ERROR_CODES.invalidGrant,
