@@ -8,3 +8,19 @@ export async function postgresErrorCode(work: () => Promise<unknown>): Promise<s
   }
   return "no-error";
 }
+
+/** SQLSTATE and message, for refusals that share a generic code such as P0001. */
+export async function postgresRefusal(
+  work: () => Promise<unknown>,
+): Promise<{ code: string; message: string }> {
+  try {
+    await work();
+  } catch (error) {
+    const { code, message } = error as { code?: unknown; message?: unknown };
+    return {
+      code: typeof code === "string" ? code : "not-a-postgres-error",
+      message: String(message),
+    };
+  }
+  return { code: "no-error", message: "" };
+}

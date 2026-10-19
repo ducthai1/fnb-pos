@@ -47,7 +47,7 @@ describe.each(CHILD_TABLES)("a %s row", (table) => {
 });
 
 describe("tenant roots", () => {
-  it.each(["brand", "app_user"] as const)(
+  it.each(["brand", "app_user", "audit_log"] as const)(
     "a %s cannot be created for a tenant that has no organization",
     async (table) => {
       const orphanTenant = newId();

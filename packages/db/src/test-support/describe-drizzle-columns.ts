@@ -1,4 +1,5 @@
 import { getTableConfig } from "drizzle-orm/pg-core";
+import { auditTables } from "../schema/audit-tables";
 import { tenancyTables } from "../schema/tenancy-tables";
 
 export interface ColumnShape {
@@ -11,7 +12,7 @@ export interface ColumnShape {
 
 /** The columns the Drizzle tables claim, for comparison with the migrated database. */
 export function describeDrizzleColumns(): ColumnShape[] {
-  return Object.values(tenancyTables)
+  return [...Object.values(tenancyTables), ...Object.values(auditTables)]
     .flatMap((table) => {
       const config = getTableConfig(table);
       return config.columns.map((column) => ({

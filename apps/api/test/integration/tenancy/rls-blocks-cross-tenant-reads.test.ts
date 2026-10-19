@@ -4,6 +4,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { postgresErrorCode } from "../support/postgres-error-code";
 import {
+  MUTABLE_TENANT_TABLES,
   TENANT_TABLES,
   type TenantGraph,
   insertRow,
@@ -51,6 +52,16 @@ describe.each(TENANT_TABLES)("row level security on %s", (table) => {
     expect(seen).toEqual({ byId: 0, counted: 0 });
   });
 
+  it("rejects an insert by tenant A that carries tenant B's id", async () => {
+    const { sql, values } = insertRow(table, b.tenantId, b);
+    const code = await asA((client) => postgresErrorCode(() => client.query(sql, values)));
+    expect(code).toBe(INSUFFICIENT_PRIVILEGE);
+  });
+});
+
+// Append-only tables refuse every UPDATE and DELETE outright, which the approval log
+// tests prove; here a refusal would hide whether the policy itself holds.
+describe.each(MUTABLE_TENANT_TABLES)("row level security on changes to %s", (table) => {
   it("lets tenant A update nothing of tenant B", async () => {
     const updated = await asA((client) =>
       client.query(`UPDATE ${table} SET version = version + 1 WHERE id = $1`, [b.ids[table]]),
@@ -75,12 +86,6 @@ describe.each(TENANT_TABLES)("row level security on %s", (table) => {
       deleted: 0,
       remaining: 1,
     });
-  });
-
-  it("rejects an insert by tenant A that carries tenant B's id", async () => {
-    const { sql, values } = insertRow(table, b.tenantId, b);
-    const code = await asA((client) => postgresErrorCode(() => client.query(sql, values)));
-    expect(code).toBe(INSUFFICIENT_PRIVILEGE);
   });
 
   it("rejects tenant A moving its own row over to tenant B", async () => {

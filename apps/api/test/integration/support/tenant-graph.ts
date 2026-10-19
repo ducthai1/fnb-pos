@@ -1,5 +1,6 @@
 import {
   appUser,
+  appendAudit,
   area,
   branch,
   brand,
@@ -8,6 +9,7 @@ import {
   drizzleFor,
   newId,
   organization,
+  recordApproval,
   withTenant,
 } from "@fnb/db";
 import type pg from "pg";
@@ -15,7 +17,9 @@ import type pg from "pg";
 /** Every tenancy table; the catalog test fails if `public` gains a table missing here. */
 export const TENANT_TABLES = [
   "app_user",
+  "approval_log",
   "area",
+  "audit_log",
   "branch",
   "brand",
   "device",
@@ -24,6 +28,13 @@ export const TENANT_TABLES = [
 ] as const;
 
 export type TenantTable = (typeof TENANT_TABLES)[number];
+
+/** Evidence tables: the app role may read and add rows, never change or remove them. */
+export const APPEND_ONLY_TABLES = ["approval_log", "audit_log"] as const satisfies TenantTable[];
+
+export const MUTABLE_TENANT_TABLES = TENANT_TABLES.filter(
+  (table) => !(APPEND_ONLY_TABLES as readonly string[]).includes(table),
+);
 
 export interface TenantGraph {
   tenantId: string;
@@ -41,6 +52,8 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     dining_table: newId(),
     device: newId(),
     app_user: newId(),
+    approval_log: newId(),
+    audit_log: newId(),
   };
   await withTenant(pool, tenantId, async (client) => {
     const db = drizzleFor(client);
@@ -55,23 +68,56 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       .insert(device)
       .values({ id: ids.device, tenantId, branchId: ids.branch, name: "POS 1" });
     await db.insert(appUser).values({ id: ids.app_user, tenantId, displayName: "Thu ngân" });
+    await recordApproval(client, {
+      id: ids.approval_log,
+      actionKey: "refund",
+      requestedByStaffId: newId(),
+      approvedByStaffId: newId(),
+      deviceId: ids.device,
+      branchId: ids.branch,
+    });
+    await appendAudit(client, {
+      id: ids.audit_log,
+      actor: { kind: "app_user", id: ids.app_user },
+      action: "branch.created",
+      entityKind: "branch",
+      entityId: ids.branch,
+    });
   });
   return { tenantId, ids };
 }
 
-const PARENT: Partial<Record<TenantTable, { column: string; table: TenantTable }>> = {
-  branch: { column: "brand_id", table: "brand" },
-  area: { column: "branch_id", table: "branch" },
-  dining_table: { column: "area_id", table: "area" },
-  device: { column: "branch_id", table: "branch" },
+/** The columns besides id and tenant_id one row needs, with parents taken from `parents`. */
+const ROW_COLUMNS: Record<TenantTable, (parents: TenantGraph) => Record<string, unknown>> = {
+  organization: () => ({ name: "x" }),
+  brand: () => ({ name: "x" }),
+  branch: (p) => ({ name: "x", brand_id: p.ids.brand }),
+  area: (p) => ({ name: "x", branch_id: p.ids.branch }),
+  dining_table: (p) => ({ name: "x", area_id: p.ids.area }),
+  device: (p) => ({ name: "x", branch_id: p.ids.branch }),
+  app_user: () => ({ display_name: "x" }),
+  approval_log: (p) => ({
+    action_key: "refund",
+    requested_by_staff_id: newId(),
+    approved_by_staff_id: newId(),
+    branch_id: p.ids.branch,
+    device_id: p.ids.device,
+  }),
+  audit_log: () => ({ actor_kind: "system", action: "x", entity_kind: "x", entity_id: newId() }),
 };
 
 /** Tables that point at a parent row other than their organization. */
-export const CHILD_TABLES = TENANT_TABLES.filter((table) => PARENT[table] !== undefined);
+export const CHILD_TABLES = [
+  "approval_log",
+  "area",
+  "branch",
+  "device",
+  "dining_table",
+] as const satisfies TenantTable[];
 
 /**
  * A parameterized INSERT of one row into `table` with the given tenant_id, whose parent
- * key is taken from `parents`. An organization row is its own tenant, so its id is the
+ * keys are taken from `parents`. An organization row is its own tenant, so its id is the
  * tenant id.
  */
 export function insertRow(
@@ -79,13 +125,15 @@ export function insertRow(
   tenantId: string,
   parents: TenantGraph,
 ): { sql: string; values: unknown[] } {
-  const columns = ["id", "tenant_id", table === "app_user" ? "display_name" : "name"];
-  const values: unknown[] = [table === "organization" ? tenantId : newId(), tenantId, "x"];
-  const parent = PARENT[table];
-  if (parent !== undefined) {
-    columns.push(parent.column);
-    values.push(parents.ids[parent.table]);
-  }
-  const placeholders = values.map((_, index) => `$${index + 1}`).join(", ");
-  return { sql: `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`, values };
+  const row: Record<string, unknown> = {
+    id: table === "organization" ? tenantId : newId(),
+    tenant_id: tenantId,
+    ...ROW_COLUMNS[table](parents),
+  };
+  const columns = Object.keys(row);
+  const placeholders = columns.map((_, index) => `$${index + 1}`).join(", ");
+  return {
+    sql: `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`,
+    values: Object.values(row),
+  };
 }
