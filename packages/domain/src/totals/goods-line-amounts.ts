@@ -6,9 +6,10 @@ import {
   addVnd,
   multiplyVndByQuantity,
   negateVnd,
+  quantity,
   subtractVnd,
 } from "../money";
-import { type OrderLine, effectiveQuantity, validateLineTree } from "../order";
+import { type OrderLine, effectiveQuantities, validateLineTree } from "../order";
 import { allocateAmount } from "./allocate-amount";
 import { linesNetOfVoids } from "./lines-net-of-voids";
 import { TOTALS_ERROR_CODES } from "./totals-error-codes";
@@ -60,8 +61,9 @@ export function goodsLineAmounts(lines: readonly OrderLine[]): GoodsLineAmount[]
   const byId = new Map(priced.map((line) => [line.id, line]));
   const goods: WorkingLine[] = [];
   const buckets = new Map<string, DiscountBucket>();
+  const effective = effectiveQuantities(priced);
   for (const line of priced) {
-    const units = effectiveQuantity(priced, line.id);
+    const units = effective.get(line.id) ?? quantity(0);
     const amount = multiplyVndByQuantity(line.unitPrice, units, "half-up");
     if (line.lineType === "discount") {
       assertDiscountPrice(line);

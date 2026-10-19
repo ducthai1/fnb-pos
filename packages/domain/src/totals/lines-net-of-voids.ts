@@ -22,16 +22,18 @@ export interface LinesNetOfVoids {
  */
 export function linesNetOfVoids(lines: readonly OrderLine[]): LinesNetOfVoids {
   const voidLineIds = new Set<string>();
+  const reversedIds = new Set<string>();
   for (const line of lines) {
     if (line.reversesLineId === null) continue;
+    reversedIds.add(line.reversesLineId);
     for (const copy of subtreeOf(lines, line.id)) voidLineIds.add(copy.id);
   }
   if (voidLineIds.size === 0) return { priced: lines, voidLineIds };
   const priced = lines
     .filter((line) => !voidLineIds.has(line.id))
     .map((line) => {
+      if (!reversedIds.has(line.id)) return line;
       const reversed = reversedQuantityOf(lines, line.id);
-      if (reversed === 0n) return line;
       return { ...line, quantity: subtractQuantity(line.quantity, reversed) };
     });
   return { priced, voidLineIds };

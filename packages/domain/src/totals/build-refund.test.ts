@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { percentRate, quantity, vnd } from "../money";
-import type { Order, RefundRequestLine } from "../order";
-import { order, sequentialIds } from "../order/order-line-test-fixtures";
+import { ORDER_ERROR_CODES, type Order, type RefundRequestLine } from "../order";
+import { codeOf, order, sequentialIds } from "../order/order-line-test-fixtures";
 import { buildOrderDiscountLines } from "./build-order-discount-lines";
 import { buildRefund } from "./build-refund";
 import { computeOrderTotals } from "./compute-order-totals";
 import { TAX_EXCLUSIVE, VAT_10, VAT_8, itemLine, withServiceCharge } from "./totals-test-helpers";
 import { negated, paid, units } from "./totals-refund-test-helpers";
-import { orderLevel } from "./totals-void-test-helpers";
+import { orderLevel, voidUnits } from "./totals-void-test-helpers";
 
 // Three teas at 25.000 (8%) and a burger at 60.000 (10%), 10% off the order, 5% service charge
 // after discount taxed at 10%, VAT on top. Worked by hand:
@@ -93,6 +93,19 @@ describe("buildRefund gives back what the customer paid", () => {
     const cancelled = { ...draft, status: "cancelled" as const };
     const allTeas = refundOf([units("tea", 3)], [cancelled], "r2");
     expect(totalsOf(allTeas).amountDue).toBe(vnd(-25_537 - 25_538 - 25_538));
+  });
+
+  it("gives back what was paid after a void, never the tea the bar took back", () => {
+    const sent = { ...sale, status: "draft" as const };
+    const voided = paid(voidUnits(sent, "tea", quantity(1), quantity(3)));
+    const ids = { orderId: "r1", newLineId: sequentialIds("r1") };
+    const refundAll = (request: RefundRequestLine[]) =>
+      buildRefund(voided, request, [], ids, "2026-10-21", profile).order;
+    const whole = refundAll([units("tea", 2), units("burger", 1)]);
+    expect(orderLevel(totalsOf(whole))).toEqual(negated(totalsOf(voided)));
+    expect(codeOf(() => refundAll([units("tea", 3)]))).toBe(
+      ORDER_ERROR_CODES.refundExceedsRemaining,
+    );
   });
 
   it("stores the amounts on the refund with the sold line each one gives back", () => {

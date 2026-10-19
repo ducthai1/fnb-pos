@@ -8,7 +8,13 @@ import {
   quantityFromThousandths,
 } from "../money";
 import { ORDER_ERROR_CODES as C } from "./order-error-codes";
-import { childrenOf, effectiveQuantity, subtreeOf, validateLineTree } from "./order-line-tree";
+import {
+  childrenOf,
+  effectiveQuantities,
+  effectiveQuantity,
+  subtreeOf,
+  validateLineTree,
+} from "./order-line-tree";
 import { codeOf, item, line } from "./order-line-test-fixtures";
 import type { OrderLine } from "./order-types";
 
@@ -118,9 +124,13 @@ describe("effectiveQuantity on random trees", () => {
       fc.property(randomTree(thousandths), (generated) => {
         const lines = generated.map((g) => g.line);
         validateLineTree(lines);
+        const all = effectiveQuantities(lines);
+        expect(all.size).toBe(lines.length);
         for (const { line: l, path } of generated) {
           const expected = divideRounded(product(path), scaleFor(path), "half-up");
           expect(effectiveQuantity(lines, l.id)).toBe(expected);
+          // the whole-order variant indexes once and must agree line for line
+          expect(all.get(l.id)).toBe(expected);
         }
       }),
     );

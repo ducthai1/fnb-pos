@@ -4,7 +4,7 @@ import {
   type OrderLine,
   type RefundAmounts,
   type RefundLineAmounts,
-  effectiveQuantity,
+  effectiveQuantities,
 } from "../order";
 import type { LineTotals, OrderTotals, TaxGroupTotals } from "./order-totals-types";
 import { mirroredRefundLines } from "./refund-mirror";
@@ -23,6 +23,7 @@ export function refundTotalsFromAmounts(
 ): OrderTotals {
   mirroredRefundLines(lines, refundOfOrderId); // the lines must be a valid refund first
   const goods = lines.filter((line) => line.lineType !== "discount");
+  const effective = effectiveQuantities(lines);
   const perLine = amountsByGoodsLine(goods, amounts.lines);
   const groups = new Map<BasisPoints, { amount: Vnd; tax: Vnd }>();
   const addToGroup = (rate: BasisPoints, amount: Vnd, tax: Vnd) => {
@@ -34,7 +35,7 @@ export function refundTotalsFromAmounts(
     const net = subtractVnd(a.gross, a.discountAllocated);
     // as on the sale, a line with no units left and nothing to give back lists no rate
     const nothing = a.gross === 0n && a.discountAllocated === 0n && a.tax === 0n;
-    if (!nothing || effectiveQuantity(lines, line.id) !== 0n) addToGroup(line.taxRate, net, a.tax);
+    if (!nothing || effective.get(line.id) !== 0n) addToGroup(line.taxRate, net, a.tax);
     return {
       lineId: line.id,
       gross: a.gross,
