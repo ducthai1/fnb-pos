@@ -12,6 +12,8 @@
     "test:unit": "turbo run test:unit",
     "test:api": "turbo run test:api",
     "test:sync": "turbo run test:sync",
+    "test:browser": "turbo run test:browser",
+    "e2e": "turbo run test:browser",
     "verify": "turbo run typecheck && eslint . --max-warnings=0 && turbo run test:unit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
@@ -21,7 +23,8 @@
       "@embedded-postgres/darwin-arm64",
       "@embedded-postgres/darwin-x64",
       "@embedded-postgres/linux-arm64",
-      "@embedded-postgres/linux-x64"
+      "@embedded-postgres/linux-x64",
+      "esbuild"
     ]
   },
   "devDependencies": {

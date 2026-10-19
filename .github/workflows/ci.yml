@@ -18,3 +18,5 @@ jobs:
       - run: pnpm verify
       - run: pnpm test:api
       - run: pnpm test:sync
+      # Headless runs of the machine's Chrome: ubuntu-latest ships it at /usr/bin/google-chrome.
+      - run: pnpm e2e
