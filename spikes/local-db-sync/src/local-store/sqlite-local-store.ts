@@ -3,7 +3,7 @@ import { lineFromWire, orderFromWire } from "../shared/order-wire-codec";
 import { SyncError } from "../shared/sync-error";
 import { SYNC_ERROR_CODES } from "../shared/sync-error-codes";
 import type { ChangeWire } from "../shared/sync-wire-types";
-import type { CommandDraft, LocalStore, OutboxEntry } from "./local-store";
+import type { CommandDraft, LocalStore, OutboxEntry, QueuedCommand } from "./local-store";
 import { lineFromSql, lineParams, numberOf, orderFromSql, orderParams } from "./local-row-mapping";
 import * as sql from "./local-store-schema-sql";
 import type { SqliteDriver } from "./sqlite-driver";
@@ -154,6 +154,16 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
         counts[status] = numberOf(row, "n");
       }
       return counts;
+    },
+
+    async listCommands() {
+      return driver.all(sql.SELECT_ALL_COMMANDS_SQL).map((row) => ({
+        commandId: String(row["command_id"]),
+        type: String(row["type"]),
+        payload: JSON.parse(String(row["payload"])) as QueuedCommand["payload"],
+        status: String(row["status"]) as QueuedCommand["status"],
+        resultCode: row["result_code"] === null ? null : String(row["result_code"]),
+      }));
     },
 
     async readDatabaseSizeBytes() {

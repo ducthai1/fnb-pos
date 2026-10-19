@@ -21,6 +21,14 @@ export interface LocalRejection {
 
 export type PullApplyOutcome = "applied" | "deferred-pending-commands";
 
+export interface QueuedCommand {
+  commandId: string;
+  type: string;
+  payload: { order_id: string; line?: { id: string } };
+  status: "pending" | "accepted" | "rejected";
+  resultCode: string | null;
+}
+
 export interface CommandCounts {
   pending: number;
   accepted: number;
@@ -45,6 +53,8 @@ export interface LocalStore {
   readOrderSnapshot(orderId: string): Promise<OrderSnapshot | null>;
   listOrderSnapshots(): Promise<OrderSnapshot[]>;
   countCommands(): Promise<CommandCounts>;
+  /** Every command this till ever queued, for audits after a run. */
+  listCommands(): Promise<QueuedCommand[]>;
   readDatabaseSizeBytes(): Promise<number>;
   readJournalMode(): Promise<string>;
   close(): Promise<void>;

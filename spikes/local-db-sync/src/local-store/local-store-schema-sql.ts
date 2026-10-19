@@ -73,3 +73,5 @@ export const SELECT_ORDER_SQL = "SELECT * FROM orders WHERE id = ?";
 export const SELECT_ORDER_LINES_SQL = "SELECT * FROM order_lines WHERE order_id = ? ORDER BY id";
 export const SELECT_ALL_ORDERS_SQL = "SELECT * FROM orders ORDER BY id";
 export const SELECT_ALL_LINES_SQL = "SELECT * FROM order_lines ORDER BY order_id, id";
+export const SELECT_ALL_COMMANDS_SQL =
+  "SELECT command_id, type, payload, status, result_code FROM outbox ORDER BY device_seq";
