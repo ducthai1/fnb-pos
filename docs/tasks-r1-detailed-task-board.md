@@ -6,11 +6,11 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 02:20 — Đợt 2 (4 agent, 946k token, 32 phút) đã merge + push: tổng tiền (thuế theo nhóm thuế suất, phí dịch vụ, giảm giá toàn đơn tách theo thuế suất, phân bổ largest-remainder, property 2.000 case), hủy món (dòng âm + nhân bản cây con) + đơn hoàn, kiểm phiên bản domain, đăng nhập backoffice (bảng toàn cục ở schema `fnb_auth`, chỉ gọi qua hàm SECURITY DEFINER), ghép/thu hồi thiết bị, nhân viên + PIN + vai trò, danh mục quyền + `authorize()`, nhật ký duyệt/thao tác chỉ-thêm, công tắc tính năng + cấu hình kế thừa (`packages/feature-flags`).
-- Cổng trên `main`: `pnpm verify` 663 unit · `pnpm test:api` 345 tích hợp — xanh.
-- **Lỗi tích hợp đã xác nhận, chưa sửa:** `computeOrderTotals` ném `allocation weight … is negative` khi đơn có dòng hủy (quantity âm). Hai module viết song song nên chưa test chung. Việc đầu tiên của đợt 3.
-- Tiếp theo (đợt 3): sửa tổng tiền × hủy/hoàn + phần giảm giá khi hoàn một phần; gắn khóa quyền vào API backoffice + seed vai trò mẫu; schema + API catalog (T03-01/02); review sâu code đợt 1–2.
-- Đang chờ user: T00-01…05, T00-08…10; các dòng "chờ user" trong decision-log (D-022…D-024, D-028, D-030).
+- 2026-10-20 02:50 — Đợt 3 (4 agent, 1,24M token, 37 phút) đã merge + push: tổng tiền đúng với dòng hủy (gộp vào dòng gốc) và đơn hoàn (đối xứng); `buildRefund` chuyển sang `totals`, đơn hoàn mang `refundAmounts` — Σ các lần hoàn = đúng số khách đã trả từng đồng (property 10.000 vòng đời); gắn khóa quyền vào API backoffice (`requirePermission`), CRUD vai trò, `provisionOrganization` seed 6 vai trò mẫu, duyệt tại chỗ `POST /pos/approvals`; schema + API menu (0007/0008, không DELETE món — chỉ archive) + kiểm cấu hình combo/món/bảng giá.
+- Review sâu đợt 1–2: `research/review-wave-1-2-findings.md` (1 high, 4 medium, 11 low). Tất cả đã chia vào đợt 4 (Backlog).
+- Cổng trên `main`: `pnpm verify` 762 unit · `pnpm test:api` 670 tích hợp — xanh.
+- Tiếp theo (đợt 4): sửa toàn bộ phát hiện review; gắn `edit_menu` vào route menu; `packages/contracts` + định dạng tiền/số lượng trên mạng; schema đơn/thanh toán/ca + endpoint đồng bộ server.
+- Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log.
 
 ---
 
@@ -145,7 +145,7 @@
 ### T02-05 Cây dòng đơn + `computeOrderTotals`
 - **Luật:** dòng `item | modifier | combo_component | discount`; VAT + phí dịch vụ theo kênh; phí trước/sau khuyến mãi; giá gồm/cộng thuế.
 - **Test:** `totals/compute-order-totals.test.ts` — bảng ví dụ thật của quán (sau T00-05).
-- **Trạng thái:** done (2026-10-20) — `totals/compute-order-totals.ts`. **Chưa xử lý dòng âm** (Backlog gấp).
+- **Trạng thái:** done (2026-10-20) — gồm cả dòng hủy (gộp vào dòng gốc) và đơn hoàn (đối xứng / đọc `refundAmounts`).
 
 ### T02-06 Làm tròn
 - **Test:** `totals/rounding.test.ts` — chỉ tiền mặt vs toàn đơn; từng phương pháp.
@@ -163,7 +163,7 @@
 ### T02-09 `voidLine` + `buildRefund`
 - **Luật:** chưa gửi ⇒ sửa; đã gửi ⇒ dòng âm có lý do; đã trả ⇒ đơn hoàn dòng âm, số lượng còn hoàn tính cả đơn hoàn chưa trả, cờ `restock`.
 - **Test:** `order/void-line.test.ts`, `order/build-refund.test.ts` — hoàn 2 lần không vượt gốc.
-- **Trạng thái:** done một phần (2026-10-20) — `voidLine`, `buildRefund`; phần giảm giá toàn đơn khi hoàn một phần chưa xử lý (Backlog).
+- **Trạng thái:** done (2026-10-20) — `voidLine` + `buildRefund` (ở `totals`, cần charge profile của lúc bán) trả đúng phần giảm/thuế/phí đã trả; lần hoàn cuối nhận phần dư.
 
 ### T02-10 `businessDate`
 - **Test:** `time/business-date.test.ts` — 03:59 thuộc hôm trước với giờ cắt 4h; đổi giờ cắt theo chi nhánh; múi giờ.
@@ -171,7 +171,7 @@
 
 ### T02-11 Bộ property test + `domain_version`
 - **Xong khi:** 10.000 đơn ngẫu nhiên: tổng tính 2 lần (mô phỏng client/server) trùng từng đồng; độ phủ domain ≥ 95%.
-- **Trạng thái:** một phần (2026-10-20) — property tổng tiền 2.000 case + JSON round-trip; `isSupportedDomainVersion`. Còn: 10.000 đơn gồm cả hủy/hoàn sau khi sửa lỗi dòng âm.
+- **Trạng thái:** done (2026-10-20) — `totals/order-lifecycle.property.test.ts` 10.000 vòng đời (bán → giảm → hủy → trả → hoàn nhiều lần), server dựng lại đơn hoàn từ cùng yêu cầu qua JSON round-trip cho kết quả giống hệt. Bộ unit domain giờ ~10s.
 
 ---
 
@@ -179,10 +179,12 @@
 
 ### T03-01 Schema catalog + migration
 - **Test:** `apps/api/test/integration/catalog/catalog-schema-constraints.test.ts` — không xóa cứng món đã bán.
+- **Trạng thái:** done (2026-10-20) — 0007_catalog.sql, 0008_price_lists.sql; fnb_app không DELETE được món/biến thể/option (chỉ archived_at); CHECK ở DB cho luật rẻ.
 
 ### T03-02 API catalog
 - **Làm:** CRUD; kiểm bằng `validateModifierSelection`; đẩy `change_seq`.
 - **Test:** `apps/api/test/integration/catalog/catalog-crud.test.ts` — cấu hình sai (min > max) bị chặn kèm lý do.
+- **Trạng thái:** done (2026-10-20) — PUT/GET món dạng tài liệu lồng nhau, khóa lạc quan theo version (409), danh mục, trạm, hết món tay, bảng giá; lỗi domain ⇒ 400 `{code}`. **Chưa gắn `edit_menu`** (đợt 4).
 
 ### T03-03 UI danh mục / món / biến thể
 ### T03-04 UI nhóm tùy chọn + điều kiện + xem trước lựa chọn của khách
@@ -195,6 +197,7 @@
 ### T03-07 Trạm pha chế/bếp + gán món
 ### T03-08 Hết món bật tay
 - **Test:** `apps/api/test/integration/catalog/manual-86-hides-item-on-pos.test.ts`.
+- **Trạng thái:** done phía API (2026-10-20) — `PUT /catalog/availability`; UI chưa.
 
 ### T03-09 Ảnh món
 - **Test:** `apps/api/test/integration/catalog/image-upload-validates-type-and-size.test.ts`.
@@ -351,4 +354,14 @@
 - 2026-10-20 · Xác minh PIN khi offline: gửi băm PIN 4–6 số xuống máy là brute-force được (≤ 1,1 triệu khả năng) dù có salt ⇒ quyết khi làm T04-05 (khóa gắn thiết bị / chỉ online / PIN dài hơn).
 - 2026-10-20 · `approval_log`: thêm giờ duyệt trên máy (cho duyệt offline đồng bộ sau)? `device_id` cho phép NULL khi duyệt từ backoffice/điện thoại quản lý? → T04-17.
 - 2026-10-20 · Máy có `domain_version` MỚI hơn server có được nhận không (cập nhật app trước server)? → T04-03.
+- 2026-10-20 · **[đợt 4, high]** Review B1: dòng hủy/hoàn không được so với dòng gốc ⇒ thêm kiểm trong domain (giá, thuế, món, biến thể, cây con của dòng đảo khớp dòng gốc) + LUẬT: server áp lệnh *ý định* (`voidLine`, `buildRefund` dựng lại từ yêu cầu), không bao giờ nhận dòng đảo/đơn hoàn do máy quầy dựng.
+- 2026-10-20 · **[đợt 4, medium]** A3: migration phải tự `REVOKE EXECUTE … FROM PUBLIC` cho hàm `fnb_auth` (hiện chỉ an toàn nhờ bước provision của test); test trên DB chỉ-migrate.
+- 2026-10-20 · **[đợt 4, medium]** B2: ngưỡng giảm giá/thu-chi tính theo từng thao tác ⇒ giảm 3×10% = 30% không cần duyệt. Sửa: authorize theo tỉ lệ giảm *tích lũy* của dòng/đơn (helper domain), thu/chi tích lũy theo ca (ghi chú cho T04-16).
+- 2026-10-20 · **[đợt 4, medium]** A1 + C1: khóa PIN leo thang (khóa lại liên tiếp ⇒ thời gian tăng, tối đa ~24h) + audit sự kiện khóa; test gửi lần thử PIN/đăng nhập song song.
+- 2026-10-20 · **[đợt 4, low]** A2 (đúng PIN xóa luôn khóa của request song song), A4 (trigger `UPDATE OF account_id` chạy cả khi không đổi ⇒ xóa mọi phiên), A5 (uuid nhận `urn:`/chữ hoa ⇒ 500), B3 (`quantity(1e-7)` ra 0 thay vì bị chặn), B6 (giảm giá dòng tính theo đơn vị — cần builder "giảm X cho cả dòng"), C2 (test làm tròn VAT/phí dịch vụ theo công thức độc lập), C3 (nhân viên bị vô hiệu giữa ca; `/current` kiểm lại chi nhánh), C4 (grant mang trường thừa), C5 (test cho scrypt giả; thêm `fnb_auth.pairing_code_route` vào GLOBAL_TABLES).
+- 2026-10-20 · Gắn `edit_menu` cho mọi route `/catalog`. → đợt 4.
+- 2026-10-20 · Nhóm tùy chọn dùng chung: lưu món A có thể đổi/archive option mà món B cũng dùng — kiểm lại món B hay tách nhóm theo món? (chờ quyết)
+- 2026-10-20 · Đơn đã thanh toán chưa lưu charge profile lúc bán ⇒ lưu snapshot profile trên đơn để hoàn tiền đúng khi chi nhánh đổi cấu hình. → T04-01.
+- 2026-10-20 · Giảm % toàn đơn áp trước khi hủy món giữ số tiền cố định; hủy làm cơ sở nhỏ hơn số giảm ⇒ lỗi. Tầng ứng dụng phải áp lại giảm % sau khi hủy. → T04-17.
+- 2026-10-20 · Bộ unit domain ~10s vì property 10.000 vòng đời — cân nhắc 2.000 khi chạy local, 10.000 trong CI (`FNB_LIFECYCLE_RUNS`).
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.
