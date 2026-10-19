@@ -16,6 +16,7 @@ export default tseslint.config(
       "packages/domain/**/*.ts",
       "packages/feature-flags/**/*.ts",
       "packages/contracts/**/*.ts",
+      "packages/printing/**/*.ts",
     ],
     rules: {
       "no-restricted-globals": [
@@ -27,6 +28,18 @@ export default tseslint.config(
         "error",
         { object: "Date", property: "now", message: "domain is pure: pass the time in" },
         { object: "Math", property: "random", message: "domain must be deterministic" },
+      ],
+    },
+  },
+  {
+    // Printing turns a document into bytes; sending them is the native shell's job. Only the
+    // golden-file helper and tests may touch the file system.
+    files: ["packages/printing/src/**/*.ts"],
+    ignores: ["packages/printing/src/**/*.test.ts", "packages/printing/src/test-support/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: [{ group: ["node:*"], message: "printing is pure: the shell does I/O" }] },
       ],
     },
   },

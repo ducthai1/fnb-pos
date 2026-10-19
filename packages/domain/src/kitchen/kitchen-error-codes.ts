@@ -1,0 +1,6 @@
+export const KITCHEN_ERROR_CODES = {
+  refundOrder: "DOMAIN_KITCHEN_REFUND_ORDER",
+  duplicateSentLine: "DOMAIN_KITCHEN_DUPLICATE_SENT_LINE",
+  sentLineNotFound: "DOMAIN_KITCHEN_SENT_LINE_NOT_FOUND",
+  invalidSentQuantity: "DOMAIN_KITCHEN_INVALID_SENT_QUANTITY",
+} as const;
