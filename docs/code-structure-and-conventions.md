@@ -31,6 +31,8 @@ Trạng thái thực tế (2026-10-20, sau đợt 1):
 - `packages/db/`: `migrations/0001_tenancy.sql`, `0002_tenancy_row_level_security.sql` (SQL là nguồn thật); `src/migrations` (runner), `src/ids` (newId UUIDv7), `src/schema` (bảng Drizzle mô tả cột), `src/tenancy` (withTenant, drizzleFor), `src/test-support` (Postgres nhúng, tạo role), `DatabaseError` + `db-error-codes.ts`.
 - `apps/api/`: `src/build-app.ts` (Fastify + `/health`), `test/integration/{infra,tenancy,health,support}`.
 - `spikes/local-db-sync/`: spike đồng bộ (ngoài workspace, lockfile riêng) — tham khảo khi làm `packages/sync-client`, không import vào code sản phẩm.
+- Sau đợt 2: `domain/src/totals/` (computeOrderTotals, buildOrderDiscountLines, allocateAmount), `domain/src/order/` thêm void-order-line, build-refund-order, order-line-reversal-*; `domain/src/permissions/` (catalog, authorize, canApprove, role templates); `domain/src/domain-version-policy.ts`; `packages/feature-flags/` (catalog, validateFlags, resolveConfig); `packages/db/migrations/0003…0006` (accounts+sessions ở schema `fnb_auth`, devices+staff+roles, audit+approval chỉ-thêm, configuration); `apps/api/src/{auth,devices,staff}/` + `clock.ts` (đồng hồ inject được); `apps/api` có cả unit test (`src/**/*.test.ts`) lẫn tích hợp.
+- Mã lỗi API: tiền tố `API_`, khai theo miền (`auth-error-codes.ts`…); body lỗi chỉ `{code}`; 4xx validation ⇒ `API_INVALID_REQUEST`, còn lại ⇒ `API_INTERNAL` không kèm message.
 - Ghép giá một món: `resolveUnitPrice(...).unitPrice` + Σ `validateModifierSelection(...).priceDelta`; combo: + `resolveCombo(...).totalUpcharge`; món cân: `multiplyVndByQuantity(unitPrice, weight, mode)`.
 
 ## 2. Ranh giới module (không được phá)

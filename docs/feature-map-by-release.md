@@ -8,23 +8,23 @@
 | ID | Tính năng | Catalog | Task | Test bảo vệ (dự kiến) | Trạng thái |
 |---|---|---|---|---|---|
 | FT-001 | Tenant, chi nhánh, ghép/thu hồi thiết bị | §3 | T01-03, T01-05 | `apps/api/test/integration/tenancy/rls-blocks-cross-tenant-reads.test.ts`, `…/tenancy/row-level-security-binds-the-owner-role.test.ts`, `…/devices/revoked-device-is-rejected.test.ts` (chưa có) | đang — tenancy + RLS xong; thiết bị chưa |
-| FT-002 | PIN nhân viên, khóa quyền, duyệt tại chỗ, nhật ký | §16 | T01-06…08 | `packages/domain/src/permissions/authorize.test.ts`, `apps/api/test/integration/auth/staff-pin-lockout.test.ts`, `…/auth/manager-approval-is-logged.test.ts` | chưa |
-| FT-003 | Cấu hình kế thừa + công tắc có ràng buộc | §2, §21 | T01-09 | `packages/feature-flags/src/validate-flag-constraints.test.ts`, `…/resolve-inherited-config.test.ts` | chưa |
+| FT-002 | PIN nhân viên, khóa quyền, duyệt tại chỗ, nhật ký | §16 | T01-06…08 | `packages/domain/src/permissions/authorize.test.ts`, `apps/api/test/integration/auth/staff-pin-lockout.test.ts`, `…/auth/manager-approval-is-logged.test.ts` | đang — PIN, khóa quyền, duyệt, nhật ký xong phía server; gắn quyền vào API + UI chưa |
+| FT-003 | Cấu hình kế thừa + công tắc có ràng buộc | §2, §21 | T01-09 | `packages/feature-flags/src/validate-flag-constraints.test.ts`, `…/resolve-inherited-config.test.ts` | đang — công tắc + cấu hình kế thừa xong; UI chưa |
 | FT-004 | Menu: món, biến thể, nhóm tùy chọn, combo | §4 | T02-03, T02-04, T03-01…05 | `packages/domain/src/catalog/{validate-modifier-group-config,validate-modifier-selection,validate-modifier-selection-limits,resolve-combo}.test.ts`, `e2e/backoffice/build-milk-tea-menu.spec.ts` (chưa có) | đang — luật domain xong; schema/API/UI chưa |
 | FT-005 | Giá: theo chi nhánh/kênh/giờ, nhập tay, theo cân | §4 | T02-02, T03-06 | `packages/domain/src/pricing/{resolve-price,price-list-precedence,price-list-schedule,validate-price-list-item}.test.ts` | đang — domain xong; UI bảng giá chưa |
 | FT-006 | Hết món bật tay | §4 | T03-08 | `apps/api/test/integration/catalog/manual-86-hides-item-on-pos.test.ts` | chưa |
 | FT-007 | Mẫu loại quán | §21 | T03-10 | `packages/shop-templates/src/apply-template-is-idempotent.test.ts` | chưa |
 | FT-008 | Nhập/xuất menu Excel | §4 | T03-11 | `apps/api/test/integration/catalog/menu-excel-roundtrip.test.ts` | chưa |
 | FT-009 | Bán tại quầy: chọn món, tùy chọn, ghi chú, giữ đơn | §5 | T04-06 | `apps/pos/src/features/order/modifier-picker.test.tsx`, `e2e/pos/counter-sale-cash.spec.ts` | chưa |
-| FT-010 | Tổng tiền: thuế/phí theo kênh, làm tròn, giảm giá tay | §8 | T02-05…07, T04-07 | `packages/domain/src/totals/compute-order-totals.test.ts`, `…/totals/order-totals.property.test.ts`, `…/totals/allocate-discount.test.ts` | chưa |
+| FT-010 | Tổng tiền: thuế/phí theo kênh, làm tròn, giảm giá tay | §8 | T02-05…07, T04-07 | `packages/domain/src/totals/compute-order-totals.test.ts`, `…/totals/order-totals.property.test.ts`, `…/totals/allocate-discount.test.ts` | đang — tổng tiền xong; chưa xử lý dòng hủy (Backlog gấp) |
 | FT-011 | Thanh toán nhiều phương thức, tiền thừa | §8 | T04-08 | `e2e/pos/split-tender-cash-and-qr.spec.ts` | chưa |
 | FT-012 | Số đơn 3 lớp + số gọi món | §5 | T04-09 | `packages/domain/src/order/order-numbering.test.ts`, `packages/sync-client/test/scenarios/offline-orders-get-unique-numbers.test.ts` | chưa |
 | FT-013 | Phiếu pha chế theo trạm (gửi theo lượt, hủy) | §7 | T04-10 | `packages/domain/src/kitchen/kitchen-ticket-diff.test.ts` | chưa |
 | FT-014 | In bill, tem ly, phiếu pha chế, chốt ca | §11 | T04-11…13 | `packages/printing/src/templates/*.test.ts` + `__golden__/`, `e2e/hardware-checklist.md` | chưa |
 | FT-015 | Hàng đợi in, in lại, báo lỗi in | §11 | T04-15 | `apps/pos/src/features/printing/print-queue-retries-and-surfaces-failures.test.ts` | chưa |
 | FT-016 | Ca & két: mở, thu/chi, đóng, chuyển đơn mở sang ca sau | §10 | T04-16 | `packages/domain/src/shift/expected-cash.test.ts`, `apps/api/test/integration/shift/close-with-difference-needs-approval.test.ts`, `…/shift/open-orders-carry-to-next-shift.test.ts` | chưa |
-| FT-017 | Hủy món trước/sau khi gửi + duyệt | §9 | T02-09, T04-17 | `packages/domain/src/order/void-line.test.ts`, `e2e/pos/void-after-sent-needs-approval.spec.ts` | chưa |
-| FT-018 | Hoàn đơn đã trả (đơn hoàn, restock) | §9 | T02-09, T04-17 | `packages/domain/src/order/build-refund.test.ts` | chưa |
+| FT-017 | Hủy món trước/sau khi gửi + duyệt | §9 | T02-09, T04-17 | `packages/domain/src/order/void-line.test.ts`, `e2e/pos/void-after-sent-needs-approval.spec.ts` | đang — voidLine (domain) xong; UI/API chưa |
+| FT-018 | Hoàn đơn đã trả (đơn hoàn, restock) | §9 | T02-09, T04-17 | `packages/domain/src/order/build-refund.test.ts` | đang — buildRefund (domain) xong; phần giảm giá khi hoàn một phần chưa |
 | FT-019 | Offline: bán, khóa thao tác, badge, màn "cần xử lý" | §20 | T04-02…04, T04-18 | `packages/sync-client/test/scenarios/{offline-sale-then-sync,duplicate-command-is-noop,out-of-order-commands,continue-on-previous-state,domain-version-mismatch-is-rejected}.test.ts`, `e2e/pos/offline-counter-sale.spec.ts` | chưa |
 | FT-020 | Bàn cơ bản: sơ đồ, mở bàn, nhiều lượt, tạm tính, trả sau | §6 | T4B-01…05 | `e2e/pos/table-two-rounds-pay-later.spec.ts` | chưa |
 | FT-021 | Chuyển sang bàn trống | §6 | T4B-06 | `packages/domain/src/table/transfer-to-empty-table.test.ts` | chưa |

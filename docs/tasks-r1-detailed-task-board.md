@@ -6,11 +6,11 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 01:30 — Đợt code 1 (4 agent song song, worktree riêng, 877k token) đã merge vào `main` + push: lõi đơn hàng (mô hình, cây dòng, máy trạng thái), ngày kinh doanh, làm tròn tiền mặt, menu/tùy chọn/combo/giá, nền móng DB (migration SQL + runner, UUIDv7, Postgres 17 nhúng cho test, tenancy + RLS FORCE + khóa ngoại kép), Fastify `/health`, spike đồng bộ S2 (báo cáo `research/spike-s2-local-db-sync-report.md`).
-- Cổng: `pnpm verify` (247 unit) + `pnpm test:api` (120 tích hợp, ~3s, không cần Docker) đều xanh.
-- **Việc gấp trước R1 (từ spike):** bẫy 12 — giờ cao điểm 2 máy bán cùng lúc thì "chỉ kéo khi hàng đợi trống" làm máy gần như không kéo được, 5–18% lệnh bị từ chối. Cách sửa đề xuất: kết quả `accepted` mang ảnh chụp đơn sau khi áp. Ghi ở Backlog, làm cùng T04-02/03.
-- Tiếp theo: đợt 2 — T02-05 + T02-07 (tổng tiền, phân bổ), T02-09 + T02-11 (hủy/hoàn, property), T01-04…06 (đăng nhập, thiết bị, PIN), T01-07…09 (quyền, duyệt, cấu hình kế thừa).
-- Đang chờ user: T00-01…05, T00-08 (máy in thật), T00-09/10 (sandbox); các câu hỏi đánh dấu "chờ user" trong decision-log (D-022…D-024).
+- 2026-10-20 02:20 — Đợt 2 (4 agent, 946k token, 32 phút) đã merge + push: tổng tiền (thuế theo nhóm thuế suất, phí dịch vụ, giảm giá toàn đơn tách theo thuế suất, phân bổ largest-remainder, property 2.000 case), hủy món (dòng âm + nhân bản cây con) + đơn hoàn, kiểm phiên bản domain, đăng nhập backoffice (bảng toàn cục ở schema `fnb_auth`, chỉ gọi qua hàm SECURITY DEFINER), ghép/thu hồi thiết bị, nhân viên + PIN + vai trò, danh mục quyền + `authorize()`, nhật ký duyệt/thao tác chỉ-thêm, công tắc tính năng + cấu hình kế thừa (`packages/feature-flags`).
+- Cổng trên `main`: `pnpm verify` 663 unit · `pnpm test:api` 345 tích hợp — xanh.
+- **Lỗi tích hợp đã xác nhận, chưa sửa:** `computeOrderTotals` ném `allocation weight … is negative` khi đơn có dòng hủy (quantity âm). Hai module viết song song nên chưa test chung. Việc đầu tiên của đợt 3.
+- Tiếp theo (đợt 3): sửa tổng tiền × hủy/hoàn + phần giảm giá khi hoàn một phần; gắn khóa quyền vào API backoffice + seed vai trò mẫu; schema + API catalog (T03-01/02); review sâu code đợt 1–2.
+- Đang chờ user: T00-01…05, T00-08…10; các dòng "chờ user" trong decision-log (D-022…D-024, D-028, D-030).
 
 ---
 
@@ -87,26 +87,32 @@
 ### T01-04 Đăng nhập backoffice
 - **Làm:** SĐT/email + mật khẩu; OTP (nhà cung cấp SMS/email để sau, giao diện adapter); phiên; quên mật khẩu.
 - **Test:** `apps/api/test/integration/auth/backoffice-login.test.ts` — sai mật khẩu, khóa sau N lần, phiên hết hạn.
+- **Trạng thái:** done (2026-10-20) — bảng toàn cục `fnb_auth.account/account_tenant/session` (fnb_app chỉ gọi hàm SECURITY DEFINER), membership theo tenant; khóa 15 phút sau 5 lần sai, 401 giống nhau cho mọi lỗi + scrypt giả để không lộ thời gian; phiên 7 ngày tuyệt đối; account nhiều tổ chức ⇒ 409 kèm danh sách. OTP: chỉ cổng + fake. Quên mật khẩu chưa làm.
 
 ### T01-05 Ghép / thu hồi thiết bị
 - **Làm:** mã ghép một lần (hạn 10 phút) → token thiết bị; thu hồi.
 - **Test:** `apps/api/test/integration/devices/{pairing-code-single-use,revoked-device-is-rejected}.test.ts`.
+- **Trạng thái:** done (2026-10-20) — mã ghép 8 ký tự (bảng 30 ký tự không nhầm), 10 phút, dùng một lần; token thiết bị `<tenantId>.<secret>` chỉ lưu SHA-256; thu hồi idempotent; `GET /devices/me`.
 
 ### T01-06 PIN nhân viên
 - **Làm:** PIN trên thiết bị đã ghép; giới hạn thử + khóa tạm; bản băm có salt cho offline lưu ở kho bảo mật của vỏ.
 - **Test:** `apps/api/test/integration/auth/staff-pin-lockout.test.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — PIN 4–6 số, chặn PIN dễ; sai 5 lần khóa 5 phút (429 + Retry-After); staff session 12h gắn thiết bị; sai chi nhánh 403. Xác minh PIN offline CHƯA làm (Backlog).
 
 ### T01-07 Khóa quyền + vai trò mẫu + `authorize()`
 - **Làm:** danh mục khóa quyền catalog §16; ngưỡng (vd giảm > X%); vai trò mẫu; `authorize(action, ctx) → allowed | needs_approval | denied` (thuần, trong domain).
 - **Test:** `packages/domain/src/permissions/authorize.test.ts` — mỗi khóa quyền: có quyền / không quyền / vượt ngưỡng.
+- **Trạng thái:** done (2026-10-20) — `permissions/`: 19 khóa quyền, ngưỡng (giảm giá %, thu/chi tiền), approvable; nhiều grant ⇒ lấy rộng nhất; `canApprove` yêu cầu khóa approvable; 6 vai trò mẫu (chờ user duyệt con số).
 
 ### T01-08 Duyệt tại chỗ + nhật ký
 - **Làm:** lệnh mang `approval{approver_staff_id, pin_proof}`; `approval_log`; `audit_log` chỉ thêm, không sửa.
 - **Test:** `apps/api/test/integration/auth/manager-approval-is-logged.test.ts` — duyệt sai PIN bị từ chối; duyệt đúng ghi đủ người yêu cầu/người duyệt.
+- **Trạng thái:** done (2026-10-20) — `approval_log`, `audit_log` chỉ-thêm (REVOKE + trigger chặn cả owner), approver ≠ requester, `recordApproval`/`appendAudit` lấy tenant từ phiên DB.
 
 ### T01-09 Cấu hình kế thừa + công tắc
 - **Làm:** `config_value(scope, key, value)`, resolve hệ thống → thương hiệu → chi nhánh → thiết bị; `packages/feature-flags` khai `requires/excludes`.
 - **Test:** `packages/feature-flags/src/{validate-flag-constraints,resolve-inherited-config}.test.ts`.
+- **Trạng thái:** done (2026-10-20) — `packages/feature-flags` (12 công tắc, requires/excludes, scope), `resolveConfig`, bảng `config_value` có cột sinh brand/branch/device + khóa ngoại kép.
 
 ### T01-10 Backoffice khung
 - **Làm:** Next.js: đăng nhập, chi nhánh, nhân viên, vai trò, thiết bị (ghép/thu hồi), cấu hình.
@@ -139,6 +145,7 @@
 ### T02-05 Cây dòng đơn + `computeOrderTotals`
 - **Luật:** dòng `item | modifier | combo_component | discount`; VAT + phí dịch vụ theo kênh; phí trước/sau khuyến mãi; giá gồm/cộng thuế.
 - **Test:** `totals/compute-order-totals.test.ts` — bảng ví dụ thật của quán (sau T00-05).
+- **Trạng thái:** done (2026-10-20) — `totals/compute-order-totals.ts`. **Chưa xử lý dòng âm** (Backlog gấp).
 
 ### T02-06 Làm tròn
 - **Test:** `totals/rounding.test.ts` — chỉ tiền mặt vs toàn đơn; từng phương pháp.
@@ -147,6 +154,7 @@
 ### T02-07 Giảm toàn đơn + phân bổ
 - **Luật:** tách một dòng âm mỗi thuế suất; phân bổ theo tỉ lệ, dư đồng lẻ dồn dòng lớn nhất.
 - **Test:** `totals/allocate-discount.test.ts`, `totals/order-totals.property.test.ts` (Σ dòng = tổng; Σ phân bổ = tổng giảm; không phụ thuộc thứ tự thêm món).
+- **Trạng thái:** done (2026-10-20) — `buildOrderDiscountLines` (một dòng mỗi thuế suất), `allocateAmount` (largest remainder).
 
 ### T02-08 Máy trạng thái đơn + mã lỗi
 - **Test:** `order/order-state-machine.test.ts` — mọi chuyển hợp lệ; mọi chuyển cấm trả đúng mã (`DOMAIN_ORDER_ALREADY_PAID`…).
@@ -155,6 +163,7 @@
 ### T02-09 `voidLine` + `buildRefund`
 - **Luật:** chưa gửi ⇒ sửa; đã gửi ⇒ dòng âm có lý do; đã trả ⇒ đơn hoàn dòng âm, số lượng còn hoàn tính cả đơn hoàn chưa trả, cờ `restock`.
 - **Test:** `order/void-line.test.ts`, `order/build-refund.test.ts` — hoàn 2 lần không vượt gốc.
+- **Trạng thái:** done một phần (2026-10-20) — `voidLine`, `buildRefund`; phần giảm giá toàn đơn khi hoàn một phần chưa xử lý (Backlog).
 
 ### T02-10 `businessDate`
 - **Test:** `time/business-date.test.ts` — 03:59 thuộc hôm trước với giờ cắt 4h; đổi giờ cắt theo chi nhánh; múi giờ.
@@ -162,6 +171,7 @@
 
 ### T02-11 Bộ property test + `domain_version`
 - **Xong khi:** 10.000 đơn ngẫu nhiên: tổng tính 2 lần (mô phỏng client/server) trùng từng đồng; độ phủ domain ≥ 95%.
+- **Trạng thái:** một phần (2026-10-20) — property tổng tiền 2.000 case + JSON round-trip; `isSupportedDomainVersion`. Còn: 10.000 đơn gồm cả hủy/hoàn sau khi sửa lỗi dòng âm.
 
 ---
 
@@ -332,4 +342,13 @@
 - 2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.
 - 2026-10-20 · `newId()` đang ở `@fnb/db`; POS offline cần cùng bộ sinh từ gói không phụ thuộc server ⇒ tách gói `ids` nhỏ khi bắt đầu POS. → T04-01.
 - 2026-10-20 · Đăng ký tổ chức mới chạy bằng role app hay đường riêng — quyết ở T01-04.
+- 2026-10-20 · **[gấp]** `computeOrderTotals` × dòng âm: gộp dòng hủy vào dòng nó đảo (cùng đơn), đơn hoàn (toàn dòng âm) tính đối xứng; test: hủy 1/2 ly = tổng của đơn 1 ly; hoàn toàn bộ = đúng số âm của đơn gốc. → đợt 3.
+- 2026-10-20 · Hoàn một phần đơn có giảm giá toàn đơn/khuyến mãi: dòng hoàn phải mang phần giảm đã phân bổ (dùng `allocateAmount`) để không trả lại nhiều hơn khách đã trả. → đợt 3.
+- 2026-10-20 · Gắn khóa quyền vào API backoffice (tạo mã ghép, tạo nhân viên, thu hồi thiết bị đang mở cho mọi member); kiểm `role.permission_keys` khớp danh mục; seed 6 vai trò mẫu khi tạo tổ chức. → đợt 3.
+- 2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.
+- 2026-10-20 · Giới hạn tần suất `/auth/login`, `/devices/pair` (theo IP/thiết bị) — API hay proxy? → T11.
+- 2026-10-20 · Job dọn mã ghép, route mã ghép, phiên hết hạn. → T11.
+- 2026-10-20 · Xác minh PIN khi offline: gửi băm PIN 4–6 số xuống máy là brute-force được (≤ 1,1 triệu khả năng) dù có salt ⇒ quyết khi làm T04-05 (khóa gắn thiết bị / chỉ online / PIN dài hơn).
+- 2026-10-20 · `approval_log`: thêm giờ duyệt trên máy (cho duyệt offline đồng bộ sau)? `device_id` cho phép NULL khi duyệt từ backoffice/điện thoại quản lý? → T04-17.
+- 2026-10-20 · Máy có `domain_version` MỚI hơn server có được nhận không (cập nhật app trước server)? → T04-03.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.

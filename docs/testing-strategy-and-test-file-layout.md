@@ -32,6 +32,9 @@
 13. **Bảng tenant mới** phải có: ENABLE + FORCE RLS + policy tenant, UNIQUE (tenant_id, id), khóa ngoại kép (tenant_id, parent_id), và thêm vào `TENANT_TABLES` trong `apps/api/test/integration/support/tenant-graph.ts` — thiếu là test catalog RLS đỏ.
 14. **Không import `embedded-postgres` trực tiếp trong tiến trình chính của vitest**; đi qua `packages/db/src/test-support/load-embedded-postgres.ts` (import thẳng làm lượt test fail vẫn trả exit 0).
 15. **Đo hiệu năng DB trên ổ thật**, không trong `/tmp` (tmpfs: fsync gần như miễn phí, số đẹp gấp ~30 lần).
+17. Trong `withTenant`, một câu lệnh bị từ chối sẽ hủy cả transaction ⇒ mỗi ca "bị chặn" cần `withTenant` riêng.
+18. Bảng chỉ-thêm mới ⇒ thêm vào `APPEND_ONLY_TABLES`; bảng Drizzle mới ⇒ thêm vào `packages/db/src/schema/all-tables.ts`; mỗi bảng tenant có một `RowSpec` trong `apps/api/test/integration/support/tenant-graph-rows.ts`.
+19. Thời gian trong API test điều khiển bằng `ManualClock`, không `sleep`.
 16. Test tranh chấp đồng thời: các transaction cạnh tranh không được dùng chung một hàng "nóng" (nó tuần tự hóa và che lỗi).
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
