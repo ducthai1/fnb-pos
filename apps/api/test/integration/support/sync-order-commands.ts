@@ -57,3 +57,19 @@ export const markSent = (pool: pg.Pool, tenantId: string, lineId: string, quanti
       quantity,
     ]),
   );
+
+/** A refund of `lines` of a sale, paid out in cash as `paidOut` (negative), numbered by the till. */
+export const refund = (
+  till: Till,
+  saleOrderId: string,
+  lines: { lineId: string; quantity: string; restock: boolean }[],
+  paidOut: number,
+) =>
+  command(till, "order.refund", {
+    refundOrderId: newId(),
+    saleOrderId,
+    deviceOrderNo: till.nextOrderNo++,
+    lines,
+    reasonCode: "wrong_drink",
+    payouts: [{ method: "cash", amount: paidOut }],
+  });

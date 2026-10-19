@@ -31,6 +31,7 @@ describe("sync command definitions", () => {
       "order.apply_discount",
       "order.cancel",
       "order.pay",
+      "order.refund",
       "order.remove_discount",
       "order.save_draft",
       "order.void_line",
