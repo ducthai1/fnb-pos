@@ -1,5 +1,14 @@
 import { isDomainError } from "../errors";
-import { type Quantity, basisPoints, quantity, vnd } from "../money";
+import {
+  type Quantity,
+  type Vnd,
+  addVnd,
+  basisPoints,
+  multiplyVndByQuantity,
+  quantity,
+  vnd,
+} from "../money";
+import { effectiveQuantity } from "./order-line-tree";
 import type { Order, OrderLine, OrderLineType } from "./order-types";
 
 /** Builds a plausible order line; only the tree shape and quantity matter to the tree rules. */
@@ -57,4 +66,18 @@ export function order(lines: readonly OrderLine[], overrides: Partial<Order> = {
     refundOfOrderId: null,
     ...overrides,
   };
+}
+
+/** What the lines are worth: unit price × effective quantity, so negative lines subtract. */
+export function linesTotal(lines: readonly OrderLine[]): Vnd {
+  const amounts = lines.map((l) =>
+    multiplyVndByQuantity(l.unitPrice, effectiveQuantity(lines, l.id), "half-up"),
+  );
+  return addVnd(...amounts);
+}
+
+/** Hands out "new-1", "new-2", … the way a till hands out fresh UUIDv7s. */
+export function sequentialIds(prefix = "new"): () => string {
+  let next = 0;
+  return () => `${prefix}-${++next}`;
 }

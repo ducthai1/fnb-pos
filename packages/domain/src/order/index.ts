@@ -10,3 +10,4 @@ export type {
   PriceSource,
   ServiceType,
 } from "./order-types";
+export { type VoidLineRequest, type VoidRecord, voidLine } from "./void-order-line";
