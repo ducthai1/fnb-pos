@@ -9,7 +9,12 @@ import { withClient } from "../support/with-client";
 // only through owner functions that answer for one exact identifier or token.
 const info = inject("testPostgres");
 const INSUFFICIENT_PRIVILEGE = "42501";
-const GLOBAL_TABLES = ["fnb_auth.account", "fnb_auth.account_tenant", "fnb_auth.session"];
+const GLOBAL_TABLES = [
+  "fnb_auth.account",
+  "fnb_auth.account_tenant",
+  "fnb_auth.session",
+  "fnb_auth.pairing_code_route",
+];
 
 let app: pg.Pool;
 
@@ -19,6 +24,15 @@ beforeAll(() => {
 
 afterAll(async () => {
   await app.end();
+});
+
+it("covers every table of fnb_auth, so a new one cannot be left out", async () => {
+  const result = await withClient(testConnectionString(info, "owner"), (client) =>
+    client.query<{ name: string }>(
+      "SELECT schemaname || '.' || tablename AS name FROM pg_tables WHERE schemaname = 'fnb_auth'",
+    ),
+  );
+  expect(result.rows.map((row) => row.name).sort()).toEqual([...GLOBAL_TABLES].sort());
 });
 
 describe.each(GLOBAL_TABLES)("the app role on %s", (table) => {

@@ -3,6 +3,7 @@ export {
   branchQuerySchema as catalogBranchQuerySchema,
   brandQuerySchema as catalogBrandQuerySchema,
   idParamsSchema as catalogIdParamsSchema,
+  channelKeySchema,
   idSchema as catalogIdSchema,
 } from "./catalog-schema-parts";
 export {

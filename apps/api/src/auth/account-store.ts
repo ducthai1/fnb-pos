@@ -7,7 +7,15 @@ import type { LoginIdentifier } from "./login-identifier";
 export type LoginAttempt =
   | { kind: "unknown" }
   | { kind: "locked"; accountId: string }
-  | { kind: "allowed"; accountId: string; passwordHash: string };
+  | {
+      kind: "allowed";
+      accountId: string;
+      passwordHash: string;
+      /** The count this attempt wrote; a success clears the count only if it is still this. */
+      claimedAttempts: number;
+      /** The lock this very attempt set by reaching the limit, if it did. */
+      lockedUntil: Date | null;
+    };
 
 export async function claimLoginAttempt(
   pool: pg.Pool,
@@ -19,8 +27,10 @@ export async function claimLoginAttempt(
     account_id: string;
     password_hash: string | null;
     allowed: boolean;
+    claimed_attempts: number;
+    lock_expires_at: Date | null;
   }>(
-    "SELECT account_id, password_hash, allowed " +
+    "SELECT account_id, password_hash, allowed, claimed_attempts, lock_expires_at " +
       "FROM fnb_auth.claim_login_attempt($1, $2, $3, $4, make_interval(secs => $5))",
     [identifier.email, identifier.phone, now, policy.maxAttempts, policy.lockMillis / 1000],
   );
@@ -29,11 +39,25 @@ export async function claimLoginAttempt(
   if (!row.allowed || row.password_hash === null) {
     return { kind: "locked", accountId: row.account_id };
   }
-  return { kind: "allowed", accountId: row.account_id, passwordHash: row.password_hash };
+  return {
+    kind: "allowed",
+    accountId: row.account_id,
+    passwordHash: row.password_hash,
+    claimedAttempts: row.claimed_attempts,
+    lockedUntil: row.lock_expires_at,
+  };
 }
 
-export async function recordLoginSuccess(pool: pg.Pool, accountId: string, now: Date) {
-  await pool.query("SELECT fnb_auth.record_login_success($1, $2)", [accountId, now]);
+export async function recordLoginSuccess(
+  pool: pg.Pool,
+  attempt: { accountId: string; claimedAttempts: number },
+  now: Date,
+) {
+  await pool.query("SELECT fnb_auth.record_login_success($1, $2, $3)", [
+    attempt.accountId,
+    attempt.claimedAttempts,
+    now,
+  ]);
 }
 
 export async function accountTenants(pool: pg.Pool, accountId: string): Promise<string[]> {

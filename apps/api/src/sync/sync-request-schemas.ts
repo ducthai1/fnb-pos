@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
-  amountSchema,
   channelKeySchema,
-  idSchema,
   instantSchema,
-} from "../catalog/catalog-schema-parts";
+  uuidSchema as idSchema,
+  wholeDongSchema as amountSchema,
+} from "@fnb/contracts";
 import type { SyncCommandEnvelope } from "./sync-wire-types";
 
 /** A real calendar day: "2026-02-30" would pass a pattern and then fail in Postgres. */

@@ -18,12 +18,15 @@ import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
 import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
 import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
+import { type SecretVerifier, verifySecret } from "./security/secret-hash";
 
 export interface AppDependencies {
   /** Connects as the app role: DML only, bound by row level security. */
   pool: pg.Pool;
   clock?: Clock;
   policy?: AuthPolicy;
+  /** Tests pass a wrapper that counts calls; the hash check itself is always the real one. */
+  verifySecret?: SecretVerifier;
 }
 
 /**
@@ -33,13 +36,15 @@ export interface AppDependencies {
  * (request.device), and tenant queries run inside `withTenant(pool, tenantId, ...)`.
  * Trusting a client-supplied tenant id would turn row level security into a formality.
  */
-export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInstance {
+export function buildApp(dependencies: AppDependencies): FastifyInstance {
+  const { pool, clock, policy } = dependencies;
   const app = Fastify({ logger: false });
   const resolvedClock = clock ?? systemClock;
   const context: ApiContext = {
     pool,
     clock: resolvedClock,
     policy: policy ?? DEFAULT_AUTH_POLICY,
+    verifySecret: dependencies.verifySecret ?? verifySecret,
     requireSession: backofficeSessionHook(pool, resolvedClock),
     requireDevice: deviceAuthHook(pool),
     requirePermission: requirePermissionHook(pool),

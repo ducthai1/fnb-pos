@@ -21,6 +21,7 @@ import { verifySecret } from "../../security/secret-hash";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface ApprovalBody {
   action: { key: string; discountRate?: number; amount?: string };
@@ -44,7 +45,7 @@ const approvalBody = {
         amount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
       },
     },
-    approverStaffId: { type: "string", format: "uuid" },
+    approverStaffId: uuidJsonSchema,
     approverPin: { type: "string", maxLength: 16 },
   },
 } as const;
@@ -104,7 +105,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         return reply.code(401).send({ code: STAFF_ERROR_CODES.pinInvalid });
       }
       const approvalId = await withTenant(pool, device.tenantId, async (client) => {
-        await clearPinAttempts(client, approverStaffId);
+        await clearPinAttempts(client, approverStaffId, gate.claimedAttempts);
         // Read in the transaction that records the approval, so a role narrowed a moment
         // ago is the role that is judged.
         if (!canApprove(action, await loadRoleGrants(client, gate.roleId))) return null;

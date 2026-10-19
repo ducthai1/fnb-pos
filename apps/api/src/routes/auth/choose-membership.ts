@@ -1,6 +1,7 @@
 import { withTenant } from "@fnb/db";
 import type pg from "pg";
 import { accountTenants } from "../../auth/account-store";
+import { sameUuid } from "../../http/uuid-schema";
 
 export type MembershipChoice =
   | { kind: "chosen"; tenantId: string; appUserId: string }
@@ -20,7 +21,7 @@ export async function chooseMembership(
 ): Promise<MembershipChoice> {
   const tenants = await accountTenants(pool, accountId);
   const candidates =
-    organizationId === undefined ? tenants : tenants.filter((id) => id === organizationId);
+    organizationId === undefined ? tenants : tenants.filter((id) => sameUuid(id, organizationId));
   const active: { tenantId: string; appUserId: string; name: string }[] = [];
   for (const tenantId of candidates) {
     const result = await withTenant(pool, tenantId, (client) =>

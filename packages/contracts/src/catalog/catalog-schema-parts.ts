@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { instantSchema } from "../primitives/instant-schema";
 import { wholeDongSchema } from "../primitives/money-schema";
+import { uuidSchema } from "../primitives/uuid-schema";
 
 /*
  * Shapes shared by the catalog bodies. They check form only (types, ids, sizes); the
@@ -10,11 +11,8 @@ import { wholeDongSchema } from "../primitives/money-schema";
  * here rather than the converting money and rate schemas.
  */
 
-/**
- * Zod's uuid check, which also accepts uppercase. Tightening it to uuidSchema would refuse
- * requests the menu API accepts today, so that is a change of its own, not a side effect.
- */
-export const idSchema = z.string().uuid();
+/** Lowercase canonical uuids only, like every other route: an uppercase or urn: id is a 400. */
+export const idSchema = uuidSchema;
 export const nameSchema = z.string().trim().min(1).max(120);
 export const amountSchema = wholeDongSchema;
 export const countSchema = z.number().int().safe();

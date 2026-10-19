@@ -1,7 +1,7 @@
 import { isDomainError, isSupportedDomainVersion } from "@fnb/domain";
 import type pg from "pg";
 import type { ZodType, ZodTypeDef } from "zod";
-import { idSchema } from "../catalog/catalog-schema-parts";
+import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { nextExpectedSeq, recordOutcome, storedResultOf } from "./command-ledger";
 import { orderSnapshotOf } from "./order-snapshot";

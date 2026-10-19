@@ -4,23 +4,23 @@ import type { ApiContext } from "../../api-context";
 import { deviceAuth } from "../../devices/device-auth-hook";
 import { loadRoleGrants } from "../../permissions/role-grants-store";
 import { hashToken, newOpaqueToken } from "../../security/opaque-token";
-import { verifySecret } from "../../security/secret-hash";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 const createBody = {
   type: "object",
   additionalProperties: false,
   required: ["staffId", "pin"],
   properties: {
-    staffId: { type: "string", format: "uuid" },
+    staffId: uuidJsonSchema,
     pin: { type: "string", maxLength: 16 },
   },
 } as const;
 
 export function registerStaffSessionRoutes(app: FastifyInstance, context: ApiContext): void {
-  const { pool, clock, policy } = context;
+  const { pool, clock, policy, verifySecret } = context;
 
   app.post<{ Body: { staffId: string; pin: string } }>(
     "/pos/staff-sessions",
@@ -37,7 +37,7 @@ export function registerStaffSessionRoutes(app: FastifyInstance, context: ApiCon
       const token = newOpaqueToken();
       const expiresAt = new Date(now.getTime() + policy.staffSessionTtlMillis);
       await withTenant(pool, device.tenantId, async (client) => {
-        await clearPinAttempts(client, staffId);
+        await clearPinAttempts(client, staffId, gate.claimedAttempts);
         await client.query(
           "INSERT INTO staff_session (id, tenant_id, staff_id, device_id, token_hash, expires_at, " +
             "created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)",
