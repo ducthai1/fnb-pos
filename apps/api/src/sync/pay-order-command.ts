@@ -1,10 +1,11 @@
+import { type PayOrderPayload, payOrderPayloadSchema } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import { addVnd, compareVnd, computeOrderTotals, transitionOrder, vnd } from "@fnb/domain";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
+import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
-import type { PayOrderPayload } from "./sync-request-schemas";
 
 /**
  * order.pay: closes the draft with the payments the till took. The total is the server's,
@@ -12,7 +13,7 @@ import type { PayOrderPayload } from "./sync-request-schemas";
  * customer was asked for (another till added a line after the bill was printed), the
  * payment is refused: that is a real conflict a person has to settle. Returns the order id.
  */
-export async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
+async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
   const { client, device, staffId } = context;
   const stored = await readStoredOrder(client, payload.orderId, true);
   if (stored === null || stored.branchId !== device.branchId) {
@@ -53,3 +54,5 @@ export async function payOrder(context: SyncCommandContext, payload: PayOrderPay
   await announceLatePayment(context, shift);
   return payload.orderId;
 }
+
+export const payOrderCommand = defineSyncCommand("order.pay", payOrderPayloadSchema, payOrder);

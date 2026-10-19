@@ -1,12 +1,13 @@
-import { type OrderLine, quantityToDecimalString } from "@fnb/domain";
+import type { SaveDraftPayload } from "@fnb/contracts";
+import type { OrderChargeProfile } from "@fnb/domain";
 import type pg from "pg";
 import type { DeviceAuth } from "../devices/device-auth-hook";
-import { DEFAULT_CHARGE_PROFILE, chargeProfileToSnapshot } from "./charge-profile-snapshot";
-import type { SaveDraftPayload } from "./sync-request-schemas";
+import { chargeProfileToSnapshot } from "./charge-profile-snapshot";
 
 /**
- * Opens the draft with the branch's charge profile of today. Answers false, writing
- * nothing, when the till already gave its order number to another order.
+ * Opens the draft with the charge profile in effect for the till today; the order keeps
+ * it, so a later change of the setting never reprices it. Answers false, writing nothing,
+ * when the till already gave its order number to another order.
  */
 export async function insertDraftHeader(
   client: pg.PoolClient,
@@ -14,6 +15,7 @@ export async function insertDraftHeader(
   payload: SaveDraftPayload,
   businessDate: string,
   staffId: string,
+  chargeProfile: OrderChargeProfile,
 ): Promise<boolean> {
   const inserted = await client.query(
     "INSERT INTO sales_order (id, tenant_id, branch_id, device_id, status, service_type, " +
@@ -29,7 +31,7 @@ export async function insertDraftHeader(
       payload.channelKey,
       businessDate,
       payload.deviceOrderNo,
-      JSON.stringify(chargeProfileToSnapshot(DEFAULT_CHARGE_PROFILE)),
+      JSON.stringify(chargeProfileToSnapshot(chargeProfile)),
       staffId,
     ],
   );
@@ -44,6 +46,14 @@ export async function updateDraftHeader(client: pg.PoolClient, payload: SaveDraf
   );
 }
 
+/** Records that a command changed the order's lines, for tills comparing versions. */
+export async function touchOrder(client: pg.ClientBase, orderId: string) {
+  await client.query(
+    "UPDATE sales_order SET version = version + 1, updated_at = now() WHERE id = $1",
+    [orderId],
+  );
+}
+
 /** Whether any of `lineIds` already belongs to an order other than `orderId`. */
 export async function lineIdsTakenElsewhere(
   client: pg.PoolClient,
@@ -55,46 +65,4 @@ export async function lineIdsTakenElsewhere(
     [lineIds, orderId],
   );
   return rowCount === 1;
-}
-
-/**
- * Replaces the draft's lines with `lines`, parents before children as given. Removing them
- * all first is only possible while nothing else points at a draft's lines; once kitchen
- * tickets or voids reference them this must become an update by line id.
- */
-export async function replaceDraftLines(
-  client: pg.PoolClient,
-  tenantId: string,
-  orderId: string,
-  lines: readonly OrderLine[],
-  staffId: string,
-) {
-  await client.query("DELETE FROM sales_order_line WHERE order_id = $1", [orderId]);
-  for (const [position, line] of lines.entries()) {
-    await client.query(
-      "INSERT INTO sales_order_line (id, tenant_id, order_id, position, parent_line_id, line_type, " +
-        "product_id, variant_id, modifier_option_id, name_snapshot, unit_price, quantity, " +
-        "tax_rate_bp, note, price_source, reverses_line_id, created_by) " +
-        "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)",
-      [
-        line.id,
-        tenantId,
-        orderId,
-        position,
-        line.parentLineId,
-        line.lineType,
-        line.productId,
-        line.variantId,
-        line.modifierOptionId,
-        line.nameSnapshot,
-        line.unitPrice.toString(),
-        quantityToDecimalString(line.quantity),
-        line.taxRate,
-        line.note,
-        line.priceSource,
-        line.reversesLineId,
-        staffId,
-      ],
-    );
-  }
 }

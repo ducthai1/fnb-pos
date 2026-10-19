@@ -42,6 +42,7 @@ export const salesOrder = pgTable("sales_order", {
   chargeProfile: jsonb("charge_profile").notNull(),
   refundPricesIncludeTax: boolean("refund_prices_include_tax"),
   refundServiceChargeTaxRateBp: integer("refund_service_charge_tax_rate_bp"),
+  reasonCode: text("reason_code"),
 });
 
 export const salesOrderLine = pgTable("sales_order_line", {
@@ -60,6 +61,9 @@ export const salesOrderLine = pgTable("sales_order_line", {
   note: text("note"),
   priceSource: text("price_source").notNull(),
   reversesLineId: uuid("reverses_line_id"),
+  sentQuantity: quantity("sent_quantity").notNull().default("0"),
+  wholeParentLine: boolean("whole_parent_line").notNull().default(false),
+  restock: boolean("restock"),
 });
 
 export const refundLineAmount = pgTable("refund_line_amount", {

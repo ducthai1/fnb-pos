@@ -1,3 +1,4 @@
+import type { SaveDraftLineIntent, SaveDraftPayload } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import {
   type OrderLine,
@@ -5,6 +6,7 @@ import {
   quantity,
   resolveUnitPrice,
   validateModifierSelection,
+  vnd,
 } from "@fnb/domain";
 import type pg from "pg";
 import {
@@ -14,9 +16,8 @@ import {
   loadSellableProducts,
 } from "./sellable-catalog";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
-import type { SaveDraftPayload } from "./sync-request-schemas";
 
-type LineIntent = SaveDraftPayload["lines"][number];
+type LineIntent = SaveDraftLineIntent;
 
 /**
  * The draft's lines priced by the server from its own catalog and price lists, as of the
@@ -53,6 +54,8 @@ export async function priceDraftLines(
       at,
       utcOffsetMinutes: branch.utcOffsetMinutes,
       priceList,
+      // Only an open-price product takes it; the domain refuses it on any other.
+      ...(intent.enteredPrice === undefined ? {} : { enteredPrice: vnd(intent.enteredPrice) }),
     });
     return [
       itemLine(intent, sellable, unitPrice.unitPrice, unitPrice.source),

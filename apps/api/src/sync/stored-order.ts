@@ -1,18 +1,16 @@
 import {
   type Order,
   type OrderChargeProfile,
-  type OrderLine,
-  type OrderLineType,
   type OrderStatus,
-  type PriceSource,
+  type Quantity,
   type ServiceType,
   type Vnd,
-  basisPoints,
-  quantity,
   vnd,
 } from "@fnb/domain";
 import type pg from "pg";
 import { chargeProfileFromStored } from "./charge-profile-snapshot";
+import { readRefundAmounts } from "./refund-amounts-store";
+import { readStoredOrderLines } from "./stored-order-lines";
 
 /** An order as the server holds it: the domain's Order plus what only the document carries. */
 export interface StoredOrder {
@@ -23,8 +21,12 @@ export interface StoredOrder {
   readonly officialNo: string | null;
   readonly callNumber: string | null;
   readonly tableId: string | null;
+  /** Why a draft was cancelled or a sale refunded. */
+  readonly reasonCode: string | null;
   readonly chargeProfile: OrderChargeProfile;
   readonly payments: readonly StoredPayment[];
+  readonly sentQuantityByLineId: ReadonlyMap<string, Quantity>;
+  readonly restockByLineId: ReadonlyMap<string, boolean>;
 }
 
 export interface StoredPayment {
@@ -48,23 +50,10 @@ interface OrderRow {
   official_no: string | null;
   call_number: string | null;
   table_id: string | null;
+  reason_code: string | null;
   charge_profile: unknown;
-}
-
-interface LineRow {
-  id: string;
-  parent_line_id: string | null;
-  line_type: string;
-  product_id: string | null;
-  variant_id: string | null;
-  modifier_option_id: string | null;
-  name_snapshot: string;
-  unit_price: string;
-  quantity: string;
-  tax_rate_bp: number;
-  note: string | null;
-  price_source: string;
-  reverses_line_id: string | null;
+  refund_prices_include_tax: boolean | null;
+  refund_service_charge_tax_rate_bp: number | null;
 }
 
 // business_date as text: node-postgres would turn a date into a Date at local midnight,
@@ -72,7 +61,8 @@ interface LineRow {
 const ORDER_COLUMNS =
   "id, branch_id, device_id, device_order_no, status, service_type, channel_key, " +
   "business_date::text AS business_date, version, refund_of_order_id, official_no, call_number, " +
-  "table_id, charge_profile";
+  "table_id, reason_code, charge_profile, refund_prices_include_tax, " +
+  "refund_service_charge_tax_rate_bp";
 
 /**
  * The order with its lines and payments, or null when this tenant has no order by that id.
@@ -88,11 +78,22 @@ export async function readStoredOrder(
     [orderId],
   );
   const row = found.rows[0];
-  if (row === undefined) return null;
-  const lines = await client.query<LineRow>(
-    "SELECT * FROM sales_order_line WHERE order_id = $1 ORDER BY position, id",
-    [orderId],
+  return row === undefined ? null : storedOrderOf(client, row);
+}
+
+/** Every refund of a sale, drafts and cancelled ones included, as buildRefund wants them. */
+export async function readRefundsOf(client: pg.ClientBase, saleId: string): Promise<Order[]> {
+  const found = await client.query<OrderRow>(
+    `SELECT ${ORDER_COLUMNS} FROM sales_order WHERE refund_of_order_id = $1 ORDER BY id`,
+    [saleId],
   );
+  const refunds: Order[] = [];
+  for (const row of found.rows) refunds.push((await storedOrderOf(client, row)).order);
+  return refunds;
+}
+
+async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<StoredOrder> {
+  const lines = await readStoredOrderLines(client, row.id);
   const payments = await client.query<{
     id: string;
     method: string;
@@ -101,7 +102,7 @@ export async function readStoredOrder(
   }>(
     "SELECT id, method, amount, received_by_staff_id FROM payment WHERE order_id = $1 " +
       "ORDER BY created_at, id",
-    [orderId],
+    [row.id],
   );
   return {
     order: {
@@ -110,10 +111,14 @@ export async function readStoredOrder(
       serviceType: row.service_type as ServiceType,
       channelKey: row.channel_key,
       businessDate: row.business_date,
-      lines: lines.rows.map(lineOf),
+      lines: lines.lines,
       refundOfOrderId: row.refund_of_order_id,
-      // No command builds a refund yet; reading refund_line_amount comes with that command.
-      refundAmounts: null,
+      refundAmounts: await readRefundAmounts(
+        client,
+        row.id,
+        row.refund_prices_include_tax,
+        row.refund_service_charge_tax_rate_bp,
+      ),
       version: row.version,
     },
     branchId: row.branch_id,
@@ -122,6 +127,7 @@ export async function readStoredOrder(
     officialNo: row.official_no,
     callNumber: row.call_number,
     tableId: row.table_id,
+    reasonCode: row.reason_code,
     chargeProfile: chargeProfileFromStored(row.charge_profile),
     payments: payments.rows.map((payment) => ({
       id: payment.id,
@@ -129,24 +135,7 @@ export async function readStoredOrder(
       amount: vnd(BigInt(payment.amount)),
       receivedByStaffId: payment.received_by_staff_id,
     })),
-  };
-}
-
-// The text columns hold only the values their CHECK constraints allow.
-function lineOf(row: LineRow): OrderLine {
-  return {
-    id: row.id,
-    parentLineId: row.parent_line_id,
-    lineType: row.line_type as OrderLineType,
-    productId: row.product_id,
-    variantId: row.variant_id,
-    modifierOptionId: row.modifier_option_id,
-    nameSnapshot: row.name_snapshot,
-    unitPrice: vnd(BigInt(row.unit_price)),
-    quantity: quantity(row.quantity),
-    taxRate: basisPoints(row.tax_rate_bp),
-    note: row.note,
-    priceSource: row.price_source as PriceSource,
-    reversesLineId: row.reverses_line_id,
+    sentQuantityByLineId: lines.sentQuantityByLineId,
+    restockByLineId: lines.restockByLineId,
   };
 }

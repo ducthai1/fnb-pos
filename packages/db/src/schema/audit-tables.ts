@@ -30,4 +30,11 @@ export const auditLog = pgTable("audit_log", {
   entityId: uuid("entity_id").notNull(),
 });
 
-export const auditTables = { approvalLog, auditLog };
+/** Which approvals a command already relied on: each is good for one action. */
+export const approvalUse = pgTable("approval_use", {
+  ...appendOnlyColumns(),
+  approvalId: uuid("approval_id").notNull(),
+  commandId: uuid("command_id").notNull(),
+});
+
+export const auditTables = { approvalLog, approvalUse, auditLog };

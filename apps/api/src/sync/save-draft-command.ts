@@ -1,47 +1,65 @@
+import { type SaveDraftPayload, saveDraftPayloadSchema } from "@fnb/contracts";
 import { assertLinesEditable, validateLineTree } from "@fnb/domain";
-import {
-  insertDraftHeader,
-  lineIdsTakenElsewhere,
-  replaceDraftLines,
-  updateDraftHeader,
-} from "./draft-order-writes";
+import { readDeviceOrderSettings } from "./device-order-settings";
+import { itemsAdding, newlyTypedPrices, refuseSoldOut } from "./draft-additions";
+import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
+import { mergeDraftLines, readVoidedLineIds } from "./draft-line-locks";
+import { insertDraftHeader, lineIdsTakenElsewhere, updateDraftHeader } from "./draft-order-writes";
+import { writeOrderLines } from "./order-line-writes";
 import { priceDraftLines } from "./price-draft-lines";
+import { requirePermission } from "./staff-permission-check";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
+import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
-import type { SaveDraftPayload } from "./sync-request-schemas";
 
 /**
  * order.save_draft: the till's whole draft (what was chosen, never what it costs), opened
- * or replaced. Any till of the branch may edit a draft (orders follow the table, not the
- * till); one of another branch may not touch it. Returns the order id.
+ * or saved again. Any till of the branch may edit a draft (orders follow the table, not the
+ * till); one of another branch may not touch it. Lines are kept by id, so what cancel lines,
+ * void records and the kitchen point at stays put. Returns the order id.
  */
-export async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload) {
+async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload) {
   const { client, device, staffId, branch, command } = context;
   const existing = await readStoredOrder(client, payload.orderId, true);
   if (existing !== null && existing.branchId !== device.branchId) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
   }
   if (existing !== null) assertLinesEditable(existing.order);
-  const lines = await priceDraftLines(
-    client,
-    branch,
-    payload,
-    Date.parse(command.createdAt),
-    existing?.order.lines ?? [],
-  );
+  const recordedAt = new Date(command.createdAt);
+  const before = existing?.order.lines ?? [];
+  const fresh = await priceDraftLines(client, branch, payload, recordedAt.getTime(), before);
+  const lines = mergeDraftLines(before, fresh, {
+    sentQuantityByLineId: existing?.sentQuantityByLineId ?? new Map(),
+    voidedLineIds: await readVoidedLineIds(client, payload.orderId),
+  });
   validateLineTree(lines, { refundOfOrderId: null });
+  await refuseRaisedOrderDiscount(context, before, lines);
   const itemIds = payload.lines.map((line) => line.lineId);
   if (await lineIdsTakenElsewhere(client, payload.orderId, itemIds)) {
     throw new CommandRejection(SYNC_ERROR_CODES.lineIdTaken);
   }
+  const adding = itemsAdding(before, lines);
+  await refuseSoldOut(client, device.branchId, payload.channelKey, adding, recordedAt);
+  if (newlyTypedPrices(before, lines).length > 0) {
+    await requirePermission(context, { key: "open_price" }, payload.approvalId);
+  }
   if (existing === null) {
-    if (!(await insertDraftHeader(client, device, payload, command.businessDate, staffId))) {
+    const { chargeProfile } = await readDeviceOrderSettings(client, device.deviceId);
+    const header = [device, payload, command.businessDate, staffId, chargeProfile] as const;
+    if (!(await insertDraftHeader(client, ...header))) {
       throw new CommandRejection(SYNC_ERROR_CODES.deviceOrderNoTaken);
     }
   } else {
     await updateDraftHeader(client, payload);
   }
-  await replaceDraftLines(client, device.tenantId, payload.orderId, lines, staffId);
+  const write = { tenantId: device.tenantId, orderId: payload.orderId, staffId };
+  await writeOrderLines(client, write, before, lines);
   return payload.orderId;
 }
+
+export const saveDraftCommand = defineSyncCommand(
+  "order.save_draft",
+  saveDraftPayloadSchema,
+  saveDraft,
+);

@@ -40,6 +40,9 @@ export const ORDER_AND_SYNC_ROWS = {
       result: "{}",
     }),
   },
+  // No parent column: its organization is its only parent, and the approval it uses is
+  // named without a foreign key.
+  approval_use: { values: () => ({ approval_id: newId(), command_id: newId() }) },
   change_log: {
     parent: { column: "branch_id", table: "branch" },
     values: () => ({ entity: "order", entity_id: newId(), snapshot: "{}" }),

@@ -1,5 +1,6 @@
 import {
   appliedCommand,
+  approvalUse,
   changeLog,
   deviceSyncState,
   drizzleFor,
@@ -26,6 +27,8 @@ export interface OrderSeedIds {
   applied_command: string;
   device_sync_state: string;
   change_log: string;
+  approval_log: string;
+  approval_use: string;
 }
 
 /**
@@ -118,6 +121,9 @@ export async function seedOrderAndSyncRows(
   await db
     .insert(deviceSyncState)
     .values({ id: ids.device_sync_state, tenantId, deviceId: ids.device, lastSeq: 1 });
+  await db
+    .insert(approvalUse)
+    .values({ id: ids.approval_use, tenantId, approvalId: ids.approval_log, commandId });
   // An empty snapshot, as the append-only tests expect to find it untouched.
   await db.insert(changeLog).values({
     id: ids.change_log,
