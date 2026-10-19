@@ -1,0 +1,7 @@
+export const ROLE_ERROR_CODES = {
+  roleNotFound: "API_ROLE_NOT_FOUND",
+  /** Staff or members still hold the role; it is reassigned first, never deleted under them. */
+  roleInUse: "API_ROLE_IN_USE",
+  /** The change would leave no active member who can manage staff and roles. */
+  lastAdministrator: "API_ROLE_LAST_ADMINISTRATOR",
+} as const;
