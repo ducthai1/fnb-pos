@@ -40,12 +40,17 @@ export interface CreateOrderPayload {
   client_total_vnd: string;
 }
 
+/**
+ * Only the line's own total is checked: another till may add lines to the same order
+ * meanwhile, so the order total this till saw is not a fact the server can hold it to.
+ */
 export interface AddLinePayload {
   order_id: string;
   line: NewLineWire;
-  client_total_vnd: string;
+  client_line_total_vnd: string;
 }
 
+/** The amount the customer was charged; a mismatch with the server total is a real conflict. */
 export interface PayOrderPayload {
   order_id: string;
   client_total_vnd: string;

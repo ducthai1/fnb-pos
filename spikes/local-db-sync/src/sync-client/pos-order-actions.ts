@@ -88,7 +88,11 @@ export async function addLineOffline(
   };
   const command = draft(ctx, {
     type: "order.add_line",
-    payload: { order_id: orderId, line: lineWire(line), client_total_vnd: totalVnd.toString() },
+    payload: {
+      order_id: orderId,
+      line: lineWire(line),
+      client_line_total_vnd: line.lineTotalVnd.toString(),
+    },
   });
   return ctx.store.writeWithCommand({ orders: [order], lines: [line] }, command);
 }
