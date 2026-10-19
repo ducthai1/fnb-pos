@@ -1,0 +1,90 @@
+import type { BasisPoints, Vnd } from "../money";
+
+/**
+ * Sensitive actions only. Taking an order, sending it to the bar or taking payment need
+ * no key: every signed-in staff member may do them, so they are not listed here.
+ */
+export const PERMISSION_KEYS = [
+  "refund",
+  "void_after_sent",
+  "line_discount",
+  "order_discount",
+  "price_override",
+  "open_price",
+  "comp_item",
+  "cash_move",
+  "open_drawer",
+  "accept_close_difference",
+  "reopen_paid_order",
+  "transfer_table",
+  "close_unpaid_table",
+  "view_reports",
+  "edit_menu",
+  "stock_adjust",
+  "manage_staff",
+  "manage_devices",
+  "manage_settings",
+] as const;
+
+export type PermissionKey = (typeof PERMISSION_KEYS)[number];
+
+/** Keys whose grant may cap the discount rate a holder can give alone. */
+export type RateLimitedPermissionKey = "line_discount" | "order_discount";
+/** Keys whose grant may cap the amount of cash a holder can move alone. */
+export type AmountLimitedPermissionKey = "cash_move";
+export type UnlimitedPermissionKey = Exclude<
+  PermissionKey,
+  RateLimitedPermissionKey | AmountLimitedPermissionKey
+>;
+
+export type PermissionThresholdKind = "max_rate" | "max_amount";
+
+export interface PermissionDefinition {
+  /**
+   * Whether someone who holds the key may approve it on the spot for someone who does not
+   * (a manager entering a PIN on the cashier's till). Administration keys are not: they
+   * change who can do what, so they are done by their holder in person, never lent.
+   */
+  readonly approvable: boolean;
+  readonly threshold?: PermissionThresholdKind;
+}
+
+export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDefinition>> = {
+  refund: { approvable: true },
+  void_after_sent: { approvable: true },
+  line_discount: { approvable: true, threshold: "max_rate" },
+  order_discount: { approvable: true, threshold: "max_rate" },
+  price_override: { approvable: true },
+  open_price: { approvable: true },
+  comp_item: { approvable: true },
+  cash_move: { approvable: true, threshold: "max_amount" },
+  open_drawer: { approvable: true },
+  accept_close_difference: { approvable: true },
+  reopen_paid_order: { approvable: true },
+  transfer_table: { approvable: true },
+  close_unpaid_table: { approvable: true },
+  stock_adjust: { approvable: true },
+  // Reports are access to data, not a one-off action: approving one would show the whole
+  // report to the person who asked, so they are never lent.
+  view_reports: { approvable: false },
+  edit_menu: { approvable: false },
+  manage_staff: { approvable: false },
+  manage_devices: { approvable: false },
+  manage_settings: { approvable: false },
+};
+
+/**
+ * One permission held by a role. A grant on a limited key without a threshold means no
+ * limit; with one, the holder acts alone up to it (inclusive) and needs approval above.
+ */
+export type Grant =
+  | {
+      readonly key: RateLimitedPermissionKey;
+      readonly threshold?: { readonly maxRate: BasisPoints };
+    }
+  | { readonly key: AmountLimitedPermissionKey; readonly threshold?: { readonly maxAmount: Vnd } }
+  | { readonly key: UnlimitedPermissionKey };
+
+export function isPermissionKey(key: string): key is PermissionKey {
+  return (PERMISSION_KEYS as readonly string[]).includes(key);
+}
