@@ -1,4 +1,5 @@
 import { decodeRoleGrants, encodeRoleGrants, type StoredRoleGrants } from "@fnb/db";
+import { uuidJsonSchema } from "../http/uuid-schema";
 
 /** A role as the backoffice reads it: grants in their stored form, money as strings. */
 export interface RoleView {
@@ -71,5 +72,5 @@ export const updateRoleBody = {
 export const roleParams = {
   type: "object",
   required: ["id"],
-  properties: { id: { type: "string", format: "uuid" } },
+  properties: { id: uuidJsonSchema },
 } as const;

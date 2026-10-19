@@ -9,6 +9,7 @@ import { sessionCookie } from "../../auth/session-cookie";
 import { hashToken, newOpaqueToken } from "../../security/opaque-token";
 import { hashSecret } from "../../security/secret-hash";
 import { chooseMembership } from "./choose-membership";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface LoginBody {
   email?: string;
@@ -26,7 +27,7 @@ const loginBody = {
     email: { type: "string", maxLength: 254 },
     phone: { type: "string", maxLength: 32 },
     password: { type: "string", minLength: 1, maxLength: 256 },
-    organizationId: { type: "string", format: "uuid" },
+    organizationId: uuidJsonSchema,
   },
 } as const;
 

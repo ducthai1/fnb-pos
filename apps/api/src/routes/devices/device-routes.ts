@@ -4,11 +4,12 @@ import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { deviceAuth } from "../../devices/device-auth-hook";
 import { DEVICE_ERROR_CODES } from "../../devices/device-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 const deviceParams = {
   type: "object",
   required: ["id"],
-  properties: { id: { type: "string", format: "uuid" } },
+  properties: { id: uuidJsonSchema },
 } as const;
 
 export function registerDeviceRoutes(app: FastifyInstance, context: ApiContext): void {

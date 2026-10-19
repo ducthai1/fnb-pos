@@ -6,12 +6,13 @@ import { DEVICE_ERROR_CODES } from "../../devices/device-error-codes";
 import { newDeviceToken } from "../../devices/device-token";
 import { newPairingCode, normalizePairingCode } from "../../devices/pairing-code";
 import { hashToken } from "../../security/opaque-token";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 const createCodeBody = {
   type: "object",
   additionalProperties: false,
   required: ["branchId"],
-  properties: { branchId: { type: "string", format: "uuid" } },
+  properties: { branchId: uuidJsonSchema },
 } as const;
 
 const pairBody = {

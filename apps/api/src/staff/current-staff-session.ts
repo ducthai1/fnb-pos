@@ -15,7 +15,9 @@ export interface CurrentStaffSession {
 /**
  * The staff member working this till, read inside withTenant of the device's tenant. The
  * staff token alone proves nothing: it counts only on the device it was issued to,
- * presented with that device's live credential, while the staff member is still active.
+ * presented with that device's live credential, while the staff member is still active
+ * and still works at the till's branch. Both are read again on every use, so letting
+ * someone go, or moving them off the branch, ends the shift they are in the middle of.
  */
 export async function findCurrentStaffSession(
   client: pg.ClientBase,
@@ -33,8 +35,9 @@ export async function findCurrentStaffSession(
     "SELECT s.id AS staff_id, s.display_name, s.role_id, ss.expires_at FROM staff_session ss " +
       "JOIN staff s ON s.tenant_id = ss.tenant_id AND s.id = ss.staff_id " +
       "WHERE ss.token_hash = $1 AND ss.device_id = $2 AND ss.revoked_at IS NULL " +
-      "AND ss.expires_at > $3 AND s.active",
-    [hashToken(token), device.deviceId, now],
+      "AND ss.expires_at > $3 AND s.active AND EXISTS (SELECT 1 FROM staff_branch b " +
+      "WHERE b.staff_id = s.id AND b.branch_id = $4)",
+    [hashToken(token), device.deviceId, now, device.branchId],
   );
   const row = result.rows[0];
   if (row === undefined) return undefined;

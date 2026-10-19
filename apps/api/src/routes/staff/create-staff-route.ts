@@ -5,6 +5,7 @@ import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { hashSecret } from "../../security/secret-hash";
 import { pinProblem } from "../../staff/pin-rules";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface CreateStaffBody {
   displayName: string;
@@ -19,7 +20,7 @@ const createStaffBody = {
   required: ["displayName", "roleId", "pin", "branchIds"],
   properties: {
     displayName: { type: "string", minLength: 1, maxLength: 80, pattern: "\\S" },
-    roleId: { type: "string", format: "uuid" },
+    roleId: uuidJsonSchema,
     // No pattern here: a malformed PIN gets its own code, not the generic 400.
     pin: { type: "string", maxLength: 16 },
     branchIds: {
@@ -27,7 +28,7 @@ const createStaffBody = {
       minItems: 1,
       maxItems: 100,
       uniqueItems: true,
-      items: { type: "string", format: "uuid" },
+      items: uuidJsonSchema,
     },
   },
 } as const;

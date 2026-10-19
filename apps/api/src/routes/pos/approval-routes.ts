@@ -21,6 +21,7 @@ import { verifySecret } from "../../security/secret-hash";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface ApprovalBody {
   action: { key: string; discountRate?: number; amount?: string };
@@ -44,7 +45,7 @@ const approvalBody = {
         amount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
       },
     },
-    approverStaffId: { type: "string", format: "uuid" },
+    approverStaffId: uuidJsonSchema,
     approverPin: { type: "string", maxLength: 16 },
   },
 } as const;

@@ -7,13 +7,14 @@ import { hashToken, newOpaqueToken } from "../../security/opaque-token";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
+import { uuidJsonSchema } from "../../http/uuid-schema";
 
 const createBody = {
   type: "object",
   additionalProperties: false,
   required: ["staffId", "pin"],
   properties: {
-    staffId: { type: "string", format: "uuid" },
+    staffId: uuidJsonSchema,
     pin: { type: "string", maxLength: 16 },
   },
 } as const;
