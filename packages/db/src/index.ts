@@ -7,3 +7,16 @@ export {
   listMigrationFiles,
 } from "./migrations/list-migration-files";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
+export {
+  appUser,
+  area,
+  branch,
+  brand,
+  device,
+  diningTable,
+  organization,
+  tenancyTables,
+} from "./schema/tenancy-tables";
+export { tenantRowColumns } from "./schema/tenant-row-columns";
+export { drizzleFor } from "./tenancy/drizzle-for";
+export { withTenant } from "./tenancy/with-tenant";

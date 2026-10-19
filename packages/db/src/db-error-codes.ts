@@ -3,4 +3,5 @@ export const DB_ERROR_CODES = {
   migrationDuplicateNumber: "DB_MIGRATION_DUPLICATE_NUMBER",
   migrationChecksumMismatch: "DB_MIGRATION_CHECKSUM_MISMATCH",
   migrationFailed: "DB_MIGRATION_FAILED",
+  invalidTenantId: "DB_TENANT_INVALID_ID",
 } as const;

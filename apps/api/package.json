@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@fnb/db": "workspace:*",
+    "fastify": "5.12.5",
     "pg": "8.23.1"
   },
   "devDependencies": {
