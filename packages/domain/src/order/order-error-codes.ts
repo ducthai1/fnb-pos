@@ -1,0 +1,15 @@
+export const ORDER_ERROR_CODES = {
+  duplicateLineId: "DOMAIN_ORDER_DUPLICATE_LINE_ID",
+  lineNotFound: "DOMAIN_ORDER_LINE_NOT_FOUND",
+  parentLineNotFound: "DOMAIN_ORDER_PARENT_LINE_NOT_FOUND",
+  lineCycle: "DOMAIN_ORDER_LINE_CYCLE",
+  itemNotRoot: "DOMAIN_ORDER_ITEM_NOT_ROOT",
+  invalidModifierParent: "DOMAIN_ORDER_INVALID_MODIFIER_PARENT",
+  invalidComboComponentParent: "DOMAIN_ORDER_INVALID_COMBO_COMPONENT_PARENT",
+  invalidDiscountParent: "DOMAIN_ORDER_INVALID_DISCOUNT_PARENT",
+  nonPositiveQuantity: "DOMAIN_ORDER_NON_POSITIVE_QUANTITY",
+  invalidTransition: "DOMAIN_ORDER_INVALID_TRANSITION",
+  alreadyPaid: "DOMAIN_ORDER_ALREADY_PAID",
+  alreadyPosted: "DOMAIN_ORDER_ALREADY_POSTED",
+  alreadyCancelled: "DOMAIN_ORDER_ALREADY_CANCELLED",
+} as const;
