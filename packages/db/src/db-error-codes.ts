@@ -4,4 +4,5 @@ export const DB_ERROR_CODES = {
   migrationChecksumMismatch: "DB_MIGRATION_CHECKSUM_MISMATCH",
   migrationFailed: "DB_MIGRATION_FAILED",
   invalidTenantId: "DB_TENANT_INVALID_ID",
+  configDeviceNotFound: "DB_CONFIG_DEVICE_NOT_FOUND",
 } as const;

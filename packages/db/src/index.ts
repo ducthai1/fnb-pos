@@ -1,5 +1,9 @@
 export { type AuditActor, type AuditEntry, appendAudit } from "./audit/append-audit";
 export { type ApprovalRecord, recordApproval } from "./audit/record-approval";
+export {
+  type DeviceConfigLayers,
+  readConfigLayersForDevice,
+} from "./configuration/read-config-layers-for-device";
 export { DB_ERROR_CODES } from "./db-error-codes";
 export { DatabaseError, isDatabaseError } from "./database-error";
 export { idTimestampMillis, newId } from "./ids/new-id";
@@ -20,6 +24,7 @@ export {
   tenancyTables,
 } from "./schema/tenancy-tables";
 export { approvalLog, auditLog, auditTables } from "./schema/audit-tables";
+export { configValue, configurationTables } from "./schema/configuration-tables";
 export { tenantRowColumns } from "./schema/tenant-row-columns";
 export { drizzleFor } from "./tenancy/drizzle-for";
 export { withTenant } from "./tenancy/with-tenant";

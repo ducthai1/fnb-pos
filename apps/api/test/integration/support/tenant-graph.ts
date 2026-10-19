@@ -4,6 +4,7 @@ import {
   area,
   branch,
   brand,
+  configValue,
   device,
   diningTable,
   drizzleFor,
@@ -22,6 +23,7 @@ export const TENANT_TABLES = [
   "audit_log",
   "branch",
   "brand",
+  "config_value",
   "device",
   "dining_table",
   "organization",
@@ -54,6 +56,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     app_user: newId(),
     approval_log: newId(),
     audit_log: newId(),
+    config_value: newId(),
   };
   await withTenant(pool, tenantId, async (client) => {
     const db = drizzleFor(client);
@@ -68,6 +71,14 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       .insert(device)
       .values({ id: ids.device, tenantId, branchId: ids.branch, name: "POS 1" });
     await db.insert(appUser).values({ id: ids.app_user, tenantId, displayName: "Thu ngân" });
+    await db.insert(configValue).values({
+      id: ids.config_value,
+      tenantId,
+      scopeKind: "device",
+      scopeId: ids.device,
+      key: "cup_labels",
+      value: true,
+    });
     await recordApproval(client, {
       id: ids.approval_log,
       actionKey: "refund",
@@ -104,6 +115,12 @@ const ROW_COLUMNS: Record<TenantTable, (parents: TenantGraph) => Record<string, 
     device_id: p.ids.device,
   }),
   audit_log: () => ({ actor_kind: "system", action: "x", entity_kind: "x", entity_id: newId() }),
+  config_value: (p) => ({
+    scope_kind: "device",
+    scope_id: p.ids.device,
+    key: `k${newId()}`,
+    value: "true",
+  }),
 };
 
 /** Tables that point at a parent row other than their organization. */
@@ -111,6 +128,7 @@ export const CHILD_TABLES = [
   "approval_log",
   "area",
   "branch",
+  "config_value",
   "device",
   "dining_table",
 ] as const satisfies TenantTable[];

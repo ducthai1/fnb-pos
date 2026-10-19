@@ -8,9 +8,10 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // The domain package runs identically on the POS (offline) and on the server,
-    // so it must stay pure: no network, no clock, no randomness. Callers pass them in.
-    files: ["packages/domain/**/*.ts"],
+    // The domain and feature-flags packages run identically on the POS (offline) and on
+    // the server, so they must stay pure: no network, no clock, no randomness. Callers
+    // pass them in.
+    files: ["packages/domain/**/*.ts", "packages/feature-flags/**/*.ts"],
     rules: {
       "no-restricted-globals": [
         "error",
