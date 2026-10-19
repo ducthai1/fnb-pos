@@ -7,14 +7,14 @@ import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
 import { checkPriceListItems } from "../../catalog/price-list-document";
 import { readPriceList, writePriceList } from "../../catalog/price-list-store";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerPriceListRoutes(app: FastifyInstance, context: ApiContext): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
 
   app.put(
     "/catalog/price-lists/:id",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(priceListDocumentSchema, request.body);
@@ -34,7 +34,7 @@ export function registerPriceListRoutes(app: FastifyInstance, context: ApiContex
 
   app.get(
     "/catalog/price-lists/:id",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const document = await withTenant(context.pool, backofficeAuth(request).tenantId, (client) =>

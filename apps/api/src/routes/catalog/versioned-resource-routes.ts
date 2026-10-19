@@ -12,7 +12,7 @@ import {
   parseOrReject,
 } from "../../catalog/catalog-request-error";
 import { putVersionedRow } from "../../catalog/catalog-row-writes";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 /** A flat catalog row owned by a brand or a branch: categories and stations. */
 export interface VersionedResource<Input extends { version: number | null }> {
@@ -36,13 +36,13 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
   context: ApiContext,
   resource: VersionedResource<Input>,
 ): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
   const ownerQuery = z.object({ [resource.owner.key]: catalogIdSchema });
   const readOne = `SELECT ${resource.select} FROM ${resource.table} WHERE id = $1`;
 
   app.get(
     resource.path,
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const ownerId = String(parseOrReject(ownerQuery, request.query)[resource.owner.key]);
       const rows = await withTenant(
@@ -67,7 +67,7 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
 
   app.put(
     `${resource.path}/:id`,
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(resource.body, request.body);
@@ -89,7 +89,7 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
 
   app.delete(
     `${resource.path}/:id`,
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const tenantId = backofficeAuth(request).tenantId;

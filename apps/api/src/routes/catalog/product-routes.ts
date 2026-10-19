@@ -13,15 +13,15 @@ import { amountOf } from "../../catalog/product-document";
 import { checkProductDocument } from "../../catalog/product-document-to-domain";
 import { readProductDocument } from "../../catalog/read-product-document";
 import { writeProductDocument } from "../../catalog/write-product-document";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerProductRoutes(app: FastifyInstance, context: ApiContext): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
 
   // Create or replace a whole product in one transaction, under optimistic locking.
   app.put(
     "/catalog/products/:id",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const input = parseOrReject(productDocumentSchema, request.body);
@@ -42,7 +42,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
 
   app.get(
     "/catalog/products/:id",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const { tenantId } = backofficeAuth(request);
@@ -58,7 +58,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
 
   app.get(
     "/catalog/products",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const { brandId } = parseOrReject(catalogBrandQuerySchema, request.query);
       const { tenantId } = backofficeAuth(request);
@@ -92,7 +92,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
   // Takes the product off the menu; it is never deleted, as orders keep pointing at it.
   app.post(
     "/catalog/products/:id/archive",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const writer = writeContextOf(request, context);

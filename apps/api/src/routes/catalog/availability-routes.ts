@@ -5,16 +5,16 @@ import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
-import { catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerAvailabilityRoutes(app: FastifyInstance, context: ApiContext): void {
-  const session = { onRequest: context.requireSession };
+  const { read, write } = catalogGates(context);
 
   // Manual "86": the branch ran out. Putting it back removes the entry for that channel only,
   // so an all-channel entry and a single-channel one are switched independently.
   app.put(
     "/catalog/availability",
-    session,
+    write,
     catalogHandler(async (request, reply) => {
       const body = parseOrReject(availabilityBodySchema, request.body);
       const writer = writeContextOf(request, context);
@@ -57,7 +57,7 @@ export function registerAvailabilityRoutes(app: FastifyInstance, context: ApiCon
   // What is off at a branch right now; an entry past its time no longer counts.
   app.get(
     "/catalog/availability",
-    session,
+    read,
     catalogHandler(async (request, reply) => {
       const { branchId } = parseOrReject(catalogBranchQuerySchema, request.query);
       const now = context.clock.now();
