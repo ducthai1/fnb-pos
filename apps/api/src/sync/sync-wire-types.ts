@@ -69,6 +69,30 @@ export interface OrderLineSnapshot {
   readonly note: string | null;
   readonly priceSource: string;
   readonly reversesLineId: string | null;
+  /** On a line discount: its quantity is for the item's whole line, not per unit. */
+  readonly wholeParentLine: boolean;
+  /** Units the kitchen has had, cancelled ones included, as a decimal string. */
+  readonly sentQuantity: string;
+  /** On a refund's negative item: whether the goods go back into stock. */
+  readonly restock: boolean | null;
+}
+
+/** One goods line of a refund: its share of what the sale charged, negative like the refund. */
+export interface RefundLineAmountsSnapshot {
+  readonly lineId: string;
+  readonly soldLineId: string;
+  readonly gross: number;
+  readonly discountAllocated: number;
+  readonly tax: number;
+  readonly serviceCharge: number;
+  readonly serviceChargeTax: number;
+}
+
+/** What a refund gives back, fixed when it was built; a till totals the refund from it. */
+export interface RefundAmountsSnapshot {
+  readonly pricesIncludeTax: boolean;
+  readonly serviceChargeTaxRate: number;
+  readonly lines: readonly RefundLineAmountsSnapshot[];
 }
 
 export interface PaymentSnapshot {
@@ -93,7 +117,9 @@ export interface OrderSnapshot {
   readonly officialNo: string | null;
   readonly callNumber: string | null;
   readonly tableId: string | null;
+  readonly reasonCode: string | null;
   readonly chargeProfile: ChargeProfileSnapshot;
+  readonly refundAmounts: RefundAmountsSnapshot | null;
   readonly lines: readonly OrderLineSnapshot[];
   readonly payments: readonly PaymentSnapshot[];
 }

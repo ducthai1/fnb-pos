@@ -2,16 +2,6 @@ import { type OrderChargeProfile, type ServiceType, basisPoints } from "@fnb/dom
 import { z } from "zod";
 import type { ChargeProfileSnapshot } from "./sync-wire-types";
 
-/**
- * The profile a new order is priced with. Branches have no setting for it yet, so every
- * order gets the café default: menu prices include VAT, no service charge. It is stored on
- * the order, so introducing the setting later never reprices orders already taken.
- */
-export const DEFAULT_CHARGE_PROFILE: OrderChargeProfile = {
-  pricesIncludeTax: true,
-  serviceCharge: null,
-};
-
 export function chargeProfileToSnapshot(profile: OrderChargeProfile): ChargeProfileSnapshot {
   const rule = profile.serviceCharge;
   return {
@@ -40,7 +30,10 @@ const storedProfileSchema = z.object({
     .nullable(),
 });
 
-/** The profile stored on an order, as the domain prices with it; throws if the row is damaged. */
+/**
+ * A stored profile (on an order, or the charge_profile setting) as the domain prices with
+ * it; throws if the value is damaged.
+ */
 export function chargeProfileFromStored(stored: unknown): OrderChargeProfile {
   const profile = storedProfileSchema.parse(stored);
   const rule = profile.serviceCharge;

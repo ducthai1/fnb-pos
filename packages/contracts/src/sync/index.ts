@@ -20,3 +20,4 @@ export {
   type SyncCommandStatus,
   syncCommandResultSchema,
 } from "./sync-command-result-schema";
+export * from "./commands";

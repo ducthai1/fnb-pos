@@ -15,3 +15,8 @@ export {
   resolveConfig,
 } from "./resolve-inherited-config";
 export { type FlagViolation, validateFlags } from "./validate-flag-constraints";
+export {
+  CONFIG_SETTING_DEFAULTS,
+  type ConfigSettingKey,
+  configDefaults,
+} from "./config-setting-defaults";

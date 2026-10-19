@@ -1,11 +1,10 @@
 import { type OrderChargeProfile, basisPoints } from "@fnb/domain";
+import { CONFIG_SETTING_DEFAULTS } from "@fnb/feature-flags";
 import { describe, expect, it } from "vitest";
-import {
-  DEFAULT_CHARGE_PROFILE,
-  chargeProfileFromStored,
-  chargeProfileToSnapshot,
-} from "./charge-profile-snapshot";
+import { chargeProfileFromStored, chargeProfileToSnapshot } from "./charge-profile-snapshot";
 import { moneyToWire } from "./order-snapshot";
+
+const CAFE_DEFAULT: OrderChargeProfile = { pricesIncludeTax: true, serviceCharge: null };
 
 const withServiceCharge: OrderChargeProfile = {
   pricesIncludeTax: false,
@@ -18,8 +17,12 @@ const withServiceCharge: OrderChargeProfile = {
 };
 
 describe("the charge profile stored on an order", () => {
+  it("reads the built-in setting as the café default", () => {
+    expect(chargeProfileFromStored(CONFIG_SETTING_DEFAULTS.charge_profile)).toEqual(CAFE_DEFAULT);
+  });
+
   it.each([
-    ["the café default", DEFAULT_CHARGE_PROFILE],
+    ["the café default", CAFE_DEFAULT],
     ["a 5% dine-in service charge on prices without VAT", withServiceCharge],
   ])("reads back exactly as written: %s", (_name, profile) => {
     const stored = JSON.parse(JSON.stringify(chargeProfileToSnapshot(profile)));

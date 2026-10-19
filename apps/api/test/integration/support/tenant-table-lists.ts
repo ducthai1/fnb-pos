@@ -6,6 +6,7 @@ export const TENANT_TABLES = [
   "app_user",
   "applied_command",
   "approval_log",
+  "approval_use",
   "area",
   "audit_log",
   "branch",
@@ -53,6 +54,7 @@ export type TenantTable = (typeof TENANT_TABLES)[number];
 export const APPEND_ONLY_JSON_COLUMN = {
   applied_command: "payload",
   approval_log: "payload",
+  approval_use: "payload",
   audit_log: "payload",
   change_log: "snapshot",
 } as const satisfies Partial<Record<TenantTable, string>>;

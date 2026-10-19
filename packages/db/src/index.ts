@@ -43,7 +43,7 @@ export {
   organization,
   tenancyTables,
 } from "./schema/tenancy-tables";
-export { approvalLog, auditLog, auditTables } from "./schema/audit-tables";
+export { approvalLog, approvalUse, auditLog, auditTables } from "./schema/audit-tables";
 export { configValue, configurationTables } from "./schema/configuration-tables";
 export {
   catalogTables,

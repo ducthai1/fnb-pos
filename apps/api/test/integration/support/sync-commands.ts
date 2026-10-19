@@ -23,6 +23,8 @@ export interface LineIntent {
   note: string | null;
   /** Sent by some tills for display; the server must never read it. */
   unitPrice?: number;
+  /** The price the cashier typed, for a product sold at an open price. */
+  enteredPrice?: number;
 }
 
 export const line = (productId: string, overrides: Partial<LineIntent> = {}): LineIntent => ({

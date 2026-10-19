@@ -1,16 +1,13 @@
 import { isDomainError, isSupportedDomainVersion } from "@fnb/domain";
 import type pg from "pg";
-import type { ZodType, ZodTypeDef } from "zod";
 import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { nextExpectedSeq, recordOutcome, storedResultOf } from "./command-ledger";
 import { orderSnapshotOf } from "./order-snapshot";
-import { payOrder } from "./pay-order-command";
-import { saveDraft } from "./save-draft-command";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
+import { SYNC_COMMANDS } from "./sync-command-registry";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
-import { payOrderPayloadSchema, saveDraftPayloadSchema } from "./sync-request-schemas";
 import type { SyncCommandEnvelope, SyncCommandResult } from "./sync-wire-types";
 
 /**
@@ -80,7 +77,9 @@ export async function applySyncCommand(
  */
 async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   const { client, command } = context;
-  const orderId = idSchema.safeParse((command.payload as { orderId?: unknown } | null)?.orderId);
+  // A refund names its new order refundOrderId; every other order command names orderId.
+  const named = command.payload as { orderId?: unknown; refundOrderId?: unknown } | null;
+  const orderId = idSchema.safeParse(named?.orderId ?? named?.refundOrderId);
   const rejected = (code: string): Outcome => ({
     status: "rejected",
     code,
@@ -104,19 +103,7 @@ async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
 }
 
 function dispatch(context: SyncCommandContext): Promise<string> {
-  const { type, payload } = context.command;
-  switch (type) {
-    case "order.save_draft":
-      return saveDraft(context, parsedPayload(saveDraftPayloadSchema, payload));
-    case "order.pay":
-      return payOrder(context, parsedPayload(payOrderPayloadSchema, payload));
-    default:
-      throw new CommandRejection(SYNC_ERROR_CODES.unknownCommandType);
-  }
-}
-
-function parsedPayload<T>(schema: ZodType<T, ZodTypeDef, unknown>, payload: unknown): T {
-  const parsed = schema.safeParse(payload);
-  if (!parsed.success) throw new CommandRejection(SYNC_ERROR_CODES.invalidPayload);
-  return parsed.data;
+  const definition = SYNC_COMMANDS.get(context.command.type);
+  if (definition === undefined) throw new CommandRejection(SYNC_ERROR_CODES.unknownCommandType);
+  return definition.apply(context, context.command.payload);
 }
