@@ -1,3 +1,14 @@
+export {
+  type OrganizationToProvision,
+  type ProvisionedOrganization,
+  provisionOrganization,
+} from "./access/provision-organization";
+export {
+  type StoredRoleGrants,
+  type StoredThreshold,
+  decodeRoleGrants,
+  encodeRoleGrants,
+} from "./access/role-grants-codec";
 export { type AuditActor, type AuditEntry, appendAudit } from "./audit/append-audit";
 export { type ApprovalRecord, recordApproval } from "./audit/record-approval";
 export {

@@ -32,6 +32,9 @@ importers:
       '@fnb/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@fnb/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       fastify:
         specifier: 5.12.5
         version: 5.12.5
@@ -57,6 +60,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@fnb/domain':
+        specifier: workspace:*
+        version: link:../domain
       drizzle-orm:
         specifier: 0.45.3
         version: 0.45.3(@types/pg@8.23.1)(pg@8.23.1)
@@ -76,6 +82,9 @@ importers:
       embedded-postgres:
         specifier: 17.10.0-beta.17
         version: 17.10.0-beta.17
+      fast-check:
+        specifier: 4.10.2
+        version: 4.10.2
       typescript:
         specifier: 5.9.3
         version: 5.9.3

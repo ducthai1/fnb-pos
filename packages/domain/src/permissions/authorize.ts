@@ -34,7 +34,7 @@ export interface PermissionAction {
 export function authorize(action: PermissionAction, grants: readonly Grant[]): AuthorizationResult {
   const definition = definitionOf(action.key);
   const measured = measuredValue(action, definition);
-  grants.forEach(validateGrant);
+  validateGrants(grants);
   const covered = grants.some(
     (grant) => grant.key === action.key && withinThreshold(grant, measured),
   );
@@ -50,6 +50,14 @@ export function authorize(action: PermissionAction, grants: readonly Grant[]): A
 export function canApprove(action: PermissionAction, approverGrants: readonly Grant[]): boolean {
   const result = authorize(action, approverGrants);
   return definitionOf(action.key).approvable && result === "allowed";
+}
+
+/**
+ * Checks grants read from stored or submitted role data against the catalog: known keys
+ * only, and a threshold only of the kind its key is judged by. Throws on the first bad one.
+ */
+export function validateGrants(grants: readonly Grant[]): void {
+  grants.forEach(validateGrant);
 }
 
 function definitionOf(key: string): PermissionDefinition {
@@ -91,15 +99,19 @@ function validateGrant(grant: Grant): void {
   const definition = definitionOf(grant.key);
   const threshold = "threshold" in grant ? grant.threshold : undefined;
   if (threshold === undefined) return;
+  // Stored data can hold anything, and `in` on a number or null would throw a TypeError
+  // instead of the code a bad grant gets.
   const valid =
-    definition.threshold === "max_rate"
-      ? "maxRate" in threshold && !("maxAmount" in threshold) && isRate(threshold.maxRate)
-      : definition.threshold === "max_amount"
-        ? "maxAmount" in threshold &&
-          !("maxRate" in threshold) &&
-          typeof threshold.maxAmount === "bigint" &&
-          threshold.maxAmount >= 0n
-        : false;
+    typeof threshold !== "object" || threshold === null
+      ? false
+      : definition.threshold === "max_rate"
+        ? "maxRate" in threshold && !("maxAmount" in threshold) && isRate(threshold.maxRate)
+        : definition.threshold === "max_amount"
+          ? "maxAmount" in threshold &&
+            !("maxRate" in threshold) &&
+            typeof threshold.maxAmount === "bigint" &&
+            threshold.maxAmount >= 0n
+          : false;
   if (!valid) {
     throw new DomainError(
       PERMISSIONS_ERROR_CODES.invalidGrant,

@@ -24,6 +24,7 @@ export const randomSha256Hex = () => randomBytes(32).toString("hex");
 // Any app_user of the inserting tenant, so only the parent column under test can be wrong.
 const anAppUser: Sql = { sql: "(SELECT id FROM app_user ORDER BY id LIMIT 1)" };
 const aDevice: Sql = { sql: "(SELECT id FROM device ORDER BY id LIMIT 1)" };
+const aRole: Sql = { sql: "(SELECT id FROM role ORDER BY id LIMIT 1)" };
 
 // A staff member is assigned to a branch once, so a second assignment needs a new branch.
 const FRESH_BRANCH =
@@ -72,7 +73,7 @@ const ROWS: Record<TenantTable, RowSpec> = {
   dining_table: { parent: { column: "area_id", table: "area" }, values: named },
   membership: {
     parent: { column: "app_user_id", table: "app_user" },
-    values: () => ({ account_id: freshAccount }),
+    values: () => ({ account_id: freshAccount, role_id: aRole }),
   },
   organization: { values: named },
   role: { values: named },

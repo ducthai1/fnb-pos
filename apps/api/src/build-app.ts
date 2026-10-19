@@ -6,6 +6,7 @@ import { type AuthPolicy, DEFAULT_AUTH_POLICY } from "./auth/auth-policy";
 import { backofficeSessionHook } from "./auth/backoffice-session-hook";
 import { type Clock, systemClock } from "./clock";
 import { deviceAuthHook } from "./devices/device-auth-hook";
+import { requirePermissionHook } from "./permissions/require-permission";
 import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
@@ -36,6 +37,7 @@ export function buildApp({ pool, clock, policy }: AppDependencies): FastifyInsta
     policy: policy ?? DEFAULT_AUTH_POLICY,
     requireSession: backofficeSessionHook(pool, resolvedClock),
     requireDevice: deviceAuthHook(pool),
+    requirePermission: requirePermissionHook(pool),
   };
 
   app.decorateRequest("auth", null);

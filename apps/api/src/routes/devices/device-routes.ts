@@ -18,7 +18,10 @@ export function registerDeviceRoutes(app: FastifyInstance, context: ApiContext):
   // under row level security, so it answers 404 exactly like an id that never existed.
   app.post<{ Params: { id: string } }>(
     "/devices/:id/revoke",
-    { onRequest: context.requireSession, schema: { params: deviceParams } },
+    {
+      onRequest: [context.requireSession, context.requirePermission("manage_devices")],
+      schema: { params: deviceParams },
+    },
     async (request, reply) => {
       const auth = backofficeAuth(request);
       const now = clock.now();

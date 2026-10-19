@@ -32,7 +32,10 @@ export function registerPairingRoutes(app: FastifyInstance, context: ApiContext)
 
   app.post<{ Body: { branchId: string } }>(
     "/devices/pairing-codes",
-    { onRequest: context.requireSession, schema: { body: createCodeBody } },
+    {
+      onRequest: [context.requireSession, context.requirePermission("manage_devices")],
+      schema: { body: createCodeBody },
+    },
     async (request, reply) => {
       const auth = backofficeAuth(request);
       const { branchId } = request.body;

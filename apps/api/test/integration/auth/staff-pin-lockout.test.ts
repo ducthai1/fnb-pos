@@ -111,7 +111,7 @@ describe("starting a shift with a PIN", () => {
 
   it("does not know an unknown or deactivated staff member", async () => {
     const staffId = await hire(app, shop, PIN);
-    await withTenant(pool, shop.tenant.tenantId, (client) =>
+    await withTenant(pool, shop.tenantId, (client) =>
       client.query("UPDATE staff SET active = false WHERE id = $1", [staffId]),
     );
     for (const id of [staffId, newId()]) {

@@ -13,6 +13,8 @@ export interface BackofficeAuth {
   accountId: string;
   tenantId: string;
   appUserId: string;
+  /** The membership's role; requirePermission reads its grants afresh on each request. */
+  roleId: string;
 }
 
 declare module "fastify" {
@@ -34,16 +36,16 @@ export function backofficeSessionHook(pool: pg.Pool, clock: Clock) {
       return reply.code(401).send({ code: AUTH_ERROR_CODES.unauthenticated });
     }
     const membership = await withTenant(pool, session.tenantId, (client) =>
-      client.query<{ app_user_id: string }>(
-        "SELECT app_user_id FROM membership WHERE account_id = $1 AND status = 'active'",
+      client.query<{ app_user_id: string; role_id: string }>(
+        "SELECT app_user_id, role_id FROM membership WHERE account_id = $1 AND status = 'active'",
         [session.accountId],
       ),
     );
-    const appUserId = membership.rows[0]?.app_user_id;
-    if (appUserId === undefined) {
+    const member = membership.rows[0];
+    if (member === undefined) {
       return reply.code(401).send({ code: AUTH_ERROR_CODES.unauthenticated });
     }
-    request.auth = { ...session, appUserId };
+    request.auth = { ...session, appUserId: member.app_user_id, roleId: member.role_id };
   };
 }
 

@@ -95,6 +95,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       .insert(device)
       .values({ id: ids.device, tenantId, branchId: ids.branch, name: "POS 1" });
     await db.insert(appUser).values({ id: ids.app_user, tenantId, displayName: "Thu ngân" });
+    await db.insert(role).values({ id: ids.role, tenantId, name: "Thu ngân" });
     const account = await client.query<{ id: string }>(
       "SELECT fnb_auth.create_account($1, $2, NULL, 'x', now()) AS id",
       [newId(), `seed-${tenantId}@example.test`],
@@ -104,6 +105,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       tenantId,
       accountId: account.rows[0]?.id ?? "",
       appUserId: ids.app_user,
+      roleId: ids.role,
     });
     await db.insert(deviceCredential).values({
       id: ids.device_credential,
@@ -119,7 +121,6 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       createdByAppUserId: ids.app_user,
       expiresAt: new Date(),
     });
-    await db.insert(role).values({ id: ids.role, tenantId, name: "Thu ngân" });
     await db.insert(staff).values({
       id: ids.staff,
       tenantId,

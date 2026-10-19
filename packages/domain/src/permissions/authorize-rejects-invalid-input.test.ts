@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { errorOf } from "../catalog/catalog-test-helpers";
 import { basisPoints, vnd } from "../money";
-import { type PermissionAction, authorize } from "./authorize";
+import { type PermissionAction, authorize, validateGrants } from "./authorize";
 import type { Grant } from "./permission-catalog";
 import { PERMISSIONS_ERROR_CODES } from "./permissions-error-codes";
 import { actionFor, cashGrant, corrupt, rateGrant } from "./permissions-test-helpers";
@@ -10,6 +10,20 @@ import { actionFor, cashGrant, corrupt, rateGrant } from "./permissions-test-hel
 // at run time even though the types already rule most of these out.
 const codeOf = (action: PermissionAction, grants: readonly Grant[] = []) =>
   errorOf(() => authorize(action, grants)).code;
+
+const CORRUPT_GRANTS: [string, unknown][] = [
+  ["a threshold on a key that has none", { key: "refund", threshold: { maxRate: 100 } }],
+  ["an amount cap on a rate key", { key: "line_discount", threshold: { maxAmount: 100n } }],
+  ["a rate cap on an amount key", { key: "cash_move", threshold: { maxRate: 100 } }],
+  ["both caps at once", { key: "cash_move", threshold: { maxAmount: 1n, maxRate: 1 } }],
+  ["a negative amount cap", { key: "cash_move", threshold: { maxAmount: -1n } }],
+  ["an amount cap as a number", { key: "cash_move", threshold: { maxAmount: 100 } }],
+  ["a rate cap above 100%", { key: "order_discount", threshold: { maxRate: 10_001 } }],
+  ["a fractional rate cap", { key: "order_discount", threshold: { maxRate: 10.5 } }],
+  ["an empty threshold", { key: "line_discount", threshold: {} }],
+  ["a threshold that is a bare number", { key: "line_discount", threshold: 1_000 }],
+  ["a threshold that is null", { key: "cash_move", threshold: null }],
+];
 
 describe("authorize rejects a corrupt grant", () => {
   const refund = actionFor("refund");
@@ -23,18 +37,27 @@ describe("authorize rejects a corrupt grant", () => {
     expect(authorize(refund, grants)).toBe("needs_approval");
   });
 
-  it.each([
-    ["a threshold on a key that has none", { key: "refund", threshold: { maxRate: 100 } }],
-    ["an amount cap on a rate key", { key: "line_discount", threshold: { maxAmount: 100n } }],
-    ["a rate cap on an amount key", { key: "cash_move", threshold: { maxRate: 100 } }],
-    ["both caps at once", { key: "cash_move", threshold: { maxAmount: 1n, maxRate: 1 } }],
-    ["a negative amount cap", { key: "cash_move", threshold: { maxAmount: -1n } }],
-    ["an amount cap as a number", { key: "cash_move", threshold: { maxAmount: 100 } }],
-    ["a rate cap above 100%", { key: "order_discount", threshold: { maxRate: 10_001 } }],
-    ["a fractional rate cap", { key: "order_discount", threshold: { maxRate: 10.5 } }],
-    ["an empty threshold", { key: "line_discount", threshold: {} }],
-  ])("rejects %s, even when the action is about another key", (_, grant) => {
+  it.each(CORRUPT_GRANTS)("rejects %s, even when the action is about another key", (_, grant) => {
     expect(codeOf(refund, [corrupt<Grant>(grant)])).toBe(PERMISSIONS_ERROR_CODES.invalidGrant);
+  });
+});
+
+describe("validateGrants checks role data on its own, before any action exists", () => {
+  it("accepts well-formed grants, and no grants at all", () => {
+    expect(() => validateGrants([rateGrant("order_discount", 500), cashGrant(1)])).not.toThrow();
+    expect(() => validateGrants([])).not.toThrow();
+  });
+
+  it.each(CORRUPT_GRANTS)("rejects %s", (_, grant) => {
+    expect(errorOf(() => validateGrants([corrupt<Grant>(grant)])).code).toBe(
+      PERMISSIONS_ERROR_CODES.invalidGrant,
+    );
+  });
+
+  it("rejects a key the catalog does not know", () => {
+    expect(errorOf(() => validateGrants([corrupt<Grant>({ key: "order.create" })])).code).toBe(
+      PERMISSIONS_ERROR_CODES.unknownKey,
+    );
   });
 });
 

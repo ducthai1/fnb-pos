@@ -11,6 +11,8 @@ export const membership = pgTable("membership", {
   ...tenantRowColumns(),
   accountId: uuid("account_id").notNull(),
   appUserId: uuid("app_user_id").notNull(),
+  /** What the member may do in the backoffice; the same role rows staff are given. */
+  roleId: uuid("role_id").notNull(),
   /** "active" or "suspended"; a suspended member's sessions stop working at once. */
   status: text("status").notNull().default("active"),
 });

@@ -1,15 +1,19 @@
-import { newId, withTenant } from "@fnb/db";
+import { newId, provisionOrganization, withTenant } from "@fnb/db";
+import type { RoleTemplateKey } from "@fnb/domain";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
-import { signedInMember } from "./backoffice-accounts";
+import { PASSWORD, createAccount, signIn, uniqueEmail } from "./backoffice-accounts";
 import { pairDevice } from "./paired-devices";
-import { type TenantGraph, seedTenantGraph } from "./tenant-graph";
 
 export interface StaffedShop {
-  tenant: TenantGraph;
+  tenantId: string;
+  /** The template roles the shop was provisioned with. */
+  roleIds: Readonly<Record<RoleTemplateKey, string>>;
+  /** The owner who created the shop, signed in to the backoffice. */
   managerCookie: string;
+  /** The cashier template: the role staff get unless a test asks for another. */
   roleId: string;
-  /** The tenant graph's branch, and a second one of the same tenant. */
+  /** Two branches of the one brand. */
   branchId: string;
   otherBranchId: string;
   /** A till paired to branchId, and one paired to otherBranchId. */
@@ -18,35 +22,42 @@ export interface StaffedShop {
   otherBranchDeviceToken: string;
 }
 
-/** A tenant with two branches, a cashier role, a signed-in manager and a till per branch. */
+/** A shop provisioned the way sign-up does it, with two branches and a till in each. */
 export async function staffedShop(app: FastifyInstance, pool: pg.Pool): Promise<StaffedShop> {
-  const tenant = await seedTenantGraph(pool);
-  const roleId = newId();
-  const otherBranchId = newId();
-  await withTenant(pool, tenant.tenantId, async (client) => {
-    await client.query(
-      "INSERT INTO role (id, tenant_id, name, permission_keys, thresholds) VALUES ($1, $2, $3, $4, $5)",
-      [
-        roleId,
-        tenant.tenantId,
-        "Thu ngân",
-        ["order.create", "payment.take"],
-        { maxDiscountBp: 1000 },
-      ],
-    );
-    await client.query(
-      "INSERT INTO branch (id, tenant_id, brand_id, name) VALUES ($1, $2, $3, $4)",
-      [otherBranchId, tenant.tenantId, tenant.ids.brand, "Q3"],
-    );
+  const email = uniqueEmail("owner");
+  const accountId = await createAccount(pool, { email });
+  const shop = await provisionOrganization(pool, {
+    name: "Công ty Phở Sáng",
+    creator: { accountId, displayName: "Chủ quán" },
+    now: new Date(),
   });
-  const { cookie } = await signedInMember(app, pool, tenant.tenantId);
-  const till = await pairDevice(app, cookie, tenant.ids.branch, "Quầy Q1");
+  const brandId = newId();
+  const branchId = newId();
+  const otherBranchId = newId();
+  await withTenant(pool, shop.tenantId, async (client) => {
+    await client.query("INSERT INTO brand (id, tenant_id, name) VALUES ($1, $2, 'Phở Sáng')", [
+      brandId,
+      shop.tenantId,
+    ]);
+    for (const [id, name] of [
+      [branchId, "Q1"],
+      [otherBranchId, "Q3"],
+    ]) {
+      await client.query(
+        "INSERT INTO branch (id, tenant_id, brand_id, name) VALUES ($1, $2, $3, $4)",
+        [id, shop.tenantId, brandId, name],
+      );
+    }
+  });
+  const cookie = await signIn(app, { email, password: PASSWORD });
+  const till = await pairDevice(app, cookie, branchId, "Quầy Q1");
   const otherTill = await pairDevice(app, cookie, otherBranchId, "Quầy Q3");
   return {
-    tenant,
+    tenantId: shop.tenantId,
+    roleIds: shop.roleIds,
     managerCookie: cookie,
-    roleId,
-    branchId: tenant.ids.branch,
+    roleId: shop.roleIds.cashier,
+    branchId,
     otherBranchId,
     deviceToken: till.deviceToken,
     deviceId: till.deviceId,
@@ -73,8 +84,13 @@ export function createStaff(
 }
 
 /** Creates a staff member of the shop's first branch with `pin`, returning the id. */
-export async function hire(app: FastifyInstance, shop: StaffedShop, pin: string): Promise<string> {
-  const response = await createStaff(app, shop, { pin });
+export async function hire(
+  app: FastifyInstance,
+  shop: StaffedShop,
+  pin: string,
+  roleId = shop.roleId,
+): Promise<string> {
+  const response = await createStaff(app, shop, { pin, roleId });
   if (response.statusCode !== 201) throw new Error(`creating staff answered ${response.body}`);
   return response.json().staffId;
 }

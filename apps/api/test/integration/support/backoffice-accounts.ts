@@ -2,6 +2,7 @@ import { newId, withTenant } from "@fnb/db";
 import type { FastifyInstance, LightMyRequestResponse } from "fastify";
 import type pg from "pg";
 import { hashSecret } from "../../../src/security/secret-hash";
+import { OWNER_GRANTS, createRole } from "./roles";
 
 export const PASSWORD = "Mật khẩu đúng 2026";
 
@@ -23,15 +24,23 @@ export async function createAccount(
   return id;
 }
 
+export interface MemberOptions {
+  displayName?: string;
+  status?: "active" | "suspended";
+  /** The member's role; without one, a new role holding every key, as an owner does. */
+  roleId?: string;
+}
+
 /** Makes the account a member of the tenant, acting as a new app_user there. */
 export async function addMember(
   pool: pg.Pool,
   tenantId: string,
   accountId: string,
-  options: { displayName?: string; status?: "active" | "suspended" } = {},
-): Promise<{ appUserId: string; membershipId: string }> {
+  options: MemberOptions = {},
+): Promise<{ appUserId: string; membershipId: string; roleId: string }> {
   const appUserId = newId();
   const membershipId = newId();
+  const roleId = options.roleId ?? (await createRole(pool, tenantId, OWNER_GRANTS, "Chủ quán"));
   await withTenant(pool, tenantId, async (client) => {
     await client.query("INSERT INTO app_user (id, tenant_id, display_name) VALUES ($1, $2, $3)", [
       appUserId,
@@ -39,11 +48,12 @@ export async function addMember(
       options.displayName ?? "Chủ quán",
     ]);
     await client.query(
-      "INSERT INTO membership (id, tenant_id, account_id, app_user_id, status) VALUES ($1, $2, $3, $4, $5)",
-      [membershipId, tenantId, accountId, appUserId, options.status ?? "active"],
+      "INSERT INTO membership (id, tenant_id, account_id, app_user_id, role_id, status) " +
+        "VALUES ($1, $2, $3, $4, $5, $6)",
+      [membershipId, tenantId, accountId, appUserId, roleId, options.status ?? "active"],
     );
   });
-  return { appUserId, membershipId };
+  return { appUserId, membershipId, roleId };
 }
 
 export function uniqueEmail(label: string): string {
@@ -79,9 +89,11 @@ export async function signedInMember(
   app: FastifyInstance,
   pool: pg.Pool,
   tenantId: string,
-): Promise<{ cookie: string; accountId: string; appUserId: string }> {
+  options: MemberOptions = {},
+): Promise<{ cookie: string; accountId: string; appUserId: string; roleId: string }> {
   const email = uniqueEmail("manager");
   const accountId = await createAccount(pool, { email });
-  const { appUserId } = await addMember(pool, tenantId, accountId);
-  return { cookie: await signIn(app, { email, password: PASSWORD }), accountId, appUserId };
+  const { appUserId, roleId } = await addMember(pool, tenantId, accountId, options);
+  const cookie = await signIn(app, { email, password: PASSWORD });
+  return { cookie, accountId, appUserId, roleId };
 }

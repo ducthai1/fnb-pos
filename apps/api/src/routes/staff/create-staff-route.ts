@@ -35,7 +35,10 @@ const createStaffBody = {
 export function registerCreateStaffRoute(app: FastifyInstance, context: ApiContext): void {
   app.post<{ Body: CreateStaffBody }>(
     "/staff",
-    { onRequest: context.requireSession, schema: { body: createStaffBody } },
+    {
+      onRequest: [context.requireSession, context.requirePermission("manage_staff")],
+      schema: { body: createStaffBody },
+    },
     async (request, reply) => {
       const auth = backofficeAuth(request);
       const { displayName, roleId, pin, branchIds } = request.body;

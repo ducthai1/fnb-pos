@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fnb/db": "workspace:*",
+    "@fnb/domain": "workspace:*",
     "fastify": "5.12.5",
     "pg": "8.23.1"
   },

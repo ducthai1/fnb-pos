@@ -3,6 +3,7 @@ export {
   type PermissionAction,
   authorize,
   canApprove,
+  validateGrants,
 } from "./authorize";
 export {
   type AmountLimitedPermissionKey,

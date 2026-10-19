@@ -1,3 +1,4 @@
+import type { UnlimitedPermissionKey } from "@fnb/domain";
 import type { onRequestHookHandler } from "fastify";
 import type pg from "pg";
 import type { AuthPolicy } from "./auth/auth-policy";
@@ -12,4 +13,6 @@ export interface ApiContext {
   requireSession: onRequestHookHandler;
   /** onRequest hook: sets request.device from `Authorization: Device <token>`, or answers 401. */
   requireDevice: onRequestHookHandler;
+  /** onRequest hook after requireSession: the member's role allows `key`, or 403. */
+  requirePermission: (key: UnlimitedPermissionKey) => onRequestHookHandler;
 }

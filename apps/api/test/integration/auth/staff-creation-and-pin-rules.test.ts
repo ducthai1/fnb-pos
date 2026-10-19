@@ -37,7 +37,7 @@ describe("POST /staff", () => {
       branchIds: [shop.branchId, shop.otherBranchId],
     });
     expect(status).toBe(201);
-    const stored = await withTenant(pool, shop.tenant.tenantId, async (client) => ({
+    const stored = await withTenant(pool, shop.tenantId, async (client) => ({
       staff: (
         await client.query(
           "SELECT display_name, role_id, pin_hash, active FROM staff WHERE id = $1",
