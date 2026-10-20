@@ -13,6 +13,7 @@ export const VI_DEVICES = {
   search: "Tìm theo tên máy",
   filters: { active: "Đang dùng", revoked: "Đã thu hồi" },
   createCode: "Tạo mã ghép máy",
+  pairHint: "Ghép một máy bán hàng mới: tạo mã ở đây, rồi nhập mã trên máy trước khi mã hết hạn.",
   creatingCode: "Đang tạo mã…",
   codeLabel: "Mã ghép máy",
   codeExpires: (time: string) => `Dùng một lần, hết hạn lúc ${time}.`,

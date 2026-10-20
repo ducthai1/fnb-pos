@@ -76,3 +76,27 @@ input[type="radio"] {
     justify-self: start;
   }
 }
+
+/* Pairing a till: what to do, and the button, on one line while they fit. */
+.bo-pairing__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+  min-width: 0;
+}
+
+.bo-pairing__head > p {
+  flex: 1 1 240px;
+}
+
+.bo-pairing__icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
