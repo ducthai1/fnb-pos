@@ -125,3 +125,19 @@
   background: var(--pos-warn-bg);
   color: var(--pos-warn-text);
 }
+
+/* Who the e-invoice is for, and its lookup code once issued. */
+.pos-invoice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pos-invoice p {
+  margin: 0;
+}
+
+.pos-field__problem {
+  color: var(--pos-danger-text);
+  overflow-wrap: anywhere;
+}

@@ -24,11 +24,14 @@ export interface SaleDoneScreenProps {
   sale: PaidSale;
   /** Null while the slips are still printing. */
   slips: readonly PrintedSlip[] | null;
+  /** The sale's e-invoice, when the branch issues them. */
+  invoice?: ReactNode;
   onNextOrder(): void;
 }
 
 /** The sale is recorded: the change to hand back, the call number, and each slip. */
-export function SaleDoneScreen({ header, sale, slips, onNextOrder }: SaleDoneScreenProps) {
+export function SaleDoneScreen(props: SaleDoneScreenProps) {
+  const { header, sale, slips, onNextOrder } = props;
   const { order, priced, change } = sale;
   return (
     <ScreenFrame title={T.title}>
@@ -48,6 +51,7 @@ export function SaleDoneScreen({ header, sale, slips, onNextOrder }: SaleDoneScr
       >
         {T.nextOrder}
       </button>
+      {props.invoice}
       <section className="pos-slips" aria-label={T.slips}>
         {slips === null ? <p className="pos-hint">{T.printing}</p> : null}
         {(slips ?? []).map((slip) => (

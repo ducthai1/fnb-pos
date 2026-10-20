@@ -22,4 +22,10 @@ export const VI_SYNC_ERRORS = {
   SYNC_ORDER_NOT_FOUND: "Máy chủ không tìm thấy đơn này ở chi nhánh của máy.",
   SYNC_NO_OPEN_SHIFT: "Máy chưa mở ca nên không ghi được thao tác này.",
   SYNC_INVALID_PAYLOAD: "Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý.",
+  SYNC_EINVOICE_DISABLED: "Chi nhánh chưa bật hóa đơn điện tử nên không ghi được người mua.",
+  SYNC_EINVOICE_NOT_FOUND:
+    "Đơn được thanh toán lúc chi nhánh chưa bật hóa đơn điện tử nên không có hóa đơn để ghi người mua.",
+  SYNC_EINVOICE_ALREADY_SENT:
+    "Hóa đơn đã gửi đi phát hành nên không đổi được thông tin người mua nữa.",
+  SYNC_EINVOICE_ORDER_CLOSED: "Đơn đã hủy nên không xuất hóa đơn.",
 } as const;

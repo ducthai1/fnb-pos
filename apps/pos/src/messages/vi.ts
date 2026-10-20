@@ -1,6 +1,7 @@
 // Every string the POS shows. Screens read from here; none writes Vietnamese inline.
 
 import { VI_CHECKOUT } from "./vi-checkout";
+import { VI_INVOICE } from "./vi-invoice";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
 import { VI_SYNC_ERRORS } from "./vi-sync-errors";
@@ -47,6 +48,7 @@ export const vi = {
   sale: VI_SALE,
   checkout: VI_CHECKOUT,
   qr: VI_QR_PAYMENT,
+  invoice: VI_INVOICE,
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,

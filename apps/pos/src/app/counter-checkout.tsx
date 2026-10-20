@@ -11,9 +11,12 @@ import type { Tender } from "../features/payment/tenders";
 import type { PaidSale } from "../features/printing/paid-sale";
 import { type PrintedSlip, printSaleSlips } from "../features/printing/print-sale-slips";
 import type { PrinterPort } from "../features/printing/printer-port";
+import { BuyerInfoScreen } from "../screens/invoice/buyer-info-screen";
+import { BuyerInvoiceOffer, SaleInvoicePanel } from "../screens/invoice/sale-invoice-panel";
 import { PaymentScreen } from "../screens/payment/payment-screen";
 import { SaleDoneScreen } from "../screens/payment/sale-done-screen";
 import { CounterQrPayment } from "./counter-qr-payment";
+import { useCheckoutInvoice } from "./use-checkout-invoice";
 
 export interface CounterCheckoutProps {
   client: SyncClient;
@@ -31,24 +34,34 @@ export interface CounterCheckoutProps {
   onNextOrder(): void;
 }
 
-type Step =
-  | { readonly kind: "paying" }
-  | { readonly kind: "qr" }
-  | {
-      readonly kind: "done";
-      readonly sale: PaidSale;
-      readonly slips: readonly PrintedSlip[] | null;
-    };
+type Step = "paying" | "qr" | "buyer";
 
-/** Taking the money for the order on the counter (cash, or a QR the bank confirms), then its slips. */
+interface PaidOrder {
+  readonly sale: PaidSale;
+  /** Null while the slips are still printing; a reprint is added at the end. */
+  readonly slips: readonly PrintedSlip[] | null;
+}
+
+/**
+ * Taking the money for the order on the counter (cash, or a QR the bank confirms), who its
+ * e-invoice is for, then its slips, and the bill again once the invoice is issued.
+ */
 export function CounterCheckout(props: CounterCheckoutProps) {
   const { client, place, menu, header, session, order, priced } = props;
-  const [step, setStep] = useState<Step>({ kind: "paying" });
+  const [step, setStep] = useState<Step>("paying");
+  const [paid, setPaid] = useState<PaidOrder | null>(null);
+  const [reprinting, setReprinting] = useState(false);
   const account = paymentAccountOf(menu.config);
+  const invoicing = useCheckoutInvoice(props, paid?.sale ?? null);
+  const addSlip = (slip: PrintedSlip) =>
+    setPaid((shown) =>
+      shown === null ? null : { ...shown, slips: [...(shown.slips ?? []), slip] },
+    );
 
   async function finish(tenders: readonly Tender[]) {
     const sale = await paySale({ ...props, tenders, at: Date.now() });
-    setStep({ kind: "done", sale, slips: null });
+    setPaid({ sale, slips: null });
+    setStep("paying");
     const slips = await printSaleSlips({
       ...props,
       sale,
@@ -58,22 +71,59 @@ export function CounterCheckout(props: CounterCheckoutProps) {
       console.error(error);
       return [];
     });
-    setStep((shown) =>
-      shown.kind === "done" && shown.sale === sale ? { ...shown, slips } : shown,
-    );
+    setPaid((shown) => (shown?.sale === sale ? { ...shown, slips } : shown));
   }
 
-  if (step.kind === "done") {
+  async function reprint() {
+    setReprinting(true);
+    try {
+      const slip = await invoicing.reprint();
+      if (slip !== null) addSlip(slip);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setReprinting(false);
+    }
+  }
+
+  const editBuyer = () => setStep("buyer");
+  const invoiceSlot = !invoicing.enabled ? null : paid === null ? (
+    <BuyerInvoiceOffer buyer={invoicing.buyer} onEdit={editBuyer} />
+  ) : (
+    <SaleInvoicePanel
+      invoice={invoicing.invoice}
+      buyer={invoicing.buyer}
+      reprinting={reprinting}
+      onEditBuyer={editBuyer}
+      onReprint={() => void reprint()}
+    />
+  );
+
+  if (step === "buyer") {
+    return (
+      <BuyerInfoScreen
+        header={header}
+        buyer={invoicing.buyer}
+        onSave={async (buyer) => {
+          await invoicing.saveBuyer(buyer);
+          setStep("paying");
+        }}
+        onBack={() => setStep("paying")}
+      />
+    );
+  }
+  if (paid !== null) {
     return (
       <SaleDoneScreen
         header={header}
-        sale={step.sale}
-        slips={step.slips}
+        sale={paid.sale}
+        slips={paid.slips}
+        invoice={invoiceSlot}
         onNextOrder={props.onNextOrder}
       />
     );
   }
-  if (step.kind === "qr" && account !== null) {
+  if (step === "qr" && account !== null) {
     return (
       <CounterQrPayment
         client={client}
@@ -84,7 +134,7 @@ export function CounterCheckout(props: CounterCheckoutProps) {
         account={account}
         record={session.record}
         onPaid={finish}
-        onLeave={() => setStep({ kind: "paying" })}
+        onLeave={() => setStep("paying")}
       />
     );
   }
@@ -93,8 +143,9 @@ export function CounterCheckout(props: CounterCheckoutProps) {
       header={header}
       amountDue={priced.totals.amountDue}
       qrAccountSet={account !== null}
+      invoice={invoiceSlot}
       onBack={props.onBackToSale}
-      onQr={() => setStep({ kind: "qr" })}
+      onQr={() => setStep("qr")}
       onPaid={finish}
     />
   );

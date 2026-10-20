@@ -41,6 +41,9 @@ export function fakeServerRows(deviceId: string, branchId: string) {
           return bump(String(payload.orderId), { status: "paid", payments: payload.payments });
         case "order.mark_sent_to_kitchen":
           return bump(String(payload.orderId), {});
+        case "order.set_buyer_info":
+          // The buyer stays on the server: the order answers as it was.
+          return rows.get(String(payload.orderId));
         case "payment.create_intent":
           return bump(String(payload.intentId), {
             orderId: payload.orderId,

@@ -9,8 +9,22 @@ import type { PrintJob } from "./printer-port";
 import { PRINTER_KEYS, RECEIPT_PRINTER } from "./printer-profiles";
 import { childrenOf, itemsOf, slipHead } from "./sale-order";
 
-/** The customer's bill: every amount is the domain's, the template only places them. */
-export function billSlip(menu: TillMenu, sale: PaidSale, at: number): PrintJob {
+/** The e-invoice's lookup code and the page to look it up on, printed as text and as a QR. */
+export interface BillLookup {
+  readonly code: string;
+  readonly url: string;
+}
+
+/**
+ * The customer's bill: every amount is the domain's, the template only places them. Once the
+ * sale's e-invoice is issued, a reprint carries its lookup code so the customer can find it.
+ */
+export function billSlip(
+  menu: TillMenu,
+  sale: PaidSale,
+  at: number,
+  lookup: BillLookup | null = null,
+): PrintJob {
   const { priced } = sale;
   const grossOf = new Map(priced.totals.lines.map((line) => [line.lineId, line.gross]));
   const lines: BillLine[] = itemsOf(priced.lines).map((item) => ({
@@ -49,7 +63,7 @@ export function billSlip(menu: TillMenu, sale: PaidSale, at: number): PrintJob {
       amount: tender.amount,
     })),
     change: sale.change,
-    lookup: null,
+    lookup,
     footer: null,
   });
   return {

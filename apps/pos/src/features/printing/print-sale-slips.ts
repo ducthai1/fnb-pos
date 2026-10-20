@@ -17,7 +17,8 @@ export interface PrintedSlip {
 /** The printer port threw instead of answering: reported as a failure of that job. */
 const PORT_ERROR = "PRINTER_PORT_ERROR";
 
-async function printOne(printer: PrinterPort, job: PrintJob): Promise<PrintOutcome> {
+/** Prints one job; a port that throws counts as a failed print, never as a crash. */
+export async function printOne(printer: PrinterPort, job: PrintJob): Promise<PrintOutcome> {
   try {
     return await printer.print(job);
   } catch {

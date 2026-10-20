@@ -1,0 +1,42 @@
+// Who the e-invoice is for, and the invoice once issued; vi.ts gathers them under `vi.invoice`.
+
+export const VI_INVOICE = {
+  title: "Xuất hóa đơn cho khách",
+  offer: "Xuất hóa đơn cho khách",
+  edit: "Sửa thông tin hóa đơn",
+  retail: "Khách lẻ — hóa đơn không ghi tên người mua.",
+  forCompany: (name: string, taxCode: string) => `Hóa đơn cho: ${name} — MST ${taxCode}`,
+  forPerson: (who: string) => `Hóa đơn cho: ${who}`,
+  hint: "Ghi đúng như khách đọc hoặc như trên giấy tờ. Thông tin chỉ lưu trên máy chủ, không in ra bill.",
+  kinds: { company: "Doanh nghiệp (có MST)", person: "Cá nhân" },
+  fields: {
+    taxCode: "Mã số thuế",
+    name: "Tên doanh nghiệp",
+    personName: "Họ tên (không bắt buộc)",
+    address: "Địa chỉ",
+    citizenId: "Số CCCD",
+    phone: "Số điện thoại",
+    email: "Email nhận hóa đơn (không bắt buộc)",
+  },
+  problems: {
+    tax_code:
+      "MST gồm 10 chữ số, mã chi nhánh thêm gạch và 3 số (0312345678-001), hoặc 12 số của cá nhân.",
+    company_name_missing: "Ghi tên doanh nghiệp đúng như đăng ký thuế.",
+    citizen_id: "Số CCCD gồm đúng 12 chữ số.",
+    phone: "Số điện thoại bắt đầu bằng 0 hoặc +84, 10–11 chữ số.",
+    person_unnamed: "Ghi số CCCD hoặc số điện thoại của khách.",
+    email: "Email chưa đúng dạng, ví dụ ketoan@congty.vn.",
+    too_long: "Dài quá mức hóa đơn cho phép.",
+  },
+  save: "Lưu thông tin hóa đơn",
+  saving: "Đang lưu…",
+  clear: "Bỏ, xuất cho khách lẻ",
+  back: "Quay lại",
+  failed: "Không lưu được thông tin hóa đơn trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý.",
+  issued: "Hóa đơn điện tử đã phát hành",
+  pending: "Hóa đơn điện tử đang chờ phát hành.",
+  number: (number: string) => `Số hóa đơn: ${number}`,
+  lookupCode: "Mã tra cứu",
+  reprint: "In lại bill kèm mã tra cứu",
+  reprinting: "Đang in…",
+} as const;

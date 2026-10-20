@@ -16,17 +16,17 @@ export const SHOP_ACCOUNT = {
 
 export type QrServer = ReturnType<typeof fakeServer>;
 
-/** The pilot café's server with Lan (PIN 4826) and the branch's account set, or `account`. */
-export function qrCafeServer(account: unknown = SHOP_ACCOUNT): QrServer {
+/** The pilot café's server with Lan (PIN 4826), the branch's settings being `settings`. */
+export function cafeServerWith(settings: Record<string, unknown>): QrServer {
   const { config } = tillBootstrapWire();
-  const snapshot = tillBootstrap({
-    staff: [LAN],
-    config: { ...config, settings: { payment_account: account } },
-  });
-  const server = fakeServer(snapshot);
+  const server = fakeServer(tillBootstrap({ staff: [LAN], config: { ...config, settings } }));
   server.state.pins.set(LAN.id, "4826");
   return server;
 }
+
+/** The café with the branch's account for QRs set, or `account`. */
+export const qrCafeServer = (account: unknown = SHOP_ACCOUNT) =>
+  cafeServerWith({ payment_account: account });
 
 export const money = (amount: number) => formatVnd(vnd(amount));
 export const tap = (name: string | RegExp) => fireEvent.click(screen.getByRole("button", { name }));
@@ -57,16 +57,21 @@ export function bankSettles(server: QrServer, status: string, receivedAmount: nu
  * also waits for the QR to show as waiting for the transfer.
  */
 export async function twoCoffeesOnQr(server: QrServer, untilPhase: string | null = "waiting") {
-  tap(/^Cà phê sữa/);
-  tap(text.sale.more("Cà phê sữa"));
-  tap(/^Thêm vào đơn/);
-  await screen.findByText(text.sale.orderNumber(1));
-  tap(text.sale.checkout);
-  await screen.findByRole("heading", { name: text.checkout.payment.title });
+  await twoCoffeesToPayment();
   tap(text.qr.offer(money(58_000)));
   await screen.findByRole("heading", { name: text.qr.title });
   await waitFor(() => expect(pushedOf(server, "payment.create_intent")).toHaveLength(1));
   if (untilPhase !== null) await waitFor(() => expect(qrPhaseShown()).toBe(untilPhase));
   const created = pushedOf(server, "payment.create_intent")[0]?.payload;
   return { id: String(created?.intentId) };
+}
+
+/** Two coffees (58.000đ) rung up, on the payment screen. */
+export async function twoCoffeesToPayment() {
+  tap(/^Cà phê sữa/);
+  tap(text.sale.more("Cà phê sữa"));
+  tap(/^Thêm vào đơn/);
+  await screen.findByText(text.sale.orderNumber(1));
+  tap(text.sale.checkout);
+  await screen.findByRole("heading", { name: text.checkout.payment.title });
 }

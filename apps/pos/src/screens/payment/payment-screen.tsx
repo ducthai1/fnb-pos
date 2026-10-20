@@ -20,6 +20,8 @@ export interface PaymentScreenProps {
   amountDue: Vnd;
   /** Whether the branch set an account a VietQR can ask customers to transfer to. */
   qrAccountSet: boolean;
+  /** Who the e-invoice is for, when the branch issues them. */
+  invoice?: ReactNode;
   onBack(): void;
   /** Shows a VietQR for the whole amount due; the bank's notice, not the cashier, confirms it. */
   onQr(): void;
@@ -108,6 +110,7 @@ export function PaymentScreen(props: PaymentScreenProps) {
           />
         </>
       ) : null}
+      {props.invoice}
       <Alert message={error} />
       <div className="pos-actions">
         <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
