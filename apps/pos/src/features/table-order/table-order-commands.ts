@@ -21,7 +21,10 @@ function expectedRow(
   });
 }
 
-/** order.mark_pre_bill_printed: the table now waits to pay, until its order changes again. */
+/**
+ * order.mark_pre_bill_printed for the version the slip shows: the table now waits to pay,
+ * until its order changes again (here or on another till).
+ */
 export function preBillPrintedCommand(
   place: TillPlace,
   settled: SettledTableOrder,
@@ -32,7 +35,7 @@ export function preBillPrintedCommand(
     place,
     "order.mark_pre_bill_printed",
     markPreBillPrintedPayloadSchema,
-    { orderId },
+    { orderId, printedVersion: settled.state.version },
     at,
     {
       entity: "order",

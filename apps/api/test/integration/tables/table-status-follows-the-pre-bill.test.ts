@@ -62,6 +62,37 @@ describe("a table's status", () => {
     ]);
   });
 
+  it("waits to pay on a pre-bill of the order as it stands, named by its version", async () => {
+    const [table] = (await freeTables("P05")) as [string];
+    const opened = dineIn(s.tillA, [coffee()], { tableId: table });
+    const saved = await pushOne(app, s.tillA, opened);
+    const printedVersion = saved.snapshot?.version;
+    const mark = markPreBillPrinted(s.tillA, orderIdOf(opened), printedVersion);
+    expect((await pushOne(app, s.tillA, mark)).snapshot?.preBillPrinted).toBe(true);
+    expect((await seatingOf(app, s.tillB, table))?.status).toBe("awaiting_payment");
+  });
+
+  it("does not wait to pay on a pre-bill printed before another till added to the order", async () => {
+    const [table] = (await freeTables("P06")) as [string];
+    const first = [coffee()];
+    const opened = dineIn(s.tillA, first, { tableId: table });
+    const orderId = orderIdOf(opened);
+    // Till A prints the pre-bill of the first round; its mark waits in A's queue.
+    const printedVersion = (await pushOne(app, s.tillA, opened)).snapshot?.version;
+    // Till B adds a coffee to that very version, and reaches the server first.
+    const again = savedAgain(s.tillB, opened, [...first, coffee()]);
+    const added = await pushOne(app, s.tillB, {
+      ...again,
+      payload: { ...(again.payload as object), expectedVersion: printedVersion },
+    });
+    expect(added.status).toBe("accepted");
+    const mark = await pushOne(app, s.tillA, markPreBillPrinted(s.tillA, orderId, printedVersion));
+    // Taken (the slip was printed) but the guests' slip lacks B's coffee: nothing is marked.
+    expect(mark).toMatchObject({ status: "accepted", snapshot: { preBillPrinted: false } });
+    expect(mark.snapshot?.version).toBe(added.snapshot?.version);
+    expect((await seatingOf(app, s.tillB, table))?.status).toBe("occupied");
+  });
+
   it("keeps waiting to pay when the guests move, since moving changes no amount", async () => {
     const [from, to] = (await freeTables("P02", "P03")) as [string, string];
     const opened = dineIn(s.tillA, [coffee()], { tableId: from });

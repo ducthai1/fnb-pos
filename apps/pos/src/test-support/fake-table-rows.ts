@@ -143,6 +143,10 @@ export function fakeTableRows(
         case "order.mark_sent_to_kitchen":
           return bump(markSent(payload, before));
         case "order.mark_pre_bill_printed":
+          // A slip of an older version marks nothing: the order changed after it was printed.
+          if (payload.printedVersion !== undefined && payload.printedVersion !== before.version) {
+            return before;
+          }
           return bump({ preBillPrinted: true });
         case "table.transfer": {
           const tableId = String(payload.toTableId);
