@@ -40,6 +40,8 @@ export const VI_SALE = {
     variant: "Size",
     quantity: "Số lượng",
     notePlaceholder: "Ví dụ: ít đá, giao bàn 5",
+    quickNotesLabel: "Ghi chú nhanh",
+    quickNotes: ["Ít đá", "Không đá", "Ít đường", "Không đường", "Đá riêng", "Mang về riêng"],
     add: (amount: string) => `Thêm vào đơn · ${amount}`,
     addNoPrice: "Thêm vào đơn",
     cancel: "Quay lại",

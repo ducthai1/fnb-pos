@@ -19,6 +19,7 @@ import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { ModifierGroupField } from "./modifier-group-field";
 import { PickerProductHead } from "./picker-product-head";
+import { QuickNotes } from "./quick-notes";
 import { QuantityStepper } from "./quantity-stepper";
 
 const P = vi.sale.picker;
@@ -164,6 +165,7 @@ export function ModifierPickerScreen({
             onChange={(event) => setNote(event.target.value)}
           />
         </label>
+        <QuickNotes note={note} onChange={setNote} />
       </section>
     </ScreenFrame>
   );
