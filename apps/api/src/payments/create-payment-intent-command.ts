@@ -14,18 +14,29 @@ import { readPaymentIntent } from "./payment-intent-store";
 import { assertNoPaidQrLeftOut } from "./qr-transfer-tenders";
 
 /**
- * How long a QR stays payable from the moment the till showed it. Long enough for a
+ * How long a QR stays payable from the moment the server heard of it. Long enough for a
  * customer who fumbles with a banking app; short enough that a stale QR left on a screen
  * is not paid against an order that changed since. A transfer after it waits for a person.
+ * It runs on the server's clock, like the transfers' arrival: a till's clock can be minutes
+ * slow (every QR it shows would expire at once) or a day fast (a QR payable all day).
  */
 export const PAYMENT_INTENT_LIFETIME_MS = 15 * 60_000;
 
 /**
  * How far back a new intent looks for a transfer that already arrived with its code: the
  * till may have shown the QR offline and synced only after the customer paid. The code is
- * random, so the window only bounds the search; it is wide for tills with a wrong clock.
+ * random and not drawn again within CODE_RESERVED_FOR_MS, so the window only bounds the
+ * search.
  */
 const ARRIVED_BEFORE_SYNC_WINDOW_MS = 24 * 60 * 60_000;
+
+/**
+ * How long a code stays taken after its QR ran out (expired, settled or withdrawn): a
+ * customer may still pay a QR they kept on their phone, and that late money must wait for
+ * a person rather than pay whichever order next shows the code. Longer than the look-back
+ * above, so a transfer that look-back finds is never an older QR's.
+ */
+const CODE_RESERVED_FOR_MS = 7 * 24 * 60 * 60_000;
 
 /**
  * payment.create_intent: the till showed a VietQR for the order. The amount must be what
@@ -37,7 +48,7 @@ async function createPaymentIntent(
   context: SyncCommandContext,
   payload: CreatePaymentIntentPayload,
 ) {
-  const { client, device, staffId, command } = context;
+  const { client, device, staffId } = context;
   const stored = await draftOfBranch(context, payload.orderId);
   const { amountDue } = computeOrderTotals(stored.order, stored.chargeProfile);
   if (compareVnd(amountDue, vnd(payload.amount)) !== 0) {
@@ -47,17 +58,21 @@ async function createPaymentIntent(
   if ((await readPaymentIntent(client, payload.intentId, false)) !== null) {
     throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentIdTaken);
   }
-  const live = await client.query<{ order_id: string }>(
-    "SELECT order_id FROM payment_intent WHERE status = 'pending' " +
-      "AND (order_id = $1 OR content_code = $2)",
-    [payload.orderId, payload.contentCode],
+  const heardAt = context.receivedAt.getTime();
+  const clashing = await client.query<{ order_id: string; status: string }>(
+    "SELECT order_id, status FROM payment_intent WHERE (status = 'pending' AND order_id = $1) " +
+      "OR (content_code = $2 AND (status = 'pending' OR expires_at > $3))",
+    [payload.orderId, payload.contentCode, new Date(heardAt - CODE_RESERVED_FOR_MS)],
   );
-  if (live.rows.some((row) => row.order_id === payload.orderId)) {
+  const pendingHere = (row: { order_id: string; status: string }) =>
+    row.status === "pending" && row.order_id === payload.orderId;
+  if (clashing.rows.some(pendingHere)) {
     throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentAlreadyPending);
   }
-  if (live.rows.length > 0) throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.contentCodeTaken);
-  const shownAt = new Date(command.createdAt);
-  const expiresAt = new Date(shownAt.getTime() + PAYMENT_INTENT_LIFETIME_MS);
+  if (clashing.rows.length > 0) {
+    throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.contentCodeTaken);
+  }
+  const expiresAt = new Date(heardAt + PAYMENT_INTENT_LIFETIME_MS);
   await client.query(
     "INSERT INTO payment_intent (id, tenant_id, order_id, branch_id, device_id, amount, " +
       "content_code, expires_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -75,7 +90,7 @@ async function createPaymentIntent(
   );
   const intent = await readPaymentIntent(client, payload.intentId, true);
   if (intent === null) throw new Error("the intent just written is not readable");
-  const lookFrom = new Date(expiresAt.getTime() - ARRIVED_BEFORE_SYNC_WINDOW_MS);
+  const lookFrom = new Date(heardAt - ARRIVED_BEFORE_SYNC_WINDOW_MS);
   const arrived = await unclaimedTransfers(client, device.branchId, lookFrom, expiresAt);
   const paying = arrived.find((transfer) => transferPaysIntent(transfer, intent));
   if (paying !== undefined) await settleIntentWithTransfer(client, intent, paying);

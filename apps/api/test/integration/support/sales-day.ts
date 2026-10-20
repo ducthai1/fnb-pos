@@ -86,10 +86,13 @@ export async function salesDay(app: FastifyInstance, pool: pg.Pool, s: SyncShop)
   const o2 = saveDraft(till, [line(s.menu.coffee.id, { modifiers: [shot] })]);
   await accepted(o2);
   const code = freshCode();
+  // Arrived just before the QR reached the server, by the server's (real) clock, which is
+  // what the QR's look-back for money that came first is measured on.
   await recordTransfer(pool, s.shop.tenantId, {
     branchId: s.shop.branchId,
     amount: 39_000,
     content: `CK ${code}`,
+    receivedAt: new Date(),
   });
   const qr = createIntent(till, orderIdOf(o2), 39_000, { contentCode: code });
   await accepted(qr);

@@ -9,7 +9,7 @@ export const PAYMENT_SYNC_ERROR_CODES = {
   intentNotFound: "SYNC_PAYMENT_INTENT_NOT_FOUND",
   /** The order already has a QR out; withdraw it before showing another. */
   intentAlreadyPending: "SYNC_PAYMENT_INTENT_ALREADY_PENDING",
-  /** Another live QR of the shop carries that code; draw a new one. */
+  /** A QR of the shop carried that code within the last week; draw a new one. */
   contentCodeTaken: "SYNC_PAYMENT_CONTENT_CODE_TAKEN",
   /** order.pay named an intent of another order. */
   intentOfAnotherOrder: "SYNC_PAYMENT_INTENT_OF_ANOTHER_ORDER",

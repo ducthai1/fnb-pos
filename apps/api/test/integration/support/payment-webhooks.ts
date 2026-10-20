@@ -6,7 +6,7 @@ import { buildApp } from "../../../src/build-app";
 import { PAYMENT_GATEWAYS } from "../../../src/payments/gateways/payment-gateways";
 import { type FakeNotice, fakePaymentGateway } from "./fake-payment-gateway";
 import { ManualClock } from "./manual-clock";
-import { RECORDED_AT } from "./sync-commands";
+import { SERVER_STARTS_AT } from "./payment-commands";
 
 /** The key tests seal gateway secrets with; never one a deployment uses. */
 export const TEST_PAYMENT_SECRET_KEY = Buffer.alloc(32, 0x5a);
@@ -18,7 +18,7 @@ export const TEST_PAYMENT_SECRET_KEY = Buffer.alloc(32, 0x5a);
  */
 export function paymentApp(pool: pg.Pool) {
   const fake = fakePaymentGateway();
-  const clock = new ManualClock(new Date(Date.parse(RECORDED_AT) + 60_000));
+  const clock = new ManualClock(SERVER_STARTS_AT);
   const app = buildApp({
     pool,
     clock,

@@ -3,7 +3,6 @@ import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { buildApp } from "../../../src/build-app";
 import {
   EXPIRES_AT,
   createIntent,
@@ -12,6 +11,7 @@ import {
   intentOf,
   latestIntent,
 } from "../support/payment-commands";
+import { paymentApp } from "../support/payment-webhooks";
 import { pay, pullAll, pushOne } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -23,7 +23,7 @@ let s: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = paymentApp(pool).app;
   s = await syncShop(app, pool);
 });
 
