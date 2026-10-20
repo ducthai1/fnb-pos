@@ -95,3 +95,32 @@
   background: var(--c-surface);
   border-color: var(--c-border-soft);
 }
+
+/* Two to four exclusive choices (cash in / out, by percent / by amount): one segmented
+   control, the chosen one raised. Lists of categories or areas stay as pills (tablist). */
+.pos-tabs[role="group"] {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-self: start;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px;
+  border-radius: var(--r-md);
+  background: var(--c-surface-3);
+}
+
+.pos-tabs[role="group"] > .pos-tab {
+  min-height: var(--tap);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text-2);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-tabs[role="group"] > .pos-tab[aria-pressed="true"] {
+  background: var(--c-surface);
+  color: var(--c-brand-strong);
+  box-shadow: var(--shadow-card);
+}

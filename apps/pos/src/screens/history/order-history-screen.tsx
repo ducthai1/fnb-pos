@@ -5,6 +5,14 @@ import { vi } from "../../messages/vi";
 import { ScreenFrame } from "../shared/screen-frame";
 
 const H = vi.history;
+
+/** The colour beside each status word: paid is done, a draft still waits, the rest undone. */
+const STATUS_TONE: Readonly<Record<HistoryEntry["status"], string>> = {
+  draft: "info",
+  paid: "ok",
+  cancelled: "danger",
+  refunded: "warn",
+};
 const FILTERS: readonly HistoryFilter[] = ["all", "draft", "paid", "cancelled", "refunded"];
 
 export interface OrderHistoryScreenProps {
@@ -77,7 +85,9 @@ function HistoryRow(props: { entry: HistoryEntry } & OrderHistoryScreenProps) {
     <li className="pos-card pos-history-row" data-history-order={no} data-status={entry.status}>
       <div className="pos-history-row__head">
         <strong>{H.orderLine(no)}</strong>
-        <span className="pos-badge">{H.filters[entry.status]}</span>
+        <span className="pos-badge" data-tone={STATUS_TONE[entry.status]}>
+          {H.filters[entry.status]}
+        </span>
         <span>{formatVnd(entry.amountDue)}</span>
       </div>
       <p className="pos-hint pos-wrap">
