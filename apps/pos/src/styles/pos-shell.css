@@ -155,6 +155,21 @@
     flex: 1 1 auto;
     justify-content: flex-end;
   }
+  /* Something needs attention: the pills take a row of their own under the bar's names
+     instead of stacking one per line beside them, and the bar's height grows with it so
+     what sticks under it (the order, the categories) stays clear of it. */
+  .pos-screen__inner:has(.pos-topbar .pos-badge--attention) {
+    --bar-h: 116px;
+  }
+  .pos-topbar:has(.pos-badge--attention) {
+    flex-wrap: wrap;
+    align-content: center;
+  }
+  .pos-topbar:has(.pos-badge--attention) .pos-badges {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
   .pos-topbar__who {
     flex: none;
     padding-left: var(--sp-3);
