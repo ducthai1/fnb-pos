@@ -22,7 +22,7 @@ const linkNames = (container: HTMLElement) =>
 describe("which pages the menu and the home page offer", () => {
   it("offers the owner every page", async () => {
     await renderSignedIn(<SideNavLinks onNavigate={() => {}} />);
-    expect(linkNames(document.body)).toEqual([N.devices, N.staff, N.roles, ...MENU_PAGES]);
+    expect(linkNames(document.body)).toEqual([N.devices, N.staff, N.roles, ...MENU_PAGES, N.settings]);
   });
 
   it("leaves out the pages whose key the member's role lacks", async () => {
@@ -33,6 +33,11 @@ describe("which pages the menu and the home page offer", () => {
   it("still offers the menu pages, which any member may read, to a member with no key", async () => {
     await renderSignedIn(<HomeScreen />, signedInWith([]));
     expect(linkNames(screen.getByRole("list"))).toEqual(MENU_PAGES);
+  });
+
+  it("offers the settings page only with manage_settings", async () => {
+    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />, signedInWith(["manage_settings"]));
+    expect(linkNames(document.body)).toEqual([...MENU_PAGES, N.settings]);
   });
 
   it("opens staff and roles with manage_staff alone", () => {

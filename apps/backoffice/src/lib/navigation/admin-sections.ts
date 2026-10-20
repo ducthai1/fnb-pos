@@ -19,6 +19,7 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/menu", label: vi.shell.nav.products, requires: null },
   { href: "/menu/categories", label: vi.shell.nav.categories, requires: null },
   { href: "/menu/availability", label: vi.shell.nav.availability, requires: null },
+  { href: "/settings", label: vi.shell.nav.settings, requires: "manage_settings" },
 ];
 
 /**

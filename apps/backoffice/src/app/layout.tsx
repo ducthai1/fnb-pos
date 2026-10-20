@@ -7,6 +7,7 @@ import "./backoffice-controls.css";
 import "./backoffice-table.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
+import "./backoffice-settings.css";
 
 export const metadata: Metadata = { title: vi.shell.appName };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };

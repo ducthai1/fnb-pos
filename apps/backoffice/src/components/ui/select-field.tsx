@@ -15,12 +15,14 @@ export function SelectField({
   choices,
   onChange,
   error,
+  disabled,
 }: {
   label: string;
   value: string;
   choices: readonly SelectChoice[];
   onChange: (value: string) => void;
   error?: string | undefined;
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -30,6 +32,7 @@ export function SelectField({
         id={id}
         className="bo-input"
         value={value}
+        disabled={disabled}
         aria-invalid={error === undefined ? undefined : true}
         onChange={(event) => onChange(event.target.value)}
       >
@@ -49,14 +52,21 @@ export function CheckField({
   label,
   checked,
   onChange,
+  disabled,
 }: {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <label className="bo-field--inline bo-wrap">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
+      />
       {label}
     </label>
   );

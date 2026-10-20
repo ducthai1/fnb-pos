@@ -28,6 +28,7 @@ export const VI_SHELL = {
     products: "Món",
     categories: "Danh mục",
     availability: "Hết món",
+    settings: "Cài đặt",
   },
   branchLabel: "Chi nhánh đang xem",
   branchesFailed: "Không tải được danh sách chi nhánh.",

@@ -1,0 +1,29 @@
+/* Settings, reports, day close, transfers and the floor plan. */
+
+.bo-switch-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.bo-switch[data-refused="true"] {
+  background: var(--bo-danger-bg);
+}
+
+.bo-setting-source {
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 0.875rem;
+}

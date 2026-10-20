@@ -58,6 +58,10 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     archiveProduct: unexpected("archiveProduct"),
     listSoldOut: unexpected("listSoldOut"),
     setAvailable: unexpected("setAvailable"),
+    getSettings: unexpected("getSettings"),
+    putSetting: unexpected("putSetting"),
+    clearSetting: unexpected("clearSetting"),
+    putWebhookSecret: unexpected("putWebhookSecret"),
   };
   return { ...base, ...overrides };
 }
