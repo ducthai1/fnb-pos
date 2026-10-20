@@ -104,7 +104,25 @@ export async function recordBatchOutcome(
   );
   const current = rows[0];
   const queued = current?.status === "pending" || current?.status === "failed_retryable";
-  if (current === undefined || !queued || current.attempts !== claimed.attempts) return "stale";
+  if (current === undefined || !queued || current.attempts !== claimed.attempts) {
+    // The provider took the batch after the row moved on: the receipt is kept for the
+    // person who checks the day's data went through once.
+    if (outcome.ok) {
+      await appendAudit(client, {
+        actor: { kind: "system" },
+        action: "einvoice.batch_submitted_after_lease",
+        entityKind: "einvoice_daily_batch",
+        entityId: claimed.id,
+        payload: {
+          reference: outcome.reference,
+          attempt: claimed.attempts,
+          rowAttempts: current?.attempts ?? null,
+          rowStatus: current?.status ?? null,
+        },
+      });
+    }
+    return "stale";
+  }
   if (outcome.ok) {
     await client.query(
       "UPDATE einvoice_daily_batch SET status = 'submitted', reference = $2, submitted_at = $3, " +

@@ -21,6 +21,19 @@ export const DEFAULT_EINVOICE_RETRY_POLICY: EInvoiceRetryPolicy = {
   leaseMs: 120_000,
 };
 
+/** The most a call's give-up time is kept clear of the lease's end. */
+const MAX_LEASE_MARGIN_MS = 20_000;
+
+/**
+ * How long the worker waits on the provider before giving the call up: the lease less a
+ * margin (a quarter of it, at most 20 s) for recording the outcome and for clocks of two
+ * API instances that differ a little, so the outcome is recorded while the row is still
+ * this worker's and no other worker sends it meanwhile.
+ */
+export function providerCallTimeoutMs(policy: EInvoiceRetryPolicy): number {
+  return policy.leaseMs - Math.min(MAX_LEASE_MARGIN_MS, Math.floor(policy.leaseMs / 4));
+}
+
 /** The wait after the `attempts`-th failed call (1 for the first). */
 export function retryDelayMs(policy: EInvoiceRetryPolicy, attempts: number): number {
   const doublings = Math.max(0, attempts - 1);

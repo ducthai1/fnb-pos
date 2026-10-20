@@ -20,6 +20,8 @@ export const EINVOICE_ERROR_CODES = {
 export const EINVOICE_FAILURE_CODES = {
   /** The provider threw instead of answering: a dropped connection, a timeout. */
   providerUnreachable: "EINVOICE_PROVIDER_UNREACHABLE",
+  /** The provider had not answered when the worker gave the call up, before its lease ran out. */
+  providerTimedOut: "EINVOICE_PROVIDER_TIMEOUT",
   /** Temporary failures went on past the retry limit: a person has to look. */
   attemptsExhausted: "EINVOICE_ATTEMPTS_EXHAUSTED",
 } as const;
