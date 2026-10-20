@@ -185,7 +185,7 @@ Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng c�
 5. `pnpm ops:preflight` (mục 11), đăng nhập backoffice, mở `/pos/` trên một máy quầy, bán thử một đơn tiền mặt rồi hoàn.
 6. Giữ 2–3 bản cũ trong `/srv/fnb/releases`, xóa bản cũ hơn.
 
-**Quay lui**: `sudo ln -sfn /srv/fnb/releases/<bản cũ> /srv/fnb/current && sudo systemctl restart fnb-api fnb-backoffice` — chỉ an toàn khi bản mới **không có migration**. Có migration thì code cũ có thể không chạy trên schema mới (preflight báo "database mới hơn code"); khi đó sửa tiến (bản vá) hoặc khôi phục backup của bước 1 (mất dữ liệu bán sau thời điểm đó trừ phần máy quầy còn giữ) — quyết với chủ quán, đừng tự làm.
+**Quay lui**: `sudo ln -sfn /srv/fnb/releases/<bản cũ> /srv/fnb/current && sudo systemctl restart fnb-api fnb-backoffice` — chỉ an toàn khi bản mới **không có migration**. Có migration thì code cũ có thể không chạy trên schema mới (preflight báo "database mới hơn code"); khi đó sửa tiến (bản vá) hoặc khôi phục backup của bước 1 (mất mọi thứ server nhận sau đó, và máy quầy phải xử lý tay — xem mục "Chưa xử lý" trong [`restore-drill.md`](restore-drill.md)) — quyết với chủ quán, đừng tự làm.
 
 ## 13. Checklist trước khi mở cho quán
 

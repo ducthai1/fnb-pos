@@ -44,11 +44,18 @@ Role này đọc được mọi thứ ⇒ mật khẩu chỉ nằm trong `PGPASS
 
 ## Khôi phục thật (server hỏng)
 
-1. Dựng server mới theo `README.md` tới hết bước `pnpm db:provision`.
-2. `pnpm ops:restore <file> --database fnb --replace-existing` (database `fnb` lúc này là bản rỗng do provision tạo).
+1. Dựng server mới theo `README.md` tới hết bước `pnpm db:provision`. API chưa bật (hoặc `sudo systemctl stop fnb-api fnb-backoffice`).
+2. `FNB_RESTORE_ADMIN_URL=<FNB_ADMIN_DATABASE_URL trong /etc/fnb/admin.env> pnpm ops:restore <file> --database fnb --replace-existing` (database `fnb` lúc này là bản rỗng do provision tạo).
 3. Chép lại `/etc/fnb/fnb-api.env` từ bản giữ riêng (đặc biệt `FNB_PAYMENT_SECRET_KEY`), `pnpm ops:preflight`, rồi mới bật API.
-4. Máy quầy: dữ liệu bán sau thời điểm backup vẫn nằm trong hàng đợi của máy (chưa đồng bộ thì chưa mất) — để máy tự đồng bộ lại; **không** ghép lại máy, không xóa dữ liệu trình duyệt/app. Kiểm tra chênh lệch ca/két của ngày xảy ra sự cố bằng tay.
-5. Mất dữ liệu tối đa = thời gian từ bản backup cuối (cron mỗi đêm ⇒ tới 24 giờ) trừ phần máy quầy còn giữ.
+4. Mất dữ liệu = mọi thứ server nhận sau giờ của bản backup (cron mỗi đêm ⇒ tới 24 giờ).
+
+**Chưa xử lý — máy quầy sau khi khôi phục (phải quyết trước khi mở bán thật):** database quay về quá khứ nhưng máy quầy thì không.
+
+- Lệnh máy đã gửi và server đã nhận sau giờ backup: máy coi là xong, **không gửi lại** ⇒ mất khỏi server (đơn, tiền, ca).
+- Số thứ tự lệnh của máy đi trước sổ lệnh của server ⇒ lệnh mới của máy có thể bị từ chối "sai thứ tự" mãi, máy kẹt đồng bộ.
+- Con trỏ kéo thay đổi (`change_seq`) của máy lớn hơn số của server sau khi khôi phục ⇒ máy bỏ lỡ thay đổi menu/giá/bàn cho tới khi số của server vượt qua.
+
+Cho tới khi có cơ chế (ví dụ "thế hệ server": khôi phục sinh mã mới, máy thấy mã đổi thì đẩy hết lệnh còn giữ rồi tải lại từ đầu), làm tay: ghi lại các đơn/phiếu ca in ra trong khoảng mất dữ liệu, xử lý lệnh còn chờ trên từng máy, rồi xóa dữ liệu cục bộ và ghép lại từng máy; nhập bù bằng tay những gì đã mất. (Cần đưa vào Backlog phát sinh.)
 
 ## Kết quả đo
 
