@@ -81,6 +81,7 @@ export function TableService(props: TableServiceProps) {
         {...props}
         key={phase.opening.order.orderId}
         opening={phase.opening}
+        areas={floor.occupancy?.areas ?? []}
         tables={floor.tables}
         preBilled={preBilled}
         onRecorded={onRecorded}

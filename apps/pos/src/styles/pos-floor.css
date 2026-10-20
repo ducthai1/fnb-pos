@@ -148,3 +148,15 @@
   margin: 0;
   font-size: 1.25rem;
 }
+
+.pos-floor-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pos-floor-area__name {
+  margin: 0;
+  font-size: 1.125rem;
+}

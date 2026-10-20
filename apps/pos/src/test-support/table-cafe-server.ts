@@ -1,9 +1,11 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
 import { DOMAIN_VERSION } from "@fnb/domain";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { expect } from "vitest";
+import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
 import { vi as text } from "../messages/vi";
-import { fakeServer } from "./fake-pos-server";
-import { LAN } from "./signed-in-till";
+import { CREDENTIAL, fakeDependencies, fakeServer, memoryCredentials } from "./fake-pos-server";
+import { LAN, signedInTill } from "./signed-in-till";
 import { MENU, tid, tillBootstrap, tillBootstrapWire } from "./till-fixtures";
 
 /** The café's floor: three tables downstairs, one in the garden. */
@@ -114,3 +116,40 @@ export async function openFloor() {
 export const tile = (tableId: string) =>
   document.querySelector<HTMLButtonElement>(`[data-table="${tableId}"]`);
 export const tileStatus = (tableId: string) => tile(tableId)?.getAttribute("data-table-status");
+
+/** A till of the café with Lan signed in, on the floor, its slips going to `printer`. */
+export async function tillOnTheFloor(
+  server: TableServer,
+  printer: PrinterPort = previewOnlyPrinter,
+) {
+  const credentials = memoryCredentials(CREDENTIAL).store;
+  await signedInTill(server, { deps: fakeDependencies(server, { credentials, printer }) });
+  await openFloor();
+  await waitFor(() => expect(tile(FLOOR.t1)).not.toBeNull());
+}
+
+/** Taps a table on the floor and waits for its order. */
+export async function openTable(tableId: string, name: string) {
+  fireEvent.click(tile(tableId)!);
+  await screen.findByRole("heading", { name: text.tables.order.title(name) });
+}
+
+export const tap = (name: string | RegExp) => fireEvent.click(screen.getByRole("button", { name }));
+
+/** Milk coffees with no extra shot, 29.000 each, added as one line. */
+export function addCoffees(count: number) {
+  tap(/^Cà phê sữa/);
+  for (let more = 1; more < count; more += 1) tap(text.sale.more("Cà phê sữa"));
+  tap(/^Thêm vào đơn/);
+}
+
+/** An L milk tea with 50% sugar, 45.000. */
+export function addMilkTea() {
+  tap(/^Trà sữa trân châu/);
+  tap("L");
+  tap("50% đường");
+  tap(/^Thêm vào đơn/);
+}
+
+export const pushedOf = (server: TableServer, type: string) =>
+  server.state.pushed.filter((command) => command.type === type);

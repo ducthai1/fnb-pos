@@ -105,7 +105,9 @@ describe("the floor of a branch that serves at tables", () => {
       tableTag: null,
       lines: [expect.objectContaining({ productId: MENU.coffee, quantity: "1" })],
     });
+    // The coffee was not sent to the bar: leaving asks first.
     tap(text.tables.order.backToFloor);
+    tap(text.tables.order.leaveAnyway);
     await waitFor(() => expect(tileStatus(FLOOR.t1)).toBe("occupied"));
     expect(tile(FLOOR.t1)?.textContent).toContain(money(29_000));
   });

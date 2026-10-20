@@ -62,7 +62,6 @@ export const VI_TABLES = {
   transfer: {
     title: (table: string) => `Chuyển khách bàn ${table}`,
     hint: "Chọn một bàn trống. Món đã gửi bếp đi theo khách, không in lại.",
-    target: (table: string) => `Chuyển sang bàn ${table}`,
     occupied: (table: string) =>
       `Bàn ${table} đang có khách. Máy chưa gộp được hai bàn: chọn một bàn trống, hoặc thanh toán riêng từng bàn.`,
     noFreeTable: "Không còn bàn trống nào ở chi nhánh.",
