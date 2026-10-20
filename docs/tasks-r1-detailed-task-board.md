@@ -6,6 +6,8 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-21 05:15 — **Kết thúc đêm.** Báo cáo cho chủ dự án: `reports/progress-report-2026-10-21.md` (chờ duyệt §6). Đã merge + push `65c6b7f`: làn giao diện (4 chặng, 1,96M token, 104 commit — nền thiết kế, POS, backoffice, nhập/xuất menu Excel; ảnh trước/sau ở `~/FileMySelf/FNB-POS/ui-screenshots-2026-10-21/`), bàn × 2 máy (D-069, D-070), sửa lỗi gộp nhánh (sơ đồ bàn từ bootstrap thiếu `layout`). Cổng: unit 2.593 · `test:api` 1.653 · `test:sync` 20 · `test:browser` 130 · build — xanh. Đợt tiếp đề xuất: review vòng 4 (giao diện + khôi phục + bàn × 2 máy) và mã hàng SKU — CHỜ chủ dự án chọn.
+
 - 2026-10-21 04:10 — Sửa "khôi phục backup làm máy quầy lệch" (1 agent, 0,37M token) đã merge `557c5ca`: thế hệ server (D-068, migration 0030), máy gửi lại lệnh server thiếu + kéo lại từ đầu, POS báo "máy chủ vừa được khôi phục". Cổng: unit 2.430 · `test:api` 1.653 · `test:sync` 20 · `test:browser` 94 · build — xanh. Làn UI đang ở chặng 4 (nhập Excel).
 
 - 2026-10-21 03:25 — Vận hành cho quán thí điểm (1 agent, 0,43M token) đã merge `9071dae`: giới hạn tần suất (D-065), dọn mã ghép/phiên hết hạn (D-066, migration 0029), `pnpm ops:backup|ops:restore|ops:preflight|test:ops|build:server` + `infra/` hướng dẫn deploy 1 server Ubuntu (systemd + Caddy + Postgres 17, POS ở `/pos/`) + diễn tập khôi phục đo được (D-067). CI GitHub đỏ từ c86358c do 2 e2e đọc DB quá sớm ⇒ sửa `b856a1d` (luật test 36), CI xanh lại. Cổng sau merge: unit 2.401 · `test:api` 1.646 · `test:sync` 17 · `test:browser` 92 · build — xanh. **GẤP trước khi mở bán:** khôi phục backup làm máy quầy lệch server (backlog) ⇒ đang làm cơ chế "thế hệ server".
