@@ -24,6 +24,7 @@
 | [architecture-and-stack-decision.md](architecture-and-stack-decision.md) | stack, đồng bộ, in ấn, thanh toán, bảo mật |
 | `research/research-a…f-*.md` | bằng chứng từ các hệ thống thật (Toast, Square, Odoo code, CukCuk API…) |
 | `research/pilot-cafe-profile.md` | hồ sơ quán thí điểm (T00-01) |
+| `research/review-wave-*-findings.md` | các vòng review sâu (1–2, 3–7, 8–9d): phát hiện + kịch bản + cách sửa |
 | `reports/progress-report-*.md` | báo cáo tiến độ gửi chủ dự án duyệt (số liệu, mức kiểm chứng, quyết định chờ chốt, kế hoạch đợt tiếp) |
 
 ## Khi nào cập nhật file nào
