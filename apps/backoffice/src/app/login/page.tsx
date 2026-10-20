@@ -9,9 +9,10 @@ export default function LoginPage() {
   return (
     <div className="bo-page-center">
       <LoginForm
-        onSignedIn={() =>
-          router.replace(safeReturnPath(new URLSearchParams(window.location.search).get("next")))
-        }
+        onSignedIn={() => {
+          const next = new URLSearchParams(window.location.search).get("next");
+          router.replace(safeReturnPath(next, window.location.origin));
+        }}
       />
     </div>
   );
