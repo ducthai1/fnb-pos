@@ -1,4 +1,13 @@
+import {
+  ArrowRightLeft,
+  ChefHat,
+  LayoutGrid,
+  type LucideIcon,
+  ReceiptText,
+  Wallet,
+} from "lucide-react";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 
 const T = vi.tables.order;
 
@@ -21,13 +30,15 @@ export interface TableOrderActionsProps {
 /** What can be done with a table's order: send the new round, pre-bill, pay, move, leave. */
 export function TableOrderActions(props: TableOrderActionsProps) {
   const { owedUnits, billable, blocked } = props;
-  const button = (label: string, onClick: () => void, disabled: boolean, primary = false) => (
-    <button
-      type="button"
-      className={primary ? "pos-button pos-button--primary" : "pos-button"}
-      disabled={disabled}
-      onClick={onClick}
-    >
+  const button = (
+    label: string,
+    onClick: () => void,
+    disabled: boolean,
+    tone: string,
+    glyph: LucideIcon,
+  ) => (
+    <button type="button" className={`pos-button ${tone}`} disabled={disabled} onClick={onClick}>
+      <Icon of={glyph} />
       {label}
     </button>
   );
@@ -37,12 +48,20 @@ export function TableOrderActions(props: TableOrderActionsProps) {
         owedUnits > 0 ? T.sendToKitchen(owedUnits) : T.nothingToSend,
         props.onSend,
         blocked || owedUnits === 0,
-        true,
+        "pos-button--info pos-table-actions__send",
+        ChefHat,
       )}
-      {button(T.preBill, props.onPreBill, blocked || !billable)}
-      {button(T.pay, props.onPay, blocked || !billable, true)}
-      {button(T.transfer, props.onTransfer, blocked || !props.saved)}
+      {button(T.preBill, props.onPreBill, blocked || !billable, "pos-button--amber", ReceiptText)}
+      {button(
+        T.pay,
+        props.onPay,
+        blocked || !billable,
+        "pos-button--primary pos-button--lg pos-table-actions__pay",
+        Wallet,
+      )}
+      {button(T.transfer, props.onTransfer, blocked || !props.saved, "", ArrowRightLeft)}
       <button type="button" className="pos-button pos-button--quiet" onClick={props.onBack}>
+        <Icon of={LayoutGrid} />
         {T.backToFloor}
       </button>
     </>

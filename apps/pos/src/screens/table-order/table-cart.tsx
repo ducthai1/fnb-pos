@@ -1,10 +1,13 @@
 import type { OrderLine } from "@fnb/domain";
+import { ChefHat, CircleDashed, ShoppingBag } from "lucide-react";
 import type { ReactNode } from "react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CartView } from "../../features/order/cart-view";
 import type { CounterOrder } from "../../features/order/counter-order";
 import type { KeptLines } from "../../features/order/price-counter-order";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
+import { EmptyState } from "../shared/state-view";
 import {
   CartRow,
   type CartPanelProps,
@@ -35,6 +38,7 @@ export interface TableCartProps extends Pick<CartPanelProps, "onQuantity" | "onR
 function Badge({ sent }: { sent: boolean }) {
   return (
     <span className={sent ? "pos-badge pos-badge--sent" : "pos-badge pos-badge--unsent"}>
+      <Icon of={sent ? ChefHat : CircleDashed} size={16} />
       {sent ? T.sent : T.unsent}
     </span>
   );
@@ -50,8 +54,8 @@ export function TableCart(props: TableCartProps) {
         <strong>{T.tableLabel(order.table?.name ?? "")}</strong> ·{" "}
         {S.orderNumber(order.deviceOrderNo)}
       </p>
-      {order.lines.length === 0 ? <p className="pos-hint">{S.cartEmpty}</p> : null}
-      <ul className="pos-list">
+      {order.lines.length === 0 ? <EmptyState icon={ShoppingBag} title={S.cartEmpty} /> : null}
+      <ul className="pos-list pos-cart__lines">
         {order.lines.map((line) => {
           const sent = props.sentIds.has(line.lineId);
           const badge = sent || owed.has(line.lineId) ? <Badge sent={sent} /> : null;
@@ -70,11 +74,13 @@ export function TableCart(props: TableCartProps) {
           );
         })}
       </ul>
-      <CartTotals view={view} />
-      {on.adjust === undefined || order.lines.length === 0 ? null : (
-        <OrderTools adjust={on.adjust} />
-      )}
-      <div className="pos-table-actions">{actions}</div>
+      <div className="pos-cart__foot">
+        <CartTotals view={view} />
+        {on.adjust === undefined || order.lines.length === 0 ? null : (
+          <OrderTools adjust={on.adjust} />
+        )}
+        <div className="pos-table-actions">{actions}</div>
+      </div>
     </section>
   );
 }
