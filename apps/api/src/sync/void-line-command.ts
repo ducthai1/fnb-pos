@@ -9,6 +9,7 @@ import {
 } from "@fnb/domain";
 import { approvalIdOf, redeemApproval } from "./approval-redemption";
 import { readDeviceOrderSettings } from "./device-order-settings";
+import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
 import { touchOrder } from "./draft-order-writes";
 import { draftOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
@@ -20,7 +21,9 @@ import { defineSyncCommand } from "./sync-command-definition";
  * order.void_line: cancels units of a sold item on a draft, through the domain's voidLine
  * on the order the server holds; the cancel line, if any, is built here, never taken from
  * the till. Units the kitchen has are taken last and, where the branch asks for it, need
- * an approver unless the staff member may cancel them alone. Returns the order id.
+ * an approver unless the staff member may cancel them alone. Fewer goods under the same
+ * order discount make it a larger share of the bill, so a void is judged by the same rule
+ * as a save that takes goods off. Returns the order id.
  */
 async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePayload) {
   const { client, device, staffId } = context;
@@ -50,6 +53,7 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
       : await redeemApproval(context, approvalId, { key: "void_after_sent" });
   // Without an approver where one is needed, the domain refuses with its own code.
   const { order, record } = voidLine(stored.order, request(approvedBy, needsApprover));
+  await refuseRaisedOrderDiscount(context, stored.order.lines, order.lines);
   const write = { tenantId: device.tenantId, orderId: order.id, staffId };
   await writeOrderLines(client, write, stored.order.lines, order.lines);
   await client.query(
