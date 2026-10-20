@@ -41,7 +41,46 @@ export function DiscountScreen(props: DiscountScreenProps) {
   }
 
   return (
-    <ScreenFrame title={props.title}>
+    <ScreenFrame
+      title={props.title}
+      dock={
+        <>
+          {preview === null ? null : "refused" in preview ? (
+            <Alert message={preview.refused} />
+          ) : (
+            <p className="pos-total" data-discount-due={String(preview.amountDue)}>
+              {T.preview(formatVnd(preview.discount), formatVnd(preview.amountDue))}
+            </p>
+          )}
+          <Alert message={error} />
+          <div className="pos-actions">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {vi.adjust.back}
+            </button>
+            {remove === undefined ? null : (
+              <button
+                type="button"
+                className="pos-button"
+                disabled={busy}
+                onClick={() => void run(remove)}
+              >
+                {T.remove}
+              </button>
+            )}
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy || preview === null || "refused" in preview}
+              onClick={() => {
+                if (input !== null) void run(() => props.onConfirm(input));
+              }}
+            >
+              {T.confirm}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <div className="pos-tabs" role="group" aria-label={props.title}>
         {(["percent", "amount"] as const).map((each) => (
@@ -87,39 +126,6 @@ export function DiscountScreen(props: DiscountScreenProps) {
         />
       </label>
       {typed !== "" && input === null ? <Alert message={T.unreadable} /> : null}
-      {preview === null ? null : "refused" in preview ? (
-        <Alert message={preview.refused} />
-      ) : (
-        <p className="pos-total" data-discount-due={String(preview.amountDue)}>
-          {T.preview(formatVnd(preview.discount), formatVnd(preview.amountDue))}
-        </p>
-      )}
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {vi.adjust.back}
-        </button>
-        {remove === undefined ? null : (
-          <button
-            type="button"
-            className="pos-button"
-            disabled={busy}
-            onClick={() => void run(remove)}
-          >
-            {T.remove}
-          </button>
-        )}
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy || preview === null || "refused" in preview}
-          onClick={() => {
-            if (input !== null) void run(() => props.onConfirm(input));
-          }}
-        >
-          {T.confirm}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

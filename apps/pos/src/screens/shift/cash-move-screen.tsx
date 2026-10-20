@@ -2,6 +2,7 @@ import { type Vnd, formatVnd } from "@fnb/domain";
 import { type ReactNode, useState } from "react";
 import { typedAmount } from "../../features/payment/cash-suggestions";
 import { vi } from "../../messages/vi";
+import { CashKeypad } from "../payment/cash-keypad";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 
 const C = vi.cash;
@@ -29,7 +30,42 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
   const valid = amount !== null && amount > 0n;
   const said = reason.trim();
   return (
-    <ScreenFrame title={C.title}>
+    <ScreenFrame
+      title={C.title}
+      dock={
+        <>
+          {valid ? (
+            <p
+              className="pos-total"
+              data-expected-after={String(props.expectedAfter(kind, amount))}
+            >
+              {C.expectedAfter(formatVnd(props.expectedAfter(kind, amount)))}
+            </p>
+          ) : null}
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {C.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy || !valid || said === ""}
+              onClick={() => {
+                if (!valid) return;
+                setBusy(true);
+                void props.onConfirm(kind, amount, said).then((refused) => {
+                  setBusy(false);
+                  setError(refused);
+                });
+              }}
+            >
+              {valid ? C.confirm(kind, formatVnd(amount)) : C.confirm(kind, "")}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       {props.notice ? (
         <p className="pos-notice" role="status">
@@ -58,6 +94,7 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
           onChange={(event) => setTyped(event.target.value)}
         />
       </label>
+      <CashKeypad typed={typed} onChange={setTyped} />
       {typed !== "" && !valid ? <Alert message={C.unreadable} /> : null}
       <label className="pos-field">
         <span className="pos-field__label">{C.reason}</span>
@@ -69,32 +106,6 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
           onChange={(event) => setReason(event.target.value)}
         />
       </label>
-      {valid ? (
-        <p className="pos-total" data-expected-after={String(props.expectedAfter(kind, amount))}>
-          {C.expectedAfter(formatVnd(props.expectedAfter(kind, amount)))}
-        </p>
-      ) : null}
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {C.back}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy || !valid || said === ""}
-          onClick={() => {
-            if (!valid) return;
-            setBusy(true);
-            void props.onConfirm(kind, amount, said).then((refused) => {
-              setBusy(false);
-              setError(refused);
-            });
-          }}
-        >
-          {valid ? C.confirm(kind, formatVnd(amount)) : C.confirm(kind, "")}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

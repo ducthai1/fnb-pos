@@ -38,7 +38,34 @@ export function RefundScreen(props: RefundScreenProps) {
   const payout = preview !== null && "payout" in preview ? preview.payout : null;
   const nothingLeft = props.lines.every((line) => line.refundable === 0);
   return (
-    <ScreenFrame title={R.title(props.orderNo)}>
+    <ScreenFrame
+      title={R.title(props.orderNo)}
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {R.backToHistory}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy || payout === null || reason === null}
+              onClick={() => {
+                if (reason === null) return;
+                setBusy(true);
+                void props.onConfirm(chosen, reason, method).then((refused) => {
+                  setBusy(false);
+                  setError(refused);
+                });
+              }}
+            >
+              {payout === null ? R.nothingChosen : R.confirm(formatVnd(payout))}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <p className="pos-hint">{nothingLeft ? R.nothingLeft : R.hint}</p>
       <ul className="pos-list">
@@ -82,27 +109,6 @@ export function RefundScreen(props: RefundScreenProps) {
         <p className="pos-hint">{method === REFUND_METHODS.cash ? R.cashNote : R.transferNote}</p>
       </fieldset>
       <ReasonPicker reasons={REFUND_REASONS} chosen={reason} onChoose={setReason} />
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {R.backToHistory}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy || payout === null || reason === null}
-          onClick={() => {
-            if (reason === null) return;
-            setBusy(true);
-            void props.onConfirm(chosen, reason, method).then((refused) => {
-              setBusy(false);
-              setError(refused);
-            });
-          }}
-        >
-          {payout === null ? R.nothingChosen : R.confirm(formatVnd(payout))}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

@@ -17,31 +17,37 @@ export function CancelOrderScreen(props: {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <ScreenFrame title={T.title(props.orderNo)}>
+    <ScreenFrame
+      title={T.title(props.orderNo)}
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {vi.adjust.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--destructive"
+              disabled={busy || reason === null}
+              onClick={() => {
+                if (reason === null) return;
+                setBusy(true);
+                void props.onConfirm(reason).then((refused) => {
+                  setBusy(false);
+                  setError(refused);
+                });
+              }}
+            >
+              {T.confirm}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <p className="pos-hint">{T.hint}</p>
       <ReasonPicker reasons={CANCEL_REASONS} chosen={reason} onChoose={setReason} />
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {vi.adjust.back}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy || reason === null}
-          onClick={() => {
-            if (reason === null) return;
-            setBusy(true);
-            void props.onConfirm(reason).then((refused) => {
-              setBusy(false);
-              setError(refused);
-            });
-          }}
-        >
-          {T.confirm}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

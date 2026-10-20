@@ -85,6 +85,14 @@
   font-weight: var(--fw-semibold);
 }
 
+/* Confirming something that cannot be taken back: a void, cancelling an order. */
+.pos-button--destructive {
+  border-color: var(--c-danger);
+  background: var(--c-danger);
+  color: var(--c-on-danger);
+  font-weight: var(--fw-semibold);
+}
+
 .pos-button--danger {
   border-color: var(--c-danger);
   background: var(--c-surface);
