@@ -110,6 +110,42 @@ importers:
         specifier: 3.2.7
         version: 3.2.7(@types/node@22.20.3)(jsdom@29.1.1)
 
+  e2e:
+    devDependencies:
+      '@fnb/api':
+        specifier: workspace:*
+        version: link:../apps/api
+      '@fnb/db':
+        specifier: workspace:*
+        version: link:../packages/db
+      '@fnb/pos':
+        specifier: workspace:*
+        version: link:../apps/pos
+      '@fnb/sync-client':
+        specifier: workspace:*
+        version: link:../packages/sync-client
+      '@types/node':
+        specifier: 22.20.3
+        version: 22.20.3
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
+      playwright-core:
+        specifier: 1.64.1
+        version: 1.64.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 6.4.4
+        version: 6.4.4(@types/node@22.20.3)
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@22.20.3)(jsdom@29.1.1)
+
   packages/contracts:
     dependencies:
       '@fnb/domain':

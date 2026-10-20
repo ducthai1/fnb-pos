@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./messages/vi": "./src/messages/vi.ts",
+    "./test-support/hostile-names": "./src/test-support/hostile-names.ts",
+    "./test-support/measure-screen-overflow": "./test/browser/support/measure-screen-overflow.ts"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
