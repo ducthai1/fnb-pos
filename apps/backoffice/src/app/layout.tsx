@@ -26,6 +26,7 @@ import "./backoffice-cells.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
 import "./backoffice-settings.css";
+import "./backoffice-login.css";
 
 export const metadata: Metadata = { title: vi.shell.appName };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };

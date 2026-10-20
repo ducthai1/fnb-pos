@@ -12,6 +12,12 @@ export const VI_LOGIN = {
   chooseOrganizationHint: "Tài khoản này thuộc nhiều tổ chức. Chọn nơi bạn muốn vào.",
   enterOrganization: (name: string) => `Vào ${name}`,
   back: "Đăng nhập tài khoản khác",
+  asideTitle: "Quản lý quán từ một nơi",
+  asidePoints: [
+    "Máy quầy bán tại quầy và tại bàn, vẫn bán được khi mất mạng.",
+    "Tiền mặt và chuyển khoản QR tự xác nhận, hoàn tiền có duyệt.",
+    "Doanh thu ngày, chốt ngày và hóa đơn điện tử ngay tại đây.",
+  ],
 } as const;
 
 export const VI_SHELL = {
