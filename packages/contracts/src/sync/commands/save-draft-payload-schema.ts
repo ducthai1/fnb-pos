@@ -44,6 +44,14 @@ export const saveDraftPayloadSchema = z
     lines: z.array(lineIntentSchema).max(200),
     /** A manager's approval for open prices the staff member may not type alone. */
     approvalId: uuidSchema.optional(),
+    /**
+     * The version of the order this draft was edited from (0 for one the till opens now).
+     * Sent, the server saves only over that version and refuses the draft when the order
+     * moved on (another till added to the table), so nothing the other till added is lost;
+     * the till pulls the order and redoes its change. Left out, the draft replaces what
+     * the server holds, as tills that do not send it expect.
+     */
+    expectedVersion: z.number().int().nonnegative().safe().optional(),
   })
   .superRefine((draft, context) => {
     // Only reads fields already checked above as present: no parsing of possibly bad input.

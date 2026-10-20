@@ -2,8 +2,10 @@ import type { PosBootstrapWire } from "@fnb/contracts";
 import type pg from "pg";
 import { readDeviceConfigSnapshot } from "../../configuration/device-config-snapshot";
 import type { DeviceAuth } from "../../devices/device-auth-hook";
+import { readBranchFloor } from "../../floor/announce-floor-to-tills";
 import { feedVersionOf, readBranchCursor } from "../../sync/change-feed";
 import { readBootstrapMenu } from "./bootstrap-menu";
+import { readOpenOrders } from "./bootstrap-open-orders";
 
 interface PlaceRow {
   device_name: string;
@@ -59,6 +61,8 @@ export async function readPosBootstrap(
       now,
       version,
     ),
+    openOrders: await readOpenOrders(client, device.branchId),
+    floor: await readBranchFloor(client, device.branchId),
   };
 }
 

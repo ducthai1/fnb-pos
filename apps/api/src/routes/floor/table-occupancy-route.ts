@@ -34,7 +34,7 @@ export function registerTableOccupancyRoute(app: FastifyInstance, context: ApiCo
         [device.branchId],
       ),
       tables: await client.query<OccupiedRow>(
-        `SELECT ${DINING_TABLE_COLUMNS}, o.id AS order_id, o.created_at AS opened_at, ` +
+        `SELECT ${DINING_TABLE_COLUMNS}, o.id AS order_id, coalesce(o.opened_at, o.created_at) AS opened_at, ` +
           "o.pre_bill_printed_version = o.version AS pre_bill_current " +
           "FROM dining_table t JOIN area a ON a.id = t.area_id " +
           "LEFT JOIN sales_order o ON o.table_id = t.id AND o.status = 'draft' " +

@@ -12,6 +12,10 @@ describe("error code to Vietnamese sentence", () => {
     ["API_CATALOG_VERSION_CONFLICT", /Có người đã sửa/],
     ["API_STAFF_PIN_TOO_WEAK", /PIN quá dễ đoán/],
     ["API_ROLE_LAST_ADMINISTRATOR", /quản lý nhân viên/],
+    ["API_ORIGIN_NOT_ALLOWED", /không nhận yêu cầu từ địa chỉ trang này/],
+    ["API_STAFF_PIN_NOT_LOCKED", /không bị khóa/],
+    ["API_ROLE_ARCHIVED", /đã lưu trữ/],
+    ["API_PAYMENT_ALREADY_HANDED_BACK", /đã hoàn cho khách/],
     ["DOMAIN_CATALOG_MIN_SELECT_ABOVE_MAX_SELECT", /tối thiểu đang lớn hơn số tối đa/],
     ["DOMAIN_CATALOG_UNSATISFIABLE_MODIFIER_GROUP", /không thể chọn đủ/],
   ])("says what %s means", (code, sentence) => {

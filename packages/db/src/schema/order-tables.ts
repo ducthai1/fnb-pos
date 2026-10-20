@@ -52,6 +52,8 @@ export const salesOrder = pgTable("sales_order", {
   paidAtDevice: timestamp("paid_at_device", { withTimezone: true }),
   /** When the server received the payment. */
   paidReceivedAt: timestamp("paid_received_at", { withTimezone: true }),
+  /** When the order was opened, as the server decided it; see 0027. */
+  openedAt: timestamp("opened_at", { withTimezone: true }),
   /** What the customer asked to be printed on the invoice, while a draft. */
   einvoiceBuyer: jsonb("einvoice_buyer"),
   /** Paid into a business day already closed; set by the database, see 0022. */

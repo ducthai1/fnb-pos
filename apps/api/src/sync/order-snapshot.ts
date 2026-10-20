@@ -77,6 +77,8 @@ export function orderSnapshotOf(stored: StoredOrder): OrderSnapshot {
     tableName: stored.tableName,
     tableTag: stored.tableTag,
     preBillPrinted: stored.preBillPrinted,
+    preBillPrintedVersion: stored.preBillPrintedVersion,
+    openedAt: stored.openedAt.toISOString(),
     reasonCode: stored.reasonCode,
     chargeProfile: chargeProfileToSnapshot(stored.chargeProfile),
     // A refund's totals are read from these amounts, so a till needs them to show it.

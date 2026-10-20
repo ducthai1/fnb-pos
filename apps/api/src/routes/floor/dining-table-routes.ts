@@ -5,6 +5,7 @@ import type pg from "pg";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { insertCatalogRow, updateCatalogRow } from "../../catalog/catalog-row-writes";
+import { announceFloorRow } from "../../floor/announce-floor-to-tills";
 import { requireBranch } from "./area-routes";
 import { FLOOR_API_ERROR_CODES } from "./floor-api-error-codes";
 import {
@@ -94,6 +95,7 @@ export function registerDiningTableRoutes(app: FastifyInstance, context: ApiCont
           }
           await updateCatalogRow(client, "dining_table", writer, id, cells);
         }
+        await announceFloorRow(client, writer.tenantId, area.branch_id, { kind: "table", id });
         return { created: stored === undefined, row: await readTable(client, id) };
       });
       return reply.code(saved.created ? 201 : 200).send(diningTableView(saved.row!));
@@ -107,10 +109,13 @@ export function registerDiningTableRoutes(app: FastifyInstance, context: ApiCont
       const { id } = parseOrReject(floorIdParamsSchema, request.params);
       const writer = floorWriterOf(request, context);
       const outcome = await withTenant(context.pool, writer.tenantId, async (client) => {
-        if ((await readTable(client, id, "FOR UPDATE OF t")) === undefined) {
+        const stored = await readTable(client, id, "FOR UPDATE OF t");
+        if (stored === undefined) {
           throw new FloorRequestError(404, FLOOR_API_ERROR_CODES.tableNotFound);
         }
-        return removeOrArchiveTable(client, writer, id);
+        const outcome = await removeOrArchiveTable(client, writer, id);
+        await announceFloorRow(client, writer.tenantId, stored.branch_id, { kind: "table", id });
+        return outcome;
       });
       return reply.send({ id, outcome });
     }),

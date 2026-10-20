@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { countSchema, idSchema } from "../catalog/catalog-schema-parts";
+import { entitySnapshotSchema } from "../sync/entity-snapshot-schema";
 import { posDeviceConfigSchema } from "./pos-device-config-schema";
+import { posFloorPlanSchema } from "./pos-floor-schemas";
 import { feedCursorSchema } from "./pos-feed-version-schema";
 import {
   posAvailabilitySchema,
@@ -70,6 +72,13 @@ export const posBootstrapSchema = z
         availability: z.array(posAvailabilitySchema),
       })
       .strict(),
+    /**
+     * The branch's drafts still open, each the change feed's order snapshot: a till paired
+     * while guests sit at a table can open their order. Optional for servers that send none.
+     */
+    openOrders: z.array(entitySnapshotSchema).optional(),
+    /** The branch's floor plan, kept current by the floor_area and floor_table feed. */
+    floor: posFloorPlanSchema.optional(),
   })
   .strict();
 

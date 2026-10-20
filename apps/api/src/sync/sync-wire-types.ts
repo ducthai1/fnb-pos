@@ -131,6 +131,13 @@ export interface OrderSnapshot {
   readonly tableTag: string | null;
   /** The table's status reads this: a draft at a table whose pre-bill is current waits to pay. */
   readonly preBillPrinted: boolean;
+  /**
+   * The version the last pre-bill was printed for (null: none yet). Below `version`, the
+   * order changed after its pre-bill, which every till can tell, not only one that saw it.
+   */
+  readonly preBillPrintedVersion: number | null;
+  /** When the order was opened, by the server's reading of the till's time. */
+  readonly openedAt: string;
   readonly reasonCode: string | null;
   readonly chargeProfile: ChargeProfileSnapshot;
   readonly refundAmounts: RefundAmountsSnapshot | null;

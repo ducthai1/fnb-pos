@@ -1,4 +1,8 @@
-import { type SaveDraftPayload, saveDraftPayloadSchema } from "@fnb/contracts";
+import {
+  SYNC_ORDER_VERSION_ERROR_CODES,
+  type SaveDraftPayload,
+  saveDraftPayloadSchema,
+} from "@fnb/contracts";
 import { assertLinesEditable, validateLineTree } from "@fnb/domain";
 import { readDeviceOrderSettings } from "./device-order-settings";
 import { itemsAdding, newlyTypedPrices, refuseSoldOut } from "./draft-additions";
@@ -20,13 +24,19 @@ import { TABLE_SYNC_ERROR_CODES } from "./table-sync-error-codes";
  * or saved again. Any till of the branch may edit a draft (orders follow the table, not the
  * till); one of another branch may not touch it. Lines are kept by id, so what cancel lines,
  * void records and the kitchen point at stays put. A draft opened at a table holds it until
- * paid or cancelled; a second order opened there is refused. Returns the order id.
+ * paid or cancelled; a second order opened there is refused. A draft naming the version
+ * it was edited from is saved only over that version. Returns the order id.
  */
 async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload) {
   const { client, device, staffId, branch, time } = context;
   const existing = await readStoredOrder(client, payload.orderId, true);
   if (existing !== null && existing.branchId !== device.branchId) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
+  }
+  // Checked on the locked row, so of two tills saving over one version only the first does.
+  const expected = payload.expectedVersion;
+  if (expected !== undefined && expected !== (existing?.order.version ?? 0)) {
+    throw new CommandRejection(SYNC_ORDER_VERSION_ERROR_CODES.orderVersionStale);
   }
   if (existing !== null) assertLinesEditable(existing.order);
   if (existing !== null && existing.tableId !== payload.tableId) {
@@ -58,7 +68,15 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
       payload.tableId === null
         ? null
         : await seatableTable(client, device.branchId, payload.tableId);
-    const header = [device, payload, time.businessDate, staffId, chargeProfile, table] as const;
+    const header = [
+      device,
+      payload,
+      time.businessDate,
+      staffId,
+      chargeProfile,
+      table,
+      time.effectiveAt,
+    ] as const;
     if (!(await seatingAtTable(() => insertDraftHeader(client, ...header)))) {
       throw new CommandRejection(SYNC_ERROR_CODES.deviceOrderNoTaken);
     }
