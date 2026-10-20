@@ -1,0 +1,63 @@
+/* The floor plan editor: tables drawn where they stand on a dotted floor, moved by drag. */
+
+.bo-plan {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background-color: var(--c-surface-2);
+  background-image: radial-gradient(var(--c-border) 1px, transparent 1px);
+  background-size: 16px 16px;
+  touch-action: none;
+}
+
+.bo-plan__table {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 2px;
+  overflow: hidden;
+  border: 2px solid var(--c-brand);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.bo-plan__table[data-shape="circle"] {
+  border-radius: 50%;
+}
+
+.bo-plan__table[data-dragging] {
+  z-index: 2;
+  border-color: var(--c-brand-strong);
+  background: var(--c-brand-soft);
+  box-shadow: var(--shadow-raised);
+  cursor: grabbing;
+}
+
+.bo-plan__table:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-plan__name {
+  max-width: 100%;
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.bo-plan__seats {
+  color: var(--c-text-3);
+}

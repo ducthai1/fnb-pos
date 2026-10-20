@@ -17,6 +17,7 @@ import "./backoffice-hours-chart.css";
 import "./backoffice-home.css";
 import "./backoffice-report.css";
 import "./backoffice-day-close.css";
+import "./backoffice-floor-plan.css";
 import "./backoffice-notices.css";
 import "./backoffice-states.css";
 import "./backoffice-table.css";

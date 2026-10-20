@@ -28,4 +28,9 @@ export const VI_FLOOR = {
   removeTableTitle: (name: string) => `Xóa bàn ${name}?`,
   nameInvalid: (max: number) => `Nhập tên, tối đa ${max} ký tự.`,
   seatsInvalid: "Số ghế từ 1 đến 99.",
+  planTitle: (area: string) => `Sơ đồ ${area}`,
+  planHint: "Kéo bàn tới chỗ của nó, hoặc chọn bàn rồi bấm phím mũi tên (giữ Shift để đi xa hơn). Mỗi lần thả được lưu ngay; máy quầy vẽ sơ đồ theo vị trí này.",
+  moveTable: (name: string, seats: number) => `${name}, ${seats} ghế. Kéo hoặc dùng phím mũi tên để dời`,
+  moved: (name: string) => `Đã dời ${name}.`,
+  seatsShort: (seats: number) => `${seats} ghế`,
 } as const;
