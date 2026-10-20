@@ -16,3 +16,12 @@ export {
   type PaymentIntentSnapshot,
   paymentIntentSnapshotSchema,
 } from "./payment-intent-snapshot-schema";
+export {
+  type UnmatchedPayments,
+  type UnmatchedTransfer,
+  matchPaymentBodySchema,
+  unmatchedPaymentsQuerySchema,
+  unmatchedPaymentsSchema,
+  unmatchedTransferSchema,
+  webhookSecretBodySchema,
+} from "./payment-backoffice-schemas";
