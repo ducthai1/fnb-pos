@@ -15,10 +15,15 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm verify
-      - run: pnpm test:api
-      - run: pnpm test:sync
+      - run: pnpm typecheck
+      - run: pnpm lint
+      # A hosted runner is several times slower than a dev machine. Run one package's tests
+      # at a time so the property suites are not starved into timeouts, and keep going past a
+      # failure so one run shows every red package.
+      - run: pnpm exec turbo run test:unit --concurrency=1 --continue
+      - run: pnpm exec turbo run test:api --concurrency=1 --continue
+      - run: pnpm exec turbo run test:sync --concurrency=1
       # Headless runs of the machine's Chrome (ubuntu-latest ships it at /usr/bin/google-chrome)
       # against the real API on an embedded Postgres; no browser download, no Docker.
-      - run: pnpm e2e
+      - run: pnpm exec turbo run test:browser --concurrency=1
       - run: pnpm build
