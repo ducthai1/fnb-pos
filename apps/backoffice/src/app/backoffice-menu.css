@@ -1,0 +1,81 @@
+/* The menu pages and the product editor: the form, with the preview beside it on a
+   computer and under it on a phone. */
+
+.bo-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .bo-editor {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  }
+}
+
+.bo-fieldset-card {
+  margin: 0;
+}
+
+.bo-fieldset-card > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.bo-fieldset-card > legend + * {
+  clear: both;
+}
+
+.bo-group-card {
+  border-left: 4px solid var(--bo-primary);
+}
+
+.bo-group-card[data-error="true"],
+.bo-entry[data-error="true"] {
+  border-color: var(--bo-danger);
+}
+
+/* An option, a size or a size rule: its fields side by side while they fit, then wrapped. */
+.bo-entry {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--bo-border);
+}
+
+.bo-entry > .bo-field__error {
+  flex-basis: 100%;
+}
+
+.bo-row > .bo-field--narrow {
+  flex: 0 1 120px;
+}
+
+.bo-grow {
+  flex: 1 1 auto;
+}
+
+.bo-save-bar {
+  border-color: var(--bo-primary);
+}
+
+.bo-preview legend {
+  font-weight: 600;
+  color: var(--bo-text);
+}
+
+.bo-stepper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px 32px 40px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bo-stepper > output {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.bo-stepper > .bo-button {
+  padding: 0;
+}

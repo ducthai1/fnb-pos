@@ -1,0 +1,176 @@
+/* The frame: a side menu and one scrolling content area, which on a phone (a shop owner's,
+   360px wide) folds the menu above the content behind a button. Names come from the shop
+   and can be anything (80 characters with no space, emoji), so text that shows a name
+   wraps anywhere instead of pushing the page wider. */
+
+:root {
+  --bo-bg: #f3f5f4;
+  --bo-surface: #ffffff;
+  --bo-text: #17211e;
+  --bo-muted: #52605b;
+  --bo-primary: #1f6f5c;
+  --bo-primary-text: #ffffff;
+  --bo-border: #c9d3cf;
+  --bo-danger: #8a1c12;
+  --bo-danger-bg: #fdecea;
+  --bo-ok: #1b5e3f;
+  --bo-ok-bg: #e3f4ec;
+  --bo-warn: #6d4a00;
+  --bo-warn-bg: #fff4dc;
+  color-scheme: light;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--bo-text);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bo-bg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.bo-wrap {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.bo-shell {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.bo-topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 16px;
+  background: var(--bo-surface);
+  border-bottom: 1px solid var(--bo-border);
+}
+
+.bo-topbar__name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.bo-menu-toggle {
+  display: none;
+}
+
+.bo-sidenav {
+  grid-row: 2;
+  overflow-y: auto;
+  padding: 12px 8px;
+  background: var(--bo-surface);
+  border-right: 1px solid var(--bo-border);
+}
+
+.bo-sidenav__links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-sidenav__link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--bo-text);
+  text-decoration: none;
+}
+
+.bo-sidenav__link[aria-current="page"] {
+  background: var(--bo-ok-bg);
+  color: var(--bo-ok);
+  font-weight: 600;
+}
+
+.bo-sidenav__user {
+  margin: 16px 12px 0;
+  color: var(--bo-muted);
+  font-size: 0.875rem;
+}
+
+/* The one element that scrolls: layout checks measure overflow here, not on the page. */
+.bo-main {
+  grid-row: 2;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bo-main > * {
+  width: 100%;
+  max-width: 1120px;
+}
+
+.bo-splash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100dvh;
+  padding: 16px;
+}
+
+.bo-page-center {
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+@media (max-width: 767px) {
+  .bo-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .bo-menu-toggle {
+    display: inline-flex;
+  }
+
+  .bo-sidenav {
+    display: none;
+    max-height: 60dvh;
+    border-right: 0;
+    border-bottom: 1px solid var(--bo-border);
+  }
+
+  .bo-shell[data-nav-open="true"] .bo-sidenav {
+    display: block;
+  }
+
+  .bo-main {
+    grid-row: 3;
+    padding: 12px;
+  }
+}

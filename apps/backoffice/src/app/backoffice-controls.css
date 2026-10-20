@@ -1,0 +1,181 @@
+/* Cards, fields, buttons, notices and tables. Controls are at least 40px tall; inputs use
+   16px text so a phone does not zoom into them. */
+
+.bo-card {
+  min-width: 0;
+  padding: 16px;
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bo-login {
+  width: 100%;
+  max-width: 420px;
+}
+
+.bo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bo-row > .bo-field {
+  flex: 1 1 160px;
+}
+
+.bo-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.bo-subtitle {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.bo-muted {
+  margin: 0;
+  color: var(--bo-muted);
+}
+
+.bo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--bo-muted);
+}
+
+.bo-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--bo-text);
+  font-size: 1rem;
+}
+
+.bo-field__error {
+  color: var(--bo-danger);
+  overflow-wrap: anywhere;
+}
+
+.bo-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--bo-text);
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: 8px;
+}
+
+.bo-input[aria-invalid="true"] {
+  border-color: var(--bo-danger);
+}
+
+.bo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 8px 14px;
+  font: inherit;
+  color: var(--bo-text);
+  background: var(--bo-surface);
+  border: 1px solid var(--bo-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.bo-button--primary {
+  color: var(--bo-primary-text);
+  background: var(--bo-primary);
+  border-color: var(--bo-primary);
+}
+
+.bo-button--danger {
+  color: var(--bo-danger);
+  border-color: var(--bo-danger);
+}
+
+.bo-button--block {
+  width: 100%;
+}
+
+.bo-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.bo-link-button {
+  padding: 8px 4px;
+  font: inherit;
+  color: var(--bo-primary);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.bo-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.bo-notice--error {
+  color: var(--bo-danger);
+  background: var(--bo-danger-bg);
+}
+
+.bo-notice--ok {
+  color: var(--bo-ok);
+  background: var(--bo-ok-bg);
+}
+
+.bo-notice--warn {
+  color: var(--bo-warn);
+  background: var(--bo-warn-bg);
+}
+
+.bo-home-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-home-link {
+  color: var(--bo-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.bo-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

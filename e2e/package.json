@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test:browser": "vitest run"
+    "test:browser": "vitest run && vitest run --config backoffice/vitest.config.ts"
   },
   "devDependencies": {
     "@fnb/api": "workspace:*",
+    "@fnb/backoffice": "workspace:*",
     "@fnb/db": "workspace:*",
     "@fnb/domain": "workspace:*",
     "@fnb/pos": "workspace:*",
