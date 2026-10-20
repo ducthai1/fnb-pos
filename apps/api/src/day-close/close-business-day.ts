@@ -2,6 +2,7 @@ import { appendAudit, newId } from "@fnb/db";
 import { businessDate } from "@fnb/domain";
 import type pg from "pg";
 import { queueDailyBatches } from "../einvoice/queue-daily-batches";
+import { lockTenantChangeFeed } from "../sync/change-feed";
 import { DAY_CLOSE_ERROR_CODES as CODES } from "./day-close-error-codes";
 import { readDayStatus } from "./day-status";
 import { daySummaryOf } from "./day-summary";
@@ -36,10 +37,11 @@ const refused = (status: 404 | 409, code: string, details: Record<string, unknow
 
 /**
  * Closes a branch's business day inside the caller's transaction: refused while a cash
- * shift of the day is open or an invoice of it is still queued (the answer lists them, so
- * the manager knows what to chase), and refused for a day the branch has not reached yet.
- * Closing records the day's figures as they stand and queues the batch sending its issued
- * invoices on. One close per branch and day; concurrent closes queue on a lock.
+ * shift of the day is open, a table of it is still a draft, or an invoice of it is still
+ * queued (the answer lists them, so the manager knows what to chase), and refused for a
+ * day the branch has not reached yet. Closing records the day's figures as they stand and
+ * queues the batch sending its issued invoices on. One close per branch and day;
+ * concurrent closes queue on a lock.
  */
 export async function closeBusinessDay(
   client: pg.ClientBase,
@@ -61,6 +63,9 @@ export async function closeBusinessDay(
   await client.query("SELECT pg_advisory_xact_lock(hashtextextended('fnb.day_close.' || $1, 0))", [
     request.branchId,
   ]);
+  // Till commands hold this lock until they commit: a payment of the day either lands
+  // before the figures are read, or runs after the close and is marked as paid after it.
+  await lockTenantChangeFeed(client, request.tenantId);
   const existing = await client.query(
     "SELECT 1 FROM day_close WHERE branch_id = $1 AND business_date = $2",
     [request.branchId, request.businessDate],
@@ -69,6 +74,9 @@ export async function closeBusinessDay(
   const status = await readDayStatus(client, request.branchId, request.businessDate);
   if (status.openShiftIds.length > 0) {
     return refused(409, CODES.shiftsOpen, { shiftIds: status.openShiftIds });
+  }
+  if (status.openDrafts.length > 0) {
+    return refused(409, CODES.draftsOpen, { drafts: status.openDrafts });
   }
   if (status.unissuedInvoices.length > 0) {
     return refused(409, CODES.invoicesUnissued, { invoices: status.unissuedInvoices });

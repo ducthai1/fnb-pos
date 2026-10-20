@@ -39,11 +39,12 @@ export async function readDailySalesReport(
   const offset = branch.rows[0]?.utc_offset_minutes;
   if (offset === undefined) return null;
   // paid_at is the till's moment of payment; orders closed before it was recorded fall back
-  // to the server's time of the change.
+  // to the server's time of the change. An order paid after the day was closed is left out:
+  // the close froze the day's figures, and the day's status lists such orders beside it.
   const { rows } = await client.query<ClosedOrderRow>(
     "SELECT id, refund_of_order_id, coalesce(paid_at, updated_at) AS paid_at FROM sales_order " +
       "WHERE branch_id = $1 AND business_date = $2 AND status IN ('paid', 'posted') " +
-      "ORDER BY 3, id",
+      "AND NOT paid_after_day_close ORDER BY 3, id",
     [branchId, businessDate],
   );
   const sales = new TotalsTally();
