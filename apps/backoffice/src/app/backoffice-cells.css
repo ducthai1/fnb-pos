@@ -60,3 +60,26 @@
 .bo-mark::before {
   content: attr(data-initial);
 }
+
+/* A category of the menu: its place on the menu, its name, its tools. */
+.bo-category-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.bo-category-row__order {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.bo-category-row__name {
+  font-weight: var(--fw-semibold);
+}

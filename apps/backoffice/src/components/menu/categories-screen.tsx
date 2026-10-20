@@ -1,5 +1,6 @@
 "use client";
 
+import { Pencil, Tags, Trash2 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import type { ApiFailure } from "../../lib/api/api-result";
 import type { Category } from "../../lib/api/catalog-api";
@@ -7,9 +8,12 @@ import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { LoadStateView } from "../shell/load-state-view";
+import { PageHeader } from "../shell/page-header";
 import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
+import { EmptyState } from "../ui/empty-state";
 import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
+import { Icon } from "../ui/icon";
 import { TextField } from "../ui/text-field";
 import { newId } from "./product-editor/product-draft";
 
@@ -77,10 +81,12 @@ export function CategoriesScreen() {
 
   return (
     <section className="bo-stack" aria-labelledby="categories-title">
-      <h1 id="categories-title" className="bo-title">
-        {T.title}
-      </h1>
-      <p className="bo-muted">{brandId === null ? vi.menu.chooseBranch : T.hint}</p>
+      <PageHeader
+        section="/menu/categories"
+        title={T.title}
+        titleId="categories-title"
+        hint={brandId === null ? vi.menu.chooseBranch : T.hint}
+      />
       <ErrorNotice message={failure} />
       <SuccessNotice message={done} />
       <LoadStateView loaded={loaded} retry={reload}>
@@ -92,10 +98,14 @@ export function CategoriesScreen() {
                 {T.add}
               </button>
             </form>
-            {categories.length === 0 && <p className="bo-muted">{T.empty}</p>}
+            {categories.length === 0 && (
+              <div className="bo-empty">
+                <EmptyState icon={Tags}>{T.empty}</EmptyState>
+              </div>
+            )}
             <ul className="bo-choice-list" aria-label={T.title}>
-              {categories.map((category) => (
-                <li key={category.id} className="bo-card bo-row">
+              {categories.map((category, index) => (
+                <li key={category.id} className="bo-card bo-row bo-category-row">
                   {renaming?.id === category.id ? (
                     <>
                       <TextField label={T.nameLabel} value={renaming.name} onChange={(value) => setRenaming({ id: category.id, name: value })} />
@@ -108,11 +118,16 @@ export function CategoriesScreen() {
                     </>
                   ) : (
                     <>
-                      <span className="bo-wrap bo-grow">{category.name}</span>
+                      <span className="bo-category-row__order" aria-hidden="true">
+                        {index + 1}
+                      </span>
+                      <span className="bo-wrap bo-grow bo-category-row__name">{category.name}</span>
                       <button type="button" className="bo-button" aria-label={T.renameLabel(category.name)} onClick={() => setRenaming({ id: category.id, name: category.name })}>
+                        <Icon of={Pencil} size={16} />
                         {T.rename}
                       </button>
                       <button type="button" className="bo-button bo-button--danger" aria-label={T.deleteLabel(category.name)} onClick={() => void remove(category)}>
+                        <Icon of={Trash2} size={16} />
                         {vi.common.remove}
                       </button>
                     </>
