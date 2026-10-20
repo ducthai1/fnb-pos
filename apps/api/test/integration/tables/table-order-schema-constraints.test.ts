@@ -33,7 +33,7 @@ interface Seating {
 /** Writes one order in its own transaction and answers the SQLSTATE, or "no-error". */
 function seat(seating: Seating): Promise<string> {
   const tableId = seating.tableId === undefined ? a.ids.dining_table : seating.tableId;
-  const tableName = seating.tableName === undefined ? (tableId && "B01") : seating.tableName;
+  const tableName = seating.tableName === undefined ? tableId && "B01" : seating.tableName;
   return postgresErrorCode(() =>
     withTenant(pool, a.tenantId, (client) =>
       client.query(
@@ -60,12 +60,10 @@ function seat(seating: Seating): Promise<string> {
 const freshTable = async () => {
   const id = newId();
   await withTenant(pool, a.tenantId, (client) =>
-    client.query("INSERT INTO dining_table (id, tenant_id, area_id, name) VALUES ($1, $2, $3, $4)", [
-      id,
-      a.tenantId,
-      a.ids.area,
-      `B${id.slice(-4)}`,
-    ]),
+    client.query(
+      "INSERT INTO dining_table (id, tenant_id, area_id, name) VALUES ($1, $2, $3, $4)",
+      [id, a.tenantId, a.ids.area, `B${id.slice(-4)}`],
+    ),
   );
   return id;
 };

@@ -8,3 +8,9 @@ export {
   floorIdParamsSchema,
   tableShapeSchema,
 } from "./floor-body-schemas";
+export {
+  type TableStatus,
+  tableStatusOf,
+  tableStatusSchema,
+  tableTagSchema,
+} from "./table-status-schema";

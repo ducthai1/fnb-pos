@@ -16,3 +16,9 @@ export {
   saveDraftPayloadSchema,
 } from "./save-draft-payload-schema";
 export { type VoidLinePayload, voidLinePayloadSchema } from "./void-line-payload-schema";
+export {
+  type MarkPreBillPrintedPayload,
+  type TransferTablePayload,
+  markPreBillPrintedPayloadSchema,
+  transferTablePayloadSchema,
+} from "./table-payload-schemas";

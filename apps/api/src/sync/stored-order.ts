@@ -21,6 +21,11 @@ export interface StoredOrder {
   readonly officialNo: string | null;
   readonly callNumber: string | null;
   readonly tableId: string | null;
+  /** The table's name when the order sat down; a counter order's tag instead holds no table. */
+  readonly tableName: string | null;
+  readonly tableTag: string | null;
+  /** A pre-bill was printed for the order as it now stands: its table waits to be paid. */
+  readonly preBillPrinted: boolean;
   /** Why a draft was cancelled or a sale refunded. */
   readonly reasonCode: string | null;
   readonly chargeProfile: OrderChargeProfile;
@@ -50,6 +55,9 @@ interface OrderRow {
   official_no: string | null;
   call_number: string | null;
   table_id: string | null;
+  table_name_snapshot: string | null;
+  table_tag: string | null;
+  pre_bill_printed_version: number | null;
   reason_code: string | null;
   charge_profile: unknown;
   refund_prices_include_tax: boolean | null;
@@ -61,7 +69,8 @@ interface OrderRow {
 const ORDER_COLUMNS =
   "id, branch_id, device_id, device_order_no, status, service_type, channel_key, " +
   "business_date::text AS business_date, version, refund_of_order_id, official_no, call_number, " +
-  "table_id, reason_code, charge_profile, refund_prices_include_tax, " +
+  "table_id, table_name_snapshot, table_tag, pre_bill_printed_version, reason_code, " +
+  "charge_profile, refund_prices_include_tax, " +
   "refund_service_charge_tax_rate_bp";
 
 /**
@@ -127,6 +136,9 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     officialNo: row.official_no,
     callNumber: row.call_number,
     tableId: row.table_id,
+    tableName: row.table_name_snapshot,
+    tableTag: row.table_tag,
+    preBillPrinted: row.pre_bill_printed_version === row.version,
     reasonCode: row.reason_code,
     chargeProfile: chargeProfileFromStored(row.charge_profile),
     payments: payments.rows.map((payment) => ({

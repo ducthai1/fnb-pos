@@ -26,15 +26,17 @@ describe("sync command definitions", () => {
     expect(() => syncCommandRegistry([echo, echo])).toThrow("defined twice: test.echo");
   });
 
-  it("register every order command the tills send", () => {
+  it("register every order and table command the tills send", () => {
     expect([...SYNC_COMMANDS.keys()].sort()).toEqual([
       "order.apply_discount",
       "order.cancel",
+      "order.mark_pre_bill_printed",
       "order.pay",
       "order.refund",
       "order.remove_discount",
       "order.save_draft",
       "order.void_line",
+      "table.transfer",
     ]);
   });
 });

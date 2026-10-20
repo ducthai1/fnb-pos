@@ -7,7 +7,8 @@ import { chargeProfileToSnapshot } from "./charge-profile-snapshot";
 /**
  * Opens the draft with the charge profile in effect for the till today; the order keeps
  * it, so a later change of the setting never reprices it. Answers false, writing nothing,
- * when the till already gave its order number to another order.
+ * when the till already gave its order number to another order. A table it sits at is
+ * stored with its name as of now, for receipts printed after the table is renamed.
  */
 export async function insertDraftHeader(
   client: pg.PoolClient,
@@ -16,11 +17,13 @@ export async function insertDraftHeader(
   businessDate: string,
   staffId: string,
   chargeProfile: OrderChargeProfile,
+  table: { id: string; name: string } | null,
 ): Promise<boolean> {
   const inserted = await client.query(
     "INSERT INTO sales_order (id, tenant_id, branch_id, device_id, status, service_type, " +
-      "channel_key, business_date, device_order_no, charge_profile, created_by) " +
-      "VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10) " +
+      "channel_key, business_date, device_order_no, charge_profile, created_by, table_id, " +
+      "table_name_snapshot, table_tag) " +
+      "VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13) " +
       "ON CONFLICT ON CONSTRAINT sales_order_device_order_no_once DO NOTHING",
     [
       payload.orderId,
@@ -33,16 +36,20 @@ export async function insertDraftHeader(
       payload.deviceOrderNo,
       JSON.stringify(chargeProfileToSnapshot(chargeProfile)),
       staffId,
+      table?.id ?? null,
+      table?.name ?? null,
+      payload.tableTag,
     ],
   );
   return inserted.rowCount === 1;
 }
 
+/** The header of a saved draft; its table stays, only table.transfer moves it. */
 export async function updateDraftHeader(client: pg.PoolClient, payload: SaveDraftPayload) {
   await client.query(
-    "UPDATE sales_order SET service_type = $2, channel_key = $3, version = version + 1, " +
-      "updated_at = now() WHERE id = $1",
-    [payload.orderId, payload.serviceType, payload.channelKey],
+    "UPDATE sales_order SET service_type = $2, channel_key = $3, table_tag = $4, " +
+      "version = version + 1, updated_at = now() WHERE id = $1",
+    [payload.orderId, payload.serviceType, payload.channelKey, payload.tableTag],
   );
 }
 

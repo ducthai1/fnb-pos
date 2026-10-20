@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { channelKeySchema } from "../../catalog/catalog-schema-parts";
+import { tableTagSchema } from "../../floor/table-status-schema";
 import { wholeDongSchema } from "../../primitives/money-schema";
 import { uuidSchema } from "../../primitives/uuid-schema";
 
@@ -25,17 +26,34 @@ const lineIntentSchema = z.object({
   enteredPrice: wholeDongSchema.optional(),
 });
 
-/** order.save_draft: the till's whole draft, opened or saved again. */
-export const saveDraftPayloadSchema = z.object({
-  orderId: uuidSchema,
-  /** The till's own running number for the order, printed before it ever syncs. */
-  deviceOrderNo: z.number().int().positive().safe(),
-  serviceType: z.enum(["dine_in", "takeaway", "delivery_self", "delivery_platform"]),
-  channelKey: channelKeySchema.nullable(),
-  lines: z.array(lineIntentSchema).max(200),
-  /** A manager's approval for open prices the staff member may not type alone. */
-  approvalId: uuidSchema.optional(),
-});
+/**
+ * order.save_draft: the till's whole draft, opened or saved again. A dine-in order either
+ * sits at a table (tableId: it holds the table until paid or cancelled) or is a counter
+ * order with the table number it is brought to (tableTag: it holds nothing); never both.
+ */
+export const saveDraftPayloadSchema = z
+  .object({
+    orderId: uuidSchema,
+    /** The till's own running number for the order, printed before it ever syncs. */
+    deviceOrderNo: z.number().int().positive().safe(),
+    serviceType: z.enum(["dine_in", "takeaway", "delivery_self", "delivery_platform"]),
+    channelKey: channelKeySchema.nullable(),
+    /** Fixed when the draft is opened; moving it is table.transfer, which checks the target. */
+    tableId: uuidSchema.nullable().default(null),
+    tableTag: tableTagSchema.nullable().default(null),
+    lines: z.array(lineIntentSchema).max(200),
+    /** A manager's approval for open prices the staff member may not type alone. */
+    approvalId: uuidSchema.optional(),
+  })
+  .superRefine((draft, context) => {
+    // Only reads fields already checked above as present: no parsing of possibly bad input.
+    if (draft.tableId !== null && draft.tableTag !== null) {
+      context.addIssue({ code: "custom", path: ["tableTag"], message: "table and tag" });
+    }
+    if ((draft.tableId !== null || draft.tableTag !== null) && draft.serviceType !== "dine_in") {
+      context.addIssue({ code: "custom", path: ["serviceType"], message: "table not dine-in" });
+    }
+  });
 
 export type SaveDraftPayload = z.infer<typeof saveDraftPayloadSchema>;
 export type SaveDraftLineIntent = SaveDraftPayload["lines"][number];

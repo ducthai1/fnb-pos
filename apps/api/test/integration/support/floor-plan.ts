@@ -78,7 +78,8 @@ export async function orderSeatedAt(
       "INSERT INTO sales_order (id, tenant_id, branch_id, device_id, status, service_type, " +
         "business_date, device_order_no, charge_profile, table_id, table_name_snapshot) " +
         "VALUES ($1, $2, $3, $4, 'draft', 'dine_in', '2026-10-20', " +
-        "(SELECT coalesce(max(device_order_no), 0) + 1 FROM sales_order), " +
+        // Far above the numbers a test till gives its own orders, so they never collide.
+        "(SELECT coalesce(max(device_order_no), 0) + 1000000 FROM sales_order), " +
         `'{"pricesIncludeTax": true, "serviceCharge": null}', $5, 'B01')`,
       [orderId, shop.tenantId, shop.branchId, shop.deviceId, tableId],
     );

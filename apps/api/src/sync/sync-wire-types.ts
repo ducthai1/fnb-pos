@@ -122,6 +122,10 @@ export interface OrderSnapshot {
   readonly officialNo: string | null;
   readonly callNumber: string | null;
   readonly tableId: string | null;
+  readonly tableName: string | null;
+  readonly tableTag: string | null;
+  /** The table's status reads this: a draft at a table whose pre-bill is current waits to pay. */
+  readonly preBillPrinted: boolean;
   readonly reasonCode: string | null;
   readonly chargeProfile: ChargeProfileSnapshot;
   readonly refundAmounts: RefundAmountsSnapshot | null;

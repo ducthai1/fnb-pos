@@ -62,7 +62,11 @@ export function registerAreaRoutes(app: FastifyInstance, context: ApiContext): v
             throw new FloorRequestError(404, FLOOR_API_ERROR_CODES.areaNotFound);
           }
           await requireBranch(client, input.branchId);
-          await insertCatalogRow(client, "area", writer, { id, branch_id: input.branchId, ...cells });
+          await insertCatalogRow(client, "area", writer, {
+            id,
+            branch_id: input.branchId,
+            ...cells,
+          });
         } else {
           refuseStaleOrArchived(stored, input.version);
           // Its tables, and the orders seated at them, belong to the branch it is in.
