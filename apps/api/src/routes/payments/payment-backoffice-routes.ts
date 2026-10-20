@@ -88,7 +88,7 @@ export function registerPaymentBackofficeRoutes(
       if (box === null) return reply.code(503).send({ code: CODES.notConfigured });
       const { tenantId, appUserId } = backofficeAuth(request);
       const saved = await withTenant(context.pool, tenantId, async (client) => {
-        if (!(await branchExists(client, branchId))) return false;
+        if (!(await branchExists(client, branchId))) return "missing" as const;
         const endpoint = {
           tenantId,
           branchId,
@@ -96,10 +96,10 @@ export function registerPaymentBackofficeRoutes(
           secret: body.data.secret,
           savedBy: appUserId,
         };
-        await saveWebhookSecret(client, box, endpoint);
-        return true;
+        return (await saveWebhookSecret(client, box, endpoint)) ? "saved" : "in_use";
       });
-      if (!saved) return reply.code(404).send({ code: CODES.branchNotFound });
+      if (saved === "missing") return reply.code(404).send({ code: CODES.branchNotFound });
+      if (saved === "in_use") return reply.code(409).send({ code: CODES.secretInUse });
       return reply.code(204).send();
     },
   );

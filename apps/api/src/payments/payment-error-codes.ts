@@ -34,6 +34,11 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
   unreadableNotice: "API_PAYMENT_NOTICE_UNREADABLE",
   /** The server was started without a key to open stored gateway secrets. */
   notConfigured: "API_PAYMENTS_NOT_CONFIGURED",
+  /**
+   * Another branch of the shop signs this gateway's notices with that secret: a notice could
+   * not tell which branch's account the money went into.
+   */
+  secretInUse: "API_PAYMENT_SECRET_IN_USE",
   branchNotFound: "API_BRANCH_NOT_FOUND",
   transactionNotFound: "API_PAYMENT_TRANSACTION_NOT_FOUND",
   /** The transfer already pays an intent, or is money that went out. */
