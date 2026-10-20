@@ -10,3 +10,4 @@ export {
   staffListSchema,
   staffSummarySchema,
 } from "./backoffice-list-schemas";
+export { type SignedInMember, signedInMemberSchema } from "./signed-in-member-schema";

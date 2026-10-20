@@ -146,7 +146,11 @@ describe("PUT and GET /catalog/price-lists/:id", () => {
       `/catalog/price-lists/${id}`,
       listOf([broken(happyHour)]),
     );
-    expect([response.statusCode, response.json()]).toEqual([400, { code }]);
+    const item = broken(happyHour);
+    expect([response.statusCode, response.json()]).toEqual([
+      400,
+      code === "DOMAIN_MONEY_INVALID_RATE" ? { code } : { code, details: { priceListItemId: item.id } },
+    ]);
     expect((await shop.call("GET", `/catalog/price-lists/${id}`)).statusCode).toBe(404);
   });
 
@@ -160,7 +164,7 @@ describe("PUT and GET /catalog/price-lists/:id", () => {
     );
     expect([response.statusCode, response.json()]).toEqual([
       400,
-      { code: "DOMAIN_PRICING_DUPLICATE_PRICE_LIST_ITEM_ID" },
+      { code: "DOMAIN_PRICING_DUPLICATE_PRICE_LIST_ITEM_ID", details: { priceListItemId: grab.id } },
     ]);
   });
 

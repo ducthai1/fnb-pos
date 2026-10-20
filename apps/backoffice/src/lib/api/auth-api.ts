@@ -1,3 +1,4 @@
+import { type SignedInMember, signedInMemberSchema } from "@fnb/contracts";
 import {
   type ApiFailure,
   type ApiResult,
@@ -6,19 +7,17 @@ import {
   requestJson,
   resultOf,
 } from "./api-result";
-import { isRecord, listOf, nullableTextOf, textOf } from "./read-json-fields";
+import { isRecord, listOf, parsedBy, textOf } from "./read-json-fields";
 
 export interface Organization {
   readonly id: string;
   readonly name: string;
 }
 
-export interface SignedInUser {
-  readonly accountId: string;
-  readonly organizationId: string;
-  readonly organizationName: string | null;
-  readonly displayName: string | null;
-}
+/** The member signed in, with the keys their role holds as GET /auth/me reported them. */
+export type SignedInUser = Readonly<Omit<SignedInMember, "permissionKeys">> & {
+  readonly permissionKeys: readonly SignedInMember["permissionKeys"][number][];
+};
 
 export interface LoginInput {
   /** What the person typed: an email address or a phone number. */
@@ -50,17 +49,6 @@ const readOrganization = (item: Record<string, unknown>): Organization | null =>
   return id === null || name === null ? null : { id, name };
 };
 
-function readUser(body: unknown): SignedInUser | null {
-  if (!isRecord(body)) return null;
-  const accountId = textOf(body, "accountId");
-  const organizationId = textOf(body, "organizationId");
-  const organizationName = nullableTextOf(body, "organizationName");
-  const displayName = nullableTextOf(body, "displayName");
-  if (accountId === null || organizationId === null) return null;
-  if (organizationName === undefined || displayName === undefined) return null;
-  return { accountId, organizationId, organizationName, displayName };
-}
-
 export interface AuthApi {
   login(input: LoginInput): Promise<LoginOutcome>;
   logout(): Promise<ApiResult<true>>;
@@ -86,7 +74,8 @@ export function httpAuthApi(base: string, fetchImpl: FetchLike): AuthApi {
       return resultOf(await requestJson(fetchImpl, `${base}/auth/logout`, { method: "POST" }), noContent);
     },
     async me() {
-      return resultOf(await requestJson(fetchImpl, `${base}/auth/me`, { method: "GET" }), readUser);
+      const answer = await requestJson(fetchImpl, `${base}/auth/me`, { method: "GET" });
+      return resultOf(answer, (body) => parsedBy(signedInMemberSchema, body));
     },
   };
 }

@@ -1,26 +1,26 @@
-import type { ModifierGroupVariantRule, Product } from "@fnb/domain";
-import { vnd } from "@fnb/domain";
-import type { ProductBody } from "../../../lib/catalog/product-document";
+import { type ModifierGroupVariantRule, type Product, vnd } from "@fnb/domain";
+import type { ProductDocumentInput } from "./product-document-schema";
 
 /**
- * The body as the domain sees it — the same conversion the API makes before it checks a
- * saved product — so the editor and the preview judge the product by the rules the server
- * and the tills apply.
+ * A product body as the domain sees it. This is the one conversion: the API checks a saved
+ * product with it and the backoffice checks and previews a draft with it, so the editor,
+ * the server and the tills judge a product by the same rules. It converts and checks
+ * nothing (validateProductConfig does); amounts in whole đồng become Vnd.
  */
-export function productBodyToDomain(id: string, body: ProductBody): Product {
+export function productDocumentToDomain(id: string, input: ProductDocumentInput): Product {
   return {
     id,
-    categoryId: body.categoryId,
-    kind: body.kind,
-    name: body.name,
-    basePrice: body.basePrice === null ? null : vnd(body.basePrice),
-    pricingMode: body.pricingMode,
-    variants: body.variants.map((variant) => ({
+    categoryId: input.categoryId,
+    kind: input.kind,
+    name: input.name,
+    basePrice: input.basePrice === null ? null : vnd(input.basePrice),
+    pricingMode: input.pricingMode,
+    variants: input.variants.map((variant) => ({
       id: variant.id,
       name: variant.name,
       price: variant.price === null ? null : vnd(variant.price),
     })),
-    modifierGroups: body.modifierGroups.map((group) => ({
+    modifierGroups: input.modifierGroups.map((group) => ({
       id: group.id,
       name: group.name,
       minSelect: group.minSelect,
@@ -37,10 +37,10 @@ export function productBodyToDomain(id: string, body: ProductBody): Product {
       ),
     })),
     combo:
-      body.combo === null
+      input.combo === null
         ? null
         : {
-            slots: body.combo.slots.map((slot) => ({
+            slots: input.combo.slots.map((slot) => ({
               id: slot.id,
               name: slot.name,
               minSelect: slot.minSelect,
@@ -55,7 +55,7 @@ export function productBodyToDomain(id: string, body: ProductBody): Product {
   };
 }
 
-/** Only the fields set, so an unset limit keeps inheriting the group's. */
+/** Only the fields the client set, so an unset limit keeps inheriting the group's. */
 function ruleOf(rule: {
   minSelect?: number | undefined;
   maxSelect?: number | undefined;

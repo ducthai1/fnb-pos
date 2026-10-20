@@ -73,11 +73,39 @@ describe("a product configuration the POS could not sell", () => {
     ["DOMAIN_MONEY_INVALID_RATE", (tea) => ({ ...tea.body, taxRateBp: 10_001 })],
   ])("is refused with 400 %s and nothing is stored", async (code, broken) => {
     const tea = pearlMilkTeaDocument(shop);
-    expect(await outcome(shop.call("PUT", tea.url, broken(tea)))).toEqual({
-      status: 400,
-      body: { code },
-    });
+    const { status, body } = await outcome(shop.call("PUT", tea.url, broken(tea)));
+    expect([status, body.code]).toEqual([400, code]);
+    // Whatever the domain attached, only ids that say where the fault is come back.
+    for (const [key, value] of Object.entries(body.details ?? {})) {
+      expect([key, typeof value]).toEqual([expect.stringMatching(/Id$/), "string"]);
+    }
     expect((await shop.call("GET", tea.url)).statusCode).toBe(404);
+  });
+
+  it("names the group and option at fault, and none of the amounts", async () => {
+    const tea = pearlMilkTeaDocument(shop);
+    const option = { id: newId(), name: "Giảm giá", priceDelta: -1_000, maxQuantity: null };
+    const broken = withGroup(tea, 2, { options: [option] });
+    expect(await outcome(shop.call("PUT", tea.url, broken))).toEqual({
+      status: 400,
+      body: {
+        code: "DOMAIN_CATALOG_NEGATIVE_PRICE_DELTA",
+        details: { groupId: groupAt(tea, 2).id, optionId: option.id },
+      },
+    });
+  });
+
+  it("names the group and the size a rule is written for", async () => {
+    const tea = pearlMilkTeaDocument(shop);
+    const stranger = newId();
+    const broken = withGroup(tea, 2, { variantRules: { [stranger]: { maxSelect: 5 } } });
+    expect(await outcome(shop.call("PUT", tea.url, broken))).toEqual({
+      status: 400,
+      body: {
+        code: "DOMAIN_CATALOG_VARIANT_RULE_FOR_UNKNOWN_VARIANT",
+        details: { productId: tea.ids.product, groupId: groupAt(tea, 2).id, variantId: stranger },
+      },
+    });
   });
 
   it.each<[string, (tea: MilkTea) => unknown]>([

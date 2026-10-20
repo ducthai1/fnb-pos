@@ -1,5 +1,6 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
+import { messageForCode } from "../../../lib/errors/failure-message";
 import { vi } from "../../../messages/vi";
 import { fakeCatalog } from "../../../test-support/fake-catalog";
 import { refused } from "../../../test-support/fake-backoffice-api";
@@ -95,5 +96,24 @@ describe("the product editor", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(
       vi.errors.byCode.DOMAIN_CATALOG_DUPLICATE_MODIFIER_GROUP_ID,
     );
+  });
+
+  it("puts a refusal the server names an option of on that option, until the next edit", async () => {
+    const catalog = await seededTea();
+    const code = "DOMAIN_CATALOG_NEGATIVE_PRICE_DELTA";
+    const details = { groupId: TEA.topping, optionId: TEA.pearl };
+    await renderSignedIn(<ProductEditorScreen productId={TEA.product} isNew={false} />, {
+      ...catalog.api,
+      putProduct: async () => ({ ok: false, status: 400, code, body: { code, details } }),
+    });
+    fireEvent.click(await screen.findByRole("button", { name: T.save }));
+    const topping = screen.getByRole("region", { name: T.groupLabel(3) });
+    const pearl = within(topping).getByRole("group", { name: T.optionLabel(1) });
+    const price = within(pearl).getByLabelText(T.priceDelta);
+    await mock.waitFor(() => expect(price.getAttribute("aria-invalid")).toBe("true"));
+    expect(within(pearl).getByText(messageForCode(code))).toBeTruthy();
+
+    type(screen.getByLabelText(T.name), "Trà sữa trân châu mới");
+    expect(price.getAttribute("aria-invalid")).not.toBe("true");
   });
 });

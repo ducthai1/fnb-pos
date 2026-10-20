@@ -103,21 +103,28 @@ describe("a combo product", () => {
   });
 
   it("refuses the same size twice in one slot with the domain's code", async () => {
-    const option = { productId: tea.ids.product, variantId: tea.ids.sizeM, upcharge: 0 };
-    const combo = breakfastCombo([option, { ...option, upcharge: 5_000 }]);
+    const option = { productId: tea.ids.product, variantId: tea.ids.sizeM };
+    const combo = breakfastCombo([
+      { ...option, upcharge: 0 },
+      { ...option, upcharge: 5_000 },
+    ]);
     const response = await shop.call("PUT", combo.url, combo.body);
     expect([response.statusCode, response.json()]).toEqual([
       400,
-      { code: "DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_OPTION" },
+      {
+        code: "DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_OPTION",
+        details: { slotId: combo.body.combo.slots[0]?.id, ...option },
+      },
     ]);
   });
 
   it("refuses combo slots on a product that is not a combo", async () => {
     const plain = { ...tea.body, combo: breakfastCombo([]).body.combo };
-    const response = await shop.call("PUT", `/catalog/products/${newId()}`, plain);
+    const id = newId();
+    const response = await shop.call("PUT", `/catalog/products/${id}`, plain);
     expect([response.statusCode, response.json()]).toEqual([
       400,
-      { code: "DOMAIN_CATALOG_COMBO_DEFINITION_ON_NON_COMBO" },
+      { code: "DOMAIN_CATALOG_COMBO_DEFINITION_ON_NON_COMBO", details: { productId: id } },
     ]);
   });
 });

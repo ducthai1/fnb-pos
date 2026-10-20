@@ -11,6 +11,15 @@ function answering(status: number, body: unknown) {
   return { calls, api: httpAuthApi("/api", fetchImpl) };
 }
 
+const ME = {
+  accountId: "0190a000-0000-7000-8000-000000000001",
+  organizationId: "0190a000-0000-7000-8000-000000000002",
+  organizationName: null,
+  appUserId: "0190a000-0000-7000-8000-000000000003",
+  displayName: "Chủ quán",
+  permissionKeys: ["manage_devices"],
+};
+
 describe("the sign-in call", () => {
   it("sends an email as email and anything else as a phone number", () => {
     expect(loginBody({ identifier: " chu@quan.vn ", password: "p" })).toEqual({
@@ -39,20 +48,17 @@ describe("the sign-in call", () => {
   });
 
   it("sends the cookie of this origin and no token of its own", async () => {
-    const { api, calls } = answering(200, {
-      accountId: "a",
-      organizationId: "o",
-      organizationName: null,
-      displayName: "Chủ quán",
-    });
-    expect(await api.me()).toMatchObject({ ok: true, value: { displayName: "Chủ quán" } });
+    const { api, calls } = answering(200, ME);
+    expect(await api.me()).toEqual({ ok: true, value: ME });
     expect(calls[0]?.url).toBe("/api/auth/me");
     expect(calls[0]?.init.credentials).toBe("same-origin");
     expect(calls[0]?.init.headers).toEqual({});
   });
 
-  it("refuses a session answer missing the organization", async () => {
-    const { api } = answering(200, { accountId: "a", organizationName: null, displayName: null });
-    expect(await api.me()).toMatchObject({ ok: false, status: 200 });
+  it("refuses a session answer missing the organization or the keys", async () => {
+    const withoutOrganization = { ...ME, organizationId: undefined };
+    expect(await answering(200, withoutOrganization).api.me()).toMatchObject({ ok: false, status: 200 });
+    const withoutKeys = { ...ME, permissionKeys: undefined };
+    expect(await answering(200, withoutKeys).api.me()).toMatchObject({ ok: false, status: 200 });
   });
 });

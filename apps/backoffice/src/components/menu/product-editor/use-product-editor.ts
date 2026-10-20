@@ -8,6 +8,8 @@ import { useApi } from "../../app/api-context";
 import { useSession } from "../../shell/session-context";
 import { type Loaded, loadFailure } from "../../shell/use-api-load";
 import { checkProductDraft } from "./check-product-draft";
+import type { DraftErrors } from "./draft-error-paths";
+import { serverRefusalErrors } from "./server-refusal-errors";
 import { type ProductDraft, draftOfDocument, emptyDraft } from "./product-draft";
 import type { DraftEdit } from "./product-draft-edits";
 
@@ -32,6 +34,8 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
   const [attempted, setAttempted] = useState(false);
   const [notice, setNotice] = useState<EditorNotice | null>(null);
   const [busy, setBusy] = useState(false);
+  // A rule the server refused the save by, shown where it belongs until the next edit.
+  const [refusal, setRefusal] = useState<DraftErrors | null>(null);
 
   const fail = useCallback(
     (failure: ApiFailure) => {
@@ -45,6 +49,7 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
     setLoaded({ state: "loading" });
     setNotice(null);
     setAttempted(false);
+    setRefusal(null);
     const result = await api.getProduct(productId);
     if (!result.ok) return setLoaded(loadFailure(result, signedOut));
     setDraft(draftOfDocument(result.value));
@@ -59,7 +64,10 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
   }, [isNew, load, productId, brandId]);
 
   const check = useMemo(() => (draft === null ? null : checkProductDraft(draft)), [draft]);
-  const edit = useCallback((change: DraftEdit) => setDraft((current) => (current === null ? current : change(current))), []);
+  const edit = useCallback((change: DraftEdit) => {
+    setRefusal(null);
+    setDraft((current) => (current === null ? current : change(current)));
+  }, []);
 
   async function save(): Promise<boolean> {
     if (draft === null || check === null) return false;
@@ -79,7 +87,10 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
     }
     if (result.status === 409 && result.code === VERSION_CONFLICT) {
       setNotice({ kind: "conflict", message: T.conflict });
-    } else fail(result);
+    } else {
+      setRefusal(serverRefusalErrors(result));
+      fail(result);
+    }
     return false;
   }
 
@@ -97,7 +108,7 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
     return true;
   }
 
-  const errors = attempted && check !== null && !check.ok ? check.errors : {};
+  const errors = { ...(attempted && check !== null && !check.ok ? check.errors : {}), ...refusal };
   const product = check?.ok === true ? check.product : null;
   return { loaded, draft, errors, product, notice, busy, edit, save, archive, reload: load };
 }

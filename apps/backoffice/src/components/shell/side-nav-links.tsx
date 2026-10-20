@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_SECTIONS, currentSection } from "../../lib/navigation/admin-sections";
+import { currentSection, sectionsFor } from "../../lib/navigation/admin-sections";
+import { useSession } from "./session-context";
 
 export function SideNavLinks({ onNavigate }: { onNavigate: () => void }) {
   const current = currentSection(usePathname());
+  const { user } = useSession();
   return (
     <ul className="bo-sidenav__links">
-      {ADMIN_SECTIONS.map((section) => (
+      {sectionsFor(user.permissionKeys).map((section) => (
         <li key={section.href}>
           <Link
             href={section.href}

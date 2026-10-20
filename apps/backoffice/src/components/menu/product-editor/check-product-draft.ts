@@ -1,4 +1,4 @@
-import { productDocumentSchema } from "@fnb/contracts";
+import { productDocumentSchema, productDocumentToDomain } from "@fnb/contracts";
 import { type Product, isDomainError, validateProductConfig } from "@fnb/domain";
 import type { ProductBody } from "../../../lib/catalog/product-document";
 import { messageForCode } from "../../../lib/errors/failure-message";
@@ -15,7 +15,6 @@ import {
 import { draftToProductBody } from "./draft-to-product-body";
 import { locateDomainError } from "./locate-domain-error";
 import type { ProductDraft } from "./product-draft";
-import { productBodyToDomain } from "./product-body-to-domain";
 
 export type DraftCheck =
   | { readonly ok: true; readonly body: ProductBody; readonly product: Product }
@@ -63,7 +62,7 @@ export function checkProductDraft(draft: ProductDraft): DraftCheck {
     return { ok: false, errors: errors.toRecord() };
   }
 
-  const product = productBodyToDomain(draft.id, parsed.data);
+  const product = productDocumentToDomain(draft.id, parsed.data);
   try {
     validateProductConfig(product);
   } catch (error) {

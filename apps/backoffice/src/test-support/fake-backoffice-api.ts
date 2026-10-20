@@ -1,3 +1,4 @@
+import { PERMISSION_KEYS } from "@fnb/domain";
 import type { ApiFailure, ApiResult } from "../lib/api/api-result";
 import type { BackofficeApi } from "../lib/api/backoffice-api";
 import type { Branch } from "../lib/api/branch-api";
@@ -15,7 +16,9 @@ export const OWNER = {
   accountId: "0190a000-0000-7000-8000-000000000001",
   organizationId: "0190a000-0000-7000-8000-000000000002",
   organizationName: "Công ty Trà Sáng",
+  appUserId: "0190a000-0000-7000-8000-000000000003",
   displayName: "Chủ quán",
+  permissionKeys: PERMISSION_KEYS,
 } as const;
 
 export const BRANCHES: readonly Branch[] = [

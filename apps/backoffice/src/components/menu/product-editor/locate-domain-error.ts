@@ -9,8 +9,10 @@ const text = (value: unknown): string | null => (typeof value === "string" && va
  * Where a refusal of the domain belongs in the editor, from the ids it carries: an option,
  * a group's rule for one size, a group, a size, or the product itself. A limit problem with
  * a variant id is about that size's override; without one, about the group's own limits.
+ * The same ids come back with a refusal the API made (its `details`), so a rule only the
+ * server could check lands on the same field.
  */
-export function locateDomainError(error: DomainError): string {
+export function locateDomainError(error: Pick<DomainError, "code" | "details">): string {
   const details = error.details ?? {};
   const groupId = text(details.groupId);
   const optionId = text(details.optionId);
