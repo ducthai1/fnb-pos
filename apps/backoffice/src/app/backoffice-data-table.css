@@ -190,18 +190,3 @@ th[aria-sort] .bo-sort {
   }
 }
 
-
-/* The key that goes to the search box, shown in it while it is empty. */
-.bo-kbd {
-  flex: none;
-  min-width: 22px;
-  padding: 0 6px;
-  border: 1px solid var(--c-border);
-  border-radius: 6px;
-  background: var(--c-surface-2);
-  color: var(--c-text-3);
-  font: inherit;
-  font-size: var(--fs-xs);
-  line-height: 20px;
-  text-align: center;
-}
