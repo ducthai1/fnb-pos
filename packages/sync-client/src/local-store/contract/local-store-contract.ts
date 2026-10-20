@@ -6,6 +6,7 @@ import {
   REPEATED_ANSWER_CONTRACT,
   SERVER_COPY_CONTRACT,
 } from "./server-copy-contract-cases";
+import { SERVER_RESTORE_CONTRACT } from "./server-restore-contract-cases";
 
 export type {
   ContractStore,
@@ -28,6 +29,7 @@ export const LOCAL_STORE_CONTRACT: readonly LocalStoreContractGroup[] = [
   SERVER_COPY_CONTRACT,
   PULLED_PAGE_CONTRACT,
   REPEATED_ANSWER_CONTRACT,
+  SERVER_RESTORE_CONTRACT,
 ];
 
 /** The name a case is reported under outside Vitest, e.g. by the browser page. */
