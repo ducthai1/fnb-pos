@@ -2,6 +2,7 @@ import { BROWSER_STORE_ERROR_CODES, BrowserStoreError } from "@fnb/sync-client/b
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { vi as text } from "../messages/vi";
+import { commandNameOf } from "../messages/vi-sync-errors";
 import {
   CREDENTIAL,
   draftCommand,
@@ -103,7 +104,7 @@ describe("the POS from first start to the sales screen", () => {
     fireEvent.click(await screen.findByText(text.sync.needsAttention(1), {}, { timeout: 3_000 }));
     expect(
       await screen.findByText(
-        text.needsAttention.commandLine(command.type, "DOMAIN_ORDER_ALREADY_PAID"),
+        text.needsAttention.commandLine(commandNameOf(command.type), "DOMAIN_ORDER_ALREADY_PAID"),
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: text.needsAttention.back }));

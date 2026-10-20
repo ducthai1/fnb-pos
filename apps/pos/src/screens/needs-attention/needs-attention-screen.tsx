@@ -1,6 +1,7 @@
 import type { RejectedCommand } from "@fnb/sync-client";
 import { orderIdOfRejected } from "../../features/payment/use-settled-qr-closing";
 import { messageForCode, vi } from "../../messages/vi";
+import { commandNameOf } from "../../messages/vi-sync-errors";
 import { ScreenFrame } from "../shared/screen-frame";
 
 const NO_CLOSABLE: ReadonlySet<string> = new Set();
@@ -39,7 +40,7 @@ export function NeedsAttentionScreen({
               >
                 <p className="pos-rejected__sentence">{messageForCode(entry.code)}</p>
                 <p className="pos-hint">
-                  {vi.needsAttention.commandLine(entry.command.type, entry.code)}
+                  {vi.needsAttention.commandLine(commandNameOf(entry.command.type), entry.code)}
                 </p>
                 {canClose && onCloseWithSettledQr !== undefined ? (
                   <button

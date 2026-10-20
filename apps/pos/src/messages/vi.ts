@@ -68,7 +68,7 @@ export const vi = {
     hint: "Máy chủ đã từ chối các lệnh dưới đây. Quản lý cần xem lại từng lệnh.",
     empty: "Không có lệnh nào bị từ chối.",
     back: "Quay lại bán hàng",
-    commandLine: (type: string, code: string) => `${type} — ${code}`,
+    commandLine: (command: string, code: string) => `${command} — ${code}`,
   },
   errors: {
     API_DEVICE_PAIRING_CODE_INVALID:

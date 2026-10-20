@@ -29,3 +29,18 @@ export const VI_SYNC_ERRORS = {
     "Hóa đơn đã gửi đi phát hành nên không đổi được thông tin người mua nữa.",
   SYNC_EINVOICE_ORDER_CLOSED: "Đơn đã hủy nên không xuất hóa đơn.",
 } as const;
+
+/** How each command reads in the "needs attention" list. */
+const VI_COMMAND_NAMES: Readonly<Record<string, string>> = {
+  "order.save_draft": "Lưu đơn",
+  "order.pay": "Thanh toán đơn",
+  "order.set_buyer_info": "Ghi người mua hóa đơn",
+  "order.mark_sent_to_kitchen": "Gửi phiếu pha chế",
+  "payment.create_intent": "Tạo mã QR chuyển khoản",
+  "payment.cancel_intent": "Gỡ mã QR chuyển khoản",
+  "shift.open": "Mở ca",
+  "print.job_reported": "Báo kết quả in",
+};
+
+/** A command's name for a person; a command this POS has no name for shows as it is. */
+export const commandNameOf = (type: string): string => VI_COMMAND_NAMES[type] ?? type;
