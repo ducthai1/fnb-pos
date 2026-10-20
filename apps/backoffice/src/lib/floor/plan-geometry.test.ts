@@ -22,8 +22,8 @@ const table = (change: Partial<DiningTable> = {}): DiningTable =>
 
 describe("the part of the plan the editor shows", () => {
   it("is a small room at least, and holds every table with room to drag into", () => {
-    expect(planBox([])).toEqual({ width: 4_800, height: 3_000 });
-    expect(planBox([table({ x: 6_000, y: 4_000 })])).toEqual({ width: 8_000, height: 5_800 });
+    expect(planBox([])).toEqual({ width: 2_400, height: 1_500 });
+    expect(planBox([table({ x: 6_000, y: 4_000 })])).toEqual({ width: 7_400, height: 5_200 });
   });
 
   it("never runs past the edge the contract allows", () => {

@@ -3,10 +3,12 @@ import { describe, expect, it, vi as mock } from "vitest";
 import { vi } from "../../messages/vi";
 import { refused } from "../../test-support/fake-backoffice-api";
 import { TABLE_1, TERRACE, fakeFloor } from "../../test-support/fake-floor";
+import { planBox } from "../../lib/floor/plan-geometry";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { FloorScreen } from "./floor-screen";
 
 const T = vi.floor;
+const VIEW = planBox([TABLE_1]);
 const tableOnPlan = () => screen.getByRole("button", { name: T.moveTable(TABLE_1.name, TABLE_1.seats) });
 
 async function openPlan(more = {}) {
@@ -24,9 +26,10 @@ const placeOf = (body: unknown) => {
 describe("moving tables on the plan of an area", () => {
   it("draws a table where it stands, as a share of the plan shown", async () => {
     await openPlan();
-    // The plan shows 4800 × 3000 units: the table's right edge plus room to drag into.
-    expect(tableOnPlan().style.left).toBe("50%");
-    expect(tableOnPlan().style.top).toBe("40%");
+    // The plan shows the table's far edges plus room to drag into: 3800 × 2400 units.
+    expect(VIEW).toEqual({ width: 3_800, height: 2_400 });
+    expect(tableOnPlan().style.left).toBe(`${(2_400 / 3_800) * 100}%`);
+    expect(tableOnPlan().style.top).toBe("50%");
     expect(tableOnPlan().dataset.shape).toBe("circle");
   });
 
@@ -47,7 +50,7 @@ describe("moving tables on the plan of an area", () => {
   it("drags a table by the pointer, in plan units for the pixels moved, snapped, and saves on drop", async () => {
     const floor = await openPlan();
     const plan = tableOnPlan().parentElement!;
-    Object.defineProperty(plan, "clientWidth", { value: 480 });
+    Object.defineProperty(plan, "clientWidth", { value: VIEW.width / 10 });
     fireEvent.pointerDown(tableOnPlan(), { clientX: 100, clientY: 100, pointerId: 1 });
     fireEvent.pointerMove(tableOnPlan(), { clientX: 152, clientY: 81, pointerId: 1 });
     expect(floor.putTable).not.toHaveBeenCalled();
@@ -59,7 +62,7 @@ describe("moving tables on the plan of an area", () => {
 
   it("saves nothing for a tap that does not move the table", async () => {
     const floor = await openPlan();
-    Object.defineProperty(tableOnPlan().parentElement!, "clientWidth", { value: 480 });
+    Object.defineProperty(tableOnPlan().parentElement!, "clientWidth", { value: VIEW.width / 10 });
     fireEvent.pointerDown(tableOnPlan(), { clientX: 100, clientY: 100, pointerId: 1 });
     fireEvent.pointerUp(tableOnPlan(), { clientX: 100, clientY: 100, pointerId: 1 });
     expect(floor.putTable).not.toHaveBeenCalled();
@@ -71,7 +74,7 @@ describe("moving tables on the plan of an area", () => {
     fireEvent.keyDown(tableOnPlan(), { key: "ArrowLeft" });
     const group = screen.getByRole("group", { name: T.planTitle(TERRACE.name) });
     await within(group).findByRole("alert");
-    expect(tableOnPlan().style.left).toBe("50%");
+    expect(tableOnPlan().style.left).toBe(`${(2_400 / 3_800) * 100}%`);
   });
 });
 

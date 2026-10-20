@@ -6,9 +6,9 @@ import { editedTableBody } from "./floor-drafts";
 export const PLAN_STEP = 50;
 /** An arrow key moves a table this far; with Shift, five times as far. */
 export const NUDGE = 100;
-const MARGIN = 1_200;
-const MIN_WIDTH = 4_800;
-const MIN_HEIGHT = 3_000;
+const MARGIN = 600;
+const MIN_WIDTH = 2_400;
+const MIN_HEIGHT = 1_500;
 
 export interface PlanBox {
   readonly width: number;
