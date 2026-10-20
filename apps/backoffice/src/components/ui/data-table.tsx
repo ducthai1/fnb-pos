@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Fragment, type ReactNode, useId, useState } from "react";
 import { type SortDirection, type SortValue, tableView } from "../../lib/table/table-view";
 import { vi } from "../../messages/vi";
-import { Icon } from "./icon";
+import { DataTableHead } from "./data-table-head";
+import { pickTools } from "./data-table-pick";
 import { TableToolbar } from "./table-toolbar";
 
 const T = vi.table;
@@ -24,6 +24,16 @@ export interface DataFilter<R> {
   readonly key: string;
   readonly label: string;
   readonly test: (row: R) => boolean;
+}
+
+/** Rows a person ticks to act on them together; the ids are the rows' keys. */
+export interface DataSelection<R> {
+  readonly picked: ReadonlySet<string>;
+  readonly onPick: (picked: ReadonlySet<string>) => void;
+  /** The name of a row's checkbox ("Chọn Bạc xỉu"). */
+  readonly label: (row: R) => string;
+  /** The name of the head's checkbox, which ticks every row shown. */
+  readonly allLabel: string;
 }
 
 export interface Sort {
@@ -52,6 +62,7 @@ export function DataTable<R>(props: {
   panelData?: (row: R) => Readonly<Record<`data-${string}`, string>>;
   empty: ReactNode;
   initialSort?: Sort;
+  selection?: DataSelection<R>;
 }) {
   const {
     label,
@@ -66,6 +77,7 @@ export function DataTable<R>(props: {
     expanded,
     panelData,
     empty,
+    selection,
   } = props;
   const [typed, setTyped] = useState("");
   const [filterKey, setFilterKey] = useState<string | null>(null);
@@ -86,6 +98,7 @@ export function DataTable<R>(props: {
       : { sortValue: sortColumn.sortValue, direction: sort?.direction ?? "asc" }),
   });
   const width = columns.length + (actions === undefined ? 0 : 1);
+  const { allPicked, pickAll, pickOne } = pickTools(selection, shown.map(rowKey));
   const toggleSort = (key: string) =>
     setSort((current) =>
       current?.key !== key
@@ -119,61 +132,49 @@ export function DataTable<R>(props: {
         <p className="bo-empty">{T.noMatch}</p>
       ) : (
         <table className="bo-table bo-data__table" aria-label={label}>
-          <thead>
-            <tr>
-              {columns.map((column) => {
-                const sorted = sort?.key === column.key ? sort.direction : null;
-                return (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className={column.numeric === true ? "bo-num" : undefined}
-                    style={column.width === undefined ? undefined : { width: column.width }}
-                    aria-sort={
-                      sorted === null ? undefined : sorted === "asc" ? "ascending" : "descending"
-                    }
-                  >
-                    {column.sortValue === undefined ? (
-                      column.label
-                    ) : (
-                      <button
-                        type="button"
-                        className="bo-sort"
-                        aria-label={T.sortColumn(column.label)}
-                        onClick={() => toggleSort(column.key)}
-                      >
-                        {column.label}
-                        <Icon
-                          of={
-                            sorted === null ? ArrowUpDown : sorted === "asc" ? ArrowUp : ArrowDown
-                          }
-                          size={14}
-                        />
-                      </button>
-                    )}
-                  </th>
-                );
-              })}
-              {actions !== undefined && (
-                <th scope="col" style={actionsWidth === undefined ? undefined : { width: actionsWidth }}>
-                  {T.actions}
-                </th>
-              )}
-            </tr>
-          </thead>
+          <DataTableHead
+            columns={columns}
+            sort={sort}
+            onSort={toggleSort}
+            actionsWidth={actionsWidth}
+            hasActions={actions !== undefined}
+            lead={
+              selection === undefined ? undefined : (
+                <input
+                  type="checkbox"
+                  className="bo-data__pick-all"
+                  aria-label={selection.allLabel}
+                  checked={allPicked}
+                  onChange={() => pickAll(!allPicked)}
+                />
+              )
+            }
+          />
           <tbody>
             {shown.map((row) => {
               const panel = expanded?.(row);
               return (
                 <Fragment key={rowKey(row)}>
                   <tr {...rowData?.(row)}>
-                    {columns.map((column) => (
+                    {columns.map((column, at) => (
                       <td
                         key={column.key}
                         data-label={column.label}
                         className={column.numeric === true ? "bo-num bo-wrap" : "bo-wrap"}
                       >
-                        {column.cell(row)}
+                        {at === 0 && selection !== undefined ? (
+                          <div className="bo-data__pick">
+                            <input
+                              type="checkbox"
+                              aria-label={selection.label(row)}
+                              checked={selection.picked.has(rowKey(row))}
+                              onChange={() => pickOne(rowKey(row))}
+                            />
+                            {column.cell(row)}
+                          </div>
+                        ) : (
+                          column.cell(row)
+                        )}
                       </td>
                     ))}
                     {actions !== undefined && <td className="bo-data__actions">{actions(row)}</td>}
