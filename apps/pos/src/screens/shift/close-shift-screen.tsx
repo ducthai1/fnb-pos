@@ -3,6 +3,8 @@ import {
   type DenominationCount,
   type ShiftCashSummary,
   type Vnd,
+  ZERO_VND,
+  compareVnd,
   countedTotal,
   formatVnd,
   negateVnd,
@@ -59,7 +61,11 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
       title={T.title}
       dock={
         <>
-          <p className="pos-total pos-wrap" aria-live="polite">
+          <p
+            className="pos-total pos-wrap"
+            aria-live="polite"
+            data-difference-sign={compareVnd(assessment.difference, ZERO_VND)}
+          >
             {differenceSentence(assessment.difference)}
           </p>
           <Alert message={error} />

@@ -42,3 +42,16 @@
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
+
+/* The close's difference in the dock: short in red, over in amber, none in green. */
+.pos-total[data-difference-sign="-1"] {
+  color: var(--c-danger);
+}
+
+.pos-total[data-difference-sign="1"] {
+  color: var(--c-amber);
+}
+
+.pos-total[data-difference-sign="0"] {
+  color: var(--c-success);
+}
