@@ -107,6 +107,26 @@
   overflow-wrap: anywhere;
 }
 
+/* How many are on the order already, on the tile's corner like a notification. */
+.pos-product__count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 1;
+  box-sizing: border-box;
+  min-width: 28px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  box-shadow: 0 0 0 2px var(--c-surface);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  line-height: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 .pos-product:disabled {
   background: var(--c-surface-2);
   box-shadow: none;

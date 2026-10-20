@@ -73,3 +73,13 @@ describe("the till's keyboard on the selling screen", () => {
     expect(screen.getByRole("button", { name: text.sale.checkout })).toBeTruthy();
   });
 });
+
+describe("the menu beside the order", () => {
+  it("counts on a tile the units of it the order holds, and nothing on the others", () => {
+    till(2);
+    const coffee = screen.getByRole("button", { name: /^Cà phê sữa/ });
+    expect(coffee.querySelector("[data-in-cart]")?.textContent).toBe("2");
+    const tea = screen.getByRole("button", { name: /^Trà sữa trân châu/ });
+    expect(tea.querySelector("[data-in-cart]")).toBeNull();
+  });
+});

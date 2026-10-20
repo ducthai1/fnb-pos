@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORY_TONES, categoryTones, productMark } from "./product-mark";
+import { CATEGORY_TONES, categoryTones, productMark, unitsByProduct } from "./product-mark";
 
 describe("productMark", () => {
   it("takes the first letter of the first two words, marks and all", () => {
@@ -22,5 +22,18 @@ describe("categoryTones", () => {
     expect(tones.get("c0")).toBe(1);
     expect(tones.get(`c${CATEGORY_TONES - 1}`)).toBe(CATEGORY_TONES);
     expect(tones.get(`c${CATEGORY_TONES}`)).toBe(1);
+  });
+});
+
+describe("unitsByProduct", () => {
+  it("adds up the units of a product across its lines (two sizes, two lines)", () => {
+    const units = unitsByProduct([
+      { productId: "tea", quantity: 2 },
+      { productId: "coffee", quantity: 1 },
+      { productId: "tea", quantity: 3 },
+    ]);
+    expect(units.get("tea")).toBe(5);
+    expect(units.get("coffee")).toBe(1);
+    expect(units.get("cake")).toBeUndefined();
   });
 });

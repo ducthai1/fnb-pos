@@ -20,3 +20,13 @@ export function productMark(name: string): string {
 export function categoryTones(categories: readonly { id: string }[]): ReadonlyMap<string, number> {
   return new Map(categories.map((category, index) => [category.id, (index % CATEGORY_TONES) + 1]));
 }
+
+/** How many units of each product the order holds, for the count on its tile. */
+export function unitsByProduct(
+  lines: readonly { readonly productId: string; readonly quantity: number }[],
+): ReadonlyMap<string, number> {
+  const units = new Map<string, number>();
+  for (const line of lines)
+    units.set(line.productId, (units.get(line.productId) ?? 0) + line.quantity);
+  return units;
+}

@@ -15,11 +15,15 @@ export interface MenuPanelProps {
   menu: TillMenu;
   /** The till's clock: prices and sold-out ends are read at this moment. */
   now: number;
+  /** Units of each product on the order, by product id. */
+  inCart?: ReadonlyMap<string, number>;
   onPick(product: PosProduct): void;
 }
 
+const NOTHING: ReadonlyMap<string, number> = new Map();
+
 /** Categories, a quick search and the products as tiles of one height; sold-out ones marked. */
-export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
+export function MenuPanel({ menu, now, inCart = NOTHING, onPick }: MenuPanelProps) {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
@@ -76,6 +80,7 @@ export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
                 menu={menu}
                 product={product}
                 tone={product.categoryId === null ? 0 : (tones.get(product.categoryId) ?? 0)}
+                inCart={inCart.get(product.id) ?? 0}
                 now={now}
                 onPick={onPick}
               />

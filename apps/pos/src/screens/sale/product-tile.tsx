@@ -11,6 +11,8 @@ export interface ProductTileProps {
   product: PosProduct;
   /** The colour of the product's category, 0 when it has none. */
   tone: number;
+  /** Units of it already on the order, shown on the tile so a tap is seen to count. */
+  inCart: number;
   now: number;
   onPick(product: PosProduct): void;
 }
@@ -19,7 +21,7 @@ export interface ProductTileProps {
  * One product: a coloured mark where a photo would be, its name (two lines, the rest cut),
  * its price. Every tile is the same height so the grid reads in rows.
  */
-export function ProductTile({ menu, product, tone, now, onPick }: ProductTileProps) {
+export function ProductTile({ menu, product, tone, inCart, now, onPick }: ProductTileProps) {
   const soldOut = isSoldOut(menu.availability.get(product.id), COUNTER_CHANNEL, now);
   const price = tilePrice(menu, product, now);
   return (
@@ -39,6 +41,12 @@ export function ProductTile({ menu, product, tone, now, onPick }: ProductTilePro
       </span>
       {/* After the name, so the tile is still named by it first; drawn over the mark. */}
       {soldOut ? <span className="pos-product__flag">{vi.sale.soldOut}</span> : null}
+      {/* The order already reads out its lines; this is for the eye. */}
+      {inCart > 0 ? (
+        <span className="pos-product__count" aria-hidden data-in-cart={inCart}>
+          {inCart}
+        </span>
+      ) : null}
     </button>
   );
 }
