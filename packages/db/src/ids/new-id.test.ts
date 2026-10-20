@@ -19,7 +19,10 @@ describe("newId", () => {
 
   it("embeds the creation millisecond in the first 48 bits", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
-    const createdAt = Date.UTC(2026, 9, 20, 3, 15, 0, 123);
+    // Later than any real clock: the generator never goes back below the newest id it has
+    // made, and the test above made ids at the real time, so a past instant would come out
+    // as that real time instead (the test failed as soon as the day passed this instant).
+    const createdAt = Date.UTC(2099, 9, 20, 3, 15, 0, 123);
     vi.setSystemTime(createdAt);
     expect(idTimestampMillis(newId())).toBe(createdAt);
   });
