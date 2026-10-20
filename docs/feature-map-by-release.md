@@ -26,8 +26,8 @@
 | FT-017 | Hủy món trước/sau khi gửi + duyệt | §9 | T02-09, T04-17 | `packages/domain/src/order/void-line.test.ts`, `e2e/pos/void-after-sent-needs-approval.spec.ts` | đang — voidLine (domain) xong; UI/API chưa |
 | FT-018 | Hoàn đơn đã trả (đơn hoàn, restock) | §9 | T02-09, T04-17 | `packages/domain/src/order/build-refund.test.ts` | đang — buildRefund (domain) xong; phần giảm giá khi hoàn một phần chưa |
 | FT-019 | Offline: bán, khóa thao tác, badge, màn "cần xử lý" | §20 | T04-02…04, T04-18 | `packages/sync-client/test/scenarios/{offline-sale-then-sync,duplicate-command-is-noop,out-of-order-commands,continue-on-previous-state,domain-version-mismatch-is-rejected}.test.ts`, `e2e/pos/offline-counter-sale.spec.ts` | chưa |
-| FT-020 | Bàn cơ bản: sơ đồ, mở bàn, nhiều lượt, tạm tính, trả sau | §6 | T4B-01…05 | `e2e/pos/table-two-rounds-pay-later.spec.ts` | chưa |
-| FT-021 | Chuyển sang bàn trống | §6 | T4B-06 | `packages/domain/src/table/transfer-to-empty-table.test.ts` | chưa |
+| FT-020 | Bàn cơ bản: sơ đồ, mở bàn, nhiều lượt, tạm tính, trả sau | §6 | T4B-01…05 | `e2e/pos/table-service.spec.ts`, `apps/pos/src/app/{table-floor,table-rounds,table-qr-payment}.test.tsx` | done (đợt 9c) |
+| FT-021 | Chuyển sang bàn trống | §6 | T4B-06 | `apps/pos/src/app/table-refusals.test.tsx`, `e2e/pos/table-service.spec.ts` | done (đợt 9c) |
 | FT-022 | Đơn gọi ở quầy kèm số bàn (mang ra bàn) | §5 | T4B-07 | `e2e/pos/counter-order-with-table-tag.spec.ts` | chưa |
 | FT-023 | Một đơn mở mỗi bàn + báo xung đột | §6, §20 | T4B-08 | `packages/sync-client/test/scenarios/two-devices-edit-same-table.test.ts` | chưa |
 | FT-024 | VietQR động, tự xác nhận, khớp tay | §8 | T05-01…04 | `packages/domain/src/payment/vietqr-payload-crc.test.ts`, `apps/api/test/integration/payments/{webhook-is-idempotent,match-under-over-duplicate}.test.ts` | chưa |
