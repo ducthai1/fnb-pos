@@ -21,16 +21,21 @@ if (stack === null || livePids(stack.pids).length === 0) {
   console.error("Chưa có pnpm dev:stack nào đang chạy. Chạy nó trước ở một cửa sổ khác.");
   process.exit(1);
 }
+const { apiUrl, tenantId } = stack;
+if (apiUrl === undefined || tenantId === undefined) {
+  console.error("pnpm dev:stack đang khởi động. Đợi nó in xong địa chỉ rồi chạy lại.");
+  process.exit(1);
+}
 const { logins } = await loadOrGenerateDevStackLogins(DEV_STACK_PATHS.logins);
 const notice = sepayDevNotice({
-  tenantId: stack.tenantId,
+  tenantId,
   secret: logins.sepaySecret,
   content: args.content,
   amount: args.amount,
   at: new Date(),
   transactionId: randomInt(1, 2 ** 31),
 });
-const response = await fetch(`${stack.apiUrl}${notice.path}`, {
+const response = await fetch(`${apiUrl}${notice.path}`, {
   method: "POST",
   headers: notice.headers,
   body: JSON.stringify(notice.body),
