@@ -11,6 +11,7 @@ import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
+import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
 import { CREDENTIAL } from "./credential";
 import { fakeServerRows } from "./fake-server-rows";
 import type {
@@ -148,7 +149,11 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
 /** The POS wired to the fake server, an in-memory store and saved credentials. */
 export function fakeDependencies(
   server: ReturnType<typeof fakeServer>,
-  options: { store?: Promise<LocalStore>; credentials?: DeviceCredentialStore } = {},
+  options: {
+    store?: Promise<LocalStore>;
+    credentials?: DeviceCredentialStore;
+    printer?: PrinterPort;
+  } = {},
 ): PosDependencies {
   return {
     store: options.store ?? Promise.resolve(memoryStore()),
@@ -157,6 +162,7 @@ export function fakeDependencies(
     bootstrap: server.bootstrap,
     transportFor: () => server.transport,
     syncIdleMs: 20,
+    printer: options.printer ?? previewOnlyPrinter,
     reload: () => {},
   };
 }

@@ -73,6 +73,7 @@ export function PairedTill(props: {
       till={till}
       staff={signedIn.staff}
       status={status}
+      printer={deps.printer}
       onOpenNeedsAttention={() => {
         void till?.client.rejectedCommands().then(setRejected);
       }}

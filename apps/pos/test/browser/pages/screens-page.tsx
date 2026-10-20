@@ -14,6 +14,8 @@ import "../../../src/styles/pos-screens.css";
 import "../../../src/styles/pos-sale.css";
 import "../../../src/styles/pos-order.css";
 import "../../../src/styles/pos-picker.css";
+import "../../../src/styles/pos-checkout.css";
+import { CHECKOUT_SCREENS } from "./checkout-screens";
 import { SALE_SCREENS } from "./sale-screens";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
@@ -65,6 +67,7 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
     <NeedsAttentionScreen rejected={[1, 2, 3].map(rejected)} onBack={() => {}} />
   ),
   ...SALE_SCREENS,
+  ...CHECKOUT_SCREENS,
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */

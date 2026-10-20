@@ -1,5 +1,5 @@
 import type { OrderChargeProfile } from "@fnb/domain";
-import type { SyncClient } from "@fnb/sync-client";
+import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { newId } from "../ids/new-id";
 import type { TillMenu } from "../menu/till-menu";
@@ -27,6 +27,8 @@ export interface CounterOrderSession {
   /** Saves the draft priced at `at` once every earlier save is recorded; null when it failed. */
   saveAt(at: number): Promise<PricedCounterOrder | null>;
   readonly recorded: () => Readonly<Recorded>;
+  /** Records a command after every save already queued; one on the order bumps its version. */
+  record(command: LocalCommand): Promise<void>;
   /** Clears the counter for the next customer. */
   startNew(): void;
 }
@@ -124,6 +126,21 @@ export function useCounterOrder(
     [queue],
   );
 
+  const record = useCallback(
+    (command: LocalCommand) => {
+      const next = saving.current.then(async () => {
+        await client.enqueue(command);
+        if (command.target.entity === "order") {
+          recorded.current = { ...recorded.current, version: recorded.current.version + 1 };
+        }
+      });
+      // A failed record stops nothing queued after it; the caller hears of it.
+      saving.current = next.catch(() => {});
+      return next;
+    },
+    [client],
+  );
+
   const saveAt = useCallback(
     async (at: number) => (current.current === null ? null : queue(current.current, at)),
     [queue],
@@ -136,6 +153,7 @@ export function useCounterOrder(
     update,
     saveAt,
     recorded: () => recorded.current,
+    record,
     startNew,
   };
 }

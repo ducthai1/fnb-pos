@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { PosApp } from "../app/pos-app";
+import type { PosDependencies } from "../app/pos-dependencies";
 import { vi as text } from "../messages/vi";
 import { CREDENTIAL, fakeDependencies, fakeServer, memoryCredentials } from "./fake-pos-server";
 import { tillBootstrap } from "./till-fixtures";
@@ -24,9 +25,10 @@ export async function typePin(pin: string) {
  */
 export async function signedInTill(
   server: ReturnType<typeof fakeServer>,
-  options: { openShift?: boolean } = {},
+  options: { openShift?: boolean; deps?: PosDependencies } = {},
 ) {
-  const deps = fakeDependencies(server, { credentials: memoryCredentials(CREDENTIAL).store });
+  const deps =
+    options.deps ?? fakeDependencies(server, { credentials: memoryCredentials(CREDENTIAL).store });
   render(<PosApp deps={deps} />);
   fireEvent.click(await screen.findByRole("button", { name: LAN.displayName }));
   await typePin("4826");

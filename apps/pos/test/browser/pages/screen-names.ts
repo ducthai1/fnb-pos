@@ -9,6 +9,8 @@ export const SCREEN_NAMES = [
   "open-shift",
   "sale",
   "modifier-picker",
+  "payment",
+  "sale-done",
 ] as const;
 
 export type ScreenName = (typeof SCREEN_NAMES)[number];

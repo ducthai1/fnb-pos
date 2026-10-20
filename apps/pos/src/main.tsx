@@ -5,12 +5,14 @@ import { PosApp } from "./app/pos-app";
 import type { PosDependencies } from "./app/pos-dependencies";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
+import { printerForBuild } from "./features/printing/printer-port";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-base.css";
 import "./styles/pos-screens.css";
 import "./styles/pos-sale.css";
 import "./styles/pos-order.css";
 import "./styles/pos-picker.css";
+import "./styles/pos-checkout.css";
 
 /** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
 const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";
@@ -31,6 +33,8 @@ const deps: PosDependencies = {
       staffSessionToken,
     }),
   syncIdleMs: 5_000,
+  // The web build prints nothing; an end-to-end build may ask for a printer that always takes.
+  printer: printerForBuild(import.meta.env.VITE_FNB_SIMULATED_PRINTER),
   reload: () => window.location.reload(),
 };
 

@@ -3,6 +3,7 @@ import type { BootstrapSnapshot, BootstrapStaff } from "../features/bootstrap/bo
 import { useNow } from "../features/menu/use-now";
 import { useTillMenu } from "../features/menu/use-till-menu";
 import type { TillPlace } from "../features/order/till-command";
+import type { PrinterPort } from "../features/printing/printer-port";
 import { openShiftCommand } from "../features/shift/till-shift";
 import { useTillShift } from "../features/shift/use-till-shift";
 import type { TillSyncStatus } from "../features/sync/till-sync-status";
@@ -18,6 +19,7 @@ export interface StaffedTillProps {
   till: RunningTill | null;
   staff: BootstrapStaff;
   status: TillSyncStatus;
+  printer: PrinterPort;
   onOpenNeedsAttention(): void;
   onSwitchStaff(): void;
 }
@@ -73,6 +75,8 @@ export function StaffedTill(props: StaffedTillProps) {
       now={now}
       header={header}
       shiftId={shift.shift.id}
+      cashierName={staff.displayName}
+      printer={props.printer}
     />
   );
 }
