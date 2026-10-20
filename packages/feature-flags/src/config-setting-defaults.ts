@@ -23,6 +23,13 @@ export const CONFIG_SETTING_DEFAULTS = {
    * rather than a QR into an account nobody chose.
    */
   payment_account: null,
+  /**
+   * A branch's electronic invoicing: { enabled, sellerTaxCode, sellerName, sellerAddress,
+   * templateSymbol, provider, regimeVersion, refundInvoicing }, checked by the contracts'
+   * einvoiceProfileSchema. None until the shop sets one, so a branch never issues invoices
+   * in a seller's name nobody entered; set per branch, since each branch invoices as itself.
+   */
+  einvoice_profile: null,
 } as const;
 
 export type ConfigSettingKey = keyof typeof CONFIG_SETTING_DEFAULTS;

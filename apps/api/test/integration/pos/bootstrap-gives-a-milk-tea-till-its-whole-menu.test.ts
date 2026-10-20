@@ -70,6 +70,7 @@ describe("what a till starts with", () => {
     expect(q1.config.settings).toEqual({
       void_after_sent_needs_approval: true,
       payment_account: null,
+      einvoice_profile: null,
     });
     expect(q1.config.chargeProfile).toEqual({ pricesIncludeTax: true, serviceCharge: null });
   });

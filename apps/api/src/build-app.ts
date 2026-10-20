@@ -6,6 +6,7 @@ import { type AuthPolicy, DEFAULT_AUTH_POLICY } from "./auth/auth-policy";
 import { backofficeSessionHook } from "./auth/backoffice-session-hook";
 import { type Clock, systemClock } from "./clock";
 import { deviceAuthHook } from "./devices/device-auth-hook";
+import { type EInvoiceProvider, providersByKey } from "./einvoice/einvoice-provider";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
 import { webhookSecretBox } from "./payments/webhook-secret-box";
@@ -15,6 +16,7 @@ import { registerSessionRoutes } from "./routes/auth/session-routes";
 import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
+import { registerEInvoiceProfileRoutes } from "./routes/einvoice/einvoice-profile-routes";
 import { registerFloorRoutes } from "./routes/floor/register-floor-routes";
 import { registerPaymentBackofficeRoutes } from "./routes/payments/payment-backoffice-routes";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
@@ -42,6 +44,8 @@ export interface AppDependencies {
   paymentSecretKey?: Buffer;
   /** The gateways notices are taken from; SePay and PayOS unless a test adds its fake. */
   paymentGateways?: readonly PaymentGatewayAdapter[];
+  /** The invoice providers branches may name; none until a real adapter is written. */
+  einvoiceProviders?: readonly EInvoiceProvider[];
 }
 
 /**
@@ -114,6 +118,8 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   };
   registerPaymentWebhookRoute(app, context, payments);
   registerPaymentBackofficeRoutes(app, context, payments);
+  const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
+  registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
 
   return app;
 }
