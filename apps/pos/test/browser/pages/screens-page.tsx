@@ -16,6 +16,7 @@ import "../../../src/styles/pos-order.css";
 import "../../../src/styles/pos-picker.css";
 import "../../../src/styles/pos-checkout.css";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
+import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
 import { SALE_SCREENS } from "./sale-screens";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
@@ -48,6 +49,13 @@ const rejected = (index: number): RejectedCommand => ({
   },
 });
 
+// Cash refused because the order's QR was paid: its sentence and the button closing it.
+const settledQrRefusal: RejectedCommand = {
+  ...rejected(4),
+  code: "SYNC_ORDER_HAS_SETTLED_QR",
+  command: { ...rejected(4).command, type: "order.pay" },
+};
+
 const SCREENS: Record<ScreenName, () => ReactElement> = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={() => {}} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
@@ -64,10 +72,16 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
     <PinEntry staff={staff[0]!} signIn={never} onSignedIn={() => {}} onBack={() => {}} />
   ),
   "needs-attention": () => (
-    <NeedsAttentionScreen rejected={[1, 2, 3].map(rejected)} onBack={() => {}} />
+    <NeedsAttentionScreen
+      rejected={[...[1, 2, 3].map(rejected), settledQrRefusal]}
+      closable={new Set([settledQrRefusal.entityId])}
+      onCloseWithSettledQr={() => {}}
+      onBack={() => {}}
+    />
   ),
   ...SALE_SCREENS,
   ...CHECKOUT_SCREENS,
+  ...QR_AND_INVOICE_SCREENS,
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */

@@ -1,0 +1,152 @@
+import type { SyncClient } from "@fnb/sync-client";
+import { type ReactNode, useState } from "react";
+import type { TillMenu } from "../features/menu/till-menu";
+import type { CounterOrder } from "../features/order/counter-order";
+import type { PricedCounterOrder } from "../features/order/price-counter-order";
+import type { TillPlace } from "../features/order/till-command";
+import type { CounterOrderSession } from "../features/order/use-counter-order";
+import { paySale } from "../features/payment/pay-sale";
+import { paymentAccountOf } from "../features/payment/payment-account";
+import type { Tender } from "../features/payment/tenders";
+import type { PaidSale } from "../features/printing/paid-sale";
+import { type PrintedSlip, printSaleSlips } from "../features/printing/print-sale-slips";
+import type { PrinterPort } from "../features/printing/printer-port";
+import { BuyerInfoScreen } from "../screens/invoice/buyer-info-screen";
+import { BuyerInvoiceOffer, SaleInvoicePanel } from "../screens/invoice/sale-invoice-panel";
+import { PaymentScreen } from "../screens/payment/payment-screen";
+import { SaleDoneScreen } from "../screens/payment/sale-done-screen";
+import { CounterQrPayment } from "./counter-qr-payment";
+import { useCheckoutInvoice } from "./use-checkout-invoice";
+
+export interface CounterCheckoutProps {
+  client: SyncClient;
+  place: TillPlace;
+  menu: TillMenu;
+  header: ReactNode;
+  shiftId: string;
+  cashierName: string;
+  printer: PrinterPort;
+  session: CounterOrderSession;
+  order: CounterOrder;
+  /** The draft as last saved, which is what the server prices the payment against. */
+  priced: PricedCounterOrder;
+  onBackToSale(): void;
+  onNextOrder(): void;
+}
+
+type Step = "paying" | "qr" | "buyer";
+
+interface PaidOrder {
+  readonly sale: PaidSale;
+  /** Null while the slips are still printing; a reprint is added at the end. */
+  readonly slips: readonly PrintedSlip[] | null;
+}
+
+/**
+ * Taking the money for the order on the counter (cash, or a QR the bank confirms), who its
+ * e-invoice is for, then its slips, and the bill again once the invoice is issued.
+ */
+export function CounterCheckout(props: CounterCheckoutProps) {
+  const { client, place, menu, header, session, order, priced } = props;
+  const [step, setStep] = useState<Step>("paying");
+  const [paid, setPaid] = useState<PaidOrder | null>(null);
+  const [reprinting, setReprinting] = useState(false);
+  const account = paymentAccountOf(menu.config);
+  const invoicing = useCheckoutInvoice(props, paid?.sale ?? null);
+  const addSlip = (slip: PrintedSlip) =>
+    setPaid((shown) =>
+      shown === null ? null : { ...shown, slips: [...(shown.slips ?? []), slip] },
+    );
+
+  async function finish(tenders: readonly Tender[]) {
+    const sale = await paySale({ ...props, tenders, at: Date.now() });
+    setPaid({ sale, slips: null });
+    setStep("paying");
+    const slips = await printSaleSlips({
+      ...props,
+      sale,
+      record: session.record,
+      now: Date.now,
+    }).catch((error: unknown) => {
+      console.error(error);
+      return [];
+    });
+    setPaid((shown) => (shown?.sale === sale ? { ...shown, slips } : shown));
+  }
+
+  async function reprint() {
+    setReprinting(true);
+    try {
+      const slip = await invoicing.reprint();
+      if (slip !== null) addSlip(slip);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setReprinting(false);
+    }
+  }
+
+  const editBuyer = () => setStep("buyer");
+  const invoiceSlot = !invoicing.enabled ? null : paid === null ? (
+    <BuyerInvoiceOffer buyer={invoicing.buyer} onEdit={editBuyer} />
+  ) : (
+    <SaleInvoicePanel
+      invoice={invoicing.invoice}
+      buyer={invoicing.buyer}
+      reprinting={reprinting}
+      onEditBuyer={editBuyer}
+      onReprint={() => void reprint()}
+    />
+  );
+
+  if (step === "buyer") {
+    return (
+      <BuyerInfoScreen
+        header={header}
+        buyer={invoicing.buyer}
+        onSave={async (buyer) => {
+          await invoicing.saveBuyer(buyer);
+          setStep("paying");
+        }}
+        onBack={() => setStep("paying")}
+      />
+    );
+  }
+  if (paid !== null) {
+    return (
+      <SaleDoneScreen
+        header={header}
+        sale={paid.sale}
+        slips={paid.slips}
+        invoice={invoiceSlot}
+        onNextOrder={props.onNextOrder}
+      />
+    );
+  }
+  if (step === "qr" && account !== null) {
+    return (
+      <CounterQrPayment
+        client={client}
+        place={place}
+        header={header}
+        orderId={order.orderId}
+        amountDue={priced.totals.amountDue}
+        account={account}
+        record={session.record}
+        onPaid={finish}
+        onLeave={() => setStep("paying")}
+      />
+    );
+  }
+  return (
+    <PaymentScreen
+      header={header}
+      amountDue={priced.totals.amountDue}
+      qrAccountSet={account !== null}
+      invoice={invoiceSlot}
+      onBack={props.onBackToSale}
+      onQr={() => setStep("qr")}
+      onPaid={finish}
+    />
+  );
+}

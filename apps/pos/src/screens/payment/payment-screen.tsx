@@ -10,6 +10,7 @@ import {
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { CashEntry } from "./cash-entry";
+import { QrOffer } from "./qr-offer";
 
 const T = vi.checkout.payment;
 
@@ -17,15 +18,22 @@ export interface PaymentScreenProps {
   header: ReactNode;
   /** The domain's amount due on the draft as last saved: what the server will check. */
   amountDue: Vnd;
+  /** Whether the branch set an account a VietQR can ask customers to transfer to. */
+  qrAccountSet: boolean;
+  /** Who the e-invoice is for, when the branch issues them. */
+  invoice?: ReactNode;
   onBack(): void;
+  /** Shows a VietQR for the whole amount due; the bank's notice, not the cashier, confirms it. */
+  onQr(): void;
   onPaid(tenders: readonly Tender[]): Promise<void>;
 }
 
 /**
- * Taking the money: cash with quick keys and change, a bank transfer confirmed by hand, or
- * several of them. Every amount on screen is the domain's arithmetic, none is the screen's.
+ * Taking the money: cash with quick keys and change, or a VietQR the bank confirms. Every
+ * amount on screen is the domain's arithmetic, none is the screen's.
  */
-export function PaymentScreen({ header, amountDue, onBack, onPaid }: PaymentScreenProps) {
+export function PaymentScreen(props: PaymentScreenProps) {
+  const { header, amountDue, onBack, onPaid } = props;
   const [tenders, setTenders] = useState<readonly Tender[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -94,21 +102,15 @@ export function PaymentScreen({ header, amountDue, onBack, onPaid }: PaymentScre
             onTake={(amount) => take({ method: PAYMENT_METHODS.cash, amount })}
             onUnreadable={() => setError(T.refusals.unreadable)}
           />
-          {/* Automatic confirmation by the bank's notice will replace the cashier's tap here. */}
-          <section className="pos-card" aria-label={T.qr}>
-            <p className="pos-wrap">{T.qrHint(formatVnd(settlement.remaining))}</p>
-            <button
-              type="button"
-              className="pos-button"
-              onClick={() =>
-                take({ method: PAYMENT_METHODS.qrTransfer, amount: settlement.remaining })
-              }
-            >
-              {T.qrConfirm(formatVnd(settlement.remaining))}
-            </button>
-          </section>
+          <QrOffer
+            amountDue={amountDue}
+            accountSet={props.qrAccountSet}
+            cashTaken={tenders.length > 0}
+            onShow={props.onQr}
+          />
         </>
       ) : null}
+      {props.invoice}
       <Alert message={error} />
       <div className="pos-actions">
         <button type="button" className="pos-button" onClick={onBack} disabled={busy}>

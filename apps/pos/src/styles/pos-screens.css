@@ -115,3 +115,13 @@
     animation-duration: 3s;
   }
 }
+
+.pos-rejected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pos-rejected p {
+  margin: 0;
+}

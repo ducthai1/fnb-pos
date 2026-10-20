@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import type { BootstrapSnapshot, BootstrapStaff } from "../features/bootstrap/bootstrap-source";
+import {
+  type BootstrapSnapshot,
+  type BootstrapStaff,
+  tillPlaceOf,
+} from "../features/bootstrap/bootstrap-source";
 import { useNow } from "../features/menu/use-now";
 import { useTillMenu } from "../features/menu/use-till-menu";
 import type { TillPlace } from "../features/order/till-command";
@@ -31,15 +35,7 @@ export function StaffedTill(props: StaffedTillProps) {
   const menu = useTillMenu(snapshot, client);
   const now = useNow();
   const shift = useTillShift(client, snapshot.device.id);
-  const place: TillPlace = useMemo(
-    () => ({
-      deviceId: snapshot.device.id,
-      branchId: snapshot.branch.id,
-      utcOffsetMinutes: snapshot.branch.utcOffsetMinutes,
-      businessDayStartMinute: snapshot.branch.businessDayStartMinute,
-    }),
-    [snapshot],
-  );
+  const place: TillPlace = useMemo(() => tillPlaceOf(snapshot), [snapshot]);
   const header = (
     <TillHeader
       branchName={snapshot.branch.name}

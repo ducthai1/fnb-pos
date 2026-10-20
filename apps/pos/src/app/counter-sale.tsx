@@ -14,16 +14,12 @@ import {
 import type { PricedCounterOrder } from "../features/order/price-counter-order";
 import type { TillPlace } from "../features/order/till-command";
 import { useCounterOrder } from "../features/order/use-counter-order";
-import { paySale } from "../features/payment/pay-sale";
-import type { PaidSale } from "../features/printing/paid-sale";
-import { type PrintedSlip, printSaleSlips } from "../features/printing/print-sale-slips";
 import type { PrinterPort } from "../features/printing/printer-port";
 import { vi } from "../messages/vi";
-import { PaymentScreen } from "../screens/payment/payment-screen";
-import { SaleDoneScreen } from "../screens/payment/sale-done-screen";
 import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../screens/sale/sale-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
+import { CounterCheckout } from "./counter-checkout";
 
 export interface CounterSaleProps {
   client: SyncClient;
@@ -39,12 +35,7 @@ export interface CounterSaleProps {
 type Phase =
   | { readonly kind: "selling" }
   | { readonly kind: "picking"; readonly product: PosProduct }
-  | { readonly kind: "paying"; readonly priced: PricedCounterOrder }
-  | {
-      readonly kind: "done";
-      readonly sale: PaidSale;
-      readonly slips: readonly PrintedSlip[] | null;
-    };
+  | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
 
 const plainLine = (product: PosProduct): CartLine => ({
   lineId: newId(),
@@ -62,19 +53,6 @@ export function CounterSale(props: CounterSaleProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
   const { order, chargeProfile } = session;
 
-  if (phase.kind === "done") {
-    return (
-      <SaleDoneScreen
-        header={header}
-        sale={phase.sale}
-        slips={phase.slips}
-        onNextOrder={() => {
-          session.startNew();
-          setPhase({ kind: "selling" });
-        }}
-      />
-    );
-  }
   if (order === null || chargeProfile === null) {
     return (
       <ScreenFrame title={vi.sales.title}>
@@ -83,34 +61,17 @@ export function CounterSale(props: CounterSaleProps) {
       </ScreenFrame>
     );
   }
-  if (phase.kind === "paying") {
+  if (phase.kind === "checkout") {
     return (
-      <PaymentScreen
-        header={header}
-        amountDue={phase.priced.totals.amountDue}
-        onBack={() => setPhase({ kind: "selling" })}
-        onPaid={async (tenders) => {
-          const sale = await paySale({
-            ...props,
-            session,
-            order,
-            priced: phase.priced,
-            tenders,
-            at: Date.now(),
-          });
-          setPhase({ kind: "done", sale, slips: null });
-          const slips = await printSaleSlips({
-            ...props,
-            sale,
-            record: session.record,
-            now: Date.now,
-          }).catch((error: unknown) => {
-            console.error(error);
-            return [];
-          });
-          setPhase((shown) =>
-            shown.kind === "done" && shown.sale === sale ? { ...shown, slips } : shown,
-          );
+      <CounterCheckout
+        {...props}
+        session={session}
+        order={order}
+        priced={phase.priced}
+        onBackToSale={() => setPhase({ kind: "selling" })}
+        onNextOrder={() => {
+          session.startNew();
+          setPhase({ kind: "selling" });
         }}
       />
     );
@@ -153,7 +114,7 @@ export function CounterSale(props: CounterSaleProps) {
       }
       onCheckout={async () => {
         const priced = await session.saveAt(Date.now());
-        if (priced !== null) setPhase({ kind: "paying", priced });
+        if (priced !== null) setPhase({ kind: "checkout", priced });
       }}
     />
   );

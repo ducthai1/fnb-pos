@@ -3,7 +3,7 @@ import type { PosStack } from "../../support/global-setup-start-pos-stack";
 /** A backoffice call as the shop's owner; fails the spec unless it answers `status`. */
 export async function backoffice(
   stack: PosStack,
-  method: "POST" | "PUT",
+  method: "POST" | "PUT" | "DELETE",
   path: string,
   body: object,
   status: number,

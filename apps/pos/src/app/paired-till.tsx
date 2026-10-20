@@ -1,12 +1,14 @@
 import type { LocalStore, RejectedCommand } from "@fnb/sync-client";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { failureMessage } from "../features/api/failure-message";
 import type { StaffSession } from "../features/api/pos-api";
 import {
   type BootstrapSnapshot,
   type BootstrapStaff,
   staffWhoMaySignIn,
+  tillPlaceOf,
 } from "../features/bootstrap/bootstrap-source";
+import { useSettledQrClosing } from "../features/payment/use-settled-qr-closing";
 import { INITIAL_SYNC_STATUS } from "../features/sync/till-sync-status";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
@@ -38,6 +40,8 @@ export function PairedTill(props: {
     till?.sync.subscribe ?? noSubscription,
     till?.sync.current ?? initialStatus,
   );
+  const place = useMemo(() => (snapshot === null ? null : tillPlaceOf(snapshot)), [snapshot]);
+  const settledQr = useSettledQrClosing(till?.client ?? null, place, rejected);
 
   const loadBootstrap = useCallback(async () => {
     setBootstrapError(null);
@@ -65,7 +69,16 @@ export function PairedTill(props: {
     );
   }
   if (rejected !== null) {
-    return <NeedsAttentionScreen rejected={rejected} onBack={() => setRejected(null)} />;
+    return (
+      <NeedsAttentionScreen
+        rejected={rejected}
+        closable={settledQr.closable}
+        onCloseWithSettledQr={(orderId) => {
+          settledQr.close(orderId).then(() => till?.sync.nudge(), console.error);
+        }}
+        onBack={() => setRejected(null)}
+      />
+    );
   }
   return (
     <StaffedTill

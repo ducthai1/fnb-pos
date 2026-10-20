@@ -25,6 +25,9 @@ export function payOrderCommand(
     payments: payments.map((payment) => ({
       method: payment.method,
       amount: moneyToWire(payment.amount),
+      ...(payment.paymentIntentId === undefined
+        ? {}
+        : { paymentIntentId: payment.paymentIntentId }),
     })),
     expectedAmountDue: moneyToWire(priced.totals.amountDue),
     shiftId,

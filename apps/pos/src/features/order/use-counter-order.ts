@@ -27,8 +27,11 @@ export interface CounterOrderSession {
   /** Saves the draft priced at `at` once every earlier save is recorded; null when it failed. */
   saveAt(at: number): Promise<PricedCounterOrder | null>;
   readonly recorded: () => Readonly<Recorded>;
-  /** Records a command after every save already queued; one on the order bumps its version. */
-  record(command: LocalCommand): Promise<void>;
+  /**
+   * Records a command after every save already queued; one on the order bumps its version,
+   * unless it leaves the order's row as it was (`keepsVersion`), as buyer details do.
+   */
+  record(command: LocalCommand, options?: { readonly keepsVersion?: boolean }): Promise<void>;
   /** Clears the counter for the next customer. */
   startNew(): void;
 }
@@ -127,10 +130,10 @@ export function useCounterOrder(
   );
 
   const record = useCallback(
-    (command: LocalCommand) => {
+    (command: LocalCommand, options?: { readonly keepsVersion?: boolean }) => {
       const next = saving.current.then(async () => {
         await client.enqueue(command);
-        if (command.target.entity === "order") {
+        if (command.target.entity === "order" && options?.keepsVersion !== true) {
           recorded.current = { ...recorded.current, version: recorded.current.version + 1 };
         }
       });

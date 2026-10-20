@@ -10,7 +10,11 @@ export const SCREEN_NAMES = [
   "sale",
   "modifier-picker",
   "payment",
+  "qr-payment",
+  "qr-payment-refused",
+  "buyer-info",
   "sale-done",
+  "sale-done-invoice",
 ] as const;
 
 export type ScreenName = (typeof SCREEN_NAMES)[number];
