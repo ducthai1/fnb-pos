@@ -5,21 +5,18 @@ import { TableOrderActions, type TableOrderActionsProps } from "./table-order-ac
 
 const K = text.sale.keys;
 
-function actions(fields: Partial<TableOrderActionsProps>) {
-  const props = {
-    owedUnits: 2,
-    billable: true,
-    saved: true,
-    blocked: false,
+type State = Pick<TableOrderActionsProps, "owedUnits" | "billable" | "saved" | "blocked">;
+
+function actions(state: Partial<State>) {
+  const on = {
     onSend: vi.fn(),
     onPreBill: vi.fn(),
     onPay: vi.fn(),
     onTransfer: vi.fn(),
     onBack: vi.fn(),
-    ...fields,
   };
-  render(<TableOrderActions {...props} />);
-  return props;
+  render(<TableOrderActions owedUnits={2} billable saved blocked={false} {...state} {...on} />);
+  return on;
 }
 const press = (key: string) => fireEvent.keyDown(window, { key });
 
