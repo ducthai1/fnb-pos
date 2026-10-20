@@ -93,6 +93,8 @@ sudo ln -sfn /srv/fnb/releases/$V /srv/fnb/current
 | API                      | không build: `apps/api/src/server/main.ts` + `node_modules` | `fnb-api.service`                       |
 | Migration                | `packages/db/migrations/*.sql`                              | `pnpm db:provision`                     |
 
+Đã chạy thử bố cục này trên máy dev (2026-10-21): Caddy 2.6.2 với đúng các khối `handle` của [`caddy/Caddyfile`](caddy/Caddyfile) (HTTP, cổng động), API bằng `node --import tsx src/server/main.ts` có `FNB_TRUSTED_PROXIES`, backoffice bằng `next start` trên bản build, POS từ `pnpm build:server`, quán mẫu của dev stack trên Postgres 17. Kết quả: `/api/health` 200; `/pos/` trả `index.html` với `Cache-Control: no-cache`; Chrome headless mở `/pos/`, ghép máy bằng mã, đăng nhập PIN, tới trạng thái "Đang kết nối" (đồng bộ thật qua `/api`); `/login` của backoffice hiện form; không lỗi console, không phản hồi 4xx/5xx. `caddy validate` nhận file Caddyfile mẫu. Chưa thử: TLS thật, máy Ubuntu sạch, systemd unit.
+
 ## 6. Database: role, database, migration
 
 ```bash
