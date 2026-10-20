@@ -29,19 +29,24 @@ export function draftPayload(order: CounterOrder): SaveDraftPayload {
   };
 }
 
-/** order.save_draft with the whole cart, opened or saved again; the server prices it. */
+/**
+ * order.save_draft with the whole cart, opened or saved again; the server prices it. With
+ * `expectedVersion` (the version the cart was edited from, 0 for a new order) the server
+ * saves it only over that version, so a save never wipes what another till added meanwhile.
+ */
 export function saveDraftCommand(
   place: TillPlace,
   order: CounterOrder,
   priced: PricedCounterOrder,
   state: TillOrderState,
   at: number,
+  expectedVersion?: number,
 ): LocalCommand {
   return tillCommand(
     place,
     "order.save_draft",
     saveDraftPayloadSchema,
-    { ...draftPayload(order) },
+    { ...draftPayload(order), ...(expectedVersion === undefined ? {} : { expectedVersion }) },
     at,
     {
       entity: "order",

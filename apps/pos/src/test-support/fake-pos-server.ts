@@ -43,6 +43,9 @@ export function memoryCredentials(initial: DeviceCredential | null = null) {
 
 let commandCount = 0;
 
+const orderIdOf = (command: SyncCommandEnvelope) =>
+  String((command.payload as Record<string, unknown>).orderId);
+
 /** A draft the till recorded, as the sale screen will record one. */
 export function draftCommand(): LocalCommand {
   commandCount += 1;
@@ -119,6 +122,10 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
           state.refuseTypes.get(command.type) ??
           rows.refusalOf(command) ??
           null;
+        // A draft refused over a newer order carries that order, as the server sends it.
+        const over = code === "SYNC_ORDER_VERSION_STALE" ? rows.rows.get(orderIdOf(command)) : null;
+        if (code !== null && over != null)
+          return { commandId: command.commandId, status: "rejected" as const, code, snapshot: over };
         if (code !== null)
           return { commandId: command.commandId, status: "rejected" as const, code };
         const snapshot = rows.answer(command);

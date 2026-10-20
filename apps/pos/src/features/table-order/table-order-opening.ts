@@ -5,7 +5,10 @@ import { type OrderOpening, freshOpening } from "../order/order-opening";
 export { openingFromStored } from "../order/order-opening";
 
 /** Where an order at a table starts from when its screen opens. */
-export type TableOrderOpening = OrderOpening;
+export type TableOrderOpening = OrderOpening & {
+  /** Commands the till recorded on the order before the screen opened whose refusal it shows. */
+  readonly answersFor?: readonly string[];
+};
 
 /** A free table: a new dine-in order there, saved (and so seated) with its first item. */
 export function openingForNewTable(

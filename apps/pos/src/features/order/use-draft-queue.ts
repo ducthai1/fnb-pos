@@ -24,6 +24,11 @@ export interface DraftQueueOptions {
   onChanged?: () => void;
   /** Checkout prices the order again at that moment (the counter), else as last saved. */
   resaveAtCheckout?: boolean;
+  /**
+   * Each save names the version it was edited from (an order other tills edit too: a
+   * table's), so the server refuses it rather than wipe what another till added.
+   */
+  expectsVersion?: boolean;
 }
 
 /**
@@ -86,7 +91,8 @@ export function useDraftQueue(options: DraftQueueOptions) {
       const expected = { ...state, status: "draft" as const, businessDate, version };
       const sent = state.sent ?? [];
       const row = { ...expected, payments: [], sent, preBillPrinted: false };
-      await enqueue(saveDraftCommand(place, draft, priced, row, at));
+      const expectedVersion = live.current.expectsVersion === true ? state.version : undefined;
+      await enqueue(saveDraftCommand(place, draft, priced, row, at, expectedVersion));
       recorded.current = { ...state, businessDate, version, preBillPrinted: false };
       lastPriced.current = priced;
       if (current.current === draft) dirty.current = false;

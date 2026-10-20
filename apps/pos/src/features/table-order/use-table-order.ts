@@ -30,7 +30,7 @@ export function useTableOrder(
 ): TableOrderSession {
   const [sent, setSent] = useState(opening.recorded.sent ?? []);
   const preBill = usePreBillState(opening.recorded.preBillPrinted);
-  const ours = useRef(new Set<string>());
+  const ours = useRef(new Set<string>(opening.answersFor));
   const refusal = useOrderRefusal(client, opening.order.orderId, ours.current);
   const unconfirmed = useRef(new Set(opening.unconfirmedCancels));
   const blockedNow = useRef(false);
@@ -51,6 +51,7 @@ export function useTableOrder(
     opening,
     blocked: () => blockedNow.current,
     onChanged: preBill.outOfDate,
+    expectsVersion: true,
   });
   const { recorded, locks } = draft;
 

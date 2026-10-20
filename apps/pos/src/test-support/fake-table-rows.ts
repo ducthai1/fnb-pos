@@ -116,6 +116,10 @@ export function fakeTableRows(
     refusalOf(command: SyncCommandEnvelope): string | undefined {
       const payload = command.payload as Payload;
       const orderId = String(payload.orderId);
+      const expected = payload.expectedVersion;
+      if (command.type === "order.save_draft" && typeof expected === "number") {
+        if (expected !== (rows.get(orderId)?.version ?? 0)) return "SYNC_ORDER_VERSION_STALE";
+      }
       if (command.type === "order.save_draft" && payload.tableId && !rows.has(orderId)) {
         return seatedAt(payload.tableId, orderId) === undefined ? undefined : "SYNC_TABLE_OCCUPIED";
       }
