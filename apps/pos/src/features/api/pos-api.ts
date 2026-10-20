@@ -7,6 +7,11 @@ export interface StaffSession {
   readonly staffId: string;
   /** Sent with every push, so the server records each command as this staff member's. */
   readonly token: string;
+  /**
+   * The session's id, stamped on every command recorded in it; null from a server that
+   * does not send it, whose commands then go under whoever is signed in when they sync.
+   */
+  readonly sessionId?: string | null;
   readonly expiresAt: string;
 }
 
@@ -21,6 +26,12 @@ export interface ApprovalRequest {
   };
   readonly approverStaffId: string;
   readonly approverPin: string;
+}
+
+/** The session id a sign-in answer carries, if the server sent one. */
+function sessionIdOf(body: unknown): string | null {
+  const id = (body as { staffSessionId?: unknown } | null)?.staffSessionId;
+  return typeof id === "string" ? id : null;
 }
 
 /**
@@ -74,6 +85,7 @@ export function httpPosApi(baseUrl: string, fetchImpl: FetchLike = (u, i) => fet
           : {
               staffId: fields.staffId,
               token: fields.staffSessionToken,
+              sessionId: sessionIdOf(body),
               expiresAt: fields.expiresAt,
             };
       });

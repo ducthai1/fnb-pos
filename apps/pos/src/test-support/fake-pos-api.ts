@@ -52,6 +52,8 @@ export const fakeApiState = (): FakeApiState => ({
 
 const tokenOf = (staffId: string) => `staff-${staffId}`;
 const staffOfToken = (token: string) => token.replace(/^staff-/, "");
+/** One session per staff member here, its id derived from theirs: a uuid like the server's. */
+export const sessionOf = (staffId: string) => `${staffId.slice(0, 24)}5e55${staffId.slice(28)}`;
 let approvalCount = 0;
 
 /** The POS's calls outside sync, answered from `state` and recorded in it. */
@@ -68,7 +70,11 @@ export function fakePosApi(state: FakeApiState): PosApi {
       state.calls.signIn.push({ ...input, deviceToken: credential.deviceToken });
       if (!state.online) return unreachable();
       if (state.pins.get(input.staffId) !== input.pin) return refusal(401, "API_STAFF_PIN_INVALID");
-      const session = { staffId: input.staffId, token: tokenOf(input.staffId) };
+      const session = {
+        staffId: input.staffId,
+        token: tokenOf(input.staffId),
+        sessionId: sessionOf(input.staffId),
+      };
       return { ok: true, value: { ...session, expiresAt: "2026-10-20T15:00:00.000Z" } };
     },
     async staffGrants(_credential, staffToken) {

@@ -20,6 +20,7 @@ import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
 import type { PosDependencies } from "./pos-dependencies";
 import { StaffedTill } from "./staffed-till";
+import { newTillStaffSessions, signInto } from "./till-staff-sessions";
 import { useBackgroundSync } from "./use-background-sync";
 
 const noSubscription = () => () => {};
@@ -45,11 +46,14 @@ export function PairedTill(props: {
   /** Why the PIN screen is showing again, when it was not someone's choice. */
   const [signInNotice, setSignInNotice] = useState<string | null>(null);
   const [rejected, setRejected] = useState<readonly RejectedCommand[] | null>(null);
-  const staffToken = useRef<string | null>(null);
+  const sessions = useRef(newTillStaffSessions());
   const signOutRef = useRef<(notice: string | null) => void>(() => {});
-  const till = useBackgroundSync(deps, props.store, credential, staffToken, (token) => {
-    // The server no longer knows the session the till pushed with: the PIN screen again.
-    if (staffToken.current === token) signOutRef.current(vi.errors.API_STAFF_SESSION_INVALID);
+  const till = useBackgroundSync(deps, props.store, credential, sessions, (token) => {
+    // The server no longer knows the session the till pushed with: the PIN screen again,
+    // when it is the current one (an earlier cashier's ending changes nothing for this one).
+    if (sessions.current.current?.token === token) {
+      signOutRef.current(vi.errors.API_STAFF_SESSION_INVALID);
+    }
   });
   const status = useSyncExternalStore(
     till?.sync.subscribe ?? noSubscription,
@@ -69,7 +73,8 @@ export function PairedTill(props: {
   }, [loadBootstrap]);
   const loadFloor = useCallback(() => deps.floor.load(credential), [deps, credential]);
   const signOut = useCallback((notice: string | null) => {
-    staffToken.current = null;
+    // The session's credential stays known: its commands still waiting go under it.
+    sessions.current.current = null;
     setSignedIn(null);
     setSignInNotice(notice);
   }, []);
@@ -97,7 +102,7 @@ export function PairedTill(props: {
         notice={signInNotice}
         signIn={(staffId, pin) => deps.api.startStaffSession(credential, { staffId, pin })}
         onSignedIn={(staff, session) => {
-          staffToken.current = session.token;
+          signInto(sessions.current, session);
           void deps.api.staffGrants(credential, session.token).then((answer) => {
             setSignInNotice(null);
             setSignedIn({ staff, session, grants: answer.ok ? answer.value : [] });

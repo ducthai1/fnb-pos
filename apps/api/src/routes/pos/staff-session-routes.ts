@@ -36,6 +36,7 @@ export function registerStaffSessionRoutes(app: FastifyInstance, context: ApiCon
         return reply.code(401).send({ code: STAFF_ERROR_CODES.pinInvalid });
       }
       const token = newOpaqueToken();
+      const sessionId = newId();
       const expiresAt = new Date(now.getTime() + policy.staffSessionTtlMillis);
       const opened = await withTenant(pool, device.tenantId, async (client) => {
         // Locked out while the PIN was checked: no session, or reactivating would revive it.
@@ -44,14 +45,19 @@ export function registerStaffSessionRoutes(app: FastifyInstance, context: ApiCon
         await client.query(
           "INSERT INTO staff_session (id, tenant_id, staff_id, device_id, token_hash, expires_at, " +
             "created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $7)",
-          [newId(), device.tenantId, staffId, device.deviceId, hashToken(token), expiresAt, now],
+          [sessionId, device.tenantId, staffId, device.deviceId, hashToken(token), expiresAt, now],
         );
         return true;
       });
       if (!opened) return reply.code(404).send({ code: STAFF_ERROR_CODES.staffNotFound });
-      return reply
-        .code(201)
-        .send({ staffSessionToken: token, staffId, expiresAt: expiresAt.toISOString() });
+      // The session's id is no secret: the till stamps it on every command it records, so
+      // commands of a cashier who handed over offline are pushed under their own session.
+      return reply.code(201).send({
+        staffSessionToken: token,
+        staffSessionId: sessionId,
+        staffId,
+        expiresAt: expiresAt.toISOString(),
+      });
     },
   );
 

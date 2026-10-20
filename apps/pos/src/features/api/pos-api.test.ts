@@ -44,14 +44,26 @@ describe("the POS's calls outside the sync loop", () => {
       staffId: "s",
       pin: "4826",
     });
+    // A server that sends no session id: commands then go under whoever is signed in.
     expect(result).toEqual({
       ok: true,
-      value: { staffId: "s", token: "t", expiresAt: answer.expiresAt },
+      value: { staffId: "s", token: "t", sessionId: null, expiresAt: answer.expiresAt },
     });
     expect(server.asked[0]?.headers).toEqual({
       "content-type": "application/json",
       authorization: `Device ${CREDENTIAL.deviceToken}`,
     });
+  });
+
+  it("reads the session's id, which the till stamps on the commands recorded in it", async () => {
+    const id = "0199f000-0000-7000-8000-00000000e001";
+    const answer = { staffSessionToken: "t", staffSessionId: id, staffId: "s", expiresAt: "x" };
+    const server = answering(201, JSON.stringify(answer));
+    const result = await httpPosApi("/api", server.fetchImpl).startStaffSession(CREDENTIAL, {
+      staffId: "s",
+      pin: "4826",
+    });
+    expect(result).toMatchObject({ ok: true, value: { token: "t", sessionId: id } });
   });
 
   it("returns the server's error code with the status, never a credential", async () => {
