@@ -3,7 +3,6 @@ import { syncShop } from "@fnb/api/test-support/sync-shop";
 import { startTestPostgres, testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import type { TestProject } from "vitest/node";
-import { addBootstrapStandIn } from "./bootstrap-stand-in";
 import { servePosBuild } from "./serve-pos-build";
 
 /** Where the specs find the running stack, and the shop's backoffice owner. */
@@ -13,8 +12,13 @@ export interface PosStack {
   /** Signed in to the backoffice as the shop's owner. */
   managerCookie: string;
   branchId: string;
+  /** The brand the branch sells for: the specs add their own products to its menu. */
+  brandId: string;
   /** The cashier role, for staff the specs hire. */
   roleId: string;
+  /** The shop's tenant and the app role's connection, for reading what the server stored. */
+  tenantId: string;
+  databaseUrl: string;
 }
 
 declare module "vitest" {
@@ -37,12 +41,15 @@ export default async function setup(project: TestProject): Promise<() => Promise
     const postgres = await startTestPostgres();
     stops.push(() => postgres.stop());
     const pool = new pg.Pool({ connectionString: testConnectionString(postgres.info, "app") });
+    // Postgres stops right after the pool ends, and a client still closing can receive the
+    // server's "terminating connection" notice. The pool emits it as an idle-client error, and
+    // with no listener that is an uncaught exception: the run exits 1 after every test passed.
+    pool.on("error", () => {});
     stops.push(() => pool.end());
     const app = buildApp({ pool });
     stops.push(() => app.close());
-    addBootstrapStandIn(app, pool);
     const apiOrigin = await app.listen({ host: "127.0.0.1", port: 0 });
-    const { shop } = await syncShop(app, pool);
+    const { shop, brandId } = await syncShop(app, pool);
     const pos = await servePosBuild(apiOrigin);
     stops.push(pos.close);
     project.provide("posStack", {
@@ -50,7 +57,10 @@ export default async function setup(project: TestProject): Promise<() => Promise
       apiOrigin,
       managerCookie: shop.managerCookie,
       branchId: shop.branchId,
+      brandId,
       roleId: shop.roleId,
+      tenantId: shop.tenantId,
+      databaseUrl: testConnectionString(postgres.info, "app"),
     });
     return stopAll;
   } catch (error) {

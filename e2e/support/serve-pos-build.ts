@@ -18,6 +18,9 @@ export async function servePosBuild(apiOrigin: string) {
   const outDir = join(HERE, "../tmp", `pos-${randomUUID()}`);
   // Read by apps/pos/vite.config.ts for the /api proxy of its preview server.
   process.env.FNB_API_ORIGIN = apiOrigin;
+  // A printer that takes every slip: what follows a real print (the bar ticket recorded as
+  // sent, the job reported) runs against the real API. A shipped web build prints nothing.
+  process.env.VITE_FNB_SIMULATED_PRINTER = "prints";
   const shared = {
     root: POS_ROOT,
     configFile: join(POS_ROOT, "vite.config.ts"),

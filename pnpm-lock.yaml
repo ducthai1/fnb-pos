@@ -133,6 +133,9 @@ importers:
       '@fnb/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@fnb/domain':
+        specifier: workspace:*
+        version: link:../packages/domain
       '@fnb/pos':
         specifier: workspace:*
         version: link:../apps/pos
