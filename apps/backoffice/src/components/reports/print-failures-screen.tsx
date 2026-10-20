@@ -33,6 +33,8 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
   {
     key: "occurredAt",
     label: C.occurredAt,
+    // A time and a date on one line ("04:21 21/10/2026"), not cut in the middle of the year.
+    width: "140px",
     cell: (failure) => formatDateTime(failure.occurredAt),
     sortValue: (failure) => failure.occurredAt,
   },
@@ -68,6 +70,7 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
     key: "attempts",
     label: C.attempts,
     numeric: true,
+    width: "96px",
     cell: (failure) => String(failure.attempts),
     sortValue: (failure) => failure.attempts,
   },

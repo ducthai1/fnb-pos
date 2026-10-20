@@ -112,7 +112,8 @@
   color: inherit;
   font: inherit;
   text-align: inherit;
-  overflow-wrap: anywhere;
+  /* Column names are ours, never hostile: break between words, so "Loại phiếu" is not "phiế u". */
+  overflow-wrap: break-word;
   cursor: pointer;
 }
 
