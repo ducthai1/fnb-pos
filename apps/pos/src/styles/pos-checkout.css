@@ -56,24 +56,46 @@
 }
 
 .pos-slips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: var(--sp-3);
+}
+
+.pos-slip {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 0;
+  background: var(--c-surface-2);
 }
 
 .pos-slip__title {
-  margin: 0 0 4px;
-  font-size: 1.125rem;
+  margin: 0;
+  font-size: var(--fs-lg);
 }
 
-/* A slip keeps its printed columns; it scrolls sideways inside itself on a phone. */
-.pos-slip__preview {
+.pos-slip__status {
+  margin: 0;
   max-width: 100%;
-  margin: 8px 0 0;
-  padding: 8px;
+}
+
+/* A slip keeps its printed columns on white paper, centred; it scrolls sideways inside
+   itself on a phone rather than wrapping a column out of line. */
+.pos-slip__preview {
+  box-sizing: border-box;
+  align-self: center;
+  width: max-content;
+  max-width: 100%;
+  margin: var(--sp-1) 0 0;
+  padding: var(--sp-4) var(--sp-3);
   overflow-x: auto;
-  border-radius: 8px;
-  background: var(--pos-bg);
+  border-top: 3px solid var(--c-border);
+  border-radius: 2px 2px var(--r-sm) var(--r-sm);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
   font-family: ui-monospace, "Cascadia Mono", "Roboto Mono", monospace;
   font-size: 12px;
   line-height: 1.35;
