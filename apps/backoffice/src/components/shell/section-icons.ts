@@ -1,0 +1,33 @@
+import {
+  ArrowLeftRight,
+  Armchair,
+  CalendarCheck,
+  ChartColumn,
+  CircleOff,
+  CupSoda,
+  LayoutDashboard,
+  type LucideIcon,
+  PrinterX,
+  Settings,
+  ShieldCheck,
+  Tags,
+  TabletSmartphone,
+  Users,
+} from "lucide-react";
+
+/** The icon of each page of the side menu, by its address. */
+export const SECTION_ICONS: Readonly<Record<string, LucideIcon>> = {
+  "/": LayoutDashboard,
+  "/devices": TabletSmartphone,
+  "/staff": Users,
+  "/roles": ShieldCheck,
+  "/menu": CupSoda,
+  "/menu/categories": Tags,
+  "/menu/availability": CircleOff,
+  "/reports/daily-sales": ChartColumn,
+  "/day-close": CalendarCheck,
+  "/payments": ArrowLeftRight,
+  "/reports/print-failures": PrinterX,
+  "/floor": Armchair,
+  "/settings": Settings,
+};

@@ -1,0 +1,98 @@
+/* The head of every page: where it sits, its title and help, its actions on the right. */
+
+.bo-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3) var(--sp-5);
+  min-width: 0;
+}
+
+.bo-page-head__text {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.bo-page-head__text > .bo-muted {
+  margin-top: var(--sp-1);
+  max-width: 72ch;
+}
+
+.bo-page-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.bo-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--c-text-3);
+  font-size: var(--fs-sm);
+}
+
+.bo-crumbs li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.bo-crumbs li + li::before {
+  content: "›";
+  color: var(--c-border);
+}
+
+.bo-crumbs a {
+  color: var(--c-text-2);
+  text-decoration: none;
+}
+
+.bo-crumbs a:hover {
+  color: var(--c-brand-strong);
+  text-decoration: underline;
+}
+
+.bo-crumbs a:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: var(--ring);
+}
+
+.bo-crumbs [aria-current="page"] {
+  color: var(--c-text-2);
+  font-weight: var(--fw-medium);
+}
+
+/* A card's own head: its title, and a link or action at the far end. */
+.bo-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  min-width: 0;
+}
+
+.bo-text-link {
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 767px) {
+  .bo-page-head__actions {
+    width: 100%;
+  }
+}

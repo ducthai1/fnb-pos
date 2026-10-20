@@ -72,6 +72,26 @@ describe("the frame of every signed-in page", () => {
     expect(screen.getByRole("button", { name: T.closeMenu }).getAttribute("aria-expanded")).toBe("true");
   });
 
+  it("narrows the side menu to its icons, says so, and keeps it narrow on the next visit", async () => {
+    renderShell({});
+    fireEvent.click(await screen.findByRole("button", { name: T.collapseMenu }));
+    const widen = screen.getByRole("button", { name: T.expandMenu });
+    expect(widen.getAttribute("aria-expanded")).toBe("false");
+    expect(document.querySelector(".bo-shell")?.getAttribute("data-nav-collapsed")).toBe("true");
+    expect(window.localStorage.getItem("fnb.backoffice.navCollapsed")).toBe("1");
+    renderShell({});
+    await mock.waitFor(() => expect(screen.getAllByRole("button", { name: T.expandMenu })).toHaveLength(2));
+    fireEvent.click(widen);
+    expect(window.localStorage.getItem("fnb.backoffice.navCollapsed")).toBe("0");
+  });
+
+  it("shows who is signed in in the bar, with the shop's name", async () => {
+    renderShell({});
+    const account = await screen.findByRole("group", { name: T.account });
+    expect(account.textContent).toContain("Chủ quán");
+    expect(screen.getByRole("banner").textContent).toContain("Công ty Trà Sáng");
+  });
+
   it("logs out on the server before leaving", async () => {
     const logout = mock.fn(async () => ok(true as const));
     const { onSignedOut } = renderShell({ logout });

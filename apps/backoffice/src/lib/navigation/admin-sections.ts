@@ -1,9 +1,14 @@
 import type { PermissionKey } from "@fnb/domain";
 import { vi } from "../../messages/vi";
 
-interface AdminSection {
+/** The headings the side menu groups its pages under, in menu order. */
+export const SECTION_GROUPS = ["people", "menu", "sales", "shop"] as const;
+export type SectionGroup = (typeof SECTION_GROUPS)[number];
+
+export interface AdminSection {
   readonly href: string;
   readonly label: string;
+  readonly group: SectionGroup;
   /** The key the page's own list call needs; null when any signed-in member may read it. */
   readonly requires: PermissionKey | null;
 }
@@ -13,19 +18,24 @@ interface AdminSection {
  * any member may; changing it is checked where it is changed.
  */
 export const ADMIN_SECTIONS: readonly AdminSection[] = [
-  { href: "/devices", label: vi.shell.nav.devices, requires: "manage_devices" },
-  { href: "/staff", label: vi.shell.nav.staff, requires: "manage_staff" },
-  { href: "/roles", label: vi.shell.nav.roles, requires: "manage_staff" },
-  { href: "/menu", label: vi.shell.nav.products, requires: null },
-  { href: "/menu/categories", label: vi.shell.nav.categories, requires: null },
-  { href: "/menu/availability", label: vi.shell.nav.availability, requires: null },
-  { href: "/reports/daily-sales", label: vi.shell.nav.dailySales, requires: "view_reports" },
-  { href: "/day-close", label: vi.shell.nav.dayClose, requires: "view_reports" },
-  { href: "/payments", label: vi.shell.nav.transfers, requires: "view_reports" },
-  { href: "/reports/print-failures", label: vi.shell.nav.printFailures, requires: "view_reports" },
-  { href: "/floor", label: vi.shell.nav.floor, requires: "manage_settings" },
-  { href: "/settings", label: vi.shell.nav.settings, requires: "manage_settings" },
+  { href: "/devices", group: "people", label: vi.shell.nav.devices, requires: "manage_devices" },
+  { href: "/staff", group: "people", label: vi.shell.nav.staff, requires: "manage_staff" },
+  { href: "/roles", group: "people", label: vi.shell.nav.roles, requires: "manage_staff" },
+  { href: "/menu", group: "menu", label: vi.shell.nav.products, requires: null },
+  { href: "/menu/categories", group: "menu", label: vi.shell.nav.categories, requires: null },
+  { href: "/menu/availability", group: "menu", label: vi.shell.nav.availability, requires: null },
+  { href: "/reports/daily-sales", group: "sales", label: vi.shell.nav.dailySales, requires: "view_reports" },
+  { href: "/day-close", group: "sales", label: vi.shell.nav.dayClose, requires: "view_reports" },
+  { href: "/payments", group: "sales", label: vi.shell.nav.transfers, requires: "view_reports" },
+  { href: "/reports/print-failures", group: "sales", label: vi.shell.nav.printFailures, requires: "view_reports" },
+  { href: "/floor", group: "shop", label: vi.shell.nav.floor, requires: "manage_settings" },
+  { href: "/settings", group: "shop", label: vi.shell.nav.settings, requires: "manage_settings" },
 ];
+
+/** The section a path belongs to, with its group, or null for the home page and unknown paths. */
+export function sectionOf(href: string): AdminSection | null {
+  return ADMIN_SECTIONS.find((section) => section.href === href) ?? null;
+}
 
 /**
  * The sections a member's keys open, so the menu does not offer a page that would only

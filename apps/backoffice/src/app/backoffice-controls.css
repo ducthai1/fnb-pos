@@ -158,6 +158,11 @@
   background: var(--c-brand-strong);
 }
 
+.bo-button--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--c-text-2);
+}
 .bo-button--danger {
   color: var(--c-danger);
   border-color: var(--c-danger);

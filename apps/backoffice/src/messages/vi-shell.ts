@@ -21,7 +21,18 @@ export const VI_SHELL = {
   openMenu: "Mở menu",
   closeMenu: "Đóng menu",
   navigation: "Các mục quản lý",
+  collapseMenu: "Thu gọn menu",
+  expandMenu: "Mở rộng menu",
+  breadcrumb: "Bạn đang ở",
+  account: "Tài khoản đang đăng nhập",
+  groups: {
+    people: "Nhân sự & thiết bị",
+    menu: "Thực đơn",
+    sales: "Bán hàng & tiền",
+    shop: "Cửa hàng",
+  },
   nav: {
+    home: "Tổng quan",
     devices: "Thiết bị",
     staff: "Nhân viên",
     roles: "Vai trò",
