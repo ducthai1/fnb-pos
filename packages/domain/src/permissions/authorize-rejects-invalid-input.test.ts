@@ -84,7 +84,6 @@ describe("authorize rejects an action without the value its key is judged by", (
     ["a negative cash amount", { key: "cash_move", amount: -1n }],
     ["a rate above 100%", { key: "line_discount", discountRate: 10_001 }],
     ["a negative rate", { key: "line_discount", discountRate: -1 }],
-    ["a close difference accepted without its figure", { key: "accept_close_difference" }],
     ["a close difference as a number", { key: "accept_close_difference", difference: -9_000 }],
     ["a plain key carrying a difference", { key: "refund", difference: 0n }],
   ])("%s", (_, action) => {

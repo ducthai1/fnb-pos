@@ -6,7 +6,7 @@ export const PERMISSION_ERROR_CODES = {
   unknownKey: "API_PERMISSION_UNKNOWN_KEY",
   /** A threshold of the wrong kind or type for its key, or for a key not granted. */
   invalidThreshold: "API_PERMISSION_INVALID_THRESHOLD",
-  /** An action without the rate or amount its key is judged by, or with one out of range. */
+  /** An action without the rate, amount or difference it needs, or with one out of range. */
   invalidAction: "API_PERMISSION_INVALID_ACTION",
 } as const;
 

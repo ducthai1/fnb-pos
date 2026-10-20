@@ -33,7 +33,8 @@ export interface PermissionAction {
   readonly amount?: Vnd;
   /**
    * For accept_close_difference: counted − expected, signed. It decides nothing here (the key
-   * is held or not), but it is what a manager approves, so an approval matches one figure.
+   * is held or not), but it is what a manager approves, so an approval matches one figure
+   * and the approval route refuses to grant one that names none.
    */
   readonly difference?: Vnd;
 }
@@ -95,10 +96,11 @@ function measuredValue(
     });
   };
   const { discountRate, amount, difference } = action;
-  if (definition.figure === "difference") {
-    if (typeof difference !== "bigint") fail("missing difference");
-  } else if (difference !== undefined) {
-    fail("unexpected difference");
+  // Optional here: whether a key is held does not depend on it (a backoffice check asks
+  // just that). An approval for the key must name it, which the approval route enforces.
+  if (difference !== undefined) {
+    if (definition.figure !== "difference") fail("unexpected difference");
+    if (typeof difference !== "bigint") fail("difference must be an amount");
   }
   if (definition.threshold !== "max_rate" && discountRate !== undefined) fail("unexpected rate");
   if (definition.threshold !== "max_amount" && amount !== undefined) fail("unexpected amount");

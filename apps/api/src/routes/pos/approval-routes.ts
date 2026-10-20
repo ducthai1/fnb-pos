@@ -99,6 +99,13 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
       if (!PERMISSION_DEFINITIONS[action.key].approvable) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.notApprovable });
       }
+      // The manager agrees to a figure: an approval naming none would cover any of them.
+      if (
+        PERMISSION_DEFINITIONS[action.key].figure === "difference" &&
+        sent.difference === undefined
+      ) {
+        return reply.code(400).send({ code: PERMISSION_ERROR_CODES.invalidAction });
+      }
       if (approverStaffId === requester.staffId) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.selfApproval });
       }
