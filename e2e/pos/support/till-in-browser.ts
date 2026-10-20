@@ -21,9 +21,10 @@ export async function pairedTillWithCashier(
   browser: Browser,
   stack: PosStack,
   cashier: string,
+  branchId = stack.branchId,
 ): Promise<TillInBrowser> {
   const pin = "5937";
-  const code = await cashierAndPairingCode(stack, cashier, pin);
+  const code = await cashierAndPairingCode(stack, cashier, pin, branchId);
   const context = await browser.newContext({ viewport: { width: 800, height: 900 } });
   const page = await context.newPage();
   const problems = watchPageProblems(page);

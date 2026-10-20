@@ -9,8 +9,9 @@ export async function floorOf(
   ids: { area: string; tables: readonly string[] },
   areaName: string,
   names: readonly string[],
+  branchId = stack.branchId,
 ) {
-  const area = { version: null, branchId: stack.branchId, name: areaName, sortOrder: 0 };
+  const area = { version: null, branchId, name: areaName, sortOrder: 0 };
   await backoffice(stack, "PUT", `/floor/areas/${ids.area}`, area, 201);
   for (const [index, name] of names.entries()) {
     const table = {

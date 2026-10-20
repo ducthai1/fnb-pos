@@ -8,6 +8,7 @@ import { vi } from "../../src/messages/vi";
 import { HOSTILE_FLOOR_NAMES, NINE_DIGIT_BILL } from "./pages/hostile-floor";
 import { HOSTILE_INVOICE } from "./pages/hostile-sale";
 import { SCREEN_NAMES } from "./pages/screen-names";
+import { expectOperationsText, typeTheWorst } from "./support/hostile-operations-input";
 import { measureScreenOverflow } from "./support/measure-screen-overflow";
 
 let browser: Browser | undefined;
@@ -25,6 +26,7 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(`${inject("screensOrigin")}/screens.html?screen=${name}`);
     await page.waitForFunction(`document.body.dataset.screenReady === "${name}"`);
+    await typeTheWorst(page, name);
     const overflow = await measureScreenOverflow(page);
     // Every table of the hostile floor is on screen, so the grid is measured full.
     const tableTiles = name === "floor" ? await page.locator("[data-table]").count() : null;
@@ -54,6 +56,7 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
       expect(tableTiles).toBe(60);
     }
     if (name === "transfer-table") expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.area);
+    expectOperationsText(name, overflow.text);
     if (["qr-payment-refused", "needs-attention"].includes(name)) {
       expect(overflow.text).toContain(vi.errors.SYNC_ORDER_HAS_SETTLED_QR);
     }

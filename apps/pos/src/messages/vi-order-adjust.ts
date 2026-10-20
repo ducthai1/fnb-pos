@@ -25,19 +25,15 @@ export const VI_ORDER_ADJUST = {
   tools: {
     void: (name: string) => `Hủy món ${name}`,
     discount: (name: string) => `Giảm giá món ${name}`,
-    removeDiscount: (name: string) => `Gỡ giảm giá món ${name}`,
     voidShort: "Hủy món",
     discountShort: "Giảm giá",
-    removeDiscountShort: "Gỡ giảm",
     orderDiscount: "Giảm giá đơn",
-    removeOrderDiscount: "Gỡ giảm giá đơn",
     cancelOrder: "Hủy đơn",
   },
   cart: {
     lineDiscount: "Giảm giá món",
     voided: (units: number) => `Đã hủy ${units} (đã gửi bếp)`,
     orderDiscount: "Giảm giá",
-    held: "Món đang giữ nguyên (đã gửi bếp, đã giảm hoặc đã hủy một phần): muốn bớt thì hủy món.",
   },
   void: {
     title: "Hủy món",

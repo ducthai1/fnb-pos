@@ -10,7 +10,6 @@ export const VI_CASH = {
   reason: "Lý do",
   reasonHint: "Ví dụ: đổi tiền lẻ, trả tiền đá",
   unreadable: "Số tiền chỉ gồm chữ số, lớn hơn 0.",
-  reasonMissing: "Ghi lý do thu/chi.",
   expectedAfter: (amount: string) => `Tiền dự kiến trong két sau đó: ${amount}`,
   confirm: (kind: "in" | "out", amount: string) =>
     kind === "in" ? `Thu ${amount} vào két` : `Chi ${amount} khỏi két`,
