@@ -3,7 +3,7 @@ import { loginIdentifier } from "../auth/login-identifier";
 import type { Clock } from "../clock";
 import { FixedWindowRateLimiter, type RateLimit } from "../security/rate-limiter";
 import { HTTP_ERROR_CODES } from "./allowed-origins-hook";
-import { clientAddress, trustedProxies } from "./client-address";
+import { addressCountedAs, clientAddress, trustedProxies } from "./client-address";
 
 /** Requests allowed per window, per client address and per account or till. */
 export interface RateLimitSettings {
@@ -89,7 +89,9 @@ export function installRateLimits(
   app.addHook("onRequest", async (request, reply) => {
     const route = routeOf(request);
     if (route === undefined) return;
-    const address = clientAddress(request.ip, request.headers["x-forwarded-for"], proxies);
+    const address = addressCountedAs(
+      clientAddress(request.ip, request.headers["x-forwarded-for"], proxies),
+    );
     return (
       refuse(reply, `${request.routeOptions.url}|address|${address}`, route.perAddress) ?? undefined
     );

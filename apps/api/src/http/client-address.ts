@@ -50,6 +50,22 @@ export function clientAddress(
   return peer;
 }
 
+/**
+ * What a client address is counted under. One IPv6 subscriber is handed a whole /64 and
+ * can pick a new address in it for every request, so IPv6 is counted by its /64 prefix;
+ * an IPv4 address (also one written as ::ffff:a.b.c.d) is counted as it is.
+ */
+export function addressCountedAs(address: string): string {
+  const plain = address.startsWith("::ffff:") ? address.slice(7) : address;
+  if (isIP(plain) !== 6) return plain;
+  const [head = "", tail] = plain.toLowerCase().split("%")[0]?.split("::") ?? [];
+  const left = head === "" ? [] : head.split(":");
+  const right = tail === undefined || tail === "" ? [] : tail.split(":");
+  const missing = tail === undefined ? [] : Array(8 - left.length - right.length).fill("0");
+  const groups = [...left, ...missing, ...right].map((group) => group.replace(/^0+(?=.)/, ""));
+  return `${groups.slice(0, 4).join(":")}::/64`;
+}
+
 function isTrusted(trusted: TrustedProxies, address: string): boolean {
   const plain = address.startsWith("::ffff:") ? address.slice(7) : address;
   const family = isIP(plain);

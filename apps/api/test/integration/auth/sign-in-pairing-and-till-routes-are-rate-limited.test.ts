@@ -137,6 +137,24 @@ describe("pairing", () => {
   });
 });
 
+describe("IPv6 clients", () => {
+  it("are counted by their /64, so a new address in it does not reset the count", async () => {
+    const app = limitedApp(new ManualClock());
+    const guess = (address: string) =>
+      app.inject({
+        method: "POST",
+        url: "/devices/pair",
+        remoteAddress: address,
+        payload: { code: "ABCD-EFGH", deviceName: "Quầy lạ" },
+      });
+    await guess("2001:db8:aa:bb::1");
+    await guess("2001:db8:aa:bb::2");
+    expect((await guess("2001:db8:aa:bb:ffff::3")).statusCode).toBe(429);
+    expect((await guess("2001:db8:aa:bc::1")).statusCode).toBe(401);
+    await app.close();
+  });
+});
+
 describe("the till's PIN and approval routes", () => {
   it("limit each till on its own, so one busy till does not hold up its neighbour", async () => {
     const app = limitedApp(new ManualClock(), { tillPerAddress: 100 });
