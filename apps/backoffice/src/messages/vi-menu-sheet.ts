@@ -97,6 +97,7 @@ export const VI_MENU_IMPORT = {
   duplicateCode: (line: number) => `Trùng mã với dòng ${line}.`,
   duplicateName: (line: number) => `Trùng tên với dòng ${line}.`,
   notForSale: "Đang ghi “Không cho phép bán”.",
+  groupTooLong: "Tên nhóm dài quá 120 ký tự.",
   archivedMatch: "Trùng tên với món đã ngừng bán: bán lại món đó trong trang món.",
   notFixedPrice: "Món đang có cách tính giá khác giá cố định: sửa trong trang món.",
   matchHint:

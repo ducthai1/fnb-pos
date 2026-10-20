@@ -6,6 +6,8 @@ import { checkProductDraft } from "../product-editor/check-product-draft";
 import { emptyDraft } from "../product-editor/product-draft";
 
 const T = vi.menuImport;
+/** The catalog's longest name, for a category as for a product. */
+const NAME_MAX = 120;
 
 export type ImportStatus = "new" | "update" | "same" | "skipped" | "error";
 /** Where an imported product goes: a category that exists (or none), or one to create. */
@@ -79,6 +81,7 @@ export function planMenuImport(input: {
     };
     const check = checkProductDraft(draft);
     const problems = check.ok ? [] : [...new Set(Object.values(check.errors))];
+    if ("create" in category && category.create.length > NAME_MAX) problems.push(T.groupTooLong);
     const firstCode = row.code === "" ? undefined : codeLine.get(row.code);
     if (firstCode !== undefined) problems.push(T.duplicateCode(firstCode));
     else if (row.code !== "") codeLine.set(row.code, row.line);

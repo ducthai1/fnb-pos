@@ -169,4 +169,9 @@ describe("planning a menu import", () => {
     ]);
     expect(rows[1]?.problems).toEqual([T.archivedMatch]);
   });
+
+  it("refuses a line whose group is too long to become a category", () => {
+    const [row] = plan([line({ group: "Đ".repeat(121) })]);
+    expect(row).toMatchObject({ status: "error", problems: [T.groupTooLong] });
+  });
 });
