@@ -31,6 +31,7 @@ import { registerDayCloseRoutes } from "./routes/reports/day-close-routes";
 import { registerPrintFailureRoutes } from "./routes/reports/print-failure-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
+import { registerSettingsRoutes } from "./routes/settings/settings-routes";
 import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
 import { registerStaffListRoute } from "./routes/staff/staff-list-route";
 import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
@@ -140,6 +141,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerPaymentBackofficeRoutes(app, context, payments);
   const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
   registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
+  registerSettingsRoutes(app, context, einvoiceProviders);
   registerDayCloseRoutes(app, context, einvoiceProviders);
   const workerOptions = dependencies.einvoiceWorker;
   if (workerOptions !== undefined) {

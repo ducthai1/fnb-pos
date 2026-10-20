@@ -1,3 +1,4 @@
+import { closeDifferenceToleranceSettingSchema } from "@fnb/contracts";
 import { readConfigLayersForDevice } from "@fnb/db";
 import { type Vnd, vnd } from "@fnb/domain";
 import { resolveConfig } from "@fnb/feature-flags";
@@ -11,9 +12,8 @@ import type pg from "pg";
 export const CLOSE_DIFFERENCE_TOLERANCE_KEY = "shift_close_difference_tolerance";
 
 // Zero by default: until a shop says how much it tolerates, every difference is looked at.
-const SYSTEM_DEFAULTS = { [CLOSE_DIFFERENCE_TOLERANCE_KEY]: "0" };
-
-const WHOLE_DONG = /^(0|[1-9]\d{0,17})$/;
+export const CLOSE_DIFFERENCE_TOLERANCE_DEFAULT = "0";
+const SYSTEM_DEFAULTS = { [CLOSE_DIFFERENCE_TOLERANCE_KEY]: CLOSE_DIFFERENCE_TOLERANCE_DEFAULT };
 
 /** The tolerance that applies to this till; a setting that is not an amount is corrupt data. */
 export async function readCloseDifferenceTolerance(
@@ -27,8 +27,9 @@ export async function readCloseDifferenceTolerance(
     branch: layers.branch,
     device: layers.device,
   });
-  if (typeof value !== "string" || !WHOLE_DONG.test(value)) {
+  const amount = closeDifferenceToleranceSettingSchema.safeParse(value);
+  if (!amount.success) {
     throw new Error(`${CLOSE_DIFFERENCE_TOLERANCE_KEY} is not an amount: ${JSON.stringify(value)}`);
   }
-  return vnd(BigInt(value));
+  return vnd(BigInt(amount.data));
 }

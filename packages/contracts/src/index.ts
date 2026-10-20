@@ -1,5 +1,6 @@
 export * from "./backoffice";
 export * from "./catalog";
+export * from "./configuration";
 export * from "./einvoice";
 export * from "./floor";
 export * from "./payment";
