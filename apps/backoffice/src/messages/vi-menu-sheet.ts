@@ -36,6 +36,15 @@ export const VI_MENU_IMPORT = {
   open: "Nhập từ Excel",
   export: "Xuất Excel",
   exportFile: (day: string) => `thuc-don-${day}.xlsx`,
+  template: "Tải file mẫu",
+  templateFile: "mau-nhap-mon.xlsx",
+  /** Name, group and price of the lines a template shows as examples. */
+  templateLines: [
+    ["Cà phê sữa đá", "Cà phê", 29_000],
+    ["Bạc xỉu", "Cà phê", 32_000],
+    ["Trà đào cam sả", "Trà trái cây", 45_000],
+    ["Bánh mì que", "Bánh", 15_000],
+  ] as readonly (readonly [string, string, number])[],
   sheetName: "Thực đơn",
   hint: "Chuyển menu từ phần mềm bán hàng khác: tải file Excel danh sách hàng hóa, xem trước từng dòng rồi mới nhập.",
   fileLabel: "File Excel (.xlsx)",

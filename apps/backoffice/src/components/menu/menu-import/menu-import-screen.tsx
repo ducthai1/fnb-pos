@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileDown } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { bothResults } from "../../../lib/api/both-results";
@@ -11,6 +11,7 @@ import { PageHeader } from "../../shell/page-header";
 import { useSession } from "../../shell/session-context";
 import { useApiLoad } from "../../shell/use-api-load";
 import { Icon } from "../../ui/icon";
+import { downloadMenuTemplate } from "./download-menu-sheet";
 import { ImportFileCard, type ReadSheet } from "./import-file-card";
 import { ImportPreview } from "./import-preview";
 
@@ -44,10 +45,16 @@ export function MenuImportScreen() {
         titleId="menu-import-title"
         hint={T.hint}
         actions={
-          <Link className="bo-button" href="/menu">
-            <Icon of={ArrowLeft} />
-            {T.back}
-          </Link>
+          <>
+            <button type="button" className="bo-button" onClick={downloadMenuTemplate}>
+              <Icon of={FileDown} />
+              {T.template}
+            </button>
+            <Link className="bo-button" href="/menu">
+              <Icon of={ArrowLeft} />
+              {T.back}
+            </Link>
+          </>
         }
       />
       {branch === null || brandId === null ? (

@@ -95,6 +95,24 @@ describe("importing the menu from a products sheet", () => {
   });
 });
 
+describe("the template to fill in", () => {
+  it("is a sheet in the same layout whose example lines import as new products", async () => {
+    let blob: Blob | undefined;
+    URL.createObjectURL = mock.fn((value: Blob) => {
+      blob = value;
+      return "blob:template";
+    });
+    URL.revokeObjectURL = mock.fn();
+    mock.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    await renderSignedIn(<MenuImportScreen />, catalogOnScreen().api);
+    fireEvent.click(screen.getByRole("button", { name: T.template }));
+    pick(new Uint8Array(await (blob as Blob).arrayBuffer()), T.templateFile);
+    const table = await screen.findByRole("table", { name: T.previewLabel });
+    expect(within(table).getAllByText(T.status.new)).toHaveLength(T.templateLines.length);
+    expect(within(table).getByText(T.newCategory("Trà trái cây"))).toBeTruthy();
+  });
+});
+
 describe("exporting the menu", () => {
   it("hands over a sheet in the same layout, every product of the brand in it", async () => {
     let blob: Blob | undefined;
