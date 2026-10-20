@@ -26,6 +26,7 @@ export const VI_SETTINGS = {
   useInherited: "Dùng lại giá trị của tầng trên",
   switchesTitle: "Công tắc tính năng",
   groups: { features: "Tính năng", money: "Thu tiền và két", invoices: "Hóa đơn và kết nối" },
+  groupsLabel: "Các nhóm cài đặt",
   flags: {
     tables: "Quản lý bàn",
     pay_first_counter: "Quầy trả tiền trước",

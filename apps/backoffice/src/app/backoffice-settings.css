@@ -108,3 +108,7 @@
   align-items: start;
   min-width: 0;
 }
+
+.bo-settings-group[id] {
+  scroll-margin-top: 72px;
+}
