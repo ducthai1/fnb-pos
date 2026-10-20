@@ -51,6 +51,8 @@ export const VI_DAILY_SALES = {
   hourColumns: { hour: "Giờ", orderCount: "Số đơn", collected: "Khách đã trả" },
   hour: (hour: number) => `${String(hour).padStart(2, "0")}:00–${String(hour).padStart(2, "0")}:59`,
   itemsTitle: "Theo món",
+  itemsSearch: "Tìm món",
+  itemFilters: { goods: "Món", extras: "Tùy chọn và phần combo" },
   itemColumns: { name: "Món", quantity: "Số lượng", gross: "Tiền hàng", discount: "Giảm", net: "Sau giảm", tax: "VAT" },
   lineTypes: { modifier: "tùy chọn", combo_component: "trong combo" } as Readonly<Record<string, string>>,
   empty: "Không có dòng nào.",
