@@ -54,9 +54,9 @@ export function SettingCard({
   const titleId = useId();
   return (
     <section className="bo-card" aria-labelledby={titleId} data-setting-key={entry.key}>
-      <h2 id={titleId} className="bo-subtitle">
+      <h3 id={titleId} className="bo-subtitle">
         {title}
-      </h2>
+      </h3>
       {hint !== undefined && <p className="bo-muted bo-wrap">{hint}</p>}
       <SettingSourceLine entry={entry} busy={write.busy} onClear={() => void write.clear(entry.key)} />
       {children}

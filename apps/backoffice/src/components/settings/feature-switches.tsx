@@ -84,9 +84,9 @@ export function FeatureSwitches({
 
   return (
     <section className="bo-card" aria-labelledby={titleId}>
-      <h2 id={titleId} className="bo-subtitle">
+      <h3 id={titleId} className="bo-subtitle">
         {T.switchesTitle}
-      </h2>
+      </h3>
       <ul className="bo-switch-list">
         {entries.map((entry) => (
           <SwitchRow
