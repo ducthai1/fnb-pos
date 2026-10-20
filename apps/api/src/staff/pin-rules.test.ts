@@ -28,14 +28,19 @@ describe("pinProblem", () => {
     },
   );
 
-  // Every PIN of each length, so a rule that goes missing or widens changes a count.
+  // Every PIN of each length, so a rule that goes missing or widens changes a count. The
+  // million 6-digit PINs take half a second here and ten times that on a busy CI runner.
   it.each([
     [4, 196],
     [5, 22],
     [6, 1107],
-  ])("refuses exactly the expected number of %i-digit PINs", (length, refused) => {
-    const weak = allPins(length).filter((pin) => pinProblem(pin) === "too-weak");
-    expect(weak).toHaveLength(refused);
-    expect(allPins(length).every((pin) => pinProblem(pin) !== "format")).toBe(true);
-  });
+  ])(
+    "refuses exactly the expected number of %i-digit PINs",
+    (length, refused) => {
+      const problems = allPins(length).map(pinProblem);
+      expect(problems.filter((problem) => problem === "too-weak")).toHaveLength(refused);
+      expect(problems).not.toContain("format");
+    },
+    60_000,
+  );
 });
