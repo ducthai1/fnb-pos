@@ -31,6 +31,8 @@ export const qrRefundSchema = z
     businessDate: businessDateSchema,
     refundedAt: instantSchema,
     refundedByAppUserId: uuidSchema,
+    /** Handed back once its business day was closed: beside that day's figures, not in. */
+    afterDayClose: z.boolean().optional(),
   })
   .strict();
 

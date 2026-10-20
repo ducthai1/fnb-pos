@@ -1,5 +1,6 @@
 import { useId } from "react";
-import type { DayInvoice, DayOrder, DayStatus } from "../../lib/api/day-close-api";
+import { formatVnd, vnd } from "@fnb/domain";
+import type { DayInvoice, DayOrder, DayQrRefund, DayStatus } from "../../lib/api/day-close-api";
 import type { DayCloseBlockers } from "../../lib/day-close/day-close-refusal";
 import { vi } from "../../messages/vi";
 
@@ -34,6 +35,8 @@ const orders = (list: readonly DayOrder[]) =>
   list.map((order) => ({ key: order.id, text: T.order(order.deviceId, order.deviceOrderNo) }));
 const invoices = (list: readonly DayInvoice[]) =>
   list.map((invoice) => ({ key: invoice.id, text: T.invoice(invoice.orderId, invoice.status, invoice.lastErrorCode) }));
+const qrRefunds = (list: readonly DayQrRefund[]) =>
+  list.map((refund) => ({ key: refund.intentId, text: T.qrRefund(refund.intentId, formatVnd(vnd(refund.amount))) }));
 const shifts = (list: readonly string[]) => list.map((id) => ({ key: id, text: T.shift(id) }));
 
 /** What still stops the day closing, and what needs a person even once it is closed. */
@@ -48,6 +51,7 @@ export function DayStatusLists({ status }: { status: DayStatus }) {
       <DayList list="failed-invoices" title={T.failedTitle} items={invoices(status.failedInvoices)} />
       <DayList list="unsent-invoices" title={T.unsentTitle} items={invoices(status.unsentInvoices)} />
       <DayList list="paid-after-close" title={T.paidAfterTitle} items={orders(status.paidAfterClose)} />
+      <DayList list="qr-refunded-after-close" title={T.qrRefundedAfterTitle} items={qrRefunds(status.qrRefundedAfterClose)} />
     </div>
   );
 }

@@ -4,7 +4,9 @@ import type pg from "pg";
 
 /**
  * QR money no sale counted that was handed back to customers on the branch's business day,
- * by how it went back: each one a transfer's whole amount, as the bank brought it.
+ * by how it went back: each one a transfer's whole amount, as the bank brought it. Money
+ * handed back once the day was closed stays out, so a closed day reads as its close froze
+ * it; the day's status lists it beside the close.
  */
 export async function qrRefundsOfTheDay(
   client: pg.ClientBase,
@@ -14,6 +16,7 @@ export async function qrRefundsOfTheDay(
   const { rows } = await client.query<{ method: string; amount: string }>(
     "SELECT refund_method AS method, received_amount AS amount FROM payment_intent " +
       "WHERE branch_id = $1 AND refund_business_date = $2 AND refunded_at IS NOT NULL " +
+      "AND NOT refunded_after_day_close " +
       "ORDER BY refund_method, refunded_at, id",
     [branchId, businessDate],
   );

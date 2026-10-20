@@ -34,7 +34,8 @@ interface IntentRow {
  * money no sale counts can go back, all of it (nothing of it paid anything), and once: the
  * intent row is locked, so a second marking waits for the first and is then refused. Who
  * did it, when, how much and how goes on the audit trail; the business day it happened on
- * puts it on that day's report, beside the sales.
+ * puts it on that day's report, beside the sales, or, when that day was already closed,
+ * beside its close (marked by the database), leaving the closed figures as they were.
  */
 export async function handBackQrMoney(
   client: pg.ClientBase,
@@ -59,13 +60,14 @@ export async function handBackQrMoney(
     utcOffsetMinutes: row.utc_offset_minutes,
     dayStartMinute: row.business_day_start_minute,
   });
-  const marked = await client.query(
+  const marked = await client.query<{ after_close: boolean }>(
     "UPDATE payment_intent SET refunded_at = $2, refunded_by_app_user_id = $3, " +
       "refund_method = $4, refund_note = $5, refund_business_date = $6, updated_at = $2 " +
-      "WHERE id = $1 AND refunded_at IS NULL",
+      "WHERE id = $1 AND refunded_at IS NULL RETURNING refunded_after_day_close AS after_close",
     [request.intentId, request.now, request.appUserId, request.method, request.note, day],
   );
-  if (marked.rowCount !== 1) return { ok: false, status: 409, code: CODES.alreadyHandedBack };
+  const afterDayClose = marked.rows[0]?.after_close;
+  if (afterDayClose === undefined) return { ok: false, status: 409, code: CODES.alreadyHandedBack };
   const amount = vnd(BigInt(row.received_amount));
   await appendAudit(client, {
     actor: { kind: "app_user", id: request.appUserId },
@@ -79,6 +81,7 @@ export async function handBackQrMoney(
       method: request.method,
       note: request.note,
       businessDate: day,
+      afterDayClose,
     },
   });
   return {
@@ -92,6 +95,7 @@ export async function handBackQrMoney(
       businessDate: day,
       refundedAt: request.now.toISOString(),
       refundedByAppUserId: request.appUserId,
+      afterDayClose,
     },
   };
 }
