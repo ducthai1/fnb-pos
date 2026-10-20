@@ -16,6 +16,8 @@ export interface DataColumn<R> {
   readonly cell: (row: R) => ReactNode;
   /** What the column sorts by; a column without it does not sort. */
   readonly sortValue?: (row: R) => SortValue;
+  /** Its share of a computer's width ("30%", "120px"); the columns without one share the rest. */
+  readonly width?: string;
 }
 
 export interface DataFilter<R> {
@@ -44,6 +46,8 @@ export function DataTable<R>(props: {
   search?: { readonly label: string; readonly text: (row: R) => string };
   filters?: readonly DataFilter<R>[];
   actions?: (row: R) => ReactNode;
+  /** The actions column's width on a computer, for rows with several buttons. */
+  actionsWidth?: string;
   expanded?: (row: R) => ReactNode;
   panelData?: (row: R) => Readonly<Record<`data-${string}`, string>>;
   empty: ReactNode;
@@ -58,6 +62,7 @@ export function DataTable<R>(props: {
     search,
     filters = [],
     actions,
+    actionsWidth,
     expanded,
     panelData,
     empty,
@@ -123,6 +128,7 @@ export function DataTable<R>(props: {
                     key={column.key}
                     scope="col"
                     className={column.numeric === true ? "bo-num" : undefined}
+                    style={column.width === undefined ? undefined : { width: column.width }}
                     aria-sort={
                       sorted === null ? undefined : sorted === "asc" ? "ascending" : "descending"
                     }
@@ -148,7 +154,11 @@ export function DataTable<R>(props: {
                   </th>
                 );
               })}
-              {actions !== undefined && <th scope="col">{T.actions}</th>}
+              {actions !== undefined && (
+                <th scope="col" style={actionsWidth === undefined ? undefined : { width: actionsWidth }}>
+                  {T.actions}
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>

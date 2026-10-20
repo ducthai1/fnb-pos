@@ -127,6 +127,7 @@ export function StaffTable({
         { key: "inactive", label: T.filters.inactive, test: (member) => !member.active },
         { key: "pin", label: T.filters.pinTrouble, test: hasPinTrouble },
       ]}
+      actionsWidth="300px"
       actions={(member) => (
         <ToolButtons member={member} onOpen={(tool) => onOpen({ staffId: member.id, tool })} />
       )}

@@ -37,12 +37,19 @@ const COLUMNS: readonly DataColumn<Role>[] = [
       </span>
     ),
     sortValue: (role) => role.name,
+    width: "24%",
   },
   {
     key: "permissions",
     label: T.columns.permissions,
     cell: (role) => (
-      <span className="bo-muted">{role.permissionKeys.map(permissionLabel).join(", ")}</span>
+      <ul className="bo-chips" aria-label={T.columns.permissions}>
+        {role.permissionKeys.map((key) => (
+          <li key={key} className="bo-badge">
+            {permissionLabel(key)}
+          </li>
+        ))}
+      </ul>
     ),
   },
   {
@@ -51,6 +58,7 @@ const COLUMNS: readonly DataColumn<Role>[] = [
     numeric: true,
     cell: (role) => String(role.permissionKeys.length),
     sortValue: (role) => role.permissionKeys.length,
+    width: "110px",
   },
 ];
 
@@ -114,6 +122,7 @@ export function RolesScreen() {
                 test: (role) => role.archivedAt !== null,
               },
             ]}
+            actionsWidth="200px"
             actions={(role) =>
               role.archivedAt === null && (
                 <div>

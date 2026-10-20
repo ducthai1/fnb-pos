@@ -140,3 +140,13 @@
 .bo-toggle__input:disabled + .bo-toggle__track {
   opacity: 0.6;
 }
+
+/* A record's short facts as a wrapping row of badges (a role's permissions). */
+.bo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
