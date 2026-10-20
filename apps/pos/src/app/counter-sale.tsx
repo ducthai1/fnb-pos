@@ -1,19 +1,18 @@
 import type { PosProduct } from "@fnb/contracts";
 import type { SyncClient } from "@fnb/sync-client";
 import { type ReactNode, useState } from "react";
-import { newId } from "../features/ids/new-id";
 import type { TillMenu } from "../features/menu/till-menu";
 import { cartView } from "../features/order/cart-view";
 import {
-  type CartLine,
   addCartLine,
   removeCartLine,
   setLineQuantity,
   setServiceType,
 } from "../features/order/counter-order";
+import { needsNoChoice, plainLine } from "../features/order/plain-cart-line";
 import type { PricedCounterOrder } from "../features/order/price-counter-order";
 import type { TillPlace } from "../features/order/till-command";
-import { useCounterOrder } from "../features/order/use-counter-order";
+import type { CounterOrderSession } from "../features/order/use-counter-order";
 import type { PrinterPort } from "../features/printing/printer-port";
 import { vi } from "../messages/vi";
 import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
@@ -30,6 +29,10 @@ export interface CounterSaleProps {
   shiftId: string;
   cashierName: string;
   printer: PrinterPort;
+  /** The counter's order, kept by the parent so switching to the floor and back keeps it. */
+  session: CounterOrderSession;
+  /** Counter or floor, shown on the selling screen only (not mid-checkout). */
+  modeSwitch?: ReactNode;
 }
 
 type Phase =
@@ -37,19 +40,9 @@ type Phase =
   | { readonly kind: "picking"; readonly product: PosProduct }
   | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
 
-const plainLine = (product: PosProduct): CartLine => ({
-  lineId: newId(),
-  productId: product.id,
-  variantId: null,
-  modifiers: [],
-  quantity: 1,
-  note: null,
-});
-
 /** One customer after another at the counter: ring up, take the money, print, start again. */
 export function CounterSale(props: CounterSaleProps) {
-  const { client, place, menu, now, header } = props;
-  const session = useCounterOrder(client, place, menu);
+  const { menu, now, header, session } = props;
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
   const { order, chargeProfile } = session;
 
@@ -93,15 +86,19 @@ export function CounterSale(props: CounterSaleProps) {
   }
   return (
     <SaleScreen
-      header={header}
+      header={
+        <>
+          {header}
+          {props.modeSwitch}
+        </>
+      }
       menu={menu}
       now={now}
       order={order}
       view={cartView(menu, order, chargeProfile, now)}
       saveFailed={session.saveFailed}
       onPick={(product) => {
-        // Nothing to choose: one tap rings it up, as a cashier expects of a bottle of water.
-        if (product.variants.length === 0 && product.modifierGroups.length === 0) {
+        if (needsNoChoice(product)) {
           session.update((draft) => addCartLine(draft, plainLine(product)));
         } else setPhase({ kind: "picking", product });
       }}

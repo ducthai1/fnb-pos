@@ -21,6 +21,33 @@ export async function nextDeviceOrderNo(
   return highest + 1;
 }
 
+/** Hands out the till's order numbers, one at a time, to the counter and the tables alike. */
+export interface OrderNumbers {
+  next(): Promise<number>;
+}
+
+/**
+ * The till's numbers for every order it opens this session, so a table opened while the
+ * counter holds an empty order (numbered, not saved yet) never takes that order's number.
+ */
+export function orderNumbers(
+  client: Pick<SyncClient, "snapshots">,
+  deviceId: string,
+): OrderNumbers {
+  let used = 0;
+  let last: Promise<number> = Promise.resolve(0);
+  return {
+    next() {
+      const taken = last.then(async () => {
+        used = await nextDeviceOrderNo(client, deviceId, used);
+        return used;
+      });
+      last = taken.catch(() => used);
+      return taken;
+    },
+  };
+}
+
 /**
  * The number called out when the drink is ready, from the till's own count: the server has
  * no call number for a counter order until it is posted. Two digits are easy to shout and

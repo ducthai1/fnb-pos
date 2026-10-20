@@ -5,6 +5,7 @@ import { PosApp } from "./app/pos-app";
 import type { PosDependencies } from "./app/pos-dependencies";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
+import { httpFloorSource } from "./features/floor/floor-occupancy";
 import { printerForBuild } from "./features/printing/printer-port";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-base.css";
@@ -13,6 +14,7 @@ import "./styles/pos-sale.css";
 import "./styles/pos-order.css";
 import "./styles/pos-picker.css";
 import "./styles/pos-checkout.css";
+import "./styles/pos-floor.css";
 
 /** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
 const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";
@@ -26,6 +28,7 @@ const deps: PosDependencies = {
   credentials: indexedDbDeviceCredentialStore(),
   api: httpPosApi(API_BASE),
   bootstrap: httpBootstrapSource(API_BASE),
+  floor: httpFloorSource(API_BASE),
   transportFor: (credential, staffSessionToken) =>
     createHttpSyncTransport({
       send: fetchHttpSend(API_BASE),

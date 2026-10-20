@@ -15,6 +15,10 @@ export const SCREEN_NAMES = [
   "buyer-info",
   "sale-done",
   "sale-done-invoice",
+  "floor",
+  "table-order",
+  "transfer-table",
+  "table-slips",
 ] as const;
 
 export type ScreenName = (typeof SCREEN_NAMES)[number];

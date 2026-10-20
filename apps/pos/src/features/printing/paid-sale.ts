@@ -1,4 +1,4 @@
-import type { OrderChargeProfile, Vnd } from "@fnb/domain";
+import type { OrderChargeProfile, SentLineState, Vnd } from "@fnb/domain";
 import type { CounterOrder } from "../order/counter-order";
 import type { PricedCounterOrder } from "../order/price-counter-order";
 import type { AppliedPayment, Tender } from "../payment/tenders";
@@ -17,4 +17,6 @@ export interface PaidSale {
   readonly change: Vnd;
   readonly paidAt: number;
   readonly cashierName: string;
+  /** What the stations already had when it was paid: a table's earlier rounds. */
+  readonly sent?: readonly SentLineState[];
 }

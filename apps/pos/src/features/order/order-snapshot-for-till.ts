@@ -24,6 +24,8 @@ export interface TillOrderState {
     readonly paymentIntentId?: string;
   }[];
   readonly sent: readonly SentLineState[];
+  /** Whether the pre-bill printed for the order still shows it as it is; false by default. */
+  readonly preBillPrinted?: boolean;
 }
 
 const NOTHING_SENT: Quantity = quantity(0);
@@ -42,7 +44,7 @@ export function tillOrderSnapshot(
   return {
     id: order.orderId,
     branchId: place.branchId,
-    deviceId: place.deviceId,
+    deviceId: order.openedOn ?? place.deviceId,
     deviceOrderNo: order.deviceOrderNo,
     status: state.status,
     serviceType: order.serviceType,
@@ -52,10 +54,10 @@ export function tillOrderSnapshot(
     refundOfOrderId: null,
     officialNo: null,
     callNumber: null,
-    tableId: null,
-    tableName: null,
+    tableId: order.table?.id ?? null,
+    tableName: order.table?.name ?? null,
     tableTag: order.tableTag,
-    preBillPrinted: false,
+    preBillPrinted: state.preBillPrinted ?? false,
     reasonCode: null,
     chargeProfile: state.chargeProfile,
     refundAmounts: null,

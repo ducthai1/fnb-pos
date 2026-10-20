@@ -58,7 +58,7 @@ export function useCheckoutInvoice(
             businessDate: recorded.businessDate ?? businessDateAt(place, at),
             chargeProfile: recorded.chargeProfile,
             payments: [],
-            sent: [],
+            sent: recorded.sent ?? [],
           }
         : {
             status: "paid",
@@ -66,7 +66,7 @@ export function useCheckoutInvoice(
             businessDate: sale.businessDate,
             chargeProfile: sale.chargeProfile,
             payments: sale.payments,
-            sent: [],
+            sent: recorded.sent ?? [],
           };
     const expected = tillOrderSnapshot(place, order, priced, state);
     await session.record(setBuyerCommand(place, order.orderId, next, expected, at), {

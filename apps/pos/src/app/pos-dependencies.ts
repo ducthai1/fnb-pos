@@ -2,6 +2,7 @@ import type { LocalStore, SyncTransport } from "@fnb/sync-client";
 import { BROWSER_STORE_ERROR_CODES, isBrowserStoreError } from "@fnb/sync-client/browser";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSource } from "../features/bootstrap/bootstrap-source";
+import type { FloorSource } from "../features/floor/floor-occupancy";
 import type { PrinterPort } from "../features/printing/printer-port";
 import type { BlockReason } from "../screens/blocked/blocked-screen";
 import type {
@@ -16,6 +17,8 @@ export interface PosDependencies {
   readonly credentials: DeviceCredentialStore;
   readonly api: PosApi;
   readonly bootstrap: BootstrapSource;
+  /** The branch's floor plan and who sits where, read for the floor screen. */
+  readonly floor: FloorSource;
   transportFor(credential: DeviceCredential, staffSessionToken: () => string | null): SyncTransport;
   readonly syncIdleMs: number;
   /** The till's printers: the native shell's, or the web build's preview-only stand-in. */

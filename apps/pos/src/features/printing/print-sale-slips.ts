@@ -6,7 +6,7 @@ import { billSlip } from "./bill-slip";
 import { cupLabelSlip } from "./cup-label-slip";
 import { kitchenSlips } from "./kitchen-slips";
 import type { PaidSale } from "./paid-sale";
-import { jobReportedCommand, markSentCommand } from "./print-commands";
+import { jobReportedCommand, markSentCommand, withSent } from "./print-commands";
 import type { PrintJob, PrintOutcome, PrinterPort } from "./printer-port";
 
 export interface PrintedSlip {
@@ -16,6 +16,15 @@ export interface PrintedSlip {
 
 /** The printer port threw instead of answering: reported as a failure of that job. */
 const PORT_ERROR = "PRINTER_PORT_ERROR";
+
+/** The paid order as its payment left it, for what each command after it expects. */
+const paidState = (sale: PaidSale) => ({
+  status: "paid" as const,
+  version: sale.version,
+  businessDate: sale.businessDate,
+  chargeProfile: sale.chargeProfile,
+  payments: sale.payments,
+});
 
 /** Prints one job; a port that throws counts as a failed print, never as a crash. */
 export async function printOne(printer: PrinterPort, job: PrintJob): Promise<PrintOutcome> {
@@ -44,17 +53,18 @@ export async function printSaleSlips(input: {
   const { menu, place, sale, printer, record, now } = input;
   const at = now();
   const tickets = kitchenSlips(menu, sale, at);
-  const others = [cupLabelSlip(menu, sale, at), billSlip(menu, sale, at)].flatMap((job) =>
-    job === null ? [] : [job],
-  );
+  // A table's drinks were labelled when they went to the bar, rounds ago.
+  const labels = sale.order.table === null ? cupLabelSlip(menu, sale, at) : null;
+  const others = [labels, billSlip(menu, sale, at)].flatMap((job) => (job === null ? [] : [job]));
   const printed: PrintedSlip[] = [];
-  let sent: SentLineState[] = [];
+  let sent: readonly SentLineState[] = sale.sent ?? [];
+  const recorded = { order: sale.order, priced: sale.priced, state: paidState(sale) };
   for (const ticket of tickets) {
     const outcome = await printOne(printer, ticket.job);
     printed.push({ job: ticket.job, outcome });
     if (outcome.status === "printed") {
-      sent = [...sent, ...ticket.sent];
-      await record(markSentCommand(place, sale, ticket, sent, now()));
+      sent = withSent(sent, ticket.sent);
+      await record(markSentCommand(place, recorded, ticket, sent, now()));
     }
     if (outcome.status !== "preview_only")
       await record(jobReportedCommand(place, sale.order.orderId, ticket.job, outcome, now()));

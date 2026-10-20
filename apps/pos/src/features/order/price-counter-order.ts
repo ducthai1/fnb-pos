@@ -79,14 +79,23 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
   ];
 }
 
-/** The whole cart with the domain's totals: the screen shows these and adds nothing up. */
+/** Items the server keeps exactly as stored (the kitchen has them), with their option lines. */
+export type KeptLines = ReadonlyMap<string, readonly OrderLine[]>;
+
+const NOTHING_KEPT: KeptLines = new Map();
+
+/**
+ * The whole cart with the domain's totals: the screen shows these and adds nothing up. A
+ * kept item is not priced again: the server keeps the price it had when it went to the bar.
+ */
 export function priceCounterOrder(
   menu: TillMenu,
   order: CounterOrder,
   chargeProfile: OrderChargeProfile,
   at: number,
+  kept: KeptLines = NOTHING_KEPT,
 ): PricedCounterOrder {
-  const lines = order.lines.flatMap((line) => pricedLines(menu, line, at));
+  const lines = order.lines.flatMap((line) => kept.get(line.lineId) ?? pricedLines(menu, line, at));
   return {
     lines,
     totals: computeOrderTotals({ lines, serviceType: order.serviceType }, chargeProfile),

@@ -1,9 +1,11 @@
+import { formatVnd } from "@fnb/domain";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
 import type { Browser } from "playwright-core";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { HOSTILE_MENU_NAMES } from "../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../src/test-support/hostile-names";
 import { vi } from "../../src/messages/vi";
+import { HOSTILE_FLOOR_NAMES, NINE_DIGIT_BILL } from "./pages/hostile-floor";
 import { HOSTILE_INVOICE } from "./pages/hostile-sale";
 import { SCREEN_NAMES } from "./pages/screen-names";
 import { measureScreenOverflow } from "./support/measure-screen-overflow";
@@ -24,6 +26,8 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     await page.goto(`${inject("screensOrigin")}/screens.html?screen=${name}`);
     await page.waitForFunction(`document.body.dataset.screenReady === "${name}"`);
     const overflow = await measureScreenOverflow(page);
+    // Every table of the hostile floor is on screen, so the grid is measured full.
+    const tableTiles = name === "floor" ? await page.locator("[data-table]").count() : null;
     // A typed value is not in the screen's text: read it off the field it fills.
     const buyerName =
       name === "buyer-info" ? await page.locator('input[name="buyer-name"]').inputValue() : null;
@@ -41,6 +45,15 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     if (name === "payment") expect(overflow.text).toContain(HOSTILE_NAMES.branch);
     if (name === "sale-done-invoice") expect(overflow.text).toContain(HOSTILE_INVOICE.lookupCode);
     if (name === "buyer-info") expect(buyerName).toContain(HOSTILE_NAMES.staff);
+    if (["floor", "table-order", "transfer-table"].includes(name)) {
+      expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.table);
+    }
+    if (name === "floor") {
+      expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.area);
+      expect(overflow.text).toContain(formatVnd(NINE_DIGIT_BILL));
+      expect(tableTiles).toBe(60);
+    }
+    if (name === "transfer-table") expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.area);
     if (["qr-payment-refused", "needs-attention"].includes(name)) {
       expect(overflow.text).toContain(vi.errors.SYNC_ORDER_HAS_SETTLED_QR);
     }

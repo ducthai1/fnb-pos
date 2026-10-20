@@ -1,21 +1,23 @@
-import type { OrderChargeProfile } from "@fnb/domain";
+import type { OrderChargeProfile, SentLineState } from "@fnb/domain";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { newId } from "../ids/new-id";
 import type { TillMenu } from "../menu/till-menu";
 import { type CounterOrder, newCounterOrder } from "./counter-order";
-import { nextDeviceOrderNo } from "./device-order-number";
+import { type OrderNumbers, orderNumbers } from "./device-order-number";
 import { type PricedCounterOrder, priceCounterOrder } from "./price-counter-order";
 import { saveDraftCommand } from "./save-draft-command";
 import { type TillPlace, businessDateAt } from "./till-command";
 
 /** The order on the counter and what has been recorded of it on the till. */
-interface Recorded {
+export interface Recorded {
   /** Charge profile the order opened with: the server keeps that one for the order's life. */
   chargeProfile: OrderChargeProfile;
   /** Day of the first save, which the server keeps as the order's day. */
   businessDate: string | null;
   version: number;
+  /** What the stations have of each item: a table's rounds sent so far; none on the counter. */
+  sent?: readonly SentLineState[];
 }
 
 export interface CounterOrderSession {
@@ -45,6 +47,7 @@ export function useCounterOrder(
   client: SyncClient,
   place: TillPlace,
   menu: TillMenu,
+  shared?: OrderNumbers,
 ): CounterOrderSession {
   const [order, setOrder] = useState<CounterOrder | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -55,7 +58,8 @@ export function useCounterOrder(
     version: 0,
   });
   const saving = useRef<Promise<unknown>>(Promise.resolve());
-  const lastNumber = useRef(0);
+  const own = useMemo(() => orderNumbers(client, place.deviceId), [client, place.deviceId]);
+  const numbers = shared ?? own;
   const menuNow = useRef(menu);
   menuNow.current = menu;
 
@@ -64,8 +68,7 @@ export function useCounterOrder(
     setOrder(null);
     setSaveFailed(false);
     const opened = saving.current.then(async () => {
-      const number = await nextDeviceOrderNo(client, place.deviceId, lastNumber.current);
-      lastNumber.current = number;
+      const number = await numbers.next();
       recorded.current = {
         chargeProfile: menuNow.current.config.chargeProfile,
         businessDate: null,
@@ -76,7 +79,7 @@ export function useCounterOrder(
       setOrder(fresh);
     });
     saving.current = opened.catch(console.error);
-  }, [client, place.deviceId]);
+  }, [numbers]);
   useEffect(startNew, [startNew]);
 
   const save = useCallback(
