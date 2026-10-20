@@ -47,6 +47,9 @@
 29. Component test POS chạy trong jsdom (không có IndexedDB/OPFS/Worker) với LocalStore node:sqlite `:memory:` + server giả; phần IndexedDB/OPFS qua reload do e2e bảo vệ.
 30. Test đồng bộ chạy API trên ManualClock (`tillsClock()` / `SERVER_STARTS_AT` trong `apps/api/test/integration/support/sync-commands.ts`, `pushOnTime` cho lệnh ghi giờ muộn hơn): server định giờ lệnh theo lúc nhận, test đọc đồng hồ thật sẽ cho kết quả khác vào ngày khác.
 31. Tính năng dựa trên bản sao lạc quan (máy hiện trước khi server trả lời) phải có ít nhất một test giữ lệnh ở trạng thái chờ (offline): server giả trả lời nhanh che mất lỗi (vd đánh số đơn 904 thay vì 2).
+32. Mọi snapshot feed khác null PHẢI có `version`, nếu không sync-client ngừng kéo (`SYNC_CLIENT_SNAPSHOT_WITHOUT_VERSION`) — chỉ `test:sync` bắt được, `test:api` không. Entity mới ⇒ chạy `test:sync`.
+33. Tiền in bằng `formatVnd` có NBSP: `getByText("39.000 đ")` không bao giờ khớp ⇒ đọc thuộc tính `data-*` hoặc `textContent`. Test của apps/pos chỉ được typecheck qua `tsconfig.node.json` ⇒ dùng `pnpm --filter @fnb/pos typecheck`, đừng `tsc -p tsconfig.json`.
+34. ManualClock của test tích hợp cũng là `CallDeadlines` (`signalAfter`): tiến đồng hồ là bắn hạn; `FakeEInvoiceProvider.holdNext(op, {ignoresAbort})` giữ đúng một lời gọi. `support/secret-keys.ts` coi khóa chứa pin/hash/token… là bí mật ⇒ đặt tên trường không bí mật tránh các chữ đó.
 23. zod 3: refine vẫn chạy sau khi check trước đã lỗi ⇒ refine gọi BigInt/parse phải tự chặn đầu vào xấu trước.
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
