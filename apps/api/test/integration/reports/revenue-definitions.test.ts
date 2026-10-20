@@ -5,7 +5,8 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { signedInMember } from "../support/backoffice-accounts";
-import { salesDay } from "../support/sales-day";
+import { ManualClock } from "../support/manual-clock";
+import { SALES_DAY_SYNCED_AT, salesDay } from "../support/sales-day";
 import { BUSINESS_DATE, line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
 import { cancel } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -19,7 +20,7 @@ let day: Awaited<ReturnType<typeof salesDay>>;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: new ManualClock(SALES_DAY_SYNCED_AT) });
   s = await syncShop(app, pool);
   day = await salesDay(app, pool, s);
 });

@@ -5,8 +5,15 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { expectStatus } from "../support/catalog-shop";
 import { ManualClock } from "../support/manual-clock";
-import { type LineIntent, line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  type LineIntent,
+  line,
+  orderIdOf,
+  pushOnTime as pushOnTimeBy,
+  saveDraft,
+} from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
+import type { SyncCommandEnvelope } from "../../../src/sync/sync-wire-types";
 
 const info = inject("testPostgres");
 const HOUR = 60 * 60_000;
@@ -52,6 +59,8 @@ const putBack = (productId: string, channelKey: string | null = null) =>
     200,
   );
 
+const pushOnTime = (sent: SyncCommandEnvelope) => pushOnTimeBy(app, s.tillA, clock, sent);
+
 function draftAt(
   createdAt: string,
   lines: LineIntent[],
@@ -64,7 +73,7 @@ describe("order.save_draft and sold-out products", () => {
   it("refuses a product the branch marked sold out, and sells everything else", async () => {
     await markSoldOut(s.menu.coffee.id);
     const coffee = draftAt(inHours(1), [line(s.menu.coffee.id)]);
-    expect(await pushOne(app, s.tillA, coffee)).toEqual({
+    expect(await pushOnTime(coffee)).toEqual({
       commandId: coffee.commandId,
       status: "rejected",
       code: "SYNC_PRODUCT_SOLD_OUT",
@@ -72,25 +81,25 @@ describe("order.save_draft and sold-out products", () => {
     const tea = draftAt(inHours(1), [
       line(s.menu.peachTea.id, { variantId: s.menu.peachTea.sizeM }),
     ]);
-    expect((await pushOne(app, s.tillA, tea)).status).toBe("accepted");
+    expect((await pushOnTime(tea)).status).toBe("accepted");
     await putBack(s.menu.coffee.id);
     const later = draftAt(inHours(1), [line(s.menu.coffee.id)]);
-    expect((await pushOne(app, s.tillA, later)).status).toBe("accepted");
+    expect((await pushOnTime(later)).status).toBe("accepted");
   });
 
   it("refuses it only on the channel it ran out for", async () => {
     await markSoldOut(s.menu.coffee.id, { channelKey: "grab" });
     const onGrab = draftAt(inHours(1), [line(s.menu.coffee.id)], { channelKey: "grab" });
     const atCounter = draftAt(inHours(1), [line(s.menu.coffee.id)]);
-    expect((await pushOne(app, s.tillA, onGrab)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
-    expect((await pushOne(app, s.tillA, atCounter)).status).toBe("accepted");
+    expect((await pushOnTime(onGrab)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
+    expect((await pushOnTime(atCounter)).status).toBe("accepted");
     await putBack(s.menu.coffee.id, "grab");
   });
 
   it("keeps a sale the till made before the product was marked, even when it syncs after", async () => {
     await markSoldOut(s.menu.coffee.id);
     const beforeTheMark = draftAt(inHours(-1), [line(s.menu.coffee.id)]);
-    expect((await pushOne(app, s.tillA, beforeTheMark)).status).toBe("accepted");
+    expect((await pushOnTime(beforeTheMark)).status).toBe("accepted");
     await putBack(s.menu.coffee.id);
   });
 
@@ -98,22 +107,22 @@ describe("order.save_draft and sold-out products", () => {
     await markSoldOut(s.menu.coffee.id, { unavailableUntil: inHours(2) });
     const during = draftAt(inHours(1), [line(s.menu.coffee.id)]);
     const after = draftAt(inHours(3), [line(s.menu.coffee.id)]);
-    expect((await pushOne(app, s.tillA, during)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
-    expect((await pushOne(app, s.tillA, after)).status).toBe("accepted");
+    expect((await pushOnTime(during)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
+    expect((await pushOnTime(after)).status).toBe("accepted");
     await putBack(s.menu.coffee.id);
   });
 
   it("lets a draft keep the units it already had, but not add more", async () => {
     const coffee = line(s.menu.coffee.id);
     const first = draftAt(inHours(1), [coffee]);
-    await pushOne(app, s.tillA, first);
+    await pushOnTime(first);
     await markSoldOut(s.menu.coffee.id);
     const tea = line(s.menu.peachTea.id, { variantId: s.menu.peachTea.sizeM });
     const orderId = orderIdOf(first);
     const withTea = draftAt(inHours(1), [coffee, tea], { orderId });
-    expect((await pushOne(app, s.tillA, withTea)).status).toBe("accepted");
+    expect((await pushOnTime(withTea)).status).toBe("accepted");
     const twoCoffees = draftAt(inHours(1), [{ ...coffee, quantity: "2" }, tea], { orderId });
-    expect((await pushOne(app, s.tillA, twoCoffees)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
+    expect((await pushOnTime(twoCoffees)).code).toBe("SYNC_PRODUCT_SOLD_OUT");
     await putBack(s.menu.coffee.id);
   });
 });

@@ -13,6 +13,7 @@ import {
   pullAll,
   pushOne,
   saveDraft,
+  tillsClock,
 } from "../support/sync-commands";
 import { discount, refund, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -26,7 +27,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
   // Till B is the manager's: sales there carry an order discount, and refunds need nobody.

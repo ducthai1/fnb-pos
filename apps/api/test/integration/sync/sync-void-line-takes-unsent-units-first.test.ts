@@ -5,7 +5,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { approve, hireManager, signInAs } from "../support/sync-approvals";
-import { line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
+import { line, orderIdOf, pay, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { markSent, voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -18,7 +18,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
 });

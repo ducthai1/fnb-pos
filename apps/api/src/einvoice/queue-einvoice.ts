@@ -2,6 +2,7 @@ import type { EInvoiceProfile } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import type pg from "pg";
 import type { StoredOrder } from "../sync/stored-order";
+import { paidTimesOf } from "../sync/paid-times";
 import type { SyncCommandContext } from "../sync/sync-command-context";
 import { CommandRejection, SYNC_ERROR_CODES } from "../sync/sync-error-codes";
 import { enabledProfile, readBranchEInvoiceProfile } from "./branch-einvoice-profile";
@@ -31,7 +32,7 @@ interface QueuedInvoice {
  * money and due at once; the worker issues it.
  */
 async function queueInvoice(context: SyncCommandContext, queued: QueuedInvoice) {
-  const { client, device, command, staffId, receivedAt } = context;
+  const { client, device, staffId, receivedAt, time } = context;
   const { order, profile } = queued;
   const seller = {
     taxCode: profile.sellerTaxCode,
@@ -41,8 +42,8 @@ async function queueInvoice(context: SyncCommandContext, queued: QueuedInvoice) 
   await client.query(
     "INSERT INTO einvoice (id, tenant_id, order_id, branch_id, business_date, kind, " +
       "adjusts_einvoice_id, next_attempt_at, provider, regime_version, template_symbol, seller, " +
-      "buyer, sold_at, amounts, created_by) " +
-      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)",
+      "buyer, sold_at, sold_at_device, sold_received_at, amounts, created_by) " +
+      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)",
     [
       newId(),
       device.tenantId,
@@ -57,7 +58,7 @@ async function queueInvoice(context: SyncCommandContext, queued: QueuedInvoice) 
       profile.templateSymbol,
       JSON.stringify(seller),
       queued.buyer === null ? null : JSON.stringify(queued.buyer),
-      command.createdAt,
+      ...paidTimesOf(time),
       JSON.stringify(einvoiceAmountsToJson(einvoiceAmountsOf(order))),
       staffId,
     ],

@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 import { requestApproval } from "./approval-requests";
 import { hire, startShift } from "./staffed-shop";
+import { RECORDED_AT } from "./sync-commands";
 import type { SyncShop, Till } from "./sync-shop";
 
 const PIN = "4826";
@@ -53,7 +54,8 @@ export async function approvedAt(pool: pg.Pool, tenantId: string, approvalId: st
 }
 
 /**
- * The wall clock as an instant: approvals are timed by the database, so a command relying
- * on one is dated when it is made, as a till right next to the manager would date it.
+ * When the till records a command right after its manager approved it: approvals are
+ * stamped by the API's clock (tillsClock, at SERVER_STARTS_AT), and the till dates the
+ * command a minute before the server receives it, as every sync test's till does.
  */
-export const justNow = () => new Date().toISOString();
+export const justNow = () => RECORDED_AT;

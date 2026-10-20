@@ -8,11 +8,22 @@ import type {
   SyncCommandEnvelope,
   SyncCommandResult,
 } from "../../../src/sync/sync-wire-types";
+import { ManualClock } from "./manual-clock";
 import type { Till } from "./sync-shop";
 
 export const BUSINESS_DATE = "2026-10-20";
 /** 10:00 in Vietnam: no time-limited price applies. */
 export const RECORDED_AT = "2026-10-20T03:00:00.000Z";
+
+/**
+ * The API's clock as a sync test starts: a minute after the tills record their commands.
+ * The server decides a command's time from when it received it, so a test whose server
+ * read the wall clock would date the same commands differently on another day.
+ */
+export const SERVER_STARTS_AT = new Date(Date.parse(RECORDED_AT) + 60_000);
+
+/** The clock a sync test's app runs on: SERVER_STARTS_AT, moved only by the test. */
+export const tillsClock = () => new ManualClock(SERVER_STARTS_AT);
 
 export interface LineIntent {
   lineId: string;
@@ -100,6 +111,22 @@ export async function pushOne(app: FastifyInstance, till: Till, sent: SyncComman
   const [result] = await push(app, till, [sent]);
   if (result === undefined) throw new Error("no result for the command");
   return result;
+}
+
+/**
+ * Pushes `sent` as it arrives from a till whose clock is right: a minute after the till
+ * dated it. The server never takes a command dated after it arrived, so `clock` moves on to
+ * that moment first (it never moves back).
+ */
+export async function pushOnTime(
+  app: FastifyInstance,
+  till: Till,
+  clock: ManualClock,
+  sent: SyncCommandEnvelope,
+) {
+  const late = Date.parse(sent.createdAt) + 60_000 - clock.now().getTime();
+  if (late > 0) clock.advance(late);
+  return pushOne(app, till, sent);
 }
 
 export async function pull(app: FastifyInstance, till: Till, cursor: string, limit = 500) {

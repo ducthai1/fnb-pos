@@ -6,7 +6,16 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { applySyncCommand } from "../../../src/sync/apply-sync-command";
 import type { SyncChange } from "../../../src/sync/sync-wire-types";
-import { line, orderIdOf, pull, pullAll, push, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  line,
+  orderIdOf,
+  pull,
+  pullAll,
+  push,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import {
   moveChangeSeqBelowADigitBoundary,
   senderOf,
@@ -23,7 +32,7 @@ let otherShop: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   otherShop = await syncShop(app, pool);
 });

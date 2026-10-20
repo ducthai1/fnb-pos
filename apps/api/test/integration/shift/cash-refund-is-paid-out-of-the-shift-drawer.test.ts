@@ -13,7 +13,7 @@ import {
   pushShift,
   rowsOf,
 } from "../support/shift-commands";
-import { line, orderIdOf, pullAll, pushOne, saveDraft } from "../support/sync-commands";
+import { line, orderIdOf, pullAll, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { hireManager } from "../support/sync-approvals";
 import { refund } from "../support/sync-order-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
@@ -28,7 +28,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
 });

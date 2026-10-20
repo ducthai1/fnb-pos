@@ -13,6 +13,7 @@ import {
   pay,
   pushOne,
   saveDraft,
+  tillsClock,
 } from "../support/sync-commands";
 import { discount, percentOffLine, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -28,7 +29,7 @@ const cake = newId();
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
   await expectStatus(

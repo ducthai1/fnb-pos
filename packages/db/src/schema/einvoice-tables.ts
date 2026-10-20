@@ -21,6 +21,9 @@ export const einvoice = pgTable("einvoice", {
   seller: jsonb("seller").notNull(),
   buyer: jsonb("buyer"),
   soldAt: at("sold_at").notNull(),
+  /** What the till's clock showed at the sale, and when the server received it; see 0024. */
+  soldAtDevice: at("sold_at_device"),
+  soldReceivedAt: at("sold_received_at"),
   amounts: jsonb("amounts").notNull(),
   number: text("number"),
   taxAuthorityCode: text("tax_authority_code"),

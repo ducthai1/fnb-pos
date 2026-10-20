@@ -6,7 +6,14 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { freshTill, rowsOf } from "../support/shift-commands";
 import { hireManager } from "../support/sync-approvals";
-import { line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  SERVER_STARTS_AT,
+  line,
+  orderIdOf,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import { discount, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -23,7 +30,7 @@ let till: Till;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
   // A cashier with no order_discount grant of their own: the discount needs the approval.
@@ -36,8 +43,8 @@ afterAll(async () => {
 });
 
 /**
- * A 10% order discount approval the manager gave `ago` ms back by the database's clock, as
- * the approval route records it. Answers its id and when it was given, in epoch ms.
+ * A 10% order discount approval the manager gave `ago` ms before the server receives the
+ * command, by the API's clock, as the approval route records it. Answers its id and when it was given, in epoch ms.
  */
 async function approvalGiven(ago: number) {
   const approvalId = newId();
@@ -46,7 +53,7 @@ async function approvalGiven(ago: number) {
     s.shop.tenantId,
     "INSERT INTO approval_log (id, tenant_id, action_key, requested_by_staff_id, " +
       "approved_by_staff_id, device_id, branch_id, payload, created_at) VALUES " +
-      "($1, $2, 'order_discount', $3, $4, $5, $6, $7::jsonb, now() - make_interval(secs => $8)) " +
+      "($1, $2, 'order_discount', $3, $4, $5, $6, $7::jsonb, $8) " +
       "RETURNING created_at",
     [
       approvalId,
@@ -56,7 +63,7 @@ async function approvalGiven(ago: number) {
       till.deviceId,
       s.shop.branchId,
       JSON.stringify({ discountRate: RATE }),
-      ago / 1000,
+      new Date(SERVER_STARTS_AT.getTime() - ago),
     ],
   );
   return { approvalId, givenAt: (rows[0]?.created_at as Date).getTime() };

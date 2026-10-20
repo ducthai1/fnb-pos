@@ -7,6 +7,7 @@ import {
   assertQrTransfersArePaid,
   withdrawPendingIntents,
 } from "../payments/qr-transfer-tenders";
+import { paidTimesOf } from "./paid-times";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
@@ -20,7 +21,7 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * payment is refused: that is a real conflict a person has to settle. Returns the order id.
  */
 async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
-  const { client, device, staffId, command } = context;
+  const { client, device, staffId, time } = context;
   const stored = await readStoredOrder(client, payload.orderId, true);
   if (stored === null || stored.branchId !== device.branchId) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderNotFound);
@@ -59,8 +60,8 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
   }
   await client.query(
     "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, paid_at = $5, " +
-      "updated_at = now() WHERE id = $1",
-    [payload.orderId, paid.status, paid.version, shift.shiftId, command.createdAt],
+      "paid_at_device = $6, paid_received_at = $7, updated_at = now() WHERE id = $1",
+    [payload.orderId, paid.status, paid.version, shift.shiftId, ...paidTimesOf(time)],
   );
   await queueSaleInvoice(context, stored);
   await withdrawPendingIntents(context, payload.orderId);

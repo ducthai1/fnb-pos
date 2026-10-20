@@ -23,7 +23,7 @@ import { TABLE_SYNC_ERROR_CODES } from "./table-sync-error-codes";
  * paid or cancelled; a second order opened there is refused. Returns the order id.
  */
 async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload) {
-  const { client, device, staffId, branch, command } = context;
+  const { client, device, staffId, branch, time } = context;
   const existing = await readStoredOrder(client, payload.orderId, true);
   if (existing !== null && existing.branchId !== device.branchId) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
@@ -32,7 +32,9 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   if (existing !== null && existing.tableId !== payload.tableId) {
     throw new CommandRejection(TABLE_SYNC_ERROR_CODES.tableChangeNeedsTransfer);
   }
-  const recordedAt = new Date(command.createdAt);
+  // Prices of the hour and what is sold out follow the server's reading of when the till
+  // recorded the draft: a till whose clock is set to happy hour does not get its prices.
+  const recordedAt = time.effectiveAt;
   const before = existing?.order.lines ?? [];
   const fresh = await priceDraftLines(client, branch, payload, recordedAt.getTime(), before);
   const lines = mergeDraftLines(before, fresh, {
@@ -56,7 +58,7 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
       payload.tableId === null
         ? null
         : await seatableTable(client, device.branchId, payload.tableId);
-    const header = [device, payload, command.businessDate, staffId, chargeProfile, table] as const;
+    const header = [device, payload, time.businessDate, staffId, chargeProfile, table] as const;
     if (!(await seatingAtTable(() => insertDraftHeader(client, ...header)))) {
       throw new CommandRejection(SYNC_ERROR_CODES.deviceOrderNoTaken);
     }

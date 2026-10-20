@@ -46,8 +46,8 @@ export const openShift = (till: Till, openingCash: number, shiftId = newId()) =>
   command(till, "shift.open", { shiftId, openingCash, denominations: notesFor(openingCash) });
 
 /**
- * Approvals are timed by the database and honoured for ten minutes around when the till
- * recorded the command, so a command relying on one is dated when it is made.
+ * Approvals are timed by the API's clock and honoured for ten minutes around when the till
+ * recorded the command, so a command relying on one is dated right after it was given.
  */
 const datedFor = (extra: { approvalId?: string }) =>
   extra.approvalId === undefined ? {} : { createdAt: justNow() };

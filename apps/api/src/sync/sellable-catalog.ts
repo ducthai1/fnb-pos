@@ -18,6 +18,8 @@ export interface BranchPricing {
   readonly branchId: string;
   readonly brandId: string;
   readonly utcOffsetMinutes: number;
+  /** When the business day starts, in minutes of the local day: 240 puts 03:00 in the night before. */
+  readonly businessDayStartMinute: number;
 }
 
 export interface SellableProduct {
@@ -29,13 +31,21 @@ export async function readBranchPricing(
   client: pg.PoolClient,
   branchId: string,
 ): Promise<BranchPricing> {
-  const { rows } = await client.query<{ brand_id: string; utc_offset_minutes: number }>(
-    "SELECT brand_id, utc_offset_minutes FROM branch WHERE id = $1",
-    [branchId],
-  );
+  const { rows } = await client.query<{
+    brand_id: string;
+    utc_offset_minutes: number;
+    business_day_start_minute: number;
+  }>("SELECT brand_id, utc_offset_minutes, business_day_start_minute FROM branch WHERE id = $1", [
+    branchId,
+  ]);
   const row = rows[0];
   if (row === undefined) throw new Error(`branch ${branchId} of an authenticated till is missing`);
-  return { branchId, brandId: row.brand_id, utcOffsetMinutes: row.utc_offset_minutes };
+  return {
+    branchId,
+    brandId: row.brand_id,
+    utcOffsetMinutes: row.utc_offset_minutes,
+    businessDayStartMinute: row.business_day_start_minute,
+  };
 }
 
 /**

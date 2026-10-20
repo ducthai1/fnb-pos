@@ -16,6 +16,7 @@ import {
   pullAll,
   push,
   saveDraft,
+  tillsClock,
 } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -32,7 +33,7 @@ let firstRunOrders = new Map<string, unknown>();
 
 async function withServer<T>(work: (app: FastifyInstance, pool: pg.Pool) => Promise<T>) {
   const pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  const app = buildApp({ pool });
+  const app = buildApp({ pool, clock: tillsClock() });
   try {
     return await work(app, pool);
   } finally {

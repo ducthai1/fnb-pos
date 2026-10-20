@@ -11,7 +11,14 @@ import {
   ticketLine,
   ticketLinesOf,
 } from "../support/kitchen-commands";
-import { type LineIntent, line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  type LineIntent,
+  line,
+  orderIdOf,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -23,7 +30,7 @@ let bar: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   bar = await kitchenStation(app, s);
 });

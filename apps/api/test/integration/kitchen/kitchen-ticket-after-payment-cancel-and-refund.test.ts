@@ -11,7 +11,7 @@ import {
   sentToKitchen,
   ticketLine,
 } from "../support/kitchen-commands";
-import { line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
+import { line, orderIdOf, pay, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { cancel, refund } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -24,7 +24,7 @@ let bar: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   bar = await kitchenStation(app, s);
   // Till B is the manager's, so a refund there needs nobody to approve it.

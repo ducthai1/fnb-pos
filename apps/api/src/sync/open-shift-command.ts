@@ -15,7 +15,7 @@ import { CommandRejection } from "./sync-error-codes";
  * The count happens on the till before the command is sent, so the shift is stored open.
  */
 async function openShift(context: SyncCommandContext, payload: OpenShiftPayload) {
-  const { client, device, staffId, command } = context;
+  const { client, device, staffId, time } = context;
   if ((await readUnclosedShiftOfDevice(client, device.deviceId, true)) !== null) {
     throw new CommandRejection(C.shiftAlreadyOpen);
   }
@@ -38,7 +38,7 @@ async function openShift(context: SyncCommandContext, payload: OpenShiftPayload)
       transitionShift("opening", "open"),
       staffId,
       openingCash,
-      command.businessDate,
+      time.businessDate,
     ],
   );
   if (inserted.rowCount !== 1) throw new CommandRejection(C.shiftIdTaken);

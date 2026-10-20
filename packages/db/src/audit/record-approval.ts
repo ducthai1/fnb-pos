@@ -14,6 +14,11 @@ export interface ApprovalRecord {
   branchId: string;
   /** What was approved (order, line, rate, amount), for whoever reads the trail later. */
   payload?: Readonly<Record<string, unknown>>;
+  /**
+   * When it was given, by the caller's clock: commands relying on it are timed by that same
+   * clock. The database's own time when left out.
+   */
+  createdAt?: Date;
 }
 
 /**
@@ -28,8 +33,8 @@ export async function recordApproval(
   const id = record.id ?? newId();
   await client.query(
     `INSERT INTO approval_log (id, tenant_id, action_key, requested_by_staff_id,
-       approved_by_staff_id, device_id, branch_id, payload)
-     VALUES ($1, ${CURRENT_TENANT_SQL}, $2, $3, $4, $5, $6, $7::jsonb)`,
+       approved_by_staff_id, device_id, branch_id, payload, created_at)
+     VALUES ($1, ${CURRENT_TENANT_SQL}, $2, $3, $4, $5, $6, $7::jsonb, coalesce($8, now()))`,
     [
       id,
       record.actionKey,
@@ -38,6 +43,7 @@ export async function recordApproval(
       record.deviceId,
       record.branchId,
       toJsonPayload(record.payload ?? {}),
+      record.createdAt ?? null,
     ],
   );
   return id;

@@ -7,7 +7,14 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { type MilkTeaTillShop, bootstrapOf, milkTeaTillShop } from "../support/milk-tea-till-shop";
-import { line, pullAll, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  SERVER_STARTS_AT,
+  line,
+  pullAll,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import { createStaff } from "../support/staffed-shop";
 
 const info = inject("testPostgres");
@@ -20,7 +27,7 @@ let leaverId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   m = await milkTeaTillShop(app, pool);
   const leaver = await createStaff(app, m.s.shop, { pin: "4826", displayName: "Hùng" });
   leaverId = leaver.json().staffId;
@@ -148,7 +155,7 @@ describe("the menu a till starts with", () => {
   });
 
   it("holds what is sold out at the branch now, not what ended or ran out elsewhere", async () => {
-    const until = new Date(Date.now() + 3_600_000).toISOString();
+    const until = new Date(SERVER_STARTS_AT.getTime() + 3_600_000).toISOString();
     await m.manage("PUT", "/catalog/availability", {
       productId: m.tea.ids.product,
       branchId: m.s.shop.branchId,
@@ -159,8 +166,14 @@ describe("the menu a till starts with", () => {
     await withTenant(pool, m.s.shop.tenantId, (client) =>
       client.query(
         "INSERT INTO product_availability (id, tenant_id, product_id, branch_id, channel_key, " +
-          "unavailable_until) VALUES ($1, $2, $3, $4, 'shopee', now() - interval '1 hour')",
-        [newId(), m.s.shop.tenantId, m.tea.ids.product, m.s.shop.branchId],
+          "unavailable_until) VALUES ($1, $2, $3, $4, 'shopee', $5)",
+        [
+          newId(),
+          m.s.shop.tenantId,
+          m.tea.ids.product,
+          m.s.shop.branchId,
+          new Date(SERVER_STARTS_AT.getTime() - 3_600_000),
+        ],
       ),
     );
     const now = await bootstrapOf(app, m.s.tillA.deviceToken);

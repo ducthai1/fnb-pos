@@ -6,7 +6,14 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { expectStatus } from "../support/catalog-shop";
 import { approve, hireManager, justNow, signInAs } from "../support/sync-approvals";
-import { type LineIntent, line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  type LineIntent,
+  line,
+  orderIdOf,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -19,7 +26,7 @@ const cake = newId();
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
   // Till B is run by a waiter, who may not type a price alone.

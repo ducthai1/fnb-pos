@@ -19,6 +19,12 @@ export const PAID_AT = {
   o4: "2026-10-20T05:45:00.000Z",
 };
 
+/** When the day's commands reach the server: 13:00, after the day's last payment. */
+export const SALES_DAY_SYNCED_AT = new Date("2026-10-20T06:00:00.000Z");
+
+/** 03:30 on the 20th, before the branch's day starts at 04:00: the night of the 19th. */
+const NIGHT_BEFORE = "2026-10-19T20:30:00.000Z";
+
 const at = (sent: SyncCommandEnvelope, createdAt: string) => ({ ...sent, createdAt });
 
 /**
@@ -86,13 +92,13 @@ export async function salesDay(app: FastifyInstance, pool: pg.Pool, s: SyncShop)
   const o2 = saveDraft(till, [line(s.menu.coffee.id, { modifiers: [shot] })]);
   await accepted(o2);
   const code = freshCode();
-  // Arrived just before the QR reached the server, by the server's (real) clock, which is
-  // what the QR's look-back for money that came first is measured on.
+  // Arrived just before the QR reached the server, by the server's clock, which is what the
+  // QR's look-back for money that came first is measured on.
   await recordTransfer(pool, s.shop.tenantId, {
     branchId: s.shop.branchId,
     amount: 39_000,
     content: `CK ${code}`,
-    receivedAt: new Date(),
+    receivedAt: new Date(SALES_DAY_SYNCED_AT.getTime() - 60_000),
   });
   const qr = createIntent(till, orderIdOf(o2), 39_000, { contentCode: code });
   await accepted(qr);
@@ -139,9 +145,9 @@ export async function salesDay(app: FastifyInstance, pool: pg.Pool, s: SyncShop)
   const elsewhere = saveDraft(s.otherBranchTill, [line(s.menu.coffee.id)]);
   expect((await pushOne(app, s.otherBranchTill, elsewhere)).status).toBe("accepted");
   await pushOne(app, s.otherBranchTill, pay(s.otherBranchTill, orderIdOf(elsewhere), 29_000));
-  const yesterday = { ...saveDraft(till, [line(s.menu.coffee.id)]), businessDate: "2026-10-19" };
+  const yesterday = at(saveDraft(till, [line(s.menu.coffee.id)]), NIGHT_BEFORE);
   await accepted(yesterday);
-  await accepted({ ...pay(till, orderIdOf(yesterday), 29_000), businessDate: "2026-10-19" });
+  await accepted(at(pay(till, orderIdOf(yesterday), 29_000), NIGHT_BEFORE));
 
   return { beerId, o3Id, teaLineId: teas.lineId };
 }
