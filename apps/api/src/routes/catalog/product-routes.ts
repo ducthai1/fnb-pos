@@ -8,11 +8,13 @@ import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
+import { recordProductChanges } from "../../catalog/catalog-change-feed";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
 import { amountOf } from "../../catalog/product-document";
 import { checkProductDocument } from "../../catalog/product-document-to-domain";
 import { readProductDocument } from "../../catalog/read-product-document";
 import { writeProductDocument } from "../../catalog/write-product-document";
+import { lockTenantChangeFeed } from "../../sync/change-feed";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerProductRoutes(app: FastifyInstance, context: ApiContext): void {
@@ -97,11 +99,14 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const writer = writeContextOf(request, context);
       const row = await withTenant(context.pool, writer.tenantId, async (client) => {
-        await client.query(
+        await lockTenantChangeFeed(client, writer.tenantId);
+        const archived = await client.query(
           "UPDATE product SET archived_at = $2, updated_at = $2, version = version + 1 " +
             "WHERE id = $1 AND archived_at IS NULL",
           [id, writer.now],
         );
+        // Tills drop it from the menu; archiving it again tells them nothing new.
+        if (archived.rowCount === 1) await recordProductChanges(client, writer.tenantId, [id]);
         const result = await client.query<{ version: number; archived_at: Date }>(
           "SELECT version, archived_at FROM product WHERE id = $1",
           [id],

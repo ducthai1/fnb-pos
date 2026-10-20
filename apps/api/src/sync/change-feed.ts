@@ -46,6 +46,47 @@ export async function appendChange(
   );
 }
 
+export interface SequencedChange {
+  branchId: string;
+  entity: string;
+  entityId: string;
+  /** The copy without its version; null when the copy is gone. */
+  snapshot: Record<string, unknown> | null;
+}
+
+/**
+ * Appends a copy whose version is its own change_seq, for copies assembled from several
+ * rows (a product and the groups it shares, a till's inherited settings), which no single
+ * row version follows. The number is drawn first so the copy can carry it; the caller
+ * holds lockTenantChangeFeed, so drawing it early changes nothing about commit order.
+ */
+export async function appendSequencedChange(
+  client: pg.ClientBase,
+  tenantId: string,
+  change: SequencedChange,
+) {
+  const { rows } = await client.query<{ seq: string }>(
+    "SELECT nextval('change_log_change_seq_seq')::text AS seq",
+  );
+  const seq = rows[0]?.seq;
+  if (seq === undefined) throw new Error("nextval returned no row");
+  const snapshot =
+    change.snapshot === null ? null : { ...change.snapshot, version: feedVersionOf(seq) };
+  await client.query(
+    "INSERT INTO change_log (id, tenant_id, change_seq, branch_id, entity, entity_id, snapshot) " +
+      "VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    [
+      newId(),
+      tenantId,
+      seq,
+      change.branchId,
+      change.entity,
+      change.entityId,
+      JSON.stringify(snapshot),
+    ],
+  );
+}
+
 /**
  * The branch's changes strictly after `cursor`, oldest first. change_seq is selected as the
  * bigint it is (pg hands int8 over as text): casting it to text in the select list would make
@@ -74,4 +115,29 @@ export async function readChangesPage(
     snapshot: row.snapshot,
   }));
   return { changes, nextCursor: changes.at(-1)?.changeSeq ?? cursor };
+}
+
+/**
+ * Where a till starting from scratch begins pulling: the branch's newest change, or "0".
+ * Writers hold the tenant's feed lock from drawing change_seq until COMMIT, so every change
+ * of the tenant numbered at or below a committed one has committed too; read first in a
+ * transaction, the cursor covers only changes the reads after it can see.
+ */
+export async function readBranchCursor(client: pg.ClientBase, branchId: string): Promise<string> {
+  const { rows } = await client.query<{ seq: string | null }>(
+    "SELECT max(change_seq) AS seq FROM change_log WHERE branch_id = $1",
+    [branchId],
+  );
+  return rows[0]?.seq ?? "0";
+}
+
+/**
+ * A feed position as the version of a till's copy. A JSON number holds change_seq exactly
+ * up to 2^53, which a feed drawing a million numbers a day reaches in 24 000 years; past
+ * it the copy would carry a rounded version, so that throws instead.
+ */
+export function feedVersionOf(changeSeq: string): number {
+  const version = Number(changeSeq);
+  if (!Number.isSafeInteger(version)) throw new RangeError(`change_seq ${changeSeq} is too big`);
+  return version;
 }

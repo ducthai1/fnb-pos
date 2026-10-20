@@ -5,15 +5,19 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./node-sqlite": "./src/local-store/node-sqlite-driver.ts"
+    "./node-sqlite": "./src/local-store/node-sqlite-driver.ts",
+    "./browser": "./src/browser/index.ts",
+    "./test-support/system-chrome": "./test/browser/support/system-chrome.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
     "test:unit": "vitest run",
-    "test:sync": "vitest run --config vitest.scenarios.config.ts"
+    "test:sync": "vitest run --config vitest.scenarios.config.ts",
+    "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@fnb/contracts": "workspace:*"
+    "@fnb/contracts": "workspace:*",
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1"
   },
   "devDependencies": {
     "@fnb/api": "workspace:*",
@@ -23,7 +27,9 @@
     "@types/pg": "8.23.1",
     "fast-check": "4.10.2",
     "pg": "8.23.1",
+    "playwright-core": "1.64.1",
     "typescript": "5.9.3",
+    "vite": "6.4.4",
     "vitest": "3.2.7"
   }
 }

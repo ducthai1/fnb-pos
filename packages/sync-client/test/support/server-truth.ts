@@ -52,8 +52,9 @@ export async function serverLedger(server: ScenarioServer, shop: SyncShop, till:
       [till.deviceId],
     );
     const repeated = await client.query<{ n: string }>(
-      "SELECT count(*) AS n FROM (SELECT command_id FROM change_log GROUP BY command_id, entity_id " +
-        "HAVING count(*) > 1) AS twice",
+      // Menu changes carry no command and are written once per branch of the brand.
+      "SELECT count(*) AS n FROM (SELECT command_id FROM change_log WHERE command_id IS NOT NULL " +
+        "GROUP BY command_id, entity_id HAVING count(*) > 1) AS twice",
     );
     const byStatus = Object.fromEntries(outcomes.rows.map((row) => [row.status, Number(row.n)]));
     return {
@@ -64,18 +65,27 @@ export async function serverLedger(server: ScenarioServer, shop: SyncShop, till:
   });
 }
 
-/** The newest row of every order in the change feed, pulled from the start by a fresh reader. */
-export async function feedOrders(server: ScenarioServer, till: Till) {
+/** Every change of the till's branch feed, pulled from the start by a fresh reader. */
+export async function feedChanges(server: ScenarioServer, till: Till) {
   const transport = createHttpSyncTransport({
     send: server.send,
     deviceToken: till.deviceToken,
     staffSessionToken: () => null,
   });
-  const orders = new Map<string, unknown>();
+  const changes = [];
   for (let cursor = "0"; ;) {
     const page = await transport.pullChanges(cursor, 1_000);
-    if (page.changes.length === 0) return orders;
-    for (const change of page.changes) orders.set(change.entityId, change.snapshot);
+    if (page.changes.length === 0) return changes;
+    changes.push(...page.changes);
     cursor = page.nextCursor;
   }
+}
+
+/** The newest row of every order in the change feed, pulled from the start by a fresh reader. */
+export async function feedOrders(server: ScenarioServer, till: Till) {
+  const orders = new Map<string, unknown>();
+  for (const change of await feedChanges(server, till)) {
+    if (change.entity === "order") orders.set(change.entityId, change.snapshot);
+  }
+  return orders;
 }

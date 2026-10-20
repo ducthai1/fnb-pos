@@ -18,6 +18,10 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
+    },
+    "test:browser": {
+      "dependsOn": ["^typecheck"],
+      "cache": false
     }
   }
 }
