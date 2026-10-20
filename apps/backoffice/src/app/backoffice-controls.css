@@ -3,13 +3,14 @@
 
 .bo-card {
   min-width: 0;
-  padding: 16px;
-  background: var(--bo-surface);
-  border: 1px solid var(--bo-border);
-  border-radius: 12px;
+  padding: var(--sp-5);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-3);
 }
 
 .bo-login {
@@ -38,12 +39,16 @@
 
 .bo-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
 }
 
 .bo-subtitle {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
 }
 
 .bo-muted {
@@ -56,8 +61,9 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  font-size: 0.875rem;
-  color: var(--bo-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-text-2);
 }
 
 .bo-field--inline {
@@ -76,44 +82,74 @@
 .bo-input {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: var(--control-h);
+  padding: 8px 12px;
   font: inherit;
   font-size: 1rem;
-  color: var(--bo-text);
-  background: var(--bo-surface);
-  border: 1px solid var(--bo-border);
-  border-radius: 8px;
+  font-weight: var(--fw-regular);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.bo-input:focus-visible {
+  outline: none;
+  border-color: var(--c-focus);
+  box-shadow: var(--ring);
 }
 
 .bo-input[aria-invalid="true"] {
-  border-color: var(--bo-danger);
+  border-color: var(--c-danger);
 }
 
 .bo-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  gap: var(--sp-2);
+  min-height: var(--control-h);
   max-width: 100%;
-  padding: 8px 14px;
+  padding: 8px 16px;
   font: inherit;
-  color: var(--bo-text);
-  background: var(--bo-surface);
-  border: 1px solid var(--bo-border);
-  border-radius: 8px;
+  font-weight: var(--fw-medium);
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.bo-button:hover:not(:disabled) {
+  background: var(--c-surface-2);
+}
+
+.bo-button:focus-visible,
+.bo-link-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
 .bo-button--primary {
-  color: var(--bo-primary-text);
-  background: var(--bo-primary);
-  border-color: var(--bo-primary);
+  color: var(--c-on-brand);
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-button--primary:hover:not(:disabled) {
+  background: var(--c-brand-strong);
 }
 
 .bo-button--danger {
-  color: var(--bo-danger);
-  border-color: var(--bo-danger);
+  color: var(--c-danger);
+  border-color: var(--c-danger);
 }
 
 .bo-button--block {
@@ -128,54 +164,10 @@
 .bo-link-button {
   padding: 8px 4px;
   font: inherit;
-  color: var(--bo-primary);
+  font-weight: var(--fw-semibold);
+  color: var(--c-brand-strong);
   background: none;
   border: 0;
   text-decoration: underline;
   cursor: pointer;
-}
-
-.bo-notice {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-}
-
-.bo-notice--error {
-  color: var(--bo-danger);
-  background: var(--bo-danger-bg);
-}
-
-.bo-notice--ok {
-  color: var(--bo-ok);
-  background: var(--bo-ok-bg);
-}
-
-.bo-notice--warn {
-  color: var(--bo-warn);
-  background: var(--bo-warn-bg);
-}
-
-.bo-home-links {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bo-home-link {
-  color: var(--bo-text);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.bo-choice-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }

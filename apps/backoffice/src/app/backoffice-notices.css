@@ -1,0 +1,55 @@
+/* Notices (error, done, warning) and the plain lists of links and choices. */
+
+.bo-notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  overflow-wrap: anywhere;
+}
+
+.bo-notice--error {
+  color: var(--c-danger);
+  background: var(--c-danger-soft);
+  border-color: rgb(180 40 65 / 0.18);
+}
+
+.bo-notice--ok {
+  color: var(--c-success);
+  background: var(--c-success-soft);
+  border-color: rgb(18 122 83 / 0.18);
+}
+
+.bo-notice--warn {
+  color: var(--c-amber);
+  background: var(--c-amber-soft);
+  border-color: rgb(138 90 0 / 0.18);
+}
+
+.bo-home-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-home-link {
+  color: var(--c-text);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.bo-home-link:hover {
+  color: var(--c-brand-strong);
+}
+
+.bo-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
