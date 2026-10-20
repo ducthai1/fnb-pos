@@ -1,0 +1,24 @@
+/* The bar of the ticked products: how many, where to move them, go or untick. */
+.bo-bulk {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-3) var(--sp-4);
+  border-color: var(--c-brand);
+  background: var(--c-brand-tint);
+}
+
+.bo-bulk__count {
+  flex: 1 1 100%;
+}
+
+.bo-bulk .bo-field {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.bo-bulk__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}

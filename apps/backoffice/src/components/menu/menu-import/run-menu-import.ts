@@ -1,5 +1,5 @@
 import type { CatalogApi, Category } from "../../../lib/api/catalog-api";
-import type { ProductBody, ProductDocument } from "../../../lib/catalog/product-document";
+import { bodyOfDocument } from "../../../lib/catalog/product-document";
 import { failureMessage } from "../../../lib/errors/failure-message";
 import { vi } from "../../../messages/vi";
 import { newId } from "../product-editor/product-draft";
@@ -9,27 +9,6 @@ const T = vi.menuImport;
 const SORT_STEP = 10;
 
 export type RowOutcome = { readonly ok: true } | { readonly ok: false; readonly message: string };
-
-/** The body that saves a document back unchanged; the import then sets what it changes. */
-export function bodyOfDocument(document: ProductDocument): ProductBody {
-  return {
-    version: document.version,
-    brandId: document.brandId,
-    categoryId: document.categoryId,
-    kind: document.kind,
-    name: document.name,
-    basePrice: document.basePrice,
-    pricingMode: document.pricingMode,
-    taxRateBp: document.taxRateBp,
-    stationId: document.stationId,
-    trackStock: document.trackStock,
-    earnsPoints: document.earnsPoints,
-    printCupLabel: document.printCupLabel,
-    variants: document.variants,
-    modifierGroups: document.modifierGroups,
-    combo: document.combo,
-  };
-}
 
 /** Creates each missing category once, after the last one of the menu; the id of each name. */
 async function createCategories(

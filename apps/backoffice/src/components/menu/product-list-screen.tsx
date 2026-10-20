@@ -15,9 +15,11 @@ import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
 import { type DataColumn, DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
+import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
 import { Icon } from "../ui/icon";
 import { CheckField } from "../ui/select-field";
 import { downloadMenuSheet } from "./menu-import/download-menu-sheet";
+import { ProductBulkMove } from "./product-bulk-move";
 import { newId } from "./product-editor/product-draft";
 
 const T = vi.menu.products;
@@ -101,8 +103,10 @@ export function ProductListScreen() {
     () => (brandId === null ? null : () => both(api.listProducts(brandId), api.listCategories(brandId))),
     [api, brandId],
   );
-  const [loaded, reload] = useApiLoad(load);
+  const [loaded, reload, refresh] = useApiLoad(load);
   const [showArchived, setShowArchived] = useState(false);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
+  const [notice, setNotice] = useState<{ message: string; failed: boolean } | null>(null);
   const [newProductId] = useState(newId);
 
   return (
@@ -148,7 +152,23 @@ export function ProductListScreen() {
               const listed = products.filter((product) => showArchived || product.archivedAt === null);
               const categoryName = (id: string | null) =>
                 categories.find((category) => category.id === id)?.name ?? T.noCategory;
+              const pickedIds = listed.filter((product) => picked.has(product.id)).map((product) => product.id);
               return (
+                <>
+                {notice !== null &&
+                  (notice.failed ? <ErrorNotice message={notice.message} /> : <SuccessNotice message={notice.message} />)}
+                {pickedIds.length > 0 && (
+                  <ProductBulkMove
+                    picked={pickedIds}
+                    categories={categories}
+                    onClear={() => setPicked(new Set())}
+                    onMoved={(message, failed) => {
+                      setNotice({ message, failed });
+                      setPicked(new Set());
+                      refresh();
+                    }}
+                  />
+                )}
                 <DataTable
                   label={T.title}
                   rows={listed}
@@ -157,7 +177,17 @@ export function ProductListScreen() {
                   search={{ label: T.search, text: (product) => product.name }}
                   filters={categoryFilters(listed, categories)}
                   empty={<EmptyState icon={CupSoda}>{products.length === 0 ? T.empty : T.noMatch}</EmptyState>}
+                  selection={{
+                    picked,
+                    onPick: (next) => {
+                      setPicked(next);
+                      setNotice(null);
+                    },
+                    label: (product) => T.pick(product.name),
+                    allLabel: T.pickAll,
+                  }}
                 />
+                </>
               );
             }}
           </LoadStateView>
