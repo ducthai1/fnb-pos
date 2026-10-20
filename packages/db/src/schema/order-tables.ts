@@ -50,6 +50,8 @@ export const salesOrder = pgTable("sales_order", {
   paidAt: timestamp("paid_at", { withTimezone: true }),
   /** What the customer asked to be printed on the invoice, while a draft. */
   einvoiceBuyer: jsonb("einvoice_buyer"),
+  /** Paid into a business day already closed; set by the database, see 0022. */
+  paidAfterDayClose: boolean("paid_after_day_close").notNull().default(false),
 });
 
 export const salesOrderLine = pgTable("sales_order_line", {

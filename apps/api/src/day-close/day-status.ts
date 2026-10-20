@@ -17,13 +17,24 @@ export interface DayBatch {
   lastErrorCode: string | null;
 }
 
+/** An order of the day as a manager finds it on the till: which till, which number. */
+export interface DayOrder {
+  id: string;
+  deviceId: string;
+  deviceOrderNo: number;
+}
+
 /**
- * Where a branch's business day stands: what would stop it closing (open shifts, invoices
- * still queued) and what needs a person even once it is closed (invoices failed for good,
- * issued invoices no submitted batch carries yet, batches not through).
+ * Where a branch's business day stands: what would stop it closing (open shifts, drafts
+ * still open, invoices still queued) and what needs a person even once it is closed
+ * (orders paid after the close, invoices failed for good, issued invoices no submitted
+ * batch carries yet, batches not through).
  */
 export interface DayStatus {
   openShiftIds: string[];
+  openDrafts: DayOrder[];
+  /** Settled once the day was closed: outside its figures, which the close froze. */
+  paidAfterClose: (DayOrder & { refundOfOrderId: string | null })[];
   unissuedInvoices: DayInvoice[];
   failedInvoices: DayInvoice[];
   /** Issued, but in no batch the provider has taken: the day's data is not all sent. */
@@ -41,6 +52,23 @@ export async function readDayStatus(
       "ORDER BY id",
     [branchId, businessDate],
   );
+  const orders = await client.query<{
+    id: string;
+    device_id: string;
+    device_order_no: string;
+    status: string;
+    refund_of_order_id: string | null;
+  }>(
+    "SELECT id, device_id, device_order_no, status, refund_of_order_id FROM sales_order " +
+      "WHERE branch_id = $1 AND business_date = $2 " +
+      "AND (status = 'draft' OR paid_after_day_close) ORDER BY device_id, device_order_no",
+    [branchId, businessDate],
+  );
+  const dayOrder = (row: (typeof orders.rows)[number]): DayOrder => ({
+    id: row.id,
+    deviceId: row.device_id,
+    deviceOrderNo: Number(row.device_order_no),
+  });
   const invoices = await client.query<{
     id: string;
     order_id: string;
@@ -81,6 +109,10 @@ export async function readDayStatus(
     all.filter(keep).map((row) => row.invoice);
   return {
     openShiftIds: shifts.rows.map((row) => row.id),
+    openDrafts: orders.rows.filter((row) => row.status === "draft").map(dayOrder),
+    paidAfterClose: orders.rows
+      .filter((row) => row.status !== "draft")
+      .map((row) => ({ ...dayOrder(row), refundOfOrderId: row.refund_of_order_id })),
     unissuedInvoices: where(
       (row) => row.invoice.status === "pending" || row.invoice.status === "failed_retryable",
     ),

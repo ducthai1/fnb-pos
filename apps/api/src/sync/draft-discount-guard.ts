@@ -5,9 +5,9 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 
 /**
  * An order discount is a fixed amount once given, so taking goods off the draft makes it
- * a larger share of the bill: 10% of four teas becomes 40% of one. A save that raises the
- * share past what the staff member may give alone is refused; adding goods, or a share
- * still within their cap, goes through. Line discounts need no such check, since the item
+ * a larger share of the bill: 10% of four teas becomes 40% of one. A save or a void that
+ * raises the share past what the staff member may give alone is refused; adding goods, or a
+ * share still within their cap, goes through. Line discounts need no such check, since the item
  * under one cannot be changed by a save at all.
  */
 export async function refuseRaisedOrderDiscount(

@@ -2,7 +2,7 @@ import { isDomainError, isSupportedDomainVersion } from "@fnb/domain";
 import type pg from "pg";
 import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
-import { nextExpectedSeq, recordOutcome, storedResultOf } from "./command-ledger";
+import { commandIdUseOf, nextExpectedSeq, recordOutcome } from "./command-ledger";
 import { type CommandSubject, subjectSnapshotOf } from "./command-subject-snapshot";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
 import { SYNC_COMMANDS } from "./sync-command-registry";
@@ -24,6 +24,8 @@ type Outcome =
  * returns its answer. The same command id answers what it answered the first time, even a
  * rejection. Commands of a till are taken strictly in device_seq order: one ahead of the
  * next expected is told to retry and nothing is stored, so the till resends from the gap.
+ * An id another till used first is refused and stored on this till's sequence, so the
+ * till moves on to its next command instead of waiting on one it believes applied.
  */
 export async function applySyncCommand(
   client: pg.PoolClient,
@@ -32,8 +34,8 @@ export async function applySyncCommand(
 ): Promise<SyncCommandResult> {
   const { device } = sender;
   await lockTenantChangeFeed(client, device.tenantId);
-  const stored = await storedResultOf(client, command.commandId);
-  if (stored !== undefined) return stored;
+  const used = await commandIdUseOf(client, command.commandId, device.deviceId);
+  if (used.stored !== undefined) return used.stored;
   const expected = await nextExpectedSeq(client, device.deviceId);
   if (command.deviceSeq > expected) {
     return { commandId: command.commandId, status: "retry", code: SYNC_ERROR_CODES.outOfOrder };
@@ -45,7 +47,9 @@ export async function applySyncCommand(
       code: SYNC_ERROR_CODES.deviceSeqReused,
     };
   }
-  const outcome = await outcomeOf({ ...sender, client, command });
+  const outcome: Outcome = used.takenByAnotherTill
+    ? { status: "rejected", code: SYNC_ERROR_CODES.commandIdTaken, subject: null }
+    : await outcomeOf({ ...sender, client, command });
   const snapshot =
     outcome.subject === null ? null : await subjectSnapshotOf(client, device, outcome.subject);
   const result: SyncCommandResult = {

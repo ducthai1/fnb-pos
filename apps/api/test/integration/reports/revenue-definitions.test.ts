@@ -7,6 +7,7 @@ import { buildApp } from "../../../src/build-app";
 import { signedInMember } from "../support/backoffice-accounts";
 import { salesDay } from "../support/sales-day";
 import { BUSINESS_DATE, line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
+import { cancel } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -156,25 +157,36 @@ describe("the daily sales report", () => {
     expect(sum(r.byHour.map((h) => h.collected))).toBe(r.sales.collected);
   });
 
-  it("is what the day close keeps, unchanged by a sale of that day synced after it", async () => {
+  it("is what the day close keeps, unchanged by a sale of that day paid after it", async () => {
+    const closeDay = () =>
+      app.inject({
+        method: "POST",
+        url: `/branches/${s.shop.branchId}/day-close`,
+        headers: { cookie: s.shop.managerCookie },
+        payload: { businessDate: BUSINESS_DATE },
+      });
+    // The day's draft left open holds the close up until someone settles it.
+    const held = await closeDay();
+    expect(held.json()).toMatchObject({ code: "API_DAY_CLOSE_DRAFTS_OPEN" });
+    const [open] = held.json().drafts as { id: string }[];
+    await pushOne(app, s.tillB, cancel(s.tillB, open?.id ?? ""));
     const before = await report();
-    const closed = await app.inject({
-      method: "POST",
-      url: `/branches/${s.shop.branchId}/day-close`,
-      headers: { cookie: s.shop.managerCookie },
-      payload: { businessDate: BUSINESS_DATE },
-    });
+    const closed = await closeDay();
     expect(closed.json().dayClose.summary.report).toEqual(before);
+
     const late = saveDraft(s.tillA, [line(s.menu.coffee.id)]);
     await pushOne(app, s.tillA, late);
-    await pushOne(app, s.tillA, pay(s.tillA, orderIdOf(late), 29_000));
-    expect((await report()).sales.orderCount).toBe(before.sales.orderCount + 1);
+    expect((await pushOne(app, s.tillA, pay(s.tillA, orderIdOf(late), 29_000))).status).toBe(
+      "accepted",
+    );
+    expect(await report()).toEqual(before);
     const kept = await app.inject({
       method: "GET",
       url: `/branches/${s.shop.branchId}/day-close?businessDate=${BUSINESS_DATE}`,
       headers: { cookie: s.shop.managerCookie },
     });
     expect(kept.json().dayClose.summary.report).toEqual(before);
+    expect(kept.json().paidAfterClose).toMatchObject([{ id: orderIdOf(late) }]);
   });
 
   it("is refused without view_reports, and answers 404 for another organization's branch", async () => {
