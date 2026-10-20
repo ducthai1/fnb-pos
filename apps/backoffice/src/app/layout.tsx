@@ -4,6 +4,7 @@ import { ApiProvider } from "../components/app/api-context";
 import { vi } from "../messages/vi";
 import "./backoffice-base.css";
 import "./backoffice-controls.css";
+import "./backoffice-people.css";
 
 export const metadata: Metadata = { title: vi.shell.appName };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };

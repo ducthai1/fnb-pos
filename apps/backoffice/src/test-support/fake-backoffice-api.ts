@@ -37,6 +37,14 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     logout: async () => ok(true),
     me: async () => ok({ ...OWNER }),
     listBranches: async () => ok([...BRANCHES]),
+    listDevices: unexpected("listDevices"),
+    createPairingCode: unexpected("createPairingCode"),
+    revokeDevice: unexpected("revokeDevice"),
+    listStaff: unexpected("listStaff"),
+    createStaff: unexpected("createStaff"),
+    listRoles: unexpected("listRoles"),
+    createRole: unexpected("createRole"),
+    updateRole: unexpected("updateRole"),
   };
   return { ...base, ...overrides };
 }

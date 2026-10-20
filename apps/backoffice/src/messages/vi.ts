@@ -2,12 +2,16 @@
 
 import { VI_API_ERRORS } from "./vi-api-errors";
 import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
+import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_COMMON, VI_LOGIN, VI_SHELL } from "./vi-shell";
 
 export const vi = {
   login: VI_LOGIN,
   shell: VI_SHELL,
   common: VI_COMMON,
+  devices: VI_DEVICES,
+  staff: VI_STAFF,
+  roles: VI_ROLES,
   errors: {
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     /** A code this backoffice does not know yet: the sentence plus the code, for support. */

@@ -1,0 +1,92 @@
+// Devices, staff and roles.
+
+import type { PermissionKey } from "@fnb/domain";
+
+export const VI_DEVICES = {
+  title: "Thiết bị",
+  hint: "Máy bán hàng đã ghép với chi nhánh đang xem.",
+  chooseBranch: "Chọn chi nhánh để xem thiết bị.",
+  empty: "Chi nhánh chưa có máy nào. Tạo mã ghép rồi nhập mã trên máy bán hàng.",
+  columns: { name: "Tên máy", pairedAt: "Ghép lúc", status: "Trạng thái", actions: "Thao tác" },
+  active: "Đang dùng",
+  revoked: (at: string) => `Đã thu hồi lúc ${at}`,
+  createCode: "Tạo mã ghép máy",
+  creatingCode: "Đang tạo mã…",
+  codeLabel: "Mã ghép máy",
+  codeExpires: (time: string) => `Dùng một lần, hết hạn lúc ${time}.`,
+  codeHint: "Trên máy bán hàng, mở POS và nhập mã này. Máy sẽ hiện trong danh sách sau khi ghép.",
+  codeExpired: "Mã đã hết hạn. Tạo mã mới nếu cần.",
+  revoke: "Thu hồi",
+  revokeLabel: (name: string) => `Thu hồi ${name}`,
+  revokeTitle: (name: string) => `Thu hồi máy “${name}”?`,
+  revokeHint: "Máy sẽ bị đăng xuất và không bán được nữa cho tới khi ghép lại bằng mã mới.",
+  revokeConfirm: "Thu hồi máy",
+  revoking: "Đang thu hồi…",
+  revokedDone: (name: string) => `Đã thu hồi máy “${name}”.`,
+} as const;
+
+export const VI_STAFF = {
+  title: "Nhân viên",
+  hint: "Nhân viên đăng nhập máy bán hàng bằng PIN, ở các chi nhánh được giao.",
+  empty: "Chưa có nhân viên nào.",
+  columns: { name: "Tên", role: "Vai trò", branches: "Chi nhánh", status: "Trạng thái" },
+  active: "Đang làm",
+  inactive: "Đã nghỉ",
+  unknownRole: "(vai trò đã xóa)",
+  unknownBranch: "(chi nhánh khác)",
+  addTitle: "Thêm nhân viên",
+  nameLabel: "Tên hiển thị trên máy",
+  roleLabel: "Vai trò",
+  rolePlaceholder: "Chọn vai trò",
+  branchesLabel: "Làm ở chi nhánh",
+  pinLabel: "PIN (4–6 chữ số)",
+  pinHint: "Không dùng PIN dễ đoán như 1234, 1111, 1212 hay năm sinh.",
+  submit: "Thêm nhân viên",
+  submitting: "Đang thêm…",
+  added: (name: string) => `Đã thêm ${name}.`,
+  roleMissing: "Chọn vai trò.",
+  branchesMissing: "Chọn ít nhất một chi nhánh.",
+  pinFormat: "PIN gồm 4 đến 6 chữ số.",
+} as const;
+
+export const VI_ROLES = {
+  title: "Vai trò",
+  hint: "Mỗi vai trò là một bộ quyền. Nhân viên và người quản lý đều mang một vai trò.",
+  template: "Vai trò mẫu",
+  editLabel: (name: string) => `Sửa vai trò ${name}`,
+  add: "Thêm vai trò",
+  newRoleTitle: "Vai trò mới",
+  editTitle: (name: string) => `Sửa vai trò “${name}”`,
+  nameLabel: "Tên vai trò",
+  permissionsLegend: "Quyền",
+  maxRateLabel: "Giảm tối đa (%) — để trống là không giới hạn",
+  maxAmountLabel: "Thu/chi tối đa mỗi ca (đồng) — để trống là không giới hạn",
+  rateInvalid: "Nhập phần trăm từ 0 đến 100, tối đa 2 chữ số thập phân.",
+  save: "Lưu vai trò",
+  saved: (name: string) => `Đã lưu vai trò “${name}”.`,
+  permissions: {
+    refund: "Hoàn tiền",
+    void_after_sent: "Hủy món đã gửi bếp/pha chế",
+    line_discount: "Giảm giá từng món",
+    order_discount: "Giảm giá cả đơn",
+    price_override: "Sửa giá bán",
+    open_price: "Bán món giá nhập tay",
+    comp_item: "Tặng món",
+    cash_move: "Thu/chi tiền két",
+    open_drawer: "Mở két khi không bán",
+    accept_close_difference: "Chấp nhận lệch tiền khi đóng ca",
+    reopen_paid_order: "Mở lại đơn đã thanh toán",
+    transfer_table: "Chuyển bàn",
+    close_unpaid_table: "Đóng bàn chưa thanh toán",
+    view_reports: "Xem báo cáo",
+    edit_menu: "Sửa menu",
+    stock_adjust: "Điều chỉnh kho",
+    manage_staff: "Quản lý nhân viên và vai trò",
+    manage_devices: "Quản lý thiết bị",
+    manage_settings: "Cài đặt cửa hàng",
+  } satisfies Record<PermissionKey, string>,
+} as const;
+
+/** The name of a key as a role lists it; a key this backoffice does not know shows as is. */
+export const permissionLabel = (key: string): string =>
+  (VI_ROLES.permissions as Readonly<Record<string, string>>)[key] ?? key;
