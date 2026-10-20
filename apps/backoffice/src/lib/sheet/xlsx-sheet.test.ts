@@ -31,13 +31,13 @@ describe("reading an .xlsx sheet", () => {
     const wide = Array.from({ length: 30 }, (_, at) => (at % 2 === 0 ? `c${at}` : null));
     const written = [
       ["Tên", "Giá", null, "Ghi chú"],
-      ["Cà phê <sữa> & \"đá\"", 25_000, null, "  hai  dấu cách  "],
+      ['Cà phê <sữa> & "đá"', 25_000, null, "  hai  dấu cách  "],
       ["=1+1", 0, null, "Bánh mì\u0007"],
       wide,
     ];
     const rows = rowsOf(writeXlsxSheet("Thực đơn", written));
     expect(rows[0]).toEqual(["Tên", "Giá", "", "Ghi chú"]);
-    expect(rows[1]).toEqual(["Cà phê <sữa> & \"đá\"", "25000", "", "  hai  dấu cách  "]);
+    expect(rows[1]).toEqual(['Cà phê <sữa> & "đá"', "25000", "", "  hai  dấu cách  "]);
     // The control character cannot travel in XML and is dropped; the name stays a name.
     expect(rows[2]).toEqual(["=1+1", "0", "", "Bánh mì"]);
     expect(rows[3]?.[28]).toBe("c28");
@@ -66,7 +66,10 @@ describe("reading an .xlsx sheet", () => {
   });
 
   it("refuses what is not a workbook", () => {
-    expect(readXlsxSheet(strToU8("Tên,Giá\nCà phê,25000"))).toEqual({ ok: false, reason: "not_xlsx" });
+    expect(readXlsxSheet(strToU8("Tên,Giá\nCà phê,25000"))).toEqual({
+      ok: false,
+      reason: "not_xlsx",
+    });
     expect(readXlsxSheet(zipSync({ "word/document.xml": strToU8("<w/>") }))).toEqual({
       ok: false,
       reason: "not_xlsx",
@@ -90,7 +93,8 @@ describe("cell references", () => {
     expect(columnIndexOf("X11")).toBe(23);
     expect(columnIndexOf("AB7")).toBe(27);
     expect(columnIndexOf("1A")).toBeNull();
-    for (const index of [0, 25, 26, 27, 701, 702]) expect(columnIndexOf(columnLetters(index))).toBe(index);
+    for (const index of [0, 25, 26, 27, 701, 702])
+      expect(columnIndexOf(columnLetters(index))).toBe(index);
     expect(columnLetters(701)).toBe("ZZ");
   });
 });

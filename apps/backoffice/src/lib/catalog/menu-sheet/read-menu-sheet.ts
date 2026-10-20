@@ -14,7 +14,11 @@ export interface MenuSheetRow {
 }
 
 export type MenuSheetRead =
-  | { readonly ok: true; readonly rows: readonly MenuSheetRow[]; readonly ignored: readonly string[] }
+  | {
+      readonly ok: true;
+      readonly rows: readonly MenuSheetRow[];
+      readonly ignored: readonly string[];
+    }
   | { readonly ok: false; readonly reason: "no_name_column" | "no_rows" };
 
 type Field = "code" | "name" | "group" | "price" | "vat" | "notForSale";
@@ -37,7 +41,9 @@ const ALIASES: Readonly<Record<Field, readonly string[]>> = {
   notForSale: ["Không cho phép bán?"],
 };
 const FIELD_OF = new Map<string, Field>(
-  Object.entries(ALIASES).flatMap(([field, names]) => names.map((name) => [headerKey(name), field as Field])),
+  Object.entries(ALIASES).flatMap(([field, names]) =>
+    names.map((name) => [headerKey(name), field as Field]),
+  ),
 );
 const HEADER_SEARCH_ROWS = 10;
 /** Values that say nothing in a column the menu does not use: blanks, and the zero of a flag. */

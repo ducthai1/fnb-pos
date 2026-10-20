@@ -2,7 +2,8 @@ import type { Category, ProductSummary } from "../../api/catalog-api";
 import type { SheetCell } from "../../sheet/write-xlsx-sheet";
 import { MENU_SHEET_HEADER, headerKey } from "./read-menu-sheet";
 
-const column = (title: string) => MENU_SHEET_HEADER.findIndex((header) => headerKey(header) === headerKey(title));
+const column = (title: string) =>
+  MENU_SHEET_HEADER.findIndex((header) => headerKey(header) === headerKey(title));
 const NAME = column("Tên hàng hóa");
 const GROUP = column("Tên nhóm");
 const PRICE = column("Giá bán");
@@ -18,10 +19,14 @@ export function menuSheetRows(
   categories: readonly Category[],
 ): SheetCell[][] {
   const order = new Map(
-    [...categories].sort((a, b) => a.sortOrder - b.sortOrder).map((category, at) => [category.id, at]),
+    [...categories]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((category, at) => [category.id, at]),
   );
   const rank = (product: ProductSummary) =>
-    product.categoryId === null ? categories.length : (order.get(product.categoryId) ?? categories.length);
+    product.categoryId === null
+      ? categories.length
+      : (order.get(product.categoryId) ?? categories.length);
   const sorted = [...products].sort(
     (a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name, "vi"),
   );

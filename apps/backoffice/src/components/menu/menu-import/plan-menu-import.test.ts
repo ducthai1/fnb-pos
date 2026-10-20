@@ -17,7 +17,9 @@ const line = (over: Partial<MenuSheetRow>): MenuSheetRow => ({
   notForSale: false,
   ...over,
 });
-const summary = (over: Partial<ProductSummary> & Pick<ProductSummary, "id" | "name">): ProductSummary => ({
+const summary = (
+  over: Partial<ProductSummary> & Pick<ProductSummary, "id" | "name">,
+): ProductSummary => ({
   kind: "prepared_drink",
   categoryId: null,
   basePrice: 29_000,
@@ -26,13 +28,27 @@ const summary = (over: Partial<ProductSummary> & Pick<ProductSummary, "id" | "na
   archivedAt: null,
   ...over,
 });
-const COFFEE: Category = { id: "cat-coffee", brandId: BRAND, name: "Cà phê", sortOrder: 10, version: 1 };
+const COFFEE: Category = {
+  id: "cat-coffee",
+  brandId: BRAND,
+  name: "Cà phê",
+  sortOrder: 10,
+  version: 1,
+};
 
 const plan = (
   rows: MenuSheetRow[],
   products: ProductSummary[] = [],
   target: Parameters<typeof planMenuImport>[0]["target"] = { by: "group" },
-) => planMenuImport({ rows, products, categories: [COFFEE], brandId: BRAND, kind: "prepared_drink", target });
+) =>
+  planMenuImport({
+    rows,
+    products,
+    categories: [COFFEE],
+    brandId: BRAND,
+    kind: "prepared_drink",
+    target,
+  });
 
 describe("planning a menu import", () => {
   it("reports each bad line with its reason and keeps the good ones", () => {
@@ -50,14 +66,20 @@ describe("planning a menu import", () => {
     ]);
     const byLine = new Map(rows.map((row) => [row.line, row]));
     expect(byLine.get(2)).toMatchObject({ status: "new", price: 29_000, problems: [] });
-    expect(byLine.get(3)).toMatchObject({ status: "error", problems: [vi.menu.editor.nameRequired] });
+    expect(byLine.get(3)).toMatchObject({
+      status: "error",
+      problems: [vi.menu.editor.nameRequired],
+    });
     expect(byLine.get(4)).toMatchObject({ status: "error", problems: [vi.common.amountInvalid] });
     expect(byLine.get(5)).toMatchObject({ status: "error", problems: [vi.common.amountInvalid] });
     expect(byLine.get(6)).toMatchObject({ status: "error", problems: [T.duplicateCode(2)] });
     expect(byLine.get(7)).toMatchObject({ status: "error", problems: [T.duplicateName(2)] });
     expect(byLine.get(8)).toMatchObject({ status: "error", problems: [vi.common.amountInvalid] });
     expect(byLine.get(9)).toMatchObject({ status: "error", problems: [vi.roles.rateInvalid] });
-    expect(byLine.get(10)).toMatchObject({ status: "error", problems: [vi.menu.editor.nameTooLong] });
+    expect(byLine.get(10)).toMatchObject({
+      status: "error",
+      problems: [vi.menu.editor.nameTooLong],
+    });
     expect(byLine.get(11)).toMatchObject({ status: "skipped", problems: [T.notForSale] });
     expect(rowsToWrite(rows).map((row) => row.line)).toEqual([2]);
   });
@@ -113,7 +135,10 @@ describe("planning a menu import", () => {
       { id: "cat-coffee" },
       { id: "cat-coffee" },
     ]);
-    expect(plan(rows, [], { by: "one", id: null }).map((row) => row.category)).toEqual([{ id: null }, { id: null }]);
+    expect(plan(rows, [], { by: "one", id: null }).map((row) => row.category)).toEqual([
+      { id: null },
+      { id: null },
+    ]);
     expect(plan(rows).map((row) => row.category)).toEqual([{ create: "Trà" }, { id: null }]);
   });
 });

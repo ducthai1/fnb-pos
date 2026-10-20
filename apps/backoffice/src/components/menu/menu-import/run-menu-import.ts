@@ -45,13 +45,25 @@ async function createCategories(
     const key = nameKey(row.category.create);
     if (created.has(key)) continue;
     sortOrder += SORT_STEP;
-    const answer = await api.putCategory(newId(), { version: null, brandId, name: row.category.create, sortOrder });
-    created.set(key, answer.ok ? answer.value.id : { ok: false, message: T.categoryFailed(row.category.create) });
+    const answer = await api.putCategory(newId(), {
+      version: null,
+      brandId,
+      name: row.category.create,
+      sortOrder,
+    });
+    created.set(
+      key,
+      answer.ok ? answer.value.id : { ok: false, message: T.categoryFailed(row.category.create) },
+    );
   }
   return created;
 }
 
-async function writeRow(api: CatalogApi, row: ImportRow, categoryId: string | null): Promise<RowOutcome> {
+async function writeRow(
+  api: CatalogApi,
+  row: ImportRow,
+  categoryId: string | null,
+): Promise<RowOutcome> {
   if (row.status === "new" && row.body !== null) {
     const saved = await api.putProduct(newId(), { ...row.body, categoryId });
     return saved.ok ? { ok: true } : { ok: false, message: failureMessage(saved) };
@@ -74,8 +86,15 @@ async function writeRow(api: CatalogApi, row: ImportRow, categoryId: string | nu
  */
 export async function runMenuImport(
   api: CatalogApi,
-  input: { readonly brandId: string; readonly rows: readonly ImportRow[]; readonly categories: readonly Category[] },
-  hooks: { readonly stopped: () => boolean; readonly onRow: (line: number, outcome: RowOutcome) => void },
+  input: {
+    readonly brandId: string;
+    readonly rows: readonly ImportRow[];
+    readonly categories: readonly Category[];
+  },
+  hooks: {
+    readonly stopped: () => boolean;
+    readonly onRow: (line: number, outcome: RowOutcome) => void;
+  },
 ): Promise<"done" | "stopped"> {
   const rows = rowsToWrite(input.rows);
   const created = await createCategories(api, input.brandId, rows, input.categories);

@@ -62,7 +62,10 @@ const sheet = (rows: readonly (readonly SheetCell[])[]) =>
  * A one-sheet .xlsx file. Text goes in as inline strings, never as formulas, so a name that
  * starts with "=" stays a name in any spreadsheet that opens it.
  */
-export function writeXlsxSheet(sheetName: string, rows: readonly (readonly SheetCell[])[]): Uint8Array {
+export function writeXlsxSheet(
+  sheetName: string,
+  rows: readonly (readonly SheetCell[])[],
+): Uint8Array {
   return zipSync({
     "[Content_Types].xml": strToU8(CONTENT_TYPES),
     "_rels/.rels": strToU8(ROOT_RELS),

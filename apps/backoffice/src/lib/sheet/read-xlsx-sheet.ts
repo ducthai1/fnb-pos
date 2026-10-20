@@ -14,7 +14,8 @@ const RELS = "http://schemas.openxmlformats.org/officeDocument/2006/relationship
 const MAX_PART_BYTES = 20 * 1024 * 1024;
 const MAX_ROWS = 5000;
 const MAX_COLUMNS = 200;
-const PARTS = /^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^/]+\.xml)$/;
+const PARTS =
+  /^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^/]+\.xml)$/;
 
 const xmlOf = (text: string): Document | null => {
   const document = new DOMParser().parseFromString(text, "application/xml");
@@ -36,7 +37,9 @@ function itemText(item: Element): string {
 function firstSheetPath(parts: Record<string, Uint8Array>): string | null {
   const workbook = parts["xl/workbook.xml"];
   const rels = parts["xl/_rels/workbook.xml.rels"];
-  const sheets = Object.keys(parts).filter((name) => name.startsWith("xl/worksheets/")).sort();
+  const sheets = Object.keys(parts)
+    .filter((name) => name.startsWith("xl/worksheets/"))
+    .sort();
   if (workbook === undefined || rels === undefined) return sheets[0] ?? null;
   const first = xmlOf(strFromU8(workbook))?.getElementsByTagNameNS(MAIN, "sheet")[0];
   const relId = first?.getAttributeNS(RELS, "id");

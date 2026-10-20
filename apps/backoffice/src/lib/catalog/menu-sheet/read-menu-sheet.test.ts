@@ -15,7 +15,9 @@ const sheetOf = (bytes: Uint8Array) => {
 
 describe("reading a products sheet", () => {
   it("gives the ten lines of a products export with their codes, names and prices", () => {
-    const bytes = readFileSync(resolve(process.cwd(), "src/test-support/fixtures/products-export-24-columns.xlsx"));
+    const bytes = readFileSync(
+      resolve(process.cwd(), "src/test-support/fixtures/products-export-24-columns.xlsx"),
+    );
     const read = readMenuSheet(sheetOf(new Uint8Array(bytes)));
     if (!read.ok) throw new Error(read.reason);
     expect(read.rows).toHaveLength(10);
@@ -31,7 +33,9 @@ describe("reading a products sheet", () => {
       [10, "SP000002", "Quần jean nam slim", "449000"],
       [11, "SP000001", "Áo thun nam basic", "199000"],
     ]);
-    expect(read.rows.every((row) => row.group === "" && row.vat === "" && !row.notForSale)).toBe(true);
+    expect(read.rows.every((row) => row.group === "" && row.vat === "" && !row.notForSale)).toBe(
+      true,
+    );
     // Columns with something in them that the menu has no place for; zero flags say nothing.
     expect(read.ignored).toEqual([
       "Giá trị quy đổi",
@@ -54,14 +58,21 @@ describe("reading a products sheet", () => {
       ["Bạc xỉu", "32000", "Cà phê", "1"],
     ]);
     if (!read.ok) throw new Error(read.reason);
-    expect(read.rows.map((row) => [row.line, row.name, row.price, row.group, row.notForSale])).toEqual([
+    expect(
+      read.rows.map((row) => [row.line, row.name, row.price, row.group, row.notForSale]),
+    ).toEqual([
       [4, "Cà phê sữa", "29.000", "Cà phê", false],
       [6, "Bạc xỉu", "32000", "Cà phê", true],
     ]);
   });
 
   it("says so when there is no name column or no line under it", () => {
-    expect(readMenuSheet([["Mã", "Giá"], ["A1", "10"]])).toEqual({ ok: false, reason: "no_name_column" });
+    expect(
+      readMenuSheet([
+        ["Mã", "Giá"],
+        ["A1", "10"],
+      ]),
+    ).toEqual({ ok: false, reason: "no_name_column" });
     expect(readMenuSheet([MENU_SHEET_HEADER])).toEqual({ ok: false, reason: "no_rows" });
   });
 });
@@ -74,7 +85,9 @@ describe("exporting the menu", () => {
     sortOrder,
     version: 1,
   });
-  const product = (over: Partial<ProductSummary> & Pick<ProductSummary, "id" | "name">): ProductSummary => ({
+  const product = (
+    over: Partial<ProductSummary> & Pick<ProductSummary, "id" | "name">,
+  ): ProductSummary => ({
     kind: "prepared_drink",
     categoryId: null,
     basePrice: 30_000,

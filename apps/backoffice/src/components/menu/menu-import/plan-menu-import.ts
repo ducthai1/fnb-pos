@@ -10,7 +10,8 @@ const T = vi.menuImport;
 export type ImportStatus = "new" | "update" | "same" | "skipped" | "error";
 /** Where an imported product goes: a category that exists (or none), or one to create. */
 export type RowCategory = { readonly id: string | null } | { readonly create: string };
-export type CategoryTarget = { readonly by: "group" } | { readonly by: "one"; readonly id: string | null };
+export type CategoryTarget =
+  { readonly by: "group" } | { readonly by: "one"; readonly id: string | null };
 
 export interface ImportRow {
   readonly line: number;
@@ -30,7 +31,11 @@ export interface ImportRow {
 export const nameKey = (name: string): string =>
   name.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("vi");
 
-function categoryOf(row: MenuSheetRow, target: CategoryTarget, categories: readonly Category[]): RowCategory {
+function categoryOf(
+  row: MenuSheetRow,
+  target: CategoryTarget,
+  categories: readonly Category[],
+): RowCategory {
   if (target.by === "one") return { id: target.id };
   const group = row.group.trim().replace(/\s+/g, " ");
   if (group === "") return { id: null };
@@ -77,11 +82,20 @@ export function planMenuImport(input: {
 
     const price = check.ok ? check.body.basePrice : null;
     const match = byName.get(key) ?? null;
-    const base = { line: row.line, code: row.code, name: row.name.trim(), price, category, problems };
+    const base = {
+      line: row.line,
+      code: row.code,
+      name: row.name.trim(),
+      price,
+      category,
+      problems,
+    };
     const productId = match?.id ?? null;
     if (problems.length > 0) return { ...base, status: "error", productId, body: null };
-    if (row.notForSale) return { ...base, status: "skipped", problems: [T.notForSale], productId, body: null };
-    if (match === null) return { ...base, status: "new", productId, body: check.ok ? check.body : null };
+    if (row.notForSale)
+      return { ...base, status: "skipped", problems: [T.notForSale], productId, body: null };
+    if (match === null)
+      return { ...base, status: "new", productId, body: check.ok ? check.body : null };
     if (match.pricingMode !== "fixed") {
       return { ...base, status: "skipped", problems: [T.notFixedPrice], productId, body: null };
     }

@@ -1,0 +1,106 @@
+/* Importing the menu from a products sheet: the file card, the choices, the run bar. */
+
+.bo-import-file {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--sp-4);
+}
+
+.bo-import-file__icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.bo-import-file__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.bo-import-file__label {
+  font-weight: var(--fw-semibold);
+}
+
+.bo-import-file__input {
+  max-width: 100%;
+  min-height: var(--control-h);
+  padding: var(--sp-2);
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font: inherit;
+}
+
+.bo-import-file__input:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-import-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-3);
+}
+
+.bo-import-options__hint {
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .bo-import-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bo-import-options__hint {
+    grid-column: 1 / -1;
+  }
+}
+
+.bo-import-run {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.bo-import-run > p {
+  margin: 0;
+}
+
+.bo-import-run__progress {
+  display: flex;
+  flex: 1 1 240px;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-import-run__progress progress {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 10px;
+  accent-color: var(--c-brand);
+}
+
+.bo-import-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.bo-import-status__why {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}

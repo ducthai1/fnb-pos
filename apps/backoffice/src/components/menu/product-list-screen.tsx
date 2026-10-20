@@ -1,7 +1,7 @@
 "use client";
 
 import { formatVnd, vnd } from "@fnb/domain";
-import { CupSoda, Plus } from "lucide-react";
+import { CupSoda, Download, FileUp, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ApiResult } from "../../lib/api/api-result";
@@ -17,6 +17,7 @@ import { type DataColumn, DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { Icon } from "../ui/icon";
 import { CheckField } from "../ui/select-field";
+import { downloadMenuSheet } from "./menu-import/download-menu-sheet";
 import { newId } from "./product-editor/product-draft";
 
 const T = vi.menu.products;
@@ -113,10 +114,27 @@ export function ProductListScreen() {
         hint={branch === null ? undefined : vi.menu.brandOf(branch.brandName)}
         actions={
           branch !== null && (
-            <Link className="bo-button bo-button--primary" href={`/menu/products/${newProductId}?new=1`}>
-              <Icon of={Plus} />
-              {T.add}
-            </Link>
+            <>
+              <Link className="bo-button" href="/menu/import">
+                <Icon of={FileUp} />
+                {vi.menuImport.open}
+              </Link>
+              <button
+                type="button"
+                className="bo-button"
+                disabled={loaded.state !== "ready"}
+                onClick={() => {
+                  if (loaded.state === "ready") downloadMenuSheet(loaded.value.products, loaded.value.categories);
+                }}
+              >
+                <Icon of={Download} />
+                {vi.menuImport.export}
+              </button>
+              <Link className="bo-button bo-button--primary" href={`/menu/products/${newProductId}?new=1`}>
+                <Icon of={Plus} />
+                {T.add}
+              </Link>
+            </>
           )
         }
       />
