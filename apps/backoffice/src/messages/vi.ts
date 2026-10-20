@@ -2,9 +2,12 @@
 
 import { VI_API_ERRORS } from "./vi-api-errors";
 import { VI_API_ERRORS_OPERATIONS } from "./vi-api-errors-operations";
+import { VI_DAY_CLOSE, VI_TRANSFERS } from "./vi-day-close-and-payments";
 import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
+import { VI_FLOOR } from "./vi-floor";
 import { VI_MENU } from "./vi-menu";
 import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
+import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
 import { VI_SETTINGS } from "./vi-settings";
 import { VI_COMMON, VI_LOGIN, VI_SHELL } from "./vi-shell";
 
@@ -17,6 +20,11 @@ export const vi = {
   roles: VI_ROLES,
   menu: VI_MENU,
   settings: VI_SETTINGS,
+  dailySales: VI_DAILY_SALES,
+  printFailures: VI_PRINT_FAILURES,
+  dayClose: VI_DAY_CLOSE,
+  transfers: VI_TRANSFERS,
+  floor: VI_FLOOR,
   errors: {
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     /** A code this backoffice does not know yet: the sentence plus the code, for support. */

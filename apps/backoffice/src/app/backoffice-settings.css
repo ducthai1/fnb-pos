@@ -27,3 +27,50 @@
   gap: 4px 12px;
   font-size: 0.875rem;
 }
+
+.bo-table__caption {
+  padding: 0 0 8px;
+  text-align: left;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.bo-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bo-table th.bo-num,
+.bo-table td.bo-num {
+  text-align: right;
+}
+
+.bo-day-list__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bo-day-list__items,
+.bo-table-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-table-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bo-border);
+}
+
+@media (max-width: 767px) {
+  .bo-table td.bo-num {
+    text-align: left;
+  }
+}

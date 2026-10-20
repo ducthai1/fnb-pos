@@ -19,6 +19,11 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/menu", label: vi.shell.nav.products, requires: null },
   { href: "/menu/categories", label: vi.shell.nav.categories, requires: null },
   { href: "/menu/availability", label: vi.shell.nav.availability, requires: null },
+  { href: "/reports/daily-sales", label: vi.shell.nav.dailySales, requires: "view_reports" },
+  { href: "/day-close", label: vi.shell.nav.dayClose, requires: "view_reports" },
+  { href: "/payments", label: vi.shell.nav.transfers, requires: "view_reports" },
+  { href: "/reports/print-failures", label: vi.shell.nav.printFailures, requires: "view_reports" },
+  { href: "/floor", label: vi.shell.nav.floor, requires: "manage_settings" },
   { href: "/settings", label: vi.shell.nav.settings, requires: "manage_settings" },
 ];
 

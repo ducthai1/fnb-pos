@@ -6,6 +6,7 @@ describe("which menu entry is the current page", () => {
     expect(currentSection("/menu/categories")).toBe("/menu/categories");
     expect(currentSection("/menu/products/abc")).toBe("/menu");
     expect(currentSection("/devices")).toBe("/devices");
+    expect(currentSection("/reports/print-failures")).toBe("/reports/print-failures");
   });
 
   it("does not match a section by prefix alone", () => {

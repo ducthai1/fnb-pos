@@ -62,6 +62,18 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     putSetting: unexpected("putSetting"),
     clearSetting: unexpected("clearSetting"),
     putWebhookSecret: unexpected("putWebhookSecret"),
+    getDailySales: unexpected("getDailySales"),
+    getPrintFailures: unexpected("getPrintFailures"),
+    getDayStatus: unexpected("getDayStatus"),
+    closeDay: unexpected("closeDay"),
+    listUnmatched: unexpected("listUnmatched"),
+    matchTransfer: unexpected("matchTransfer"),
+    listAreas: unexpected("listAreas"),
+    listTables: unexpected("listTables"),
+    putArea: unexpected("putArea"),
+    putTable: unexpected("putTable"),
+    removeArea: unexpected("removeArea"),
+    removeTable: unexpected("removeTable"),
   };
   return { ...base, ...overrides };
 }

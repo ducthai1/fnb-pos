@@ -1,0 +1,73 @@
+// The daily sales report and the print failures report.
+
+export const VI_DAILY_SALES = {
+  title: "Doanh thu ngày",
+  hint: "Số liệu theo ngày kinh doanh của chi nhánh, theo cùng một định nghĩa mọi ngày để so được với nhau.",
+  dateLabel: "Ngày kinh doanh",
+  dateInvalid: "Chọn một ngày.",
+  summaryTitle: "Tổng ngày",
+  summaryColumns: { figure: "Chỉ tiêu", value: "Số liệu" },
+  rows: {
+    orderCount: "Số đơn bán",
+    gross: "Tiền hàng trước giảm giá",
+    discount: "Giảm giá",
+    net: "Tiền hàng sau giảm giá",
+    serviceCharge: "Phí dịch vụ",
+    netExcludingTax: "Doanh thu chưa VAT",
+    tax: "Thuế VAT",
+    collected: "Khách đã trả",
+    refundCount: "Số đơn hoàn",
+    refundCollected: "Tiền đã hoàn",
+    refundTax: "VAT của phần hoàn",
+    cancelledOrders: "Số đơn hủy",
+    voidCount: "Số món hủy",
+    voidValue: "Giá trị món hủy",
+  },
+  taxRate: (rate: string) => `VAT ${rate}%`,
+  taxRow: (base: string) => `trên ${base}`,
+  definitions:
+    "Tiền hàng tính theo giá bán (đã gồm VAT nếu giá gồm VAT), không tính món đã hủy. Doanh thu chưa VAT = tổng phần chưa thuế của các mức VAT; Khách đã trả = doanh thu chưa VAT + VAT. Đơn hoàn tính riêng, vào ngày hoàn.",
+  paymentsTitle: "Theo phương thức thanh toán",
+  paymentColumns: { method: "Phương thức", sales: "Thu", refunds: "Hoàn", net: "Còn lại" },
+  methods: { cash: "Tiền mặt", qr_transfer: "Chuyển khoản QR", card: "Thẻ" } as Readonly<Record<string, string>>,
+  hoursTitle: "Theo giờ",
+  hourColumns: { hour: "Giờ", orderCount: "Số đơn", collected: "Khách đã trả" },
+  hour: (hour: number) => `${String(hour).padStart(2, "0")}:00–${String(hour).padStart(2, "0")}:59`,
+  itemsTitle: "Theo món",
+  itemColumns: { name: "Món", quantity: "Số lượng", gross: "Tiền hàng", discount: "Giảm", net: "Sau giảm", tax: "VAT" },
+  lineTypes: { modifier: "tùy chọn", combo_component: "trong combo" } as Readonly<Record<string, string>>,
+  empty: "Không có dòng nào.",
+  emptyDay: "Ngày này chưa bán được đơn nào.",
+} as const;
+
+export const VI_PRINT_FAILURES = {
+  title: "Phiếu in lỗi",
+  hint: "Phiếu máy quầy in không được và chưa in lại được: hóa đơn khách không nhận, phiếu bếp chưa tới.",
+  fromLabel: "Từ ngày",
+  toLabel: "Đến ngày",
+  rangeInvalid: "Chọn ngày bắt đầu không sau ngày kết thúc.",
+  show: "Xem",
+  columns: {
+    occurredAt: "Lúc",
+    kind: "Loại phiếu",
+    order: "Đơn",
+    device: "Máy quầy",
+    printer: "Máy in",
+    error: "Lỗi",
+    attempts: "Số lần thử",
+  },
+  device: (deviceId: string) => `…${deviceId.slice(-6)}`,
+  kinds: {
+    bill: "Hóa đơn",
+    pre_bill: "Phiếu tạm tính",
+    kitchen: "Phiếu bếp/pha chế",
+    cup_label: "Tem ly",
+    shift_report: "Báo cáo ca",
+  } as Readonly<Record<string, string>>,
+  order: (orderNo: number | null, callNumber: string | null) =>
+    [orderNo === null ? null : `Đơn số ${orderNo}`, callNumber === null ? null : `số gọi ${callNumber}`]
+      .filter((part) => part !== null)
+      .join(", ") || "—",
+  empty: "Không có phiếu nào in lỗi trong khoảng này.",
+  truncated: "Có nhiều phiếu lỗi hơn số hiển thị: chỉ hiện những phiếu mới nhất. Thu hẹp khoảng ngày để xem hết.",
+} as const;
