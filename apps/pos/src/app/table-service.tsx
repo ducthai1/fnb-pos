@@ -6,7 +6,7 @@ import type { OrderNumbers } from "../features/order/device-order-number";
 import {
   type TableOrderOpening,
   openingForNewTable,
-  openingFromStored,
+  tableOpeningFromStored,
 } from "../features/table-order/table-order-opening";
 import { readStoredOrder } from "../features/order/stored-order";
 import { useOrderRefusal } from "../features/table-order/use-order-refusal";
@@ -72,7 +72,7 @@ export function TableService(props: TableServiceProps) {
         const stored = view === null ? null : readStoredOrder(view.snapshot);
         if (stored === null || openOrder.current !== done.orderId) return;
         const copy = view?.source === "optimistic" ? { ...stored, heldOnTill: true } : stored;
-        const opening = { ...openingFromStored(menu, copy), answersFor: [done.commandId] };
+        const opening = { ...tableOpeningFromStored(menu, copy), answersFor: [done.commandId] };
         setPhase({ kind: "order", opening });
       })
       .catch(console.error);
@@ -93,7 +93,7 @@ export function TableService(props: TableServiceProps) {
     const stored = floor.orders.get(table.orderId);
     try {
       if (stored === undefined || stored.status !== "draft") throw new Error("not on the till");
-      setPhase({ kind: "order", opening: openingFromStored(menu, stored) });
+      setPhase({ kind: "order", opening: tableOpeningFromStored(menu, stored) });
     } catch {
       setNotice(vi.tables.floor.orderNotOnTill);
     }

@@ -44,7 +44,7 @@ function viewOf(
   }
   const status = shownStatusOf(order, preBilled);
   // The server's openedAt belongs to its order; a newer order of the till has none yet.
-  const openedAt = table.orderId === order.orderId ? table.openedAt : null;
+  const openedAt = order.openedAt ?? (table.orderId === order.orderId ? table.openedAt : null);
   return { ...base, status, orderId: order.orderId, openedAt, amountDue: amountDueOf(order) };
 }
 

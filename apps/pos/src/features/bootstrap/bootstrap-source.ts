@@ -26,7 +26,9 @@ export function parseBootstrap(body: unknown): BootstrapSnapshot | null {
 }
 
 /** Staff the PIN screen lists: someone switched off in the backoffice cannot sign in. */
-export function staffWhoMaySignIn(snapshot: BootstrapSnapshot): readonly BootstrapStaff[] {
+export function staffWhoMaySignIn(snapshot: {
+  readonly staff: readonly BootstrapStaff[];
+}): readonly BootstrapStaff[] {
   return snapshot.staff.filter((member) => member.active);
 }
 

@@ -83,6 +83,7 @@ export function tillOrderSnapshot(
     tableId: order.table?.id ?? null,
     tableName: order.table?.name ?? null,
     tableTag: order.tableTag,
+    openedAt: order.openedAt ?? null,
     preBillPrinted: state.preBillPrinted ?? false,
     reasonCode: state.reasonCode ?? null,
     chargeProfile: state.chargeProfile,

@@ -29,7 +29,7 @@ export function useTableOrder(
   onRecorded: (commandId: string) => void,
 ): TableOrderSession {
   const [sent, setSent] = useState(opening.recorded.sent ?? []);
-  const preBill = usePreBillState(opening.recorded.preBillPrinted);
+  const preBill = usePreBillState(opening.recorded.preBillPrinted, opening.preBillChanged);
   const ours = useRef(new Set<string>(opening.answersFor));
   const refusal = useOrderRefusal(client, opening.order.orderId, ours.current);
   const unconfirmed = useRef(new Set(opening.unconfirmedCancels));

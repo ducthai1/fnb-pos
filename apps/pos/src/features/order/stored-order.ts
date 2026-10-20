@@ -27,6 +27,10 @@ export interface StoredOrder {
   readonly tableId: string | null;
   readonly tableName: string | null;
   readonly preBillPrinted: boolean;
+  /** The version the last pre-bill showed; null for none, or a server that does not say. */
+  readonly preBillPrintedVersion: number | null;
+  /** When the guests' order was opened, as the server stamped it; null in a copy without it. */
+  readonly openedAt: string | null;
   /** Why a draft was cancelled or a sale refunded. */
   readonly reasonCode: string | null;
   readonly chargeProfile: OrderChargeProfile;
@@ -134,6 +138,7 @@ export function readStoredOrder(snapshot: EntitySnapshot): StoredOrder | null {
     const profile = posChargeProfileSchema.safeParse(snapshot.chargeProfile);
     if (!profile.success || !Array.isArray(snapshot.lines)) return null;
     const lines = rows(snapshot.lines).map(lineOf);
+    const printed = snapshot.preBillPrintedVersion;
     return {
       orderId: str(snapshot, "id"),
       deviceId: str(snapshot, "deviceId"),
@@ -146,6 +151,8 @@ export function readStoredOrder(snapshot: EntitySnapshot): StoredOrder | null {
       tableId: strOrNull(snapshot, "tableId"),
       tableName: strOrNull(snapshot, "tableName"),
       preBillPrinted: snapshot.preBillPrinted === true,
+      preBillPrintedVersion: Number.isSafeInteger(printed) ? (printed as number) : null,
+      openedAt: typeof snapshot.openedAt === "string" ? snapshot.openedAt : null,
       reasonCode: strOrNull(snapshot, "reasonCode"),
       chargeProfile: profile.data,
       lines: lines.map((entry) => entry.line),

@@ -72,6 +72,9 @@ describe("the floor a bootstrap brings", () => {
 
     await waitFor(() => expect(tileStatus(FLOOR.t2)).toBe("occupied"));
     expect(tileStatus(FLOOR.t1)).toBe("free");
+    // Seated 25½ minutes ago by the other till: the order's own opening time says so.
+    const F = text.tables.floor;
+    expect(tile(FLOOR.t2)?.textContent).toContain(F.seatedFor(F.minutes(25)));
     await openTable(FLOOR.t2, "2");
     expect(screen.queryByText(text.tables.floor.orderNotOnTill)).toBeNull();
     expect(screen.getAllByText(/Cà phê sữa/).length).toBeGreaterThan(0);

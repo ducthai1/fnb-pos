@@ -30,6 +30,8 @@ export interface CounterOrder {
    * table, not the till): its number is that till's, never one of this till's own.
    */
   readonly openedOn?: string;
+  /** When the server says the order was opened, kept in the till's copies of it. */
+  readonly openedAt?: string | null;
 }
 
 export interface SeatedTable {
