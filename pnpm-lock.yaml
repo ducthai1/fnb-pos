@@ -363,9 +363,15 @@ importers:
 
   scripts:
     dependencies:
+      '@fnb/api':
+        specifier: workspace:*
+        version: link:../apps/api
       '@fnb/db':
         specifier: workspace:*
         version: link:../packages/db
+      fastify:
+        specifier: 5.12.5
+        version: 5.12.5
       pg:
         specifier: 8.23.1
         version: 8.23.1

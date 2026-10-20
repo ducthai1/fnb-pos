@@ -1,5 +1,5 @@
 export { type ColumnShape, describeDrizzleColumns } from "./describe-drizzle-columns";
-export { findFreePort } from "./find-free-port";
+export { findFreePort } from "../embedded-postgres/find-free-port";
 export { asSuperuser, createOwnedDatabase } from "./provision-test-database";
 export { type RunningTestPostgres, startTestPostgres } from "./start-test-postgres";
 export {

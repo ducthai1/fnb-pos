@@ -6,7 +6,11 @@
   "exports": {
     "./build-app": "./src/build-app.ts",
     "./test-support/sync-shop": "./test/integration/support/sync-shop.ts",
-    "./test-support/payment-webhooks": "./test/integration/support/payment-webhooks.ts"
+    "./test-support/payment-webhooks": "./test/integration/support/payment-webhooks.ts",
+    "./fake-einvoice-provider": "./src/einvoice/providers/fake-einvoice-provider.ts",
+    "./payment-gateways": "./src/payments/gateways/payment-gateways.ts",
+    "./pin-rules": "./src/staff/pin-rules.ts",
+    "./secret-hash": "./src/security/secret-hash.ts"
   },
   "scripts": {
     "start": "node --import tsx src/server/main.ts",

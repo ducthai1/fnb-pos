@@ -6,18 +6,26 @@ import { createServer } from "node:net";
  * between this check and the server binding it.
  */
 export function findFreePort(): Promise<number> {
+  return listenOnce(0).then((port) => {
+    if (port === null) throw new Error("could not read the port of a probe server");
+    return port;
+  });
+}
+
+/** Whether `port` on 127.0.0.1 can be bound right now. */
+export async function isPortFree(port: number): Promise<boolean> {
+  return (await listenOnce(port).catch(() => null)) !== null;
+}
+
+function listenOnce(port: number): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const server = createServer();
     server.unref();
     server.on("error", reject);
-    server.listen(0, "127.0.0.1", () => {
+    server.listen(port, "127.0.0.1", () => {
       const address = server.address();
       server.close(() => {
-        if (address === null || typeof address === "string") {
-          reject(new Error("could not read the port of a probe server"));
-        } else {
-          resolve(address.port);
-        }
+        resolve(address === null || typeof address === "string" ? null : address.port);
       });
     });
   });
