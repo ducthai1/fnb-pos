@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./messages/vi": "./src/messages/vi.ts",
+    "./sheet/write-xlsx-sheet": "./src/lib/sheet/write-xlsx-sheet.ts",
     "./test-support/hostile-catalog": "./src/test-support/hostile-catalog.ts"
   },
   "scripts": {
