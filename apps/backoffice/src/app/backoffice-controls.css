@@ -47,6 +47,10 @@
 .bo-row > .bo-field {
   flex: 1 1 160px;
 }
+/* A card that is a row of fields (add an area, a category) lays them across, not stacked. */
+.bo-card.bo-row {
+  flex-direction: row;
+}
 
 .bo-title {
   margin: 0;
