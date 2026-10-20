@@ -41,6 +41,8 @@ export const VI_MENU_IMPORT = {
   fileLabel: "File Excel (.xlsx)",
   fileHint:
     "Dùng các cột Mã hàng hóa, Tên hàng hóa, Tên nhóm, Giá bán, VAT và Không cho phép bán?. File xuất từ trang Món có đúng các cột này.",
+  choose: "Chọn file",
+  dropHint: "hoặc kéo thả file vào khung này",
   reading: "Đang đọc file…",
   unreadable: "Không đọc được file. Hãy chọn file .xlsx (Excel 2007 trở lên).",
   tooBig: "File quá lớn (tối đa 5.000 dòng).",
@@ -90,6 +92,8 @@ export const VI_MENU_IMPORT = {
   matchHint:
     "Món trùng tên (không phân biệt hoa thường) với món đã có thì cập nhật giá và danh mục; nhập lại cùng file không tạo món đôi.",
   start: (count: number) => `Nhập ${count} món`,
+  willWrite: (created: number, updated: number) =>
+    `Sẽ tạo ${created} món mới và cập nhật ${updated} món. Dòng lỗi và dòng bỏ qua không được nhập.`,
   nothingToImport: "Không có dòng nào để nhập.",
   stop: "Dừng",
   progress: (done: number, total: number) => `Đã xử lý ${done}/${total} món`,

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, Upload } from "lucide-react";
 import { useId, useState } from "react";
 import { type MenuSheetRow, readMenuSheet } from "../../../lib/catalog/menu-sheet/read-menu-sheet";
 import { readXlsxSheet } from "../../../lib/sheet/read-xlsx-sheet";
@@ -38,6 +38,7 @@ export function ImportFileCard({
   const id = useId();
   const [reading, setReading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   const pick = async (file: File | undefined) => {
     if (file === undefined) return;
@@ -51,7 +52,20 @@ export function ImportFileCard({
   };
 
   return (
-    <div className="bo-card bo-import-file">
+    <div
+      className="bo-card bo-import-file"
+      data-dragging={dragging ? "" : undefined}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        void pick(event.dataTransfer.files[0]);
+      }}
+    >
       <span className="bo-import-file__icon" aria-hidden="true">
         <Icon of={FileSpreadsheet} size={24} />
       </span>
@@ -59,20 +73,27 @@ export function ImportFileCard({
         <label htmlFor={id} className="bo-import-file__label">
           {T.fileLabel}
         </label>
-        <input
-          id={id}
-          type="file"
-          className="bo-import-file__input"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          aria-describedby={`${id}-hint`}
-          onChange={(event) => void pick(event.target.files?.[0])}
-        />
+        <div className="bo-import-file__pick">
+          <input
+            id={id}
+            type="file"
+            className="bo-import-file__input"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            aria-describedby={`${id}-hint`}
+            onChange={(event) => void pick(event.target.files?.[0])}
+          />
+          <label htmlFor={id} className="bo-button bo-import-file__choose">
+            <Icon of={Upload} />
+            {T.choose}
+          </label>
+          <span className="bo-muted bo-wrap">{read === null ? T.dropHint : read.fileName}</span>
+        </div>
         <p id={`${id}-hint`} className="bo-muted bo-wrap">
           {T.fileHint}
         </p>
         {reading && <p className="bo-loading">{T.reading}</p>}
         {read !== null && (
-          <p className="bo-wrap" role="status">
+          <p className="bo-wrap bo-import-file__read" role="status">
             {T.fileRead(read.fileName, read.rows.length)}
           </p>
         )}

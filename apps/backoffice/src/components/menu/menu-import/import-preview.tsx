@@ -108,16 +108,24 @@ export function ImportPreview({
           </>
         ) : (
           <>
-            {toWrite.length === 0 && <p className="bo-wrap bo-muted">{T.nothingToImport}</p>}
-            <button
-              type="button"
-              className="bo-button bo-button--primary"
-              disabled={toWrite.length === 0}
-              onClick={() => run.start({ brandId, rows: toWrite, categories })}
-            >
-              <Icon of={Upload} />
-              {T.start(toWrite.length)}
-            </button>
+            <p className="bo-wrap bo-muted">
+              {toWrite.length === 0
+                ? T.nothingToImport
+                : T.willWrite(
+                    toWrite.filter((row) => row.status === "new").length,
+                    toWrite.filter((row) => row.status === "update").length,
+                  )}
+            </p>
+            {toWrite.length > 0 && (
+              <button
+                type="button"
+                className="bo-button bo-button--primary"
+                onClick={() => run.start({ brandId, rows: toWrite, categories })}
+              >
+                <Icon of={Upload} />
+                {T.start(toWrite.length)}
+              </button>
+            )}
           </>
         )}
       </div>

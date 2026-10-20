@@ -29,20 +29,42 @@
   font-weight: var(--fw-semibold);
 }
 
-.bo-import-file__input {
-  max-width: 100%;
-  min-height: var(--control-h);
-  padding: var(--sp-2);
-  border: 1px dashed var(--c-border);
-  border-radius: var(--r-md);
-  background: var(--c-surface-2);
-  color: var(--c-text);
-  font: inherit;
+.bo-import-file[data-dragging] {
+  border-color: var(--c-brand);
+  background: var(--c-brand-tint);
 }
 
-.bo-import-file__input:focus-visible {
-  outline: none;
+.bo-import-file__pick {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* The real input stays in the page for the keyboard; its label is the button people see. */
+.bo-import-file__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bo-import-file__input:focus-visible + .bo-import-file__choose {
   box-shadow: var(--ring);
+}
+
+.bo-import-file__read {
+  margin: 0;
+  font-weight: var(--fw-medium);
+}
+
+@media (max-width: 599px) {
+  .bo-import-file__icon {
+    display: none;
+  }
 }
 
 .bo-import-options {

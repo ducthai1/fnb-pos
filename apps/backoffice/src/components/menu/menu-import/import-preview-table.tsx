@@ -92,7 +92,7 @@ export function ImportPreviewTable({
       key: "line",
       label: T.columns.line,
       numeric: true,
-      width: "72px",
+      width: "96px",
       cell: ({ row }) => row.line,
       sortValue: ({ row }) => row.line,
     },
