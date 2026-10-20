@@ -17,7 +17,7 @@ import {
   clientPermissionErrorCode,
 } from "../../permissions/permission-error-codes";
 import { loadRoleGrants } from "../../permissions/role-grants-store";
-import { verifySecret } from "../../security/secret-hash";
+import { lockActiveStaff } from "../../staff/active-staff-lock";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
@@ -60,7 +60,7 @@ const approvalBody = {
  * so the endpoint does not tell anyone without it who can approve what.
  */
 export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext): void {
-  const { pool, clock, policy } = context;
+  const { pool, clock, policy, verifySecret } = context;
 
   app.post<{ Body: ApprovalBody }>(
     "/pos/approvals",
@@ -115,10 +115,13 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         return reply.code(401).send({ code: STAFF_ERROR_CODES.pinInvalid });
       }
       const approvalId = await withTenant(pool, device.tenantId, async (client) => {
+        // The approver as they are now, locked out or given another role while their PIN
+        // was checked; read in the transaction that records the approval, so a role
+        // narrowed a moment ago is the role that is judged.
+        const approver = await lockActiveStaff(client, approverStaffId);
+        if (approver === null) return "inactive" as const;
         await clearPinAttempts(client, approverStaffId, gate.claimedAttempts);
-        // Read in the transaction that records the approval, so a role narrowed a moment
-        // ago is the role that is judged.
-        if (!canApprove(action, await loadRoleGrants(client, gate.roleId))) return null;
+        if (!canApprove(action, await loadRoleGrants(client, approver.roleId))) return null;
         const id = await recordApproval(client, {
           actionKey: action.key,
           requestedByStaffId: requester.staffId,
@@ -141,6 +144,9 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         });
         return id;
       });
+      if (approvalId === "inactive") {
+        return reply.code(404).send({ code: STAFF_ERROR_CODES.staffNotFound });
+      }
       if (approvalId === null) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.approverNotPermitted });
       }
