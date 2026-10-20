@@ -15,9 +15,11 @@ import "../../../src/styles/pos-sale.css";
 import "../../../src/styles/pos-order.css";
 import "../../../src/styles/pos-picker.css";
 import "../../../src/styles/pos-checkout.css";
+import "../../../src/styles/pos-floor.css";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
 import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
 import { SALE_SCREENS } from "./sale-screens";
+import { TABLE_SCREENS } from "./table-screens";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
 // Every screen of the POS, chosen by ?screen=, filled with the worst names a shop can type.
@@ -82,6 +84,7 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ...SALE_SCREENS,
   ...CHECKOUT_SCREENS,
   ...QR_AND_INVOICE_SCREENS,
+  ...TABLE_SCREENS,
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */
