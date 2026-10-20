@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./payment": "./src/payment/index.ts",
     "./shift": "./src/shift/index.ts"
   },
   "scripts": {
