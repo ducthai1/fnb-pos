@@ -22,6 +22,8 @@ export const TENANT_TABLES = [
   "device_pairing_code",
   "device_sync_state",
   "dining_table",
+  "kitchen_ticket",
+  "kitchen_ticket_line",
   "line_void_record",
   "membership",
   "modifier_group",
@@ -59,6 +61,8 @@ export const APPEND_ONLY_JSON_COLUMN = {
   approval_use: "payload",
   audit_log: "payload",
   change_log: "snapshot",
+  kitchen_ticket: "payload",
+  kitchen_ticket_line: "detail",
 } as const satisfies Partial<Record<TenantTable, string>>;
 
 export const APPEND_ONLY_TABLES = Object.keys(

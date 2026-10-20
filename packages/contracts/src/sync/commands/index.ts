@@ -4,6 +4,11 @@ export {
 } from "./apply-discount-payload-schema";
 export { type CancelOrderPayload, cancelOrderPayloadSchema } from "./cancel-order-payload-schema";
 export { paymentMethodSchema, reasonCodeSchema } from "./command-payload-parts";
+export {
+  type MarkSentToKitchenPayload,
+  type SentTicketLine,
+  markSentToKitchenPayloadSchema,
+} from "./mark-sent-to-kitchen-payload-schema";
 export { type PayOrderPayload, payOrderPayloadSchema } from "./pay-order-payload-schema";
 export { type RefundOrderPayload, refundOrderPayloadSchema } from "./refund-order-payload-schema";
 export {

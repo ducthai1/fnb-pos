@@ -43,6 +43,7 @@ describe("sync command definitions", () => {
     expect([...SYNC_COMMANDS.keys()].sort()).toEqual([
       "order.apply_discount",
       "order.cancel",
+      "order.mark_sent_to_kitchen",
       "order.pay",
       "order.refund",
       "order.remove_discount",

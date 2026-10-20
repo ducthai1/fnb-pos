@@ -1,3 +1,4 @@
+import { KITCHEN_SYNC_COMMANDS } from "./kitchen-sync-commands";
 import { ORDER_SYNC_COMMANDS } from "./order-sync-commands";
 import { SHIFT_SYNC_COMMANDS } from "./shift-sync-commands";
 import { syncCommandRegistry } from "./sync-command-definition";
@@ -7,4 +8,8 @@ import { syncCommandRegistry } from "./sync-command-definition";
  * own (one definition per command file) and adds the list here, so domains added side by
  * side touch one line each.
  */
-export const SYNC_COMMANDS = syncCommandRegistry([...ORDER_SYNC_COMMANDS, ...SHIFT_SYNC_COMMANDS]);
+export const SYNC_COMMANDS = syncCommandRegistry([
+  ...ORDER_SYNC_COMMANDS,
+  ...SHIFT_SYNC_COMMANDS,
+  ...KITCHEN_SYNC_COMMANDS,
+]);

@@ -26,6 +26,7 @@ export interface StoredOrder {
   readonly chargeProfile: OrderChargeProfile;
   readonly payments: readonly StoredPayment[];
   readonly sentQuantityByLineId: ReadonlyMap<string, Quantity>;
+  readonly sentNoteByLineId: ReadonlyMap<string, string | null>;
   readonly restockByLineId: ReadonlyMap<string, boolean>;
 }
 
@@ -136,6 +137,7 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
       receivedByStaffId: payment.received_by_staff_id,
     })),
     sentQuantityByLineId: lines.sentQuantityByLineId,
+    sentNoteByLineId: lines.sentNoteByLineId,
     restockByLineId: lines.restockByLineId,
   };
 }

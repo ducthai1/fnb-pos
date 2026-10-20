@@ -78,6 +78,8 @@ export interface OrderLineSnapshot {
   readonly wholeParentLine: boolean;
   /** Units the kitchen has had, cancelled ones included, as a decimal string. */
   readonly sentQuantity: string;
+  /** The note as the stations last saw it printed, so a till can tell a note changed since. */
+  readonly sentNote: string | null;
   /** On a refund's negative item: whether the goods go back into stock. */
   readonly restock: boolean | null;
 }

@@ -13,12 +13,12 @@ const nextDeviceOrderNo: Sql = {
 // A refund amount and a void record hang off one line of their own order, and a line has
 // at most one refund amount, so each call gets a fresh line on a draft order (a closed
 // order refuses new rows under it).
-const FRESH_LINE =
+export const FRESH_LINE =
   "fresh_line AS (INSERT INTO sales_order_line (id, tenant_id, order_id, position, line_type, " +
   "name_snapshot, unit_price, quantity, tax_rate_bp, price_source) " +
   "SELECT gen_random_uuid(), tenant_id, id, 0, 'item', 'x', 0, 1, 0, 'base' FROM sales_order " +
   "WHERE status = 'draft' ORDER BY id LIMIT 1 RETURNING id, order_id)";
-const freshLine = {
+export const freshLine = {
   order_id: { sql: "(SELECT order_id FROM fresh_line)" },
   line_id: { sql: "(SELECT id FROM fresh_line)" },
 };
