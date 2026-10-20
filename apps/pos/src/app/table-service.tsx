@@ -52,6 +52,8 @@ export function TableService(props: TableServiceProps) {
     loadFloor: props.loadFloor,
     onSyncPass: props.onSyncPass,
     preBilled,
+    plan: props.tillStart?.floor,
+    openOrders: props.tillStart?.openOrders,
   });
   const redo = useStaleDraftRedo(client, props.place, menu, recorded);
   const refusal = useOrderRefusal(client, null, recorded, redo.shows);

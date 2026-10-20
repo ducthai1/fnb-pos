@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ApiResult } from "../features/api/api-result";
+import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
 import { orderNumbers } from "../features/order/device-order-number";
 import { openingFromStored } from "../features/order/order-opening";
@@ -13,8 +14,10 @@ import { OrderHistoryFlow } from "./order-history-flow";
 import { TableService } from "./table-service";
 
 export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "modeSwitch"> {
-  /** GET /floor/occupancy with the till's credential. */
+  /** GET /floor/occupancy with the till's credential, for a server whose bootstrap has no plan. */
   loadFloor(): Promise<ApiResult<FloorOccupancy>>;
+  /** What the bootstrap brought of the floor: its plan and the drafts open at its tables. */
+  tillStart?: Pick<BootstrapSnapshot, "floor" | "openOrders">;
   /** Called after each sync pass; returns the unsubscribe. */
   onSyncPass(listener: () => void): () => void;
   /** Records the shift's close outside these screens, which end with the shift. */

@@ -124,10 +124,9 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
           null;
         // A draft refused over a newer order carries that order, as the server sends it.
         const over = code === "SYNC_ORDER_VERSION_STALE" ? rows.rows.get(orderIdOf(command)) : null;
-        if (code !== null && over != null)
-          return { commandId: command.commandId, status: "rejected" as const, code, snapshot: over };
+        const refused = { commandId: command.commandId, status: "rejected" as const };
         if (code !== null)
-          return { commandId: command.commandId, status: "rejected" as const, code };
+          return over == null ? { ...refused, code } : { ...refused, code, snapshot: over };
         const snapshot = rows.answer(command);
         return snapshot === undefined
           ? { commandId: command.commandId, status: "accepted" as const }

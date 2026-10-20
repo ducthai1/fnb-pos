@@ -1,4 +1,4 @@
-import type { SyncCommandEnvelope } from "@fnb/contracts";
+import type { PosBootstrapWire, SyncCommandEnvelope } from "@fnb/contracts";
 import { DOMAIN_VERSION } from "@fnb/domain";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect } from "vitest";
@@ -31,10 +31,13 @@ export function tableCafeServer(
   tablesOn = true,
   settings: Record<string, unknown> = {},
   staff: { id: string; displayName: string; active: boolean }[] = [LAN],
+  /** More of the bootstrap: the floor plan, the drafts open at the tables. */
+  start: Pick<PosBootstrapWire, "floor" | "openOrders"> = {},
 ) {
   const { config } = tillBootstrapWire();
   const flags = { ...config.flags, tables: tablesOn };
-  const server = fakeServer(tillBootstrap({ staff, config: { ...config, flags, settings } }));
+  const bootstrap = tillBootstrap({ ...start, staff, config: { ...config, flags, settings } });
+  const server = fakeServer(bootstrap);
   server.state.pins.set(LAN.id, "4826");
   server.state.floorPlan = {
     areas: [

@@ -48,6 +48,18 @@ export const SERVER_COPY_CONTRACT: LocalStoreContractGroup = {
       },
     },
     {
+      name: "tells of a removal of a row it never held a copy of",
+      async run(harness) {
+        const { store } = await harness.open();
+        const orderId = testId();
+        const write = await store.applyChanges(
+          page([{ changeSeq: "1", entity: "order", entityId: orderId, snapshot: null }]),
+        );
+        assertEqual(write.changed, [{ entity: "order", entityId: orderId }], "changed");
+        assertEqual(await store.snapshot("order", orderId), null, "nothing shown");
+      },
+    },
+    {
       name: "stays deleted when an older copy arrives after the server deleted the row",
       async run(harness) {
         const { store } = await harness.open();

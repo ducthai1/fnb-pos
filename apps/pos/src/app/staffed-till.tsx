@@ -89,6 +89,7 @@ export function StaffedTill(props: StaffedTillProps) {
   return (
     <SellingModes
       loadFloor={props.loadFloor}
+      tillStart={snapshot}
       onSyncPass={till?.sync.subscribe ?? noPasses}
       client={client}
       place={place}
