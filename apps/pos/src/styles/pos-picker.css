@@ -1,0 +1,75 @@
+/* Option buttons, the shift's note counter, the action row. */
+
+.pos-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-option {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pos-option__pick {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.pos-option__pick[aria-pressed="true"],
+.pos-tab[aria-pressed="true"] {
+  border-color: var(--pos-primary);
+  background: var(--pos-ok-bg);
+  color: var(--pos-ok-text);
+  font-weight: 600;
+}
+
+.pos-note {
+  min-height: 72px;
+  resize: vertical;
+  font-size: 1rem;
+}
+
+.pos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pos-actions > .pos-button {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.pos-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-note-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4ch auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-note-row__count {
+  text-align: center;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-total {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+}

@@ -1,3 +1,4 @@
+import type { SyncCommandEnvelope } from "@fnb/contracts";
 import {
   type LocalCommand,
   type LocalStore,
@@ -10,16 +11,15 @@ import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
+import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
+import { CREDENTIAL } from "./credential";
+import { fakeServerRows } from "./fake-server-rows";
 import type {
   DeviceCredential,
   DeviceCredentialStore,
 } from "../shell-bridge/device-credential-store";
 
-export const CREDENTIAL: DeviceCredential = {
-  deviceId: "0199f000-0000-7000-8000-00000000d001",
-  branchId: "0199f000-0000-7000-8000-00000000b001",
-  deviceToken: "0199f000-0000-7000-8000-00000000a001.secret",
-};
+export { CREDENTIAL };
 
 export const refusal = (
   status: number | null,
@@ -79,6 +79,9 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     pins: new Map<string, string>(),
     bootstrapFailure: null as ApiFailure | null,
     refuseCommandsWith: null as string | null,
+    /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
+    feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
+    pushed: [] as SyncCommandEnvelope[],
     calls: {
       pair: [] as { code: string; deviceName: string }[],
       signIn: [] as { staffId: string; pin: string; deviceToken: string }[],
@@ -88,6 +91,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
   const unreachable = () => refusal(null, null);
+  const rows = fakeServerRows(CREDENTIAL.deviceId);
 
   const api: PosApi = {
     async pairDevice(input) {
@@ -117,27 +121,39 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     async pushCommands(batch) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pushedCommands += batch.length;
+      state.pushed.push(...batch);
       const code = state.refuseCommandsWith;
-      return batch.map((command) =>
-        code === null
+      return batch.map((command) => {
+        if (code !== null)
+          return { commandId: command.commandId, status: "rejected" as const, code };
+        const snapshot = rows.answer(command);
+        return snapshot === undefined
           ? { commandId: command.commandId, status: "accepted" as const }
-          : { commandId: command.commandId, status: "rejected" as const, code },
-      );
+          : { commandId: command.commandId, status: "accepted" as const, snapshot };
+      });
     },
     async pullChanges(cursor) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pulls += 1;
-      return { changes: [], nextCursor: cursor };
+      const read = Number(cursor);
+      const changes = state.feed
+        .slice(read)
+        .map((change, index) => ({ changeSeq: String(read + index + 1), ...change }));
+      return { changes, nextCursor: String(Math.max(read, state.feed.length)) };
     },
   };
 
-  return { state, api, bootstrap, transport };
+  return { state, api, bootstrap, transport, rows: rows.rows };
 }
 
 /** The POS wired to the fake server, an in-memory store and saved credentials. */
 export function fakeDependencies(
   server: ReturnType<typeof fakeServer>,
-  options: { store?: Promise<LocalStore>; credentials?: DeviceCredentialStore } = {},
+  options: {
+    store?: Promise<LocalStore>;
+    credentials?: DeviceCredentialStore;
+    printer?: PrinterPort;
+  } = {},
 ): PosDependencies {
   return {
     store: options.store ?? Promise.resolve(memoryStore()),
@@ -146,6 +162,7 @@ export function fakeDependencies(
     bootstrap: server.bootstrap,
     transportFor: () => server.transport,
     syncIdleMs: 20,
+    printer: options.printer ?? previewOnlyPrinter,
     reload: () => {},
   };
 }

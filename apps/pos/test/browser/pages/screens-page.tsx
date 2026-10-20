@@ -6,21 +6,30 @@ import { BlockedScreen } from "../../../src/screens/blocked/blocked-screen";
 import { BootstrapScreen } from "../../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-screen";
-import { SalesHomeScreen } from "../../../src/screens/sales-home/sales-home-screen";
 import { PinEntry } from "../../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../../src/screens/staff-login/staff-picker";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import "../../../src/styles/pos-base.css";
 import "../../../src/styles/pos-screens.css";
+import "../../../src/styles/pos-sale.css";
+import "../../../src/styles/pos-order.css";
+import "../../../src/styles/pos-picker.css";
+import "../../../src/styles/pos-checkout.css";
+import { CHECKOUT_SCREENS } from "./checkout-screens";
+import { SALE_SCREENS } from "./sale-screens";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
 // Every screen of the POS, chosen by ?screen=, filled with the worst names a shop can type.
 
 const staff = [
-  { id: "s1", displayName: HOSTILE_NAMES.staff },
-  { id: "s2", displayName: HOSTILE_NAMES.emoji },
-  { id: "s3", displayName: HOSTILE_NAMES.decomposed },
-  ...["Lan", "Minh", "Hùng", "Thu", "Vy"].map((name, i) => ({ id: `n${i}`, displayName: name })),
+  { id: "s1", displayName: HOSTILE_NAMES.staff, active: true },
+  { id: "s2", displayName: HOSTILE_NAMES.emoji, active: true },
+  { id: "s3", displayName: HOSTILE_NAMES.decomposed, active: true },
+  ...["Lan", "Minh", "Hùng", "Thu", "Vy"].map((name, i) => ({
+    id: `n${i}`,
+    displayName: name,
+    active: true,
+  })),
 ];
 const never = () => new Promise<never>(() => {});
 const rejected = (index: number): RejectedCommand => ({
@@ -54,18 +63,11 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   "pin-entry": () => (
     <PinEntry staff={staff[0]!} signIn={never} onSignedIn={() => {}} onBack={() => {}} />
   ),
-  "sales-home": () => (
-    <SalesHomeScreen
-      branchName={HOSTILE_NAMES.branch}
-      staffName={HOSTILE_NAMES.staff}
-      status={{ connection: "server_error", pending: 123_456, needsAttention: 9_999 }}
-      onOpenNeedsAttention={() => {}}
-      onSwitchStaff={() => {}}
-    />
-  ),
   "needs-attention": () => (
     <NeedsAttentionScreen rejected={[1, 2, 3].map(rejected)} onBack={() => {}} />
   ),
+  ...SALE_SCREENS,
+  ...CHECKOUT_SCREENS,
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */

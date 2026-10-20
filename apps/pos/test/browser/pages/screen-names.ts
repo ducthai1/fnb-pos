@@ -5,8 +5,12 @@ export const SCREEN_NAMES = [
   "bootstrap-failed",
   "staff-picker",
   "pin-entry",
-  "sales-home",
   "needs-attention",
+  "open-shift",
+  "sale",
+  "modifier-picker",
+  "payment",
+  "sale-done",
 ] as const;
 
 export type ScreenName = (typeof SCREEN_NAMES)[number];

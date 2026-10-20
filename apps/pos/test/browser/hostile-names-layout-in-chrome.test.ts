@@ -1,6 +1,7 @@
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
 import type { Browser } from "playwright-core";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+import { HOSTILE_MENU_NAMES } from "../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../src/test-support/hostile-names";
 import { SCREEN_NAMES } from "./pages/screen-names";
 import { measureScreenOverflow } from "./support/measure-screen-overflow";
@@ -24,9 +25,12 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     await page.close();
     expect(errors).toEqual([]);
     expect(overflow).toMatchObject({ scrollerExcess: 0, pageExcess: 0, outside: [] });
-    if (["staff-picker", "pin-entry", "sales-home"].includes(name)) {
+    if (["staff-picker", "pin-entry", "open-shift", "sale", "modifier-picker"].includes(name)) {
       // The long name is really on screen, so the test is measuring the hard case.
       expect(overflow.text).toContain(HOSTILE_NAMES.staff);
+    }
+    if (["sale", "modifier-picker"].includes(name)) {
+      expect(overflow.text).toContain(HOSTILE_MENU_NAMES.product);
     }
   });
 });

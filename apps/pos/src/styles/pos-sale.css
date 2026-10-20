@@ -1,0 +1,93 @@
+/* The selling screen: menu tabs and tiles. Tiles hold names of any length, so every grid
+   column is minmax(min(100%, …), 1fr) and every name wraps anywhere. */
+
+.pos-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pos-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pos-tab {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid var(--pos-border);
+  border-radius: 999px;
+  background: var(--pos-surface);
+  color: var(--pos-text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pos-tab[aria-selected="true"] {
+  border-color: var(--pos-primary);
+  background: var(--pos-primary);
+  color: var(--pos-primary-text);
+  font-weight: 600;
+}
+
+.pos-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-product-grid > li {
+  min-width: 0;
+}
+
+.pos-product {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  min-height: 88px;
+  padding: 12px;
+  border: 1px solid var(--pos-border);
+  border-radius: 12px;
+  background: var(--pos-surface);
+  color: var(--pos-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pos-product__name {
+  font-weight: 600;
+}
+
+.pos-product__price {
+  color: var(--pos-primary);
+  font-weight: 600;
+}
+
+/* Greyed out, never hidden: the cashier must see it is sold out, not wonder where it went. */
+.pos-product:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pos-product__flag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--pos-danger-bg);
+  color: var(--pos-danger-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}

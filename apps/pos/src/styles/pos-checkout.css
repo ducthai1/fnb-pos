@@ -1,0 +1,69 @@
+/* Taking the money and the slips after it. */
+
+.pos-due {
+  margin: 0;
+  font-size: 1.375rem;
+}
+
+.pos-due strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-tender {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--pos-border);
+}
+
+.pos-cash {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pos-quick-cash {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+}
+
+.pos-cash__typed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.pos-call-number {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pos-slips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pos-slip__title {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+}
+
+/* A slip keeps its printed columns; it scrolls sideways inside itself on a phone. */
+.pos-slip__preview {
+  max-width: 100%;
+  margin: 8px 0 0;
+  padding: 8px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--pos-bg);
+  font-family: ui-monospace, "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 12px;
+  line-height: 1.35;
+}

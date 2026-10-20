@@ -1,0 +1,58 @@
+// Opening the shift, taking the money, the slips; vi.ts gathers them under `vi.checkout`.
+
+export const VI_CHECKOUT = {
+  openShift: {
+    title: "Mở ca",
+    hint: "Đếm tiền đầu ca trong két: mỗi lần chạm thêm một tờ. Két trống thì mở ca luôn.",
+    addNote: (note: string) => `+ ${note}`,
+    noteCount: (note: string) => `Số tờ ${note}`,
+    removeNote: (note: string) => `Bớt một tờ ${note}`,
+    total: (amount: string) => `Tiền đầu ca: ${amount}`,
+    clear: "Đếm lại",
+    open: "Mở ca",
+    failed: "Không mở được ca trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý.",
+    checking: "Đang kiểm tra ca…",
+  },
+  /** How each payment method reads on screen and on the bill. */
+  methods: { cash: "Tiền mặt", qr_transfer: "Chuyển khoản" },
+  payment: {
+    title: "Thanh toán",
+    amountDue: "Cần thu",
+    taken: "Đã nhận",
+    remaining: "Còn lại",
+    change: "Tiền thừa",
+    cash: "Tiền mặt",
+    cashTyped: "Số tiền khách đưa",
+    addCash: "Thêm tiền mặt",
+    quickCash: (amount: string) => `Khách đưa ${amount}`,
+    qr: "Chuyển khoản (QR)",
+    qrHint: (amount: string) =>
+      `Khách chuyển ${amount}. Kiểm tra tiền đã vào tài khoản của quán rồi xác nhận.`,
+    qrConfirm: (amount: string) => `Đã nhận chuyển khoản ${amount}`,
+    removeTender: (method: string, amount: string) => `Bỏ ${method} ${amount}`,
+    back: "Quay lại đơn",
+    finish: "Hoàn tất thanh toán",
+    finishing: "Đang lưu…",
+    refusals: {
+      not_positive: "Nhập số tiền lớn hơn 0.",
+      nothing_left: "Đơn đã đủ tiền, không cần nhận thêm.",
+      transfer_over_remaining: "Chuyển khoản không được nhiều hơn số còn lại: không thối lại được.",
+      too_many: "Một đơn nhận tối đa 10 lần trả.",
+      unreadable: "Số tiền chỉ gồm chữ số, ví dụ 200000.",
+    },
+    failed: "Không lưu được thanh toán trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý.",
+  },
+  done: {
+    title: "Đã thanh toán",
+    paid: (amount: string) => `Đã thu ${amount}`,
+    change: (amount: string) => `Tiền thừa: ${amount}`,
+    noChange: "Không có tiền thừa",
+    nextOrder: "Đơn mới",
+    slips: "Phiếu in",
+    slipNames: { bill: "Hóa đơn", cup_label: "Tem dán ly", kitchen: "Phiếu pha chế" },
+    previewOnly: "Bản xem trước — máy này chưa nối máy in, phiếu chưa được in.",
+    printed: "Đã in",
+    printFailed: (code: string) => `In lỗi (${code}) — phiếu chưa ra giấy.`,
+    printing: "Đang in…",
+  },
+} as const;

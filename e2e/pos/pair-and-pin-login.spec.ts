@@ -82,7 +82,8 @@ it("pairs a till with a code from the backoffice, refuses a wrong PIN, and signs
 
   await tapPin(page, cashier.pin);
   expect(await statusAfter(page, "/pos/staff-sessions", () => submit.click())).toBe(201);
-  await page.getByRole("heading", { name: text.sales.title }).waitFor();
+  // A till that never opened a shift asks for its float before it sells.
+  await page.getByRole("heading", { name: text.checkout.openShift.title }).waitFor();
   await page.getByText(text.sales.signedInAs(cashier.displayName)).waitFor();
   // Online only once a sync pass really got an answer from the API.
   await page.getByText(text.sync.online).waitFor();
