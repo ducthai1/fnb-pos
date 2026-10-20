@@ -42,3 +42,14 @@ export function listOf<T>(list: unknown, read: (item: JsonRecord) => T | null): 
 /** The array under `key` of an object body, read element by element. */
 export const listUnder = <T>(body: unknown, key: string, read: (item: JsonRecord) => T | null) =>
   isRecord(body) ? listOf(body[key], read) : null;
+
+/** What a contract schema of @fnb/contracts offers; zod itself stays the contracts' concern. */
+export interface ContractSchema<T> {
+  safeParse(input: unknown): { success: true; data: T } | { success: false };
+}
+
+/** The body as the contract describes it, or null when it is not that shape. */
+export function parsedBy<T>(schema: ContractSchema<T>, body: unknown): T | null {
+  const parsed = schema.safeParse(body);
+  return parsed.success ? parsed.data : null;
+}

@@ -1,3 +1,4 @@
+export * from "./backoffice";
 export * from "./catalog";
 export * from "./einvoice";
 export * from "./floor";

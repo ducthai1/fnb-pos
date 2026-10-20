@@ -10,7 +10,6 @@ import {
   uniqueEmail,
 } from "../../../apps/api/test/integration/support/backoffice-accounts";
 import { staffedShop } from "../../../apps/api/test/integration/support/staffed-shop";
-import { registerPendingBackofficeReadRoutes } from "./pending-backoffice-read-routes";
 import { serveBackofficeBuild } from "./serve-backoffice-build";
 
 /** Where the specs find the running stack, and who signs in to the backoffice. */
@@ -56,7 +55,6 @@ export default async function setup(project: TestProject): Promise<() => Promise
     pool.on("error", () => {});
     stops.push(() => pool.end());
     const app = buildApp({ pool });
-    registerPendingBackofficeReadRoutes(app, pool);
     stops.push(() => app.close());
     const apiOrigin = await app.listen({ host: "127.0.0.1", port: 0 });
 

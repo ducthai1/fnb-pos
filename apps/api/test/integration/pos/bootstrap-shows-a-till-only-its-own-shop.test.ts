@@ -10,6 +10,7 @@ import {
   milkTeaTillShop,
   requestBootstrap,
 } from "../support/milk-tea-till-shop";
+import { secretKeysIn } from "../support/secret-keys";
 
 const info = inject("testPostgres");
 const REFUSED = { status: 401, body: { code: "API_DEVICE_UNAUTHENTICATED" } };
@@ -41,30 +42,6 @@ function idsIn(value: unknown, found = new Set<string>()): Set<string> {
     }
   }
   return found;
-}
-
-// Words that name a secret, matched against each camelCase or snake_case part of a key.
-const SECRET_WORDS = new Set([
-  "hash",
-  "pin",
-  "token",
-  "secret",
-  "password",
-  "salt",
-  "otp",
-  "credential",
-]);
-
-/** Every key, at any depth, one of whose words names a secret. */
-function secretKeysIn(value: unknown, path = ""): string[] {
-  if (Array.isArray(value))
-    return value.flatMap((item, index) => secretKeysIn(item, `${path}.${index}`));
-  if (typeof value !== "object" || value === null) return [];
-  return Object.entries(value).flatMap(([key, inner]) => {
-    const words = key.split(/_|(?=[A-Z])/).map((word) => word.toLowerCase());
-    const own = words.some((word) => SECRET_WORDS.has(word)) ? [`${path}.${key}`] : [];
-    return [...own, ...secretKeysIn(inner, `${path}.${key}`)];
-  });
 }
 
 describe("which shop a bootstrap shows", () => {
