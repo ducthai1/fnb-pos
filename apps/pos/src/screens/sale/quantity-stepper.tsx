@@ -1,4 +1,6 @@
+import { Minus, Plus } from "lucide-react";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 
 export interface QuantityStepperProps {
   label: string;
@@ -24,24 +26,24 @@ export function QuantityStepper({
     <div className="pos-stepper" role="group" aria-label={label}>
       <button
         type="button"
-        className="pos-button"
+        className="pos-button pos-stepper__step"
         aria-label={vi.sale.less(name)}
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
       >
-        −
+        <Icon of={Minus} />
       </button>
       <output className="pos-stepper__value" aria-label={vi.sale.lineQuantity(name)}>
         {value}
       </output>
       <button
         type="button"
-        className="pos-button"
+        className="pos-button pos-stepper__step"
         aria-label={vi.sale.more(name)}
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
       >
-        +
+        <Icon of={Plus} />
       </button>
     </div>
   );

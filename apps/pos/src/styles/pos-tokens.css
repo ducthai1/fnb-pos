@@ -47,6 +47,27 @@
   --c-violet: #6b3fa0;
   --c-violet-soft: #f1e8fb;
 
+  /* Categories: each its own hue, the strong one dark enough to read on the soft one */
+  --c-cat-0: #5b5666;
+  --c-cat-0-soft: #ebeaf1;
+  --c-cat-1: #0a6b4f;
+  --c-cat-1-soft: #dcf3ea;
+  --c-cat-2: #1a5f9e;
+  --c-cat-2-soft: #e1edfb;
+  --c-cat-3: #7a4f00;
+  --c-cat-3-soft: #fbeccd;
+  --c-cat-4: #5e3591;
+  --c-cat-4-soft: #ece3f8;
+  --c-cat-5: #a3253b;
+  --c-cat-5-soft: #fbe3e8;
+  --c-cat-6: #0b6470;
+  --c-cat-6-soft: #d9f1f3;
+  --c-cat-7: #9a4210;
+  --c-cat-7-soft: #fde5d6;
+  --c-cat-8: #4d6312;
+  --c-cat-8-soft: #e8f0d6;
+  --c-on-brand-soft: rgb(255 255 255 / 0.22);
+
   /* The thin edge of a tinted notice, the meaning's own colour at low strength */
   --c-danger-line: rgb(180 40 65 / 0.18);
   --c-info-line: rgb(29 111 184 / 0.18);

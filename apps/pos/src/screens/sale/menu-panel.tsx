@@ -1,11 +1,14 @@
 import type { PosProduct } from "@fnb/contracts";
-import { formatVnd } from "@fnb/domain";
-import { useState } from "react";
-import { COUNTER_CHANNEL, tilePrice } from "../../features/menu/menu-prices";
-import { isSoldOut } from "../../features/menu/product-availability";
+import { Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { productsShown } from "../../features/menu/search-products";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
+import { EmptyState } from "../shared/state-view";
+import { CategoryTabs } from "./category-tabs";
+import { categoryTones } from "./product-mark";
+import { ProductTile } from "./product-tile";
 
 export interface MenuPanelProps {
   menu: TillMenu;
@@ -14,72 +17,61 @@ export interface MenuPanelProps {
   onPick(product: PosProduct): void;
 }
 
-/** Category tabs, a quick search and the products as big tiles; sold-out ones greyed out. */
+/** Categories, a quick search and the products as tiles of one height; sold-out ones marked. */
 export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
   const shown = productsShown(menu.products, categoryId, query);
-  const tab = (id: string | null, name: string) => (
-    <button
-      key={id ?? "all"}
-      type="button"
-      role="tab"
-      aria-selected={categoryId === id}
-      className="pos-tab pos-wrap"
-      onClick={() => setCategoryId(id)}
-    >
-      {name}
-    </button>
-  );
   return (
     <section className="pos-menu" aria-label={vi.sale.menuLabel}>
-      <input
-        className="pos-input"
-        type="search"
-        aria-label={vi.sale.search}
-        placeholder={vi.sale.searchPlaceholder}
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
+      <CategoryTabs
+        categories={menu.categories}
+        products={menu.products}
+        tones={tones}
+        chosen={categoryId}
+        onChoose={setCategoryId}
       />
-      <div className="pos-tabs" role="tablist">
-        {tab(null, vi.sale.allCategories)}
-        {menu.categories.map((category) => tab(category.id, category.name))}
+      <div className="pos-search">
+        <Icon of={Search} />
+        <input
+          className="pos-input pos-search__input"
+          type="search"
+          aria-label={vi.sale.search}
+          placeholder={vi.sale.searchPlaceholder}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        {query === "" ? null : (
+          <button
+            type="button"
+            className="pos-search__clear"
+            aria-label={vi.sale.clearSearch}
+            onClick={() => setQuery("")}
+          >
+            <Icon of={X} />
+          </button>
+        )}
       </div>
       {shown.length === 0 ? (
-        <p className="pos-hint">{query === "" ? vi.sale.emptyMenu : vi.sale.noMatch}</p>
+        <div className="pos-menu__empty">
+          <EmptyState title={query === "" ? vi.sale.emptyMenu : vi.sale.noMatch} />
+        </div>
       ) : (
         <ul className="pos-product-grid">
           {shown.map((product) => (
             <li key={product.id}>
-              <ProductTile menu={menu} product={product} now={now} onPick={onPick} />
+              <ProductTile
+                menu={menu}
+                product={product}
+                tone={product.categoryId === null ? 0 : (tones.get(product.categoryId) ?? 0)}
+                now={now}
+                onPick={onPick}
+              />
             </li>
           ))}
         </ul>
       )}
     </section>
-  );
-}
-
-function ProductTile(
-  props: { menu: TillMenu; product: PosProduct; now: number } & Pick<MenuPanelProps, "onPick">,
-) {
-  const { menu, product, now } = props;
-  const soldOut = isSoldOut(menu.availability.get(product.id), COUNTER_CHANNEL, now);
-  const price = tilePrice(menu, product, now);
-  return (
-    <button
-      type="button"
-      className="pos-product"
-      data-sold-out={soldOut}
-      // A sold-out tile cannot be tapped at all: the server would refuse the line anyway.
-      disabled={soldOut || price === null}
-      onClick={() => props.onPick(product)}
-    >
-      <span className="pos-product__name pos-wrap">{product.name}</span>
-      <span className="pos-product__price">
-        {price === null ? vi.sale.noPrice : formatVnd(price)}
-      </span>
-      {soldOut ? <span className="pos-product__flag">{vi.sale.soldOut}</span> : null}
-    </button>
   );
 }

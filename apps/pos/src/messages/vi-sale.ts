@@ -4,6 +4,8 @@ export const VI_SALE = {
   menuLabel: "Thực đơn",
   search: "Tìm món",
   searchPlaceholder: "Gõ tên món, không dấu cũng được",
+  clearSearch: "Xóa chữ đang tìm",
+  categoriesLabel: "Danh mục",
   allCategories: "Tất cả",
   emptyMenu: "Chưa có món nào để bán. Thêm món ở trang quản lý.",
   noMatch: "Không có món nào khớp.",

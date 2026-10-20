@@ -6,11 +6,13 @@ import {
   negateVnd,
   quantityToDecimalString,
 } from "@fnb/domain";
+import { MessageSquareText, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { discountAmountOf } from "../../features/order-adjust/describe-discount";
 import { type CartLine, MAX_LINE_QUANTITY } from "../../features/order/counter-order";
 import { type CartView, lineAmountOf } from "../../features/order/cart-view";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 import { QuantityStepper } from "./quantity-stepper";
 
 const S = vi.sale;
@@ -86,7 +88,10 @@ export function CartRow(
       ))}
       {line.note === null ? null : (
         <p className="pos-cart-line__note pos-wrap">
-          {S.note}: {line.note}
+          <Icon of={MessageSquareText} size={16} />
+          <span>
+            {S.note}: {line.note}
+          </span>
         </p>
       )}
       {props.badge}
@@ -101,11 +106,11 @@ export function CartRow(
           />
           <button
             type="button"
-            className="pos-button pos-button--quiet"
+            className="pos-button pos-button--quiet pos-cart-line__remove"
             aria-label={S.remove(name)}
             onClick={() => props.onRemove(line.lineId)}
           >
-            ✕
+            <Icon of={Trash2} />
           </button>
         </div>
       )}

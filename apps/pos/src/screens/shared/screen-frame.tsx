@@ -17,9 +17,12 @@ export function ScreenFrame({
   title,
   wide = false,
   width,
+  titleHidden = false,
   children,
 }: {
   title: string;
+  /** Kept for screen readers only, where the screen's bar already says where the cashier is. */
+  titleHidden?: boolean;
   /** The selling screen uses a tablet's whole width for the menu and the order side by side. */
   wide?: boolean;
   /** A sign-in or a single form reads best as a narrow column in the middle. */
@@ -29,7 +32,7 @@ export function ScreenFrame({
   return (
     <main className="pos-screen" data-scroll-root>
       <div className={WIDTH_CLASS[width ?? (wide ? "wide" : "normal")]}>
-        <h1 className="pos-title">{title}</h1>
+        <h1 className={titleHidden ? "pos-title pos-title--hidden" : "pos-title"}>{title}</h1>
         {children}
       </div>
     </main>

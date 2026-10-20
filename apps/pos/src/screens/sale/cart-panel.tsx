@@ -1,10 +1,13 @@
 import type { OrderLine } from "@fnb/domain";
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CounterOrder } from "../../features/order/counter-order";
 import type { CartView } from "../../features/order/cart-view";
 import { callNumberOf } from "../../features/order/device-order-number";
 import type { KeptLines } from "../../features/order/price-counter-order";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
+import { EmptyState } from "../shared/state-view";
 import { CartRow, type CartRowActions, type LineAdjustments } from "./cart-row";
 import { CartTotals } from "./cart-totals";
 import { ServiceTypePicker } from "./service-type-picker";
@@ -40,12 +43,14 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
   return (
     <section className="pos-cart" aria-label={S.cartLabel}>
       <p className="pos-cart__number">
-        <strong>{S.orderNumber(order.deviceOrderNo)}</strong> ·{" "}
-        {S.callNumber(callNumberOf(order.deviceOrderNo))}
+        <strong>{S.orderNumber(order.deviceOrderNo)}</strong>
+        <span className="pos-badge" data-tone="info">
+          {S.callNumber(callNumberOf(order.deviceOrderNo))}
+        </span>
       </p>
       <ServiceTypePicker order={order} onChange={on.onServiceType} />
-      {order.lines.length === 0 ? <p className="pos-hint">{S.cartEmpty}</p> : null}
-      <ul className="pos-list">
+      {order.lines.length === 0 ? <EmptyState icon={ShoppingBag} title={S.cartEmpty} /> : null}
+      <ul className="pos-list pos-cart__lines">
         {order.lines.map((line) => (
           <CartRow
             key={line.lineId}
@@ -59,18 +64,21 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
           />
         ))}
       </ul>
-      <CartTotals view={view} />
-      {on.adjust === undefined || order.lines.length === 0 ? null : (
-        <OrderTools adjust={on.adjust} />
-      )}
-      <button
-        type="button"
-        className="pos-button pos-button--primary pos-cart__checkout"
-        disabled={priced === null || order.lines.length === 0}
-        onClick={on.onCheckout}
-      >
-        {S.checkout}
-      </button>
+      <div className="pos-cart__foot">
+        <CartTotals view={view} />
+        {on.adjust === undefined || order.lines.length === 0 ? null : (
+          <OrderTools adjust={on.adjust} />
+        )}
+        <button
+          type="button"
+          className="pos-button pos-button--primary pos-cart__checkout"
+          disabled={priced === null || order.lines.length === 0}
+          onClick={on.onCheckout}
+        >
+          {S.checkout}
+          <Icon of={ArrowRight} size={24} />
+        </button>
+      </div>
     </section>
   );
 }

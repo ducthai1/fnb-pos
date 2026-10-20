@@ -1,0 +1,38 @@
+/* Each category's colour, carried by its tab and by its products' tiles: --cat writes,
+   --cat-soft fills. Tone 0 is for a product without a category. */
+[data-tone="0"] {
+  --cat: var(--c-cat-0);
+  --cat-soft: var(--c-cat-0-soft);
+}
+[data-tone="1"] {
+  --cat: var(--c-cat-1);
+  --cat-soft: var(--c-cat-1-soft);
+}
+[data-tone="2"] {
+  --cat: var(--c-cat-2);
+  --cat-soft: var(--c-cat-2-soft);
+}
+[data-tone="3"] {
+  --cat: var(--c-cat-3);
+  --cat-soft: var(--c-cat-3-soft);
+}
+[data-tone="4"] {
+  --cat: var(--c-cat-4);
+  --cat-soft: var(--c-cat-4-soft);
+}
+[data-tone="5"] {
+  --cat: var(--c-cat-5);
+  --cat-soft: var(--c-cat-5-soft);
+}
+[data-tone="6"] {
+  --cat: var(--c-cat-6);
+  --cat-soft: var(--c-cat-6-soft);
+}
+[data-tone="7"] {
+  --cat: var(--c-cat-7);
+  --cat-soft: var(--c-cat-7-soft);
+}
+[data-tone="8"] {
+  --cat: var(--c-cat-8);
+  --cat-soft: var(--c-cat-8-soft);
+}

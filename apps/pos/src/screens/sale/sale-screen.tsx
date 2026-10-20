@@ -30,7 +30,7 @@ export function SaleScreen({
   ...cart
 }: SaleScreenProps) {
   return (
-    <ScreenFrame title={vi.sales.title} wide>
+    <ScreenFrame title={vi.sales.title} wide titleHidden>
       {header}
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
       <div className="pos-sale">

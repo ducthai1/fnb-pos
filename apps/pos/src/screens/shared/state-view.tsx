@@ -1,9 +1,11 @@
-import { CircleAlert, Inbox } from "lucide-react";
+import { CircleAlert, Inbox, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Icon } from "./icon";
 
 export interface StateViewProps {
   title: string;
+  /** What is missing, drawn above the words; an empty tray by default. */
+  icon?: LucideIcon;
   body?: string;
   action?: ReactNode;
 }
@@ -13,7 +15,7 @@ export function EmptyState(props: StateViewProps) {
   return (
     <div className="pos-state" data-tone="empty">
       <span className="pos-state__icon">
-        <Icon of={Inbox} size={28} />
+        <Icon of={props.icon ?? Inbox} size={28} />
       </span>
       <StateText {...props} />
     </div>
