@@ -1,6 +1,7 @@
 import { type PayOrderPayload, payOrderPayloadSchema } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import { addVnd, compareVnd, computeOrderTotals, transitionOrder, vnd } from "@fnb/domain";
+import { queueSaleInvoice } from "../einvoice/queue-einvoice";
 import { assertQrTransfersArePaid, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
@@ -15,7 +16,7 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * payment is refused: that is a real conflict a person has to settle. Returns the order id.
  */
 async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
-  const { client, device, staffId } = context;
+  const { client, device, staffId, command } = context;
   const stored = await readStoredOrder(client, payload.orderId, true);
   if (stored === null || stored.branchId !== device.branchId) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderNotFound);
@@ -51,10 +52,11 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
     );
   }
   await client.query(
-    "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, updated_at = now() " +
-      "WHERE id = $1",
-    [payload.orderId, paid.status, paid.version, shift.shiftId],
+    "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, paid_at = $5, " +
+      "updated_at = now() WHERE id = $1",
+    [payload.orderId, paid.status, paid.version, shift.shiftId, command.createdAt],
   );
+  await queueSaleInvoice(context, stored);
   await withdrawPendingIntents(context, payload.orderId);
   await announceLatePayment(context, shift);
   return payload.orderId;

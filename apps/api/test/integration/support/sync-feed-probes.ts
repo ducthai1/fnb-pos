@@ -13,6 +13,7 @@ export async function senderOf(pool: pg.Pool, s: SyncShop, till: Till): Promise<
     device: { deviceId: till.deviceId, tenantId: s.shop.tenantId, branchId: s.shop.branchId },
     staffId: till.staffId,
     branch,
+    receivedAt: new Date(),
   };
 }
 

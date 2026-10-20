@@ -2,6 +2,7 @@ import { accessTables } from "./access-tables";
 import { auditTables } from "./audit-tables";
 import { catalogTables } from "./catalog-tables";
 import { configurationTables } from "./configuration-tables";
+import { einvoiceTables } from "./einvoice-tables";
 import { kitchenTables } from "./kitchen-tables";
 import { orderTables } from "./order-tables";
 import { paymentTables } from "./payment-tables";
@@ -27,4 +28,5 @@ export const allTables = {
   ...kitchenTables,
   ...printTables,
   ...paymentTables,
+  ...einvoiceTables,
 };

@@ -3,6 +3,7 @@ export { type LineDiscount, buildLineDiscount } from "./build-line-discount";
 export { type OrderDiscount, buildOrderDiscountLines } from "./build-order-discount-lines";
 export { buildRefund } from "./build-refund";
 export { computeOrderTotals } from "./compute-order-totals";
+export { type LinesNetOfVoids, linesNetOfVoids } from "./lines-net-of-voids";
 export {
   type DiscountScope,
   discountRateOfLine,

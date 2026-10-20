@@ -39,6 +39,7 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
         device,
         staffId: staff.staffId,
         branch: await readBranchPricing(client, device.branchId),
+        receivedAt: now,
       };
     });
     if (sender === null) return reply.code(401).send({ code: STAFF_ERROR_CODES.sessionInvalid });

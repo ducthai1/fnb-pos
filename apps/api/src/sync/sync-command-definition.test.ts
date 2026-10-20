@@ -49,6 +49,7 @@ describe("sync command definitions", () => {
       "order.refund",
       "order.remove_discount",
       "order.save_draft",
+      "order.set_buyer_info",
       "order.void_line",
       "payment.cancel_intent",
       "payment.create_intent",

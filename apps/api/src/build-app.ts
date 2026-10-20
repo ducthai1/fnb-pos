@@ -7,6 +7,8 @@ import { backofficeSessionHook } from "./auth/backoffice-session-hook";
 import { type Clock, systemClock } from "./clock";
 import { deviceAuthHook } from "./devices/device-auth-hook";
 import { type EInvoiceProvider, providersByKey } from "./einvoice/einvoice-provider";
+import type { EInvoiceRetryPolicy } from "./einvoice/einvoice-retry-policy";
+import { startEInvoiceWorker } from "./einvoice/einvoice-worker";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
 import { webhookSecretBox } from "./payments/webhook-secret-box";
@@ -46,6 +48,15 @@ export interface AppDependencies {
   paymentGateways?: readonly PaymentGatewayAdapter[];
   /** The invoice providers branches may name; none until a real adapter is written. */
   einvoiceProviders?: readonly EInvoiceProvider[];
+  /**
+   * Runs the invoice worker inside this process while the app is up. Off unless given, so
+   * one process of a deployment (or a test) chooses to run it.
+   */
+  einvoiceWorker?: {
+    intervalMs: number;
+    policy?: EInvoiceRetryPolicy;
+    onError?: (error: unknown) => void;
+  };
 }
 
 /**
@@ -120,6 +131,17 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerPaymentBackofficeRoutes(app, context, payments);
   const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
   registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
+  const workerOptions = dependencies.einvoiceWorker;
+  if (workerOptions !== undefined) {
+    const deps = { pool, clock: resolvedClock, providers: einvoiceProviders, ...workerOptions };
+    let worker: ReturnType<typeof startEInvoiceWorker> | null = null;
+    app.addHook("onReady", async () => {
+      worker = startEInvoiceWorker(deps, workerOptions);
+    });
+    app.addHook("onClose", async () => {
+      await worker?.stop();
+    });
+  }
 
   return app;
 }

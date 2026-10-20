@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { newId } from "@fnb/db";
 import type { TenantGraph, TenantTable } from "./tenant-graph";
+import { EINVOICE_ROWS } from "./tenant-graph-einvoice-rows";
 import { KITCHEN_AND_PRINT_ROWS } from "./tenant-graph-kitchen-and-print-rows";
 import { ORDER_AND_SYNC_ROWS } from "./tenant-graph-order-rows";
 import { PAYMENT_ROWS } from "./tenant-graph-payment-rows";
@@ -58,6 +59,7 @@ const ROWS: Record<TenantTable, RowSpec> = {
   ...SHIFT_ROWS,
   ...KITCHEN_AND_PRINT_ROWS,
   ...PAYMENT_ROWS,
+  ...EINVOICE_ROWS,
   app_user: { values: () => ({ display_name: "x" }) },
   approval_log: {
     parent: { column: "branch_id", table: "branch" },

@@ -34,6 +34,7 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
   private readonly issued = new Map<string, IssuedInvoice>();
   private readonly failures: QueuedFailure[] = [];
   private down: { code: string; throws: boolean } | null = null;
+  private gate: Promise<void> | null = null;
   private lastNumber = 0;
   private lastBatch = 0;
 
@@ -57,6 +58,19 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
     this.down = null;
   }
 
+  /**
+   * Holds every call (recorded on arrival) until the returned release is called, as a slow
+   * provider does, so a test can see what two workers have in flight at the same moment.
+   */
+  hold(): () => void {
+    let release = () => {};
+    this.gate = new Promise((resolve) => (release = resolve));
+    return () => {
+      this.gate = null;
+      release();
+    };
+  }
+
   /** The calls of one operation, in the order they came. */
   callsOf<O extends FakeProviderOperation>(operation: O) {
     return this.calls.filter(
@@ -66,7 +80,7 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
 
   async issue(document: EInvoiceDocument): Promise<IssuedInvoice | ProviderFailure> {
     this.calls.push({ operation: "issue", document });
-    const refused = this.refusal("issue");
+    const refused = await this.refusal("issue");
     if (refused !== null) return refused;
     const known = this.issued.get(document.id);
     if (known !== undefined) return known;
@@ -87,7 +101,7 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
 
   async submitDailyBatch(batch: DailyBatch): Promise<SubmittedBatch | ProviderFailure> {
     this.calls.push({ operation: "submitDailyBatch", batch });
-    const refused = this.refusal("submitDailyBatch");
+    const refused = await this.refusal("submitDailyBatch");
     if (refused !== null) return refused;
     const unknown = batch.invoices.find((invoice) => !this.holdsNumber(invoice.number));
     if (unknown !== undefined) {
@@ -99,7 +113,7 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
 
   async lookup(documentId: string): Promise<LookupResult | ProviderFailure> {
     this.calls.push({ operation: "lookup", documentId });
-    const refused = this.refusal("lookup");
+    const refused = await this.refusal("lookup");
     if (refused !== null) return refused;
     const known = this.issued.get(documentId);
     return known === undefined ? { found: false } : { ...known, found: true };
@@ -110,7 +124,8 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
     return false;
   }
 
-  private refusal(operation: FakeProviderOperation): ProviderFailure | null {
+  private async refusal(operation: FakeProviderOperation): Promise<ProviderFailure | null> {
+    if (this.gate !== null) await this.gate;
     if (this.down !== null) {
       if (this.down.throws) throw new Error("fake provider: connection reset");
       return { ok: false, failure: "temporary", code: this.down.code };

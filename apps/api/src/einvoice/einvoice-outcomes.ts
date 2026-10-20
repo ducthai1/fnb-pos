@@ -1,0 +1,107 @@
+import { appendAudit } from "@fnb/db";
+import type pg from "pg";
+import { appendChange, lockTenantChangeFeed } from "../sync/change-feed";
+import { orderSnapshotOf } from "../sync/order-snapshot";
+import { readStoredOrder } from "../sync/stored-order";
+import type { ClaimedInvoice } from "./einvoice-claims";
+import { EINVOICE_FAILURE_CODES } from "./einvoice-error-codes";
+import type { IssuedInvoice, ProviderFailure } from "./einvoice-provider";
+import { type EInvoiceRetryPolicy, retryDelayMs } from "./einvoice-retry-policy";
+
+export type IssueOutcome = IssuedInvoice | ProviderFailure;
+
+/** What became of one claimed invoice; "stale" when another worker had claimed it since. */
+export type RecordedOutcome = "issued" | "retrying" | "failed" | "stale";
+
+export interface OutcomeContext {
+  readonly tenantId: string;
+  readonly now: Date;
+  readonly policy: EInvoiceRetryPolicy;
+}
+
+/**
+ * Records what the provider answered for a claimed invoice. An issued invoice, and one
+ * failed for good, change what the order's tills should show (the lookup code for a
+ * reprint, or that the invoice needs a person), so the order goes out on the feed again
+ * with a new version. A permanent failure is also put on the audit trail, where the
+ * backoffice finds what needs attention.
+ */
+export async function recordIssueOutcome(
+  client: pg.ClientBase,
+  context: OutcomeContext,
+  claimed: ClaimedInvoice,
+  outcome: IssueOutcome,
+): Promise<RecordedOutcome> {
+  await lockTenantChangeFeed(client, context.tenantId);
+  const { rows } = await client.query<{ attempts: number; status: string }>(
+    "SELECT attempts, status FROM einvoice WHERE id = $1 FOR UPDATE",
+    [claimed.id],
+  );
+  const current = rows[0];
+  const queued = current?.status === "pending" || current?.status === "failed_retryable";
+  if (current === undefined || !queued || current.attempts !== claimed.attempts) return "stale";
+  if (outcome.ok) {
+    await client.query(
+      "UPDATE einvoice SET status = 'issued', number = $2, tax_authority_code = $3, " +
+        "lookup_code = $4, lookup_url = $5, issued_at = $6, next_attempt_at = NULL, " +
+        "last_error_code = NULL, updated_at = $6, version = version + 1 WHERE id = $1",
+      [
+        claimed.id,
+        outcome.number,
+        outcome.taxAuthorityCode,
+        outcome.lookupCode,
+        outcome.lookupUrl,
+        context.now,
+      ],
+    );
+    await announceToTills(client, context.tenantId, claimed.orderId);
+    return "issued";
+  }
+  const exhausted = outcome.failure === "temporary" && claimed.attempts >= context.policy.maxAttempts;
+  if (outcome.failure === "temporary" && !exhausted) {
+    const due = new Date(context.now.getTime() + retryDelayMs(context.policy, claimed.attempts));
+    await client.query(
+      "UPDATE einvoice SET status = 'failed_retryable', next_attempt_at = $2, " +
+        "last_error_code = $3, updated_at = $4, version = version + 1 WHERE id = $1",
+      [claimed.id, due, outcome.code, context.now],
+    );
+    return "retrying";
+  }
+  const code = exhausted ? EINVOICE_FAILURE_CODES.attemptsExhausted : outcome.code;
+  await client.query(
+    "UPDATE einvoice SET status = 'failed_permanent', next_attempt_at = NULL, " +
+      "last_error_code = $2, updated_at = $3, version = version + 1 WHERE id = $1",
+    [claimed.id, code, context.now],
+  );
+  await appendAudit(client, {
+    actor: { kind: "system" },
+    action: "einvoice.failed_permanent",
+    entityKind: "einvoice",
+    entityId: claimed.id,
+    payload: { orderId: claimed.orderId, code, lastProviderCode: outcome.code, attempts: claimed.attempts },
+  });
+  await announceToTills(client, context.tenantId, claimed.orderId);
+  return "failed";
+}
+
+/**
+ * Sends the order out again. A till only takes a copy whose version is newer, so a paid
+ * order's version moves; a posted order is locked for good and keeps its version, and its
+ * tills see the invoice on their next full bootstrap.
+ */
+async function announceToTills(client: pg.ClientBase, tenantId: string, orderId: string) {
+  await client.query(
+    "UPDATE sales_order SET version = version + 1, updated_at = now() " +
+      "WHERE id = $1 AND status = 'paid'",
+    [orderId],
+  );
+  const stored = await readStoredOrder(client, orderId, false);
+  if (stored === null) return;
+  await appendChange(client, tenantId, {
+    branchId: stored.branchId,
+    entity: "order",
+    entityId: orderId,
+    snapshot: orderSnapshotOf(stored),
+    commandId: null,
+  });
+}

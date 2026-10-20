@@ -1,4 +1,4 @@
-import type { PaymentIntentSnapshot } from "@fnb/contracts";
+import type { OrderEInvoiceSnapshot, PaymentIntentSnapshot } from "@fnb/contracts";
 import type { ShiftSnapshot } from "./shift-wire-types";
 
 /**
@@ -136,4 +136,6 @@ export interface OrderSnapshot {
   readonly refundAmounts: RefundAmountsSnapshot | null;
   readonly lines: readonly OrderLineSnapshot[];
   readonly payments: readonly PaymentSnapshot[];
+  /** The invoice once the order has one: its lookup code goes on a reprinted bill. */
+  readonly einvoice?: OrderEInvoiceSnapshot;
 }

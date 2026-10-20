@@ -8,6 +8,7 @@ import {
   transitionOrder,
   vnd,
 } from "@fnb/domain";
+import { queueRefundInvoice } from "../einvoice/queue-einvoice";
 import { orderOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
 import { insertRefundAmounts } from "./refund-amounts-store";
@@ -68,11 +69,11 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
     );
   }
   const paid = transitionOrder(refund, "paid");
-  await client.query("UPDATE sales_order SET status = $2, version = $3 WHERE id = $1", [
-    refund.id,
-    paid.status,
-    paid.version,
-  ]);
+  await client.query(
+    "UPDATE sales_order SET status = $2, version = $3, paid_at = $4 WHERE id = $1",
+    [refund.id, paid.status, paid.version, command.createdAt],
+  );
+  await queueRefundInvoice(context, sale.order.id, { order: paid, chargeProfile: sale.chargeProfile });
   return refund.id;
 }
 

@@ -7,7 +7,9 @@ import {
   type Vnd,
   vnd,
 } from "@fnb/domain";
+import type { OrderEInvoiceSnapshot } from "@fnb/contracts";
 import type pg from "pg";
+import { readOrderEInvoiceSnapshot } from "../einvoice/order-einvoice-snapshot";
 import { chargeProfileFromStored } from "./charge-profile-snapshot";
 import { readRefundAmounts } from "./refund-amounts-store";
 import { readStoredOrderLines } from "./stored-order-lines";
@@ -33,6 +35,8 @@ export interface StoredOrder {
   readonly sentQuantityByLineId: ReadonlyMap<string, Quantity>;
   readonly sentNoteByLineId: ReadonlyMap<string, string | null>;
   readonly restockByLineId: ReadonlyMap<string, boolean>;
+  /** The order's invoice, once a paid order has one queued. */
+  readonly einvoice: OrderEInvoiceSnapshot | null;
 }
 
 export interface StoredPayment {
@@ -156,5 +160,6 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     sentQuantityByLineId: lines.sentQuantityByLineId,
     sentNoteByLineId: lines.sentNoteByLineId,
     restockByLineId: lines.restockByLineId,
+    einvoice: row.status === "draft" ? null : await readOrderEInvoiceSnapshot(client, row.id),
   };
 }

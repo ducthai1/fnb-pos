@@ -23,6 +23,7 @@ export const TENANT_TABLES = [
   "device_pairing_code",
   "device_sync_state",
   "dining_table",
+  "einvoice",
   "kitchen_ticket",
   "kitchen_ticket_line",
   "line_void_record",

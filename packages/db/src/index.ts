@@ -45,6 +45,7 @@ export {
 } from "./schema/tenancy-tables";
 export { approvalLog, approvalUse, auditLog, auditTables } from "./schema/audit-tables";
 export { configValue, configurationTables } from "./schema/configuration-tables";
+export { einvoice, einvoiceTables } from "./schema/einvoice-tables";
 export { kitchenTables, kitchenTicket, kitchenTicketLine } from "./schema/kitchen-tables";
 export { printJobLog, printTables } from "./schema/print-tables";
 export {

@@ -22,6 +22,7 @@ import {
 } from "@fnb/db";
 import type pg from "pg";
 import { seedCatalogRows } from "./tenant-graph-catalog-seed";
+import { seedEInvoiceRows } from "./tenant-graph-einvoice-seed";
 import { seedKitchenAndPrintRows } from "./tenant-graph-kitchen-and-print-seed";
 import { seedOrderAndSyncRows } from "./tenant-graph-order-seed";
 import { seedPaymentRows } from "./tenant-graph-payment-seed";
@@ -131,6 +132,7 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
     await seedShiftRows(client, tenantId, ids);
     await seedKitchenAndPrintRows(client, tenantId, ids);
     await seedPaymentRows(client, tenantId, ids);
+    await seedEInvoiceRows(client, tenantId, ids);
   });
   return { tenantId, ids };
 }

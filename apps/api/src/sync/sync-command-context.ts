@@ -9,6 +9,8 @@ export interface SyncSender {
   /** Recorded as the author of the rows, and as who took the payments. */
   readonly staffId: string;
   readonly branch: BranchPricing;
+  /** When the batch reached the server, by the API's clock: work it queues is due from then. */
+  readonly receivedAt: Date;
 }
 
 /** What a command handler works with, inside the command's own transaction. */

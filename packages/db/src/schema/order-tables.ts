@@ -46,6 +46,10 @@ export const salesOrder = pgTable("sales_order", {
   refundPricesIncludeTax: boolean("refund_prices_include_tax"),
   refundServiceChargeTaxRateBp: integer("refund_service_charge_tax_rate_bp"),
   reasonCode: text("reason_code"),
+  /** When the till took the money, by its clock; null while a draft. */
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  /** What the customer asked to be printed on the invoice, while a draft. */
+  einvoiceBuyer: jsonb("einvoice_buyer"),
 });
 
 export const salesOrderLine = pgTable("sales_order_line", {

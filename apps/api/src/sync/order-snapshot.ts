@@ -89,5 +89,7 @@ export function orderSnapshotOf(stored: StoredOrder): OrderSnapshot {
       receivedByStaffId: payment.receivedByStaffId,
       paymentIntentId: payment.paymentIntentId,
     })),
+    // Only once there is one, so an order of a branch that does not invoice looks as before.
+    ...(stored.einvoice === null ? {} : { einvoice: stored.einvoice }),
   };
 }

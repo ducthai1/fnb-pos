@@ -54,6 +54,7 @@ function storedWith(line: OrderLine, sentUnits: bigint, sentNote: string | null)
     sentQuantityByLineId: new Map([[line.id, quantity(sentUnits)]]),
     sentNoteByLineId: new Map([[line.id, sentUnits === 0n ? null : sentNote]]),
     restockByLineId: new Map(),
+    einvoice: null,
   };
 }
 
