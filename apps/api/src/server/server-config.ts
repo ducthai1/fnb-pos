@@ -1,6 +1,8 @@
 import { type ZodErrorMap, z } from "zod";
 import type { RateLimitSettings } from "../http/rate-limit-hooks";
+import type { CleanupSettings } from "../ops/sign-in-cleanup-job";
 import { PAYMENT_SECRET_KEY_ENV } from "../payments/webhook-secret-box";
+import { cleanupEnvironment, cleanupSettingsOf } from "./cleanup-environment";
 import { rateLimitEnvironment, rateLimitSettingsOf } from "./rate-limit-environment";
 
 /** What the server process is started with, read once from its environment. */
@@ -20,6 +22,8 @@ export interface ServerConfig {
   readonly allowedOrigins: readonly string[] | null;
   /** Sign-in, pairing, PIN and approval requests allowed per client and per account or till. */
   readonly rateLimits: RateLimitSettings;
+  /** Deletes expired pairing codes and old sessions; null when this process does not. */
+  readonly cleanup: CleanupSettings | null;
 }
 
 export type ServerConfigResult =
@@ -70,6 +74,7 @@ const environmentSchema = z
     FNB_COOKIE_SECURE: flag.default("true"),
     FNB_ALLOWED_ORIGINS: origins.optional(),
     ...rateLimitEnvironment,
+    ...cleanupEnvironment,
   })
   .superRefine((env, context) => {
     if (env.FNB_ENV !== "production") return;
@@ -124,6 +129,7 @@ export function readServerConfig(
       secureCookies: values.FNB_COOKIE_SECURE === "true",
       allowedOrigins: values.FNB_ALLOWED_ORIGINS ?? null,
       rateLimits: rateLimitSettingsOf(values),
+      cleanup: cleanupSettingsOf(values),
     },
   };
 }

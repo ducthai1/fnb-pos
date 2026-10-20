@@ -44,8 +44,32 @@ describe("server configuration", () => {
           tillPerDevice: 60,
           trustedProxies: [],
         },
+        cleanup: { intervalMillis: 3_600_000, sessionRetentionMillis: 30 * 86_400_000 },
       },
     });
+  });
+
+  it("reads the cleanup job's schedule and retention, or leaves it off", () => {
+    const result = readServerConfig({
+      ...development,
+      FNB_CLEANUP_INTERVAL_MINUTES: "15",
+      FNB_SESSION_RETENTION_DAYS: "7",
+    });
+    expect(result.ok && result.config.cleanup).toEqual({
+      intervalMillis: 900_000,
+      sessionRetentionMillis: 7 * 86_400_000,
+    });
+    const off = readServerConfig({ ...development, FNB_CLEANUP_ENABLED: "false" });
+    expect(off.ok && off.config.cleanup).toBeNull();
+  });
+
+  it("refuses a retention of no days, which would delete sessions as they expire", () => {
+    expect(
+      problemsOf({ ...development, FNB_SESSION_RETENTION_DAYS: "0", FNB_CLEANUP_ENABLED: "yes" }),
+    ).toEqual([
+      "FNB_CLEANUP_ENABLED must be true or false",
+      "FNB_SESSION_RETENTION_DAYS must be at least 1",
+    ]);
   });
 
   it("reads the rate limits and the proxies whose forwarded address is believed", () => {
