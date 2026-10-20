@@ -38,6 +38,7 @@ export function startBackgroundSync(options: BackgroundSyncOptions): BackgroundS
   const counts = async () => ({
     pending: await client.pendingCount(),
     needsAttention: (await client.rejectedCommands()).length,
+    restore: await client.restoreState(),
   });
   const idle = () =>
     new Promise<void>((resolve) => {

@@ -2,6 +2,7 @@ import { access } from "node:fs/promises";
 import pg from "pg";
 import type { RestoreSettings } from "./backup-environment";
 import { libpqEnvironment, runPostgresTool } from "./postgres-client-tools";
+import { renewGenerationOf } from "./renew-server-generation";
 
 export interface RestoreRequest {
   readonly file: string;
@@ -11,7 +12,12 @@ export interface RestoreRequest {
 }
 
 export type RestoreOutcome =
-  | { readonly kind: "restored"; readonly millis: number }
+  | {
+      readonly kind: "restored";
+      readonly millis: number;
+      /** The new server generation; null for a backup older than the generation table. */
+      readonly generation: string | null;
+    }
   | { readonly kind: "refused"; readonly reason: string };
 
 const DATABASE_NAME = /^[a-z_][a-z0-9_]{0,62}$/;
@@ -23,6 +29,7 @@ const DATABASE_NAME = /^[a-z_][a-z0-9_]{0,62}$/;
  * on a new server). An existing database is never written into: without replaceExisting
  * it is refused, with it it is dropped and made again. pg_restore runs in one transaction,
  * so a failed restore leaves no half-restored database behind: the new one is dropped.
+ * A restored database gets a new server generation, so tills catch up with it.
  */
 export async function restoreBackup(
   settings: RestoreSettings,
@@ -81,7 +88,11 @@ export async function restoreBackup(
       await admin.query(`DROP DATABASE ${name} WITH (FORCE)`);
       throw new Error(`pg_restore exited with ${run.exitCode}: ${run.stderr.trim()}`);
     }
-    return { kind: "restored", millis: Date.now() - started };
+    const millis = Date.now() - started;
+    // The rows are as of the backup, the tills are not: a new generation tells each one to
+    // send again what the backup does not hold and to pull the feed from the start.
+    const { current } = await renewGenerationOf(settings.adminUrl, request.database);
+    return { kind: "restored", millis, generation: current };
   } finally {
     await admin.end();
   }

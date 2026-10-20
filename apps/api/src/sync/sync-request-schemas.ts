@@ -22,6 +22,7 @@ const envelopeSchema = z.object({
   businessDate: businessDateSchema,
   domainVersion: z.string().max(32),
   createdAt: instantSchema,
+  resentFromGeneration: idSchema.optional(),
 });
 
 export const syncCommandBatchSchema = z.object({
@@ -39,10 +40,13 @@ export const syncChangesQuerySchema = z.object({
 
 /** The batch's commands as the protocol types them, optional fields left out when absent. */
 export function envelopesOf(batch: z.infer<typeof syncCommandBatchSchema>): SyncCommandEnvelope[] {
-  return batch.commands.map(({ staffSessionId, approvalId, payload, ...required }) => ({
-    ...required,
-    payload,
-    ...(staffSessionId === undefined ? {} : { staffSessionId }),
-    ...(approvalId === undefined ? {} : { approvalId }),
-  }));
+  return batch.commands.map(
+    ({ staffSessionId, approvalId, resentFromGeneration, payload, ...required }) => ({
+      ...required,
+      payload,
+      ...(staffSessionId === undefined ? {} : { staffSessionId }),
+      ...(approvalId === undefined ? {} : { approvalId }),
+      ...(resentFromGeneration === undefined ? {} : { resentFromGeneration }),
+    }),
+  );
 }

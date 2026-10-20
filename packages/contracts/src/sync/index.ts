@@ -21,5 +21,11 @@ export {
   syncCommandResultSchema,
 } from "./sync-command-result-schema";
 export * from "./commands";
+export {
+  SERVER_GENERATION_HEADER,
+  type SyncDeviceState,
+  serverGenerationSchema,
+  syncDeviceStateSchema,
+} from "./server-generation-schema";
 export { SYNC_CLOCK_ERROR_CODES } from "./sync-clock-error-codes";
 export { SYNC_ORDER_VERSION_ERROR_CODES } from "./sync-order-version-error-codes";

@@ -5,6 +5,7 @@ import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { commandIdUseOf, nextExpectedSeq, recordOutcome } from "./command-ledger";
 import { type CommandSubject, subjectSnapshotOf } from "./command-subject-snapshot";
 import { readCommandTime } from "./command-time";
+import { auditResentCommand } from "./resent-command-audit";
 import { auditClampedClock } from "./device-clock-audit";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
 import { SYNC_COMMANDS } from "./sync-command-registry";
@@ -62,6 +63,7 @@ export async function applySyncCommand(
   };
   const { tenantId, deviceId } = device;
   await recordOutcome(client, { tenantId, deviceId, staffId: sender.staffId }, command, result);
+  await auditResentCommand(client, device, command, result);
   if (outcome.status === "accepted" && snapshot !== null) {
     await appendChange(client, device.tenantId, {
       branchId: device.branchId,

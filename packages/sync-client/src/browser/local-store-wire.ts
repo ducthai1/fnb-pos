@@ -40,6 +40,12 @@ export const LOCAL_STORE_METHODS = [
   "snapshot",
   "snapshots",
   "rejectedCommands",
+  "serverGeneration",
+  "adoptServerGeneration",
+  "rebaseOntoGeneration",
+  "dropCopiesTheServerLost",
+  "restoreState",
+  "pruneJournal",
   "close",
 ] as const satisfies readonly (keyof LocalStore)[];
 

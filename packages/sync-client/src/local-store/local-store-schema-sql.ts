@@ -58,7 +58,8 @@ export const COUNT_PENDING_FOR_ENTITY_SQL =
 export const READ_OUTBOX_ROW_SQL =
   "SELECT device_seq, entity, entity_id, envelope, status FROM outbox WHERE command_id = ?";
 export const SETTLE_OUTBOX_SQL =
-  "UPDATE outbox SET status = ?, result_code = ? WHERE command_id = ? AND status = 'pending'";
+  "UPDATE outbox SET status = ?, result_code = ?, settled_at = ? " +
+  "WHERE command_id = ? AND status = 'pending'";
 export const INSERT_REJECTED_SQL =
   "INSERT INTO rejected_command (command_id, device_seq, entity, entity_id, code, envelope, " +
   "server_snapshot) VALUES (?, ?, ?, ?, ?, ?, ?)";

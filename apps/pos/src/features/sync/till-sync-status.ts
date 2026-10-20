@@ -1,4 +1,4 @@
-import type { SyncReport } from "@fnb/sync-client";
+import type { RestoreState, SyncReport } from "@fnb/sync-client";
 
 /**
  * What the till knows about its link to the server, from the last sync pass itself:
@@ -18,6 +18,8 @@ export interface TillSyncStatus {
   readonly pending: number;
   /** Commands the server refused for good: the "needs attention" list. */
   readonly needsAttention: number;
+  /** After the server was restored from a backup: what the till still sends again. */
+  readonly restore?: RestoreState;
 }
 
 export const INITIAL_SYNC_STATUS: TillSyncStatus = {

@@ -20,6 +20,8 @@ export interface SyncCommandEnvelope {
   readonly domainVersion: string;
   /** When the till recorded the command; prices are resolved as of this instant. */
   readonly createdAt: string;
+  /** Set on a command sent again after a restore: the generation that took it first. */
+  readonly resentFromGeneration?: string;
 }
 
 export type SyncCommandStatus = "accepted" | "rejected" | "retry";

@@ -72,6 +72,7 @@ describe("what the till says about the server refusing it for a reason of its ow
       pulled: 0,
       caughtUp: false,
       pending: 1,
+      restore: null,
       failure: failure as never,
     });
     expect(connectionAfter(report({ stage: "push", kind: "http", status: 403 }))).toBe(

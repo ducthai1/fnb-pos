@@ -85,6 +85,7 @@ describe("a till handed over before its first cashier's sale synced", () => {
     });
     const transport: SyncTransport = {
       pullChanges: (cursor, limit) => http.pullChanges(cursor, limit),
+      deviceState: () => http.deviceState(),
       pushCommands(batch: readonly SyncCommandEnvelope[]) {
         pushing = tokens.get(batch[0]?.staffSessionId ?? "") ?? null;
         return http.pushCommands(batch);

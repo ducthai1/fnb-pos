@@ -38,6 +38,15 @@ export async function nextExpectedSeq(client: pg.ClientBase, deviceId: string): 
   return rows[0] === undefined ? 1 : Number(rows[0].last_seq) + 1;
 }
 
+/** The device_seq of the till's last command the ledger holds, 0 before its first. */
+export async function lastDeviceSeqOf(client: pg.ClientBase, deviceId: string): Promise<number> {
+  const { rows } = await client.query<{ last_seq: string }>(
+    "SELECT last_seq FROM device_sync_state WHERE device_id = $1",
+    [deviceId],
+  );
+  return rows[0] === undefined ? 0 : Number(rows[0].last_seq);
+}
+
 /** The till that sent a command and the staff member signed in on it. */
 export interface CommandSender {
   readonly tenantId: string;

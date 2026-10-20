@@ -10,6 +10,9 @@ export function injectHttpSend(app: ReturnType<typeof buildApp>): HttpSend {
       headers: request.headers,
       ...(request.body === undefined ? {} : { payload: request.body }),
     });
-    return { status: response.statusCode, body: response.body };
+    const headers = Object.fromEntries(
+      Object.entries(response.headers).map(([name, value]) => [name, String(value)]),
+    );
+    return { status: response.statusCode, body: response.body, headers };
   };
 }

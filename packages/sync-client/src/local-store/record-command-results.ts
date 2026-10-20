@@ -32,6 +32,7 @@ export function recordCommandResults(
   driver: SqliteDriver,
   sent: readonly SyncCommandEnvelope[],
   results: readonly SyncCommandResult[],
+  settledAt: string,
 ): RecordedResults {
   assertAnswersBatch(sent, results);
   return inTransaction(driver, () => {
@@ -47,7 +48,8 @@ export function recordCommandResults(
       // No row in an answer means none was sent, not that the row is gone.
       if (result.snapshot !== undefined) keepServerSnapshot(driver, ref, result.snapshot);
       const code = result.status === "rejected" ? result.code : null;
-      if (driver.run(SETTLE_OUTBOX_SQL, [result.status, code, result.commandId]) === 0) continue;
+      if (driver.run(SETTLE_OUTBOX_SQL, [result.status, code, settledAt, result.commandId]) === 0)
+        continue;
       if (result.status === "rejected") {
         driver.run(INSERT_REJECTED_SQL, [
           result.commandId,

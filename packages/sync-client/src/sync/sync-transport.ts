@@ -1,4 +1,9 @@
-import type { SyncChangesPage, SyncCommandEnvelope, SyncCommandResult } from "@fnb/contracts";
+import type {
+  SyncChangesPage,
+  SyncCommandEnvelope,
+  SyncCommandResult,
+  SyncDeviceState,
+} from "@fnb/contracts";
 
 /**
  * - network: no answer (offline, timeout, connection dropped); the server may have applied it.
@@ -18,10 +23,15 @@ export class SyncTransportError extends Error {
   }
 }
 
+/** A pulled page and the generation of the server that sent it, when it names one. */
+export type PulledChanges = SyncChangesPage & { readonly serverGeneration?: string };
+
 /** How a till reaches the sync endpoints. Every failure is a SyncTransportError. */
 export interface SyncTransport {
   /** One batch of the till's commands, oldest first; one answer per command it reached. */
   pushCommands(commands: readonly SyncCommandEnvelope[]): Promise<SyncCommandResult[]>;
   /** The changes after `cursor`, at most `limit`, oldest first. */
-  pullChanges(cursor: string, limit: number): Promise<SyncChangesPage>;
+  pullChanges(cursor: string, limit: number): Promise<PulledChanges>;
+  /** What the server holds of this till; asked once the till meets a new generation. */
+  deviceState(): Promise<SyncDeviceState>;
 }

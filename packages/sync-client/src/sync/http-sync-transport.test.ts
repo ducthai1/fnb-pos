@@ -126,7 +126,9 @@ describe("the sync endpoints over HTTP", () => {
           auth: request.headers.authorization,
           body,
         });
-        response.writeHead(201).end("created");
+        response
+          .writeHead(201, { "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b" })
+          .end("created");
       });
     });
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
@@ -139,7 +141,11 @@ describe("the sync endpoints over HTTP", () => {
         headers: { authorization: "a" },
         body: "{}",
       });
-      expect(answer).toEqual({ status: 201, body: "created" });
+      expect(answer).toEqual({
+        status: 201,
+        body: "created",
+        headers: { "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b" },
+      });
       expect(seen).toEqual([{ method: "POST", url: "/sync/x", auth: "a", body: "{}" }]);
     } finally {
       await new Promise((resolve) => server.close(resolve));
