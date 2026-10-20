@@ -5,6 +5,8 @@ export interface ApiFailure {
   /** The API's error code (`{code}` body), when it sent one. */
   readonly code: string | null;
   readonly body: unknown;
+  /** How long the API asked to wait before trying again (Retry-After), when it said. */
+  readonly retryAfterSeconds?: number;
 }
 
 export type ApiResult<T> = { readonly ok: true; readonly value: T } | ApiFailure;
@@ -14,6 +16,16 @@ export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 export interface JsonAnswer {
   readonly status: number | null;
   readonly body: unknown;
+  readonly retryAfterSeconds?: number;
+}
+
+/** Retry-After as whole seconds from now: a count of seconds, or a date; none if unreadable. */
+export function retryAfterOf(header: string | null, now: number): number | null {
+  if (header === null || header.trim() === "") return null;
+  const value = header.trim();
+  if (/^\d+$/.test(value)) return Number(value);
+  const at = Date.parse(value);
+  return Number.isNaN(at) ? null : Math.max(0, Math.ceil((at - now) / 1000));
 }
 
 /** One JSON request. Never throws: a dropped connection or a timeout is status null. */
@@ -39,7 +51,12 @@ export async function requestJson(
     } catch {
       body = null;
     }
-    return { status: response.status, body };
+    const retryAfter = retryAfterOf(response.headers.get("retry-after"), Date.now());
+    return {
+      status: response.status,
+      body,
+      ...(retryAfter === null ? {} : { retryAfterSeconds: retryAfter }),
+    };
   } catch {
     return { status: null, body: null };
   }
@@ -57,7 +74,14 @@ export function resultOf<T>(answer: JsonAnswer, parse: (body: unknown) => T | nu
     const value = parse(body);
     if (value !== null) return { ok: true, value };
   }
-  return { ok: false, status, code: codeIn(body), body };
+  const wait = answer.retryAfterSeconds;
+  return {
+    ok: false,
+    status,
+    code: codeIn(body),
+    body,
+    ...(wait === undefined ? {} : { retryAfterSeconds: wait }),
+  };
 }
 
 /** The string fields `keys` of a JSON object, or null if any is missing or not a string. */

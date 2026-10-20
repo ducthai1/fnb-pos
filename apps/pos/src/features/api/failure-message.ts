@@ -2,6 +2,7 @@ import { messageForCode, vi } from "../../messages/vi";
 import type { ApiFailure } from "./api-result";
 
 const PIN_LOCKED = "API_STAFF_PIN_LOCKED";
+const RATE_LIMITED = "API_RATE_LIMITED";
 
 const clockTime = (iso: string): string | null => {
   const time = new Date(iso);
@@ -17,6 +18,9 @@ export function failureMessage(failure: ApiFailure): string {
     const until = (failure.body as { lockedUntil?: unknown } | null)?.lockedUntil;
     const time = typeof until === "string" ? clockTime(until) : null;
     if (time !== null) return vi.errors.pinLockedUntil(time);
+  }
+  if (failure.code === RATE_LIMITED && failure.retryAfterSeconds !== undefined) {
+    return vi.errors.rateLimitedFor(failure.retryAfterSeconds);
   }
   return messageForCode(failure.code);
 }
