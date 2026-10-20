@@ -4,21 +4,14 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import type { ManualClock } from "../support/manual-clock";
-import {
-  contentCodeOf,
-  createIntent,
-  draftOf39k,
-  freshCode,
-  intentIdOf,
-  latestIntent,
-} from "../support/payment-commands";
+import { freshCode, latestIntent, liveQrOf39k } from "../support/payment-commands";
 import {
   freshSecret,
   paymentApp,
   putWebhookSecret,
   sendFakeNotice,
 } from "../support/payment-webhooks";
-import { pullAll, pushOne } from "../support/sync-commands";
+import { pullAll } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -44,12 +37,7 @@ afterAll(async () => {
   await pool.end();
 });
 
-async function liveQr() {
-  const orderId = await draftOf39k(app, s);
-  const sent = createIntent(s.tillA, orderId, 39_000);
-  expect((await pushOne(app, s.tillA, sent)).status).toBe("accepted");
-  return { intentId: intentIdOf(sent), contentCode: contentCodeOf(sent) };
-}
+const liveQr = () => liveQrOf39k(app, s);
 
 /** A transfer into Q1's account (or Q3's, with its secret), as the gateway reports it. */
 async function transfer(amount: number, content: string, secret = q1Secret) {

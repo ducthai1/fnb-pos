@@ -64,6 +64,15 @@ export async function draftOf39k(app: FastifyInstance, s: SyncShop, till: Till =
   return orderIdOf(sent);
 }
 
+/** A 39.000đ draft with a QR out for its whole amount, shown by `till`. */
+export async function liveQrOf39k(app: FastifyInstance, s: SyncShop, till: Till = s.tillA) {
+  const orderId = await draftOf39k(app, s, till);
+  const sent = createIntent(till, orderId, 39_000);
+  const result = await pushOne(app, till, sent);
+  if (result.status !== "accepted") throw new Error(`the QR answered ${result.code}`);
+  return { orderId, intentId: intentIdOf(sent), contentCode: contentCodeOf(sent) };
+}
+
 export interface ArrivingTransfer {
   branchId: string;
   amount: number;

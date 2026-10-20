@@ -4,13 +4,7 @@ import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import {
-  contentCodeOf,
-  createIntent,
-  draftOf39k,
-  intentIdOf,
-  latestIntent,
-} from "../support/payment-commands";
+import { latestIntent, liveQrOf39k } from "../support/payment-commands";
 import {
   freshSecret,
   paymentApp,
@@ -18,7 +12,7 @@ import {
   sendFakeNotice,
   transfersWithReference,
 } from "../support/payment-webhooks";
-import { pullAll, pushOne } from "../support/sync-commands";
+import { pullAll } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -42,12 +36,7 @@ afterAll(async () => {
   await pool.end();
 });
 
-async function liveQr() {
-  const orderId = await draftOf39k(app, s);
-  const sent = createIntent(s.tillA, orderId, 39_000);
-  expect((await pushOne(app, s.tillA, sent)).status).toBe("accepted");
-  return { intentId: intentIdOf(sent), contentCode: contentCodeOf(sent) };
-}
+const liveQr = () => liveQrOf39k(app, s);
 
 /** How many copies of the intent the feed holds in each status. */
 async function feedCopiesOf(intentId: string) {

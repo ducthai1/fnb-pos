@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./build-app": "./src/build-app.ts",
-    "./test-support/sync-shop": "./test/integration/support/sync-shop.ts"
+    "./test-support/sync-shop": "./test/integration/support/sync-shop.ts",
+    "./test-support/payment-webhooks": "./test/integration/support/payment-webhooks.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

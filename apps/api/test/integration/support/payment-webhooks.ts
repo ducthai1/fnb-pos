@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { withTenant } from "@fnb/db";
+import { newId, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 import { buildApp } from "../../../src/build-app";
@@ -71,3 +71,39 @@ export const transfersWithReference = (pool: pg.Pool, tenantId: string, referenc
     );
     return rows;
   });
+
+/**
+ * A transfer whose content names no QR, as a customer who typed their own note sends, into
+ * the account of the branch `secret` belongs to. Returns its id.
+ */
+export async function strayTransfer(
+  app: FastifyInstance,
+  pool: pg.Pool,
+  tenantId: string,
+  secret: string,
+  amount: number,
+) {
+  const reference = newId();
+  const content = "chuyen tien tra sua";
+  await sendFakeNotice(app, tenantId, secret, { reference, amount, content });
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query(
+      "SELECT id FROM bank_transaction WHERE reference_code = $1",
+      [reference],
+    );
+    return rows[0].id as string;
+  });
+}
+
+export const getUnmatched = (app: FastifyInstance, cookie: string, branchId: string) =>
+  app.inject({
+    method: "GET",
+    url: `/payments/unmatched?branchId=${branchId}`,
+    headers: { cookie },
+  });
+
+export const postMatch = (
+  app: FastifyInstance,
+  cookie: string,
+  match: { transactionId: string; intentId: string },
+) => app.inject({ method: "POST", url: "/payments/match", headers: { cookie }, payload: match });

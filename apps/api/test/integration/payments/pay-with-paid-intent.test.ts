@@ -1,9 +1,8 @@
-import { withTenant } from "@fnb/db";
+import { newId, withTenant } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { buildApp } from "../../../src/build-app";
 import {
   createIntent,
   draftOf39k,
@@ -12,6 +11,12 @@ import {
   payByQr,
   recordTransfer,
 } from "../support/payment-commands";
+import {
+  freshSecret,
+  paymentApp,
+  putWebhookSecret,
+  sendFakeNotice,
+} from "../support/payment-webhooks";
 import { command, pushOne } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -20,11 +25,13 @@ const info = inject("testPostgres");
 let pool: pg.Pool;
 let app: FastifyInstance;
 let s: SyncShop;
+const secret = freshSecret();
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = paymentApp(pool).app;
   s = await syncShop(app, pool);
+  await putWebhookSecret(app, s.shop.managerCookie, s.shop.branchId, "fake", secret);
 });
 
 afterAll(async () => {
@@ -63,6 +70,19 @@ const qrPaymentsOf = (orderId: string) =>
   });
 
 describe("order.pay with a QR transfer", () => {
+  it("pays with an intent a gateway's notice paid while the QR was up", async () => {
+    const orderId = await draftOf39k(app, s);
+    const made = await pushOne(app, s.tillA, createIntent(s.tillA, orderId, 39_000));
+    const intent = intentOf(made);
+    const notice = { reference: newId(), amount: 39_000, content: intent?.contentCode ?? "" };
+    expect((await sendFakeNotice(app, s.shop.tenantId, secret, notice)).statusCode).toBe(200);
+    const result = await pushOne(app, s.tillA, payByQr(s.tillA, orderId, intent?.id ?? "", 39_000));
+    expect(result).toMatchObject({ status: "accepted", snapshot: { status: "paid" } });
+    expect(await qrPaymentsOf(orderId)).toEqual([
+      { method: "qr_transfer", amount: 39_000, payment_intent_id: intent?.id },
+    ]);
+  });
+
   it("pays with an intent the bank paid exactly, and links the payment to it", async () => {
     const { orderId, intentId, status } = await intentPaidWith(39_000);
     expect(status).toBe("paid");

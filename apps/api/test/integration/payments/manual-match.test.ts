@@ -4,21 +4,18 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { signedInMember } from "../support/backoffice-accounts";
-import {
-  contentCodeOf,
-  createIntent,
-  draftOf39k,
-  intentIdOf,
-  latestIntent,
-} from "../support/payment-commands";
+import { latestIntent, liveQrOf39k } from "../support/payment-commands";
 import {
   freshSecret,
+  getUnmatched,
   paymentApp,
+  postMatch,
   putWebhookSecret,
   sendFakeNotice,
+  strayTransfer,
 } from "../support/payment-webhooks";
 import { createRole } from "../support/roles";
-import { pullAll, pushOne } from "../support/sync-commands";
+import { pullAll } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -43,44 +40,18 @@ afterAll(async () => {
   await pool.end();
 });
 
-async function liveQr() {
-  const orderId = await draftOf39k(app, s);
-  const sent = createIntent(s.tillA, orderId, 39_000);
-  expect((await pushOne(app, s.tillA, sent)).status).toBe("accepted");
-  return { intentId: intentIdOf(sent), contentCode: contentCodeOf(sent) };
-}
-
-/** A transfer whose content names no QR, as a customer who typed their own note sends. */
-async function strayTransfer(amount: number, secret = q1Secret, content = "chuyen tien tra sua") {
-  const reference = newId();
-  await sendFakeNotice(app, s.shop.tenantId, secret, { reference, amount, content });
-  return withTenant(pool, s.shop.tenantId, async (client) => {
-    const { rows } = await client.query(
-      "SELECT id FROM bank_transaction WHERE reference_code = $1",
-      [reference],
-    );
-    return rows[0].id as string;
-  });
-}
-
+const liveQr = () => liveQrOf39k(app, s);
+const strayIn = (amount: number, secret = q1Secret) =>
+  strayTransfer(app, pool, s.shop.tenantId, secret, amount);
 const unmatched = (cookie = s.shop.managerCookie, branchId = s.shop.branchId) =>
-  app.inject({
-    method: "GET",
-    url: `/payments/unmatched?branchId=${branchId}`,
-    headers: { cookie },
-  });
+  getUnmatched(app, cookie, branchId);
 const match = (transactionId: string, intentId: string, cookie = s.shop.managerCookie) =>
-  app.inject({
-    method: "POST",
-    url: "/payments/match",
-    headers: { cookie },
-    payload: { transactionId, intentId },
-  });
+  postMatch(app, cookie, { transactionId, intentId });
 
 describe("matching by hand", () => {
   it("lists the transfer nobody claimed beside the QRs still waiting", async () => {
     const { intentId } = await liveQr();
-    const transactionId = await strayTransfer(39_000);
+    const transactionId = await strayIn(39_000);
     const listed = await unmatched();
     expect(listed.statusCode).toBe(200);
     const body = listed.json();
@@ -98,7 +69,7 @@ describe("matching by hand", () => {
 
   it("settles the QR by what came, tells the tills, logs who did it, and clears the list", async () => {
     const { intentId } = await liveQr();
-    const transactionId = await strayTransfer(39_000);
+    const transactionId = await strayIn(39_000);
     const matched = await match(transactionId, intentId);
     expect(matched.statusCode).toBe(200);
     expect(matched.json().intent).toMatchObject({
@@ -121,7 +92,7 @@ describe("matching by hand", () => {
 
   it("settles a short transfer as partial, never as paid", async () => {
     const { intentId } = await liveQr();
-    const matched = await match(await strayTransfer(20_000), intentId);
+    const matched = await match(await strayIn(20_000), intentId);
     expect(matched.json().intent).toMatchObject({ status: "partial", receivedAmount: 20_000 });
   });
 });
@@ -130,7 +101,7 @@ describe("matching by hand refuses", () => {
   it("a transfer that already pays a QR", async () => {
     const first = await liveQr();
     const second = await liveQr();
-    const transactionId = await strayTransfer(39_000);
+    const transactionId = await strayIn(39_000);
     expect((await match(transactionId, first.intentId)).statusCode).toBe(200);
     const again = await match(transactionId, second.intentId);
     expect({ status: again.statusCode, body: again.json() }).toEqual({
@@ -146,7 +117,7 @@ describe("matching by hand refuses", () => {
       amount: 39_000,
       content: contentCode,
     });
-    const again = await match(await strayTransfer(39_000), intentId);
+    const again = await match(await strayIn(39_000), intentId);
     expect({ status: again.statusCode, body: again.json() }).toEqual({
       status: 409,
       body: { code: "API_PAYMENT_INTENT_NOT_MATCHABLE" },
@@ -155,7 +126,7 @@ describe("matching by hand refuses", () => {
 
   it("money that came into another branch's account", async () => {
     const { intentId } = await liveQr();
-    const elsewhere = await match(await strayTransfer(39_000, q3Secret), intentId);
+    const elsewhere = await match(await strayIn(39_000, q3Secret), intentId);
     expect({ status: elsewhere.statusCode, body: elsewhere.json() }).toEqual({
       status: 409,
       body: { code: "API_PAYMENT_BRANCH_MISMATCH" },
@@ -167,14 +138,14 @@ describe("matching by hand refuses", () => {
     expect((await match(newId(), intentId)).json()).toEqual({
       code: "API_PAYMENT_TRANSACTION_NOT_FOUND",
     });
-    expect((await match(await strayTransfer(39_000), newId())).json()).toEqual({
+    expect((await match(await strayIn(39_000), newId())).json()).toEqual({
       code: "API_PAYMENT_INTENT_NOT_FOUND",
     });
   });
 
   it("anyone without the keys: a cashier lists nothing, a report reader matches nothing", async () => {
     const { intentId } = await liveQr();
-    const transactionId = await strayTransfer(39_000);
+    const transactionId = await strayIn(39_000);
     const cashier = await signedInMember(app, pool, s.shop.tenantId, {
       roleId: s.shop.roleIds.cashier,
     });
