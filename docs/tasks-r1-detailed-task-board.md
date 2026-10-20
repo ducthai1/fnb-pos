@@ -6,6 +6,10 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-20 15:30 — Đợt 9b đã merge + push (`a3ed16e`): POS nhận QR do ngân hàng xác nhận (sửa W10), người mua HĐĐT + in lại bill; backoffice cài đặt, báo cáo, chốt ngày, khớp chuyển khoản tay + `refundDue`, sơ đồ bàn dạng danh sách, sửa W12. Cổng: unit 2.083 · `test:api` 1.531 · `test:sync` 16 · e2e 59 — xanh.
+- **DỪNG chờ chủ dự án duyệt** báo cáo `reports/progress-report-2026-10-20.md` (§8 quyết định, §9 kế hoạch). **Không chạy 9c** khi chưa có câu trả lời. Sau khi duyệt: ghi các quyết định đã chốt vào decision-log (đổi "chờ user" ⇒ đã chốt), rồi chạy 9c (điểm khởi động API + `pnpm dev:stack` có quán mẫu + luật chung createdAt; POS màn bàn) và dừng một lần để chủ dự án bấm thử.
+- Còn mở từ review vòng 2: W9, T1, T2 (HĐĐT) ⇒ đợt 9d.
+
 - 2026-10-20 14:30 — Cặp 8a đã merge (`ee20117`): route đọc backoffice, `/auth/me` kèm quyền, lỗi domain kèm ids, `/settings`. Đợt 9a (2 agent, 574k token) đã merge + push (`b004b19`): sửa W1 (tiền hoàn tính vào ca), W2 (hủy món không được nâng tỉ lệ giảm toàn đơn), W6 (command_id theo thiết bị, migration 0022), W11/T4 (version ảnh chụp ca tăng theo sổ quỹ; kịch bản sync-client thật), W13 (chốt ngày chặn khi còn nháp; đơn trả sau chốt được đánh dấu `paid_after_day_close` và loại khỏi báo cáo đã chốt), W3 (QR đã trả ⇒ chặn trả bằng cách khác/hủy đơn, tiền chưa dùng vào `refundDue`), W4 (hạn QR theo giờ server), W5 (duyệt neo giờ server: createdAt ∈ [cấp−2′, cấp+10′], trễ đồng bộ ≤ 2h), W7, W8 (mã QR giữ 7 ngày, migration 0023). Cổng: `test:api` 1.531 · `test:sync` 16 · e2e 46 — xanh.
 - Tiếp: 9b (POS QR thật + người mua HĐĐT; backoffice W12 + cài đặt/báo cáo/chốt ngày/khớp tay/sơ đồ bàn) → 9c (POS màn bàn; HĐĐT W9/T1–T3 + luật chung createdAt) → 9d (POS hủy/giảm/hoàn/đóng ca có PIN duyệt).
 
