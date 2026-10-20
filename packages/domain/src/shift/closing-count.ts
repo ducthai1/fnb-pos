@@ -16,8 +16,14 @@ export interface ClosingAssessment {
   readonly needsAcceptance: boolean;
 }
 
-/** The action whoever accepts a difference beyond the tolerance must be allowed. */
-export const ACCEPT_CLOSE_DIFFERENCE: PermissionAction = { key: "accept_close_difference" };
+/**
+ * The action whoever accepts a difference beyond the tolerance must be allowed, naming the
+ * difference itself (counted − expected): a manager who agreed to "0 đ" or "−9.000 đ" has
+ * not agreed to "−29.000 đ", so an approval only covers the figure it was given for.
+ */
+export function acceptCloseDifference(difference: Vnd): PermissionAction {
+  return { key: "accept_close_difference", difference };
+}
 
 /**
  * Compares the counted drawer with what the shift's cash book says it should hold. The

@@ -16,6 +16,8 @@ export interface ApprovalRequest {
     readonly key: string;
     readonly discountRate?: number;
     readonly amount?: string;
+    /** A close difference, signed (counted − expected), as a decimal string. */
+    readonly difference?: string;
   };
   readonly approverStaffId: string;
   readonly approverPin: string;

@@ -1,69 +1,72 @@
+import type { SyncCommandEnvelope } from "@fnb/contracts";
 import { expectedCash, vnd } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
-import type { StoredOrder } from "../order/stored-order";
 import { closeToleranceOf } from "./close-tolerance";
-import { cashMoveActionFor, tillShiftLedger } from "./shift-cash";
+import { cashMoveActionFor, tillShiftLedger, waitingShiftCash } from "./shift-cash";
 import { readStoredShift } from "./stored-shift";
 
 const TILL = "0199f000-0000-7000-8000-00000000d001";
-// UUIDv7 ids sort by when they were made: the shift, then what came after it.
 const SHIFT = "0199f100-0000-7000-8000-000000000001";
-const BEFORE = "0199f0ff-0000-7000-8000-000000000001";
-const AFTER = (n: number) => `0199f101-0000-7000-8000-00000000000${n}`;
+const OTHER_SHIFT = "0199f0ff-0000-7000-8000-000000000001";
 
+/** The shift as the server sent it: a table opened last shift paid 29.000 đ cash into it. */
 const shift = readStoredShift({
   id: SHIFT,
   deviceId: TILL,
   status: "open",
   businessDate: "2026-10-20",
-  version: 3,
+  version: 4,
   openedByStaffId: "lan",
   figures: {
     openingCash: 500_000,
-    cashSales: 0,
-    cashRefunds: 0,
+    cashSales: 29_000,
+    cashRefunds: 9_000,
     cashIn: 100_000,
     cashOut: 50_000,
-    expectedCash: 550_000,
+    expectedCash: 570_000,
   },
   close: null,
 })!;
 
-const order = (orderId: string, fields: Partial<StoredOrder>): StoredOrder =>
-  ({
-    orderId,
-    deviceId: TILL,
-    status: "paid",
-    refundOfOrderId: null,
-    payments: [{ method: "cash", amount: vnd(29_000) }],
-    ...fields,
-  }) as StoredOrder;
+const command = (type: string, payload: Record<string, unknown>) =>
+  ({ type, payload }) as unknown as SyncCommandEnvelope;
+const cash = (amount: number) => ({ method: "cash", amount });
 
-describe("the shift's cash book as the till rebuilds it", () => {
-  it("counts the float, the moves and the cash of the till's orders made in the shift", () => {
-    const ledger = tillShiftLedger(
-      shift,
-      [
-        order(AFTER(1), {}),
-        order(AFTER(2), { payments: [{ method: "qr_transfer", amount: vnd(45_000) }] }),
-        order(AFTER(3), {
-          refundOfOrderId: AFTER(1),
-          payments: [{ method: "cash", amount: vnd(-9_000) }],
-        }),
-        order(AFTER(4), { status: "draft" }),
-        order(AFTER(5), { deviceId: "another-till" }),
-        order(BEFORE, {}),
-      ],
-      "lan",
-    );
-    // 500.000 + 100.000 − 50.000 + 29.000 − 9.000
+describe("the shift's cash book as the till counts against it", () => {
+  it("is the server's figures for the shift, cash carried in from any order included", () => {
+    const ledger = tillShiftLedger(shift, []);
+    // 500.000 + 29.000 − 9.000 + 100.000 − 50.000: what the server holds, to the đồng.
     expect(expectedCash(ledger)).toBe(vnd(570_000));
   });
 
-  it("judges a cash move on everything moved in the shift once it is made", () => {
+  it("adds the till's cash still waiting for the server under this shift, and nothing else", () => {
+    const waiting = waitingShiftCash(
+      [
+        command("order.pay", { shiftId: SHIFT, payments: [cash(35_000)] }),
+        command("order.pay", { shiftId: SHIFT, payments: [{ method: "qr_transfer", amount: 1 }] }),
+        command("order.refund", { shiftId: SHIFT, payouts: [cash(-6_000)] }),
+        command("order.pay", { shiftId: OTHER_SHIFT, payments: [cash(40_000)] }),
+        command("order.save_draft", { shiftId: SHIFT, payments: [cash(50_000)] }),
+        command("shift.cash_move", { kind: "out", amount: 70_000 }),
+      ],
+      SHIFT,
+    );
+    expect(waiting).toEqual([
+      { kind: "cash_sale", amount: vnd(35_000) },
+      { kind: "cash_refund", amount: vnd(6_000) },
+    ]);
+    expect(expectedCash(tillShiftLedger(shift, waiting))).toBe(vnd(599_000));
+  });
+
+  it("judges a cash move on everything moved through the drawer once it is made", () => {
     expect(cashMoveActionFor(shift, "lan", "out", vnd(400_000))).toEqual({
       key: "cash_move",
       amount: vnd(550_000),
+    });
+    // Another cashier on the same drawer: the cap is the shift's, as the server judges it.
+    expect(cashMoveActionFor(shift, "minh", "in", vnd(10_000))).toEqual({
+      key: "cash_move",
+      amount: vnd(160_000),
     });
   });
 

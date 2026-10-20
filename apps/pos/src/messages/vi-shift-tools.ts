@@ -37,9 +37,9 @@ export const VI_CLOSE_SHIFT = {
   over: (amount: string) => `Thừa ${amount} so với tiền dự kiến.`,
   needsApproval: "Chênh lệch vượt mức cho phép của quán: cần quản lý duyệt khi đóng ca.",
   estimateNote:
-    "Tiền dự kiến tính trên máy từ các đơn máy này bán trong ca; máy chủ tính lại khi nhận lệnh đóng ca.",
-  serverDisagreed:
-    "Máy chủ tính ra chênh lệch cần quản lý duyệt. Đếm lại nếu cần rồi đóng ca, quản lý sẽ được hỏi duyệt.",
+    "Tiền dự kiến theo sổ ca của máy chủ (mọi khoản tiền mặt vào két ca này), cộng các khoản máy này chưa gửi được.",
+  serverDisagreed: (difference: string) =>
+    `Máy chủ tính ra chênh lệch ${difference} với số đã đếm, cần quản lý duyệt. Đếm lại nếu cần rồi đóng ca, quản lý sẽ được hỏi duyệt đúng số này.`,
   confirm: "Đóng ca",
   back: "Về bán hàng",
   doneTitle: "Đã đóng ca",

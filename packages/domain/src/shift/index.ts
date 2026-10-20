@@ -5,7 +5,7 @@ export {
   countedTotal,
 } from "./cash-denominations";
 export {
-  ACCEPT_CLOSE_DIFFERENCE,
+  acceptCloseDifference,
   type ClosingAssessment,
   assessClosingCount,
 } from "./closing-count";
@@ -14,7 +14,7 @@ export {
   type ShiftCashLedger,
   type ShiftCashSummary,
   cashMoveAction,
-  cumulativeCashMovedBy,
+  cumulativeCashMovedInShift,
   expectedCash,
   netCashOf,
   summarizeShiftCash,

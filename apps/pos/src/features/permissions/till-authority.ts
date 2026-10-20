@@ -22,7 +22,7 @@ export interface TillAuthority {
    */
   readonly approvers: readonly BootstrapStaff[];
   decide(action: PermissionAction): AuthorizationResult;
-  /** POST /pos/approvals for exactly `action`, its rate or amount included. */
+  /** POST /pos/approvals for exactly `action`, its rate, amount or difference included. */
   approve(
     action: PermissionAction,
     approverStaffId: string,
@@ -36,6 +36,7 @@ export function actionOnWire(action: PermissionAction): ApprovalRequest["action"
     key: action.key,
     ...(action.discountRate === undefined ? {} : { discountRate: action.discountRate }),
     ...(action.amount === undefined ? {} : { amount: action.amount.toString() }),
+    ...(action.difference === undefined ? {} : { difference: action.difference.toString() }),
   };
 }
 

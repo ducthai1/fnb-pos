@@ -34,7 +34,7 @@ interface ApprovalRow {
   requested_by_staff_id: string;
   approved_by_staff_id: string;
   device_id: string;
-  payload: { discountRate?: unknown; amount?: unknown };
+  payload: { discountRate?: unknown; amount?: unknown; difference?: unknown };
   /** When it was given, by the API's clock, which also times the command relying on it. */
   created_at: Date;
 }
@@ -57,8 +57,8 @@ export function approvalIdOf(
 /**
  * Uses on-the-spot approval `approvalId` for `action` and answers who approved it. It must
  * have been asked by this staff member on this till, for this action with this very rate
- * or amount (an approval for 600.000 đ covers neither 500.000 đ nor 800.000 đ: the manager
- * agreed to one figure), in time (see `timely`), and not be used yet by any command
+ * or amount or close difference (an approval for 600.000 đ covers neither 500.000 đ nor
+ * 800.000 đ: the manager agreed to one figure), in time (see `timely`), and not be used yet by any command
  * of any kind. The use is recorded in the command's transaction, so a command refused
  * later gives the approval back.
  */
@@ -114,14 +114,17 @@ function timely(approval: ApprovalRow, recordedAt: number, receivedAt: number): 
 }
 
 /**
- * The approval route stores the rate as a number and the amount as a decimal string, and
- * leaves out the one the action does not carry; both must match, absent ones included.
+ * The approval route stores the rate as a number and the amount and difference as decimal
+ * strings, and leaves out those the action does not carry; all must match, absent ones
+ * included.
  */
 function approves(approval: ApprovalRow, action: PermissionAction): boolean {
   const amount = action.amount === undefined ? undefined : action.amount.toString();
+  const difference = action.difference === undefined ? undefined : action.difference.toString();
   return (
     approval.action_key === action.key &&
     approval.payload.discountRate === action.discountRate &&
-    approval.payload.amount === amount
+    approval.payload.amount === amount &&
+    approval.payload.difference === difference
   );
 }

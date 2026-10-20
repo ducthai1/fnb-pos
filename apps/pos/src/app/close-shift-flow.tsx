@@ -1,6 +1,6 @@
 import {
-  ACCEPT_CLOSE_DIFFERENCE,
   type Vnd,
+  acceptCloseDifference,
   assessClosingCount,
   formatVnd,
   summarizeShiftCash,
@@ -49,15 +49,16 @@ export interface CloseShiftFlowProps {
 }
 
 /**
- * Closing the shift: the drawer counted note by note against the book, a difference beyond
- * the shop's tolerance accepted by a manager, shift.close, then the closing slip.
+ * Closing the shift: the drawer counted note by note against the server's book of the shift
+ * (plus the till's cash still waiting to sync), a difference beyond the shop's tolerance
+ * accepted by a manager for that very difference, shift.close, then the closing slip.
  */
 export function CloseShiftFlow(props: CloseShiftFlowProps) {
   const { client, place, menu } = props;
   const gate = useApprovalGate();
   const { authority } = useTillPermissions();
-  const book = useShiftLedger(client, props.shiftId, authority.staffId);
-  const disagreed = useCloseRefused(client, props.shiftId);
+  const book = useShiftLedger(client, props.shiftId);
+  const refusedCount = useCloseRefused(client, props.shiftId);
   if (gate.sheet !== null) return gate.sheet;
   if (book === null) {
     return (
@@ -69,19 +70,22 @@ export function CloseShiftFlow(props: CloseShiftFlowProps) {
   }
   const tolerance = closeToleranceOf(menu.config.settings);
   const assess = (counted: Vnd) => assessClosingCount(book.ledger, counted, tolerance);
+  // What the server's figures make of the count it refused, not what the till first thought.
+  const disagreed = refusedCount === null ? null : assess(refusedCount).difference;
   return (
     <CloseShiftScreen
       header={props.header}
       figures={summarizeShiftCash(book.ledger)}
       assess={assess}
-      notice={disagreed ? T.serverDisagreed : null}
+      notice={disagreed === null ? null : T.serverDisagreed(formatVnd(disagreed))}
       onBack={props.onBack}
       onConfirm={(counts, assessment) =>
         attempt(async () => {
           let approvalId: string | null = null;
-          if (assessment.needsAcceptance || disagreed) {
+          if (assessment.needsAcceptance || disagreed !== null) {
             const said = vi.approval.actions.closeDifference(formatVnd(assessment.difference));
-            const outcome = await gate.require(ACCEPT_CLOSE_DIFFERENCE, said);
+            const action = acceptCloseDifference(assessment.difference);
+            const outcome = await gate.require(action, said);
             if (outcome.kind === "denied") return vi.approval.denied;
             const approval = approvalOf(outcome);
             if (approval === undefined) return null;

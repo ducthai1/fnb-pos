@@ -112,7 +112,7 @@ export async function coffeeDraft(app: FastifyInstance, s: SyncShop, till: Till)
 export async function approval(
   app: FastifyInstance,
   till: Till,
-  action: { key: string; amount?: string },
+  action: { key: string; amount?: string; difference?: string },
   approverStaffId: string,
   approverPin: string,
 ): Promise<string> {

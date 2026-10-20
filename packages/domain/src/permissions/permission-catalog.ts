@@ -47,6 +47,11 @@ export interface PermissionDefinition {
    */
   readonly approvable: boolean;
   readonly threshold?: PermissionThresholdKind;
+  /**
+   * The figure an action of this key names, which an approval is given for and must match:
+   * not a cap, just what was agreed to (the close difference a manager accepted).
+   */
+  readonly figure?: "difference";
 }
 
 export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDefinition>> = {
@@ -59,7 +64,7 @@ export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDe
   comp_item: { approvable: true },
   cash_move: { approvable: true, threshold: "max_amount" },
   open_drawer: { approvable: true },
-  accept_close_difference: { approvable: true },
+  accept_close_difference: { approvable: true, figure: "difference" },
   reopen_paid_order: { approvable: true },
   transfer_table: { approvable: true },
   close_unpaid_table: { approvable: true },

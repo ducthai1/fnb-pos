@@ -24,7 +24,7 @@ import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
 import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface ApprovalBody {
-  action: { key: string; discountRate?: number; amount?: string };
+  action: { key: string; discountRate?: number; amount?: string; difference?: string };
   approverStaffId: string;
   approverPin: string;
 }
@@ -43,6 +43,8 @@ const approvalBody = {
         discountRate: { type: "integer" },
         // Money travels as a decimal string: a JSON number rounds past 2^53.
         amount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
+        // A close difference is signed: counted − expected, short below zero.
+        difference: { type: "string", pattern: "^(0|-?[1-9][0-9]{0,18})$" },
       },
     },
     approverStaffId: uuidJsonSchema,
@@ -84,6 +86,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
           ? {}
           : { discountRate: sent.discountRate as BasisPoints }),
         ...(sent.amount === undefined ? {} : { amount: vnd(BigInt(sent.amount)) }),
+        ...(sent.difference === undefined ? {} : { difference: vnd(BigInt(sent.difference)) }),
       };
       try {
         // With no grants this only checks the action carries the value its key needs.
@@ -115,7 +118,11 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
           approvedByStaffId: approverStaffId,
           deviceId: device.deviceId,
           branchId: device.branchId,
-          payload: { discountRate: action.discountRate, amount: action.amount },
+          payload: {
+            discountRate: action.discountRate,
+            amount: action.amount,
+            difference: action.difference,
+          },
           createdAt: now,
         });
         await appendAudit(client, {

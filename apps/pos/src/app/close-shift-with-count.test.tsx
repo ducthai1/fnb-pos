@@ -1,3 +1,4 @@
+import type { SyncCommandEnvelope } from "@fnb/contracts";
 import { formatVnd, vnd } from "@fnb/domain";
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -12,6 +13,17 @@ const shown = (key: string) =>
 const addNotes = (...notes: number[]) => {
   for (const note of notes) tap(text.checkout.openShift.addNote(money(note)));
 };
+
+/**
+ * Cash another order paid into the till's open shift on the server (a table opened in the
+ * previous shift, a handheld at the door): the server sends the shift out again.
+ */
+function cashFromAnotherOrder(server: ReturnType<typeof counterWithManager>, amount: number) {
+  const open = [...server.rows.values()].find((row) => row.status === "open" && "figures" in row);
+  const payments = [{ method: "cash", amount }];
+  const payload = { orderId: "0199f0ee-0000-7000-8000-00000000c0de", shiftId: open?.id, payments };
+  server.answer({ type: "order.pay", payload } as unknown as SyncCommandEnvelope);
+}
 
 /** A coffee sold for exactly 29.000 in cash, then the close screen. */
 async function soldACoffeeThenClose(server: ReturnType<typeof counterWithManager>) {
@@ -75,7 +87,10 @@ describe("closing the shift on the cashier's count", () => {
     await managerApproves();
     await screen.findByRole("heading", { name: T.doneTitle });
     await waitFor(() => expect(pushedOf(server, "shift.close")).toHaveLength(1));
-    expect(server.state.calls.approvals[0]?.action).toEqual({ key: "accept_close_difference" });
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "accept_close_difference",
+      difference: "-9000",
+    });
     expect(pushedOf(server, "shift.close")[0]?.payload).toMatchObject({
       counted: 20_000,
       approvalId: server.state.approvals[0]?.approvalId,
@@ -96,7 +111,28 @@ describe("closing the shift on the cashier's count", () => {
     expect(pushedOf(server, "shift.close")).toEqual([]);
   });
 
-  it("asks a manager next time when the server found a difference the till did not", async () => {
+  it("counts against the server's book, cash another order paid into the shift included", async () => {
+    const server = counterWithManager();
+    await soldACoffeeThenClose(server);
+    cashFromAnotherOrder(server, 29_000);
+    await waitFor(() => expect(shown("expected")).toBe("58000"));
+    addNotes(20_000, 5_000, 2_000, 2_000);
+    expect(shown("difference")).toBe("-29000");
+    tap(T.confirm);
+    await screen.findByRole("heading", { name: text.approval.title });
+    expect(document.querySelector("[data-approval-for]")?.textContent).toBe(
+      text.approval.actions.closeDifference(money(-29_000)),
+    );
+    await managerApproves();
+    await waitFor(() => expect(pushedOf(server, "shift.close")).toHaveLength(1));
+    // The manager approved the server's shortfall, and the approval names it.
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "accept_close_difference",
+      difference: "-29000",
+    });
+  });
+
+  it("shows the server's difference when it refuses a close, and asks a manager for that figure", async () => {
     const server = counterWithManager();
     server.state.refuseTypes.set("shift.close", "SYNC_APPROVAL_REQUIRED");
     await soldACoffeeThenClose(server);
@@ -105,15 +141,19 @@ describe("closing the shift on the cashier's count", () => {
     await screen.findByRole("heading", { name: T.doneTitle });
     await waitFor(() => expect(pushedOf(server, "shift.close")).toHaveLength(1));
     server.state.refuseTypes.delete("shift.close");
+    // What the server's book held that the till had not heard of when it closed.
+    cashFromAnotherOrder(server, 29_000);
     tap(T.openNext);
     // The server kept the shift open: back to selling, and closing it again asks a manager.
     await screen.findByRole("button", { name: T.open });
     tap(T.open);
-    expect(await screen.findByText(T.serverDisagreed)).toBeTruthy();
+    await waitFor(() => expect(shown("expected")).toBe("58000"));
+    expect(document.body.textContent).toContain(T.serverDisagreed(money(-29_000)));
     addNotes(20_000, 5_000, 2_000, 2_000);
     tap(T.confirm);
     await managerApproves();
     await waitFor(() => expect(pushedOf(server, "shift.close")).toHaveLength(2));
     expect(pushedOf(server, "shift.close")[1]?.payload).toHaveProperty("approvalId");
+    expect(server.state.calls.approvals[0]?.action).toMatchObject({ difference: "-29000" });
   });
 });

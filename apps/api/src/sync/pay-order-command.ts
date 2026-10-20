@@ -8,7 +8,7 @@ import {
   withdrawPendingIntents,
 } from "../payments/qr-transfer-tenders";
 import { paidTimesOf } from "./paid-times";
-import { announceLatePayment, shiftForPayment } from "./payment-shift";
+import { announceShiftCash, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -65,7 +65,11 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
   );
   await queueSaleInvoice(context, stored);
   await withdrawPendingIntents(context, payload.orderId);
-  await announceLatePayment(context, shift);
+  await announceShiftCash(
+    context,
+    shift,
+    payload.payments.map((tender) => tender.method),
+  );
   return payload.orderId;
 }
 

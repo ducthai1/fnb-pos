@@ -155,6 +155,10 @@ describe("authorize is monotonic in the grants it is given", () => {
     const kind = PERMISSION_DEFINITIONS[k].threshold;
     if (kind === "max_rate") return rate.map((discountRate) => ({ key: k, discountRate }));
     if (kind === "max_amount") return amount.map((value) => ({ key: k, amount: value }));
+    if (PERMISSION_DEFINITIONS[k].figure === "difference") {
+      const signed = fc.bigInt({ min: -10_000_000n, max: 10_000_000n });
+      return signed.map((value) => ({ key: k, difference: vnd(value) }));
+    }
     return fc.constant({ key: k });
   });
   const grants = fc.array(grant, { maxLength: 8 });

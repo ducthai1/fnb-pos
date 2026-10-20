@@ -94,6 +94,24 @@ describe("shift.cash_move", () => {
     expect(stored).toEqual([{ approval_id: approvalId }]);
   });
 
+  it("counts every move through the shift's drawer, whoever signed in to make it", async () => {
+    const { till } = await openTill();
+    const first = { staffId: till.staffId, staffToken: till.staffToken };
+    await move(till, "out", 300_000);
+    const secondId = await hire(app, s.shop, SECOND_CASHIER_PIN);
+    const session = await startShift(app, till.deviceToken, secondId, SECOND_CASHIER_PIN);
+    // The same till hands over to the second cashier; its command numbers carry on.
+    Object.assign(till, { staffId: secondId, staffToken: session.body.staffSessionToken });
+    expect((await move(till, "out", 200_000)).status).toBe("accepted");
+    // 500.000 đ moved in the shift: one đồng more needs a manager, for either cashier.
+    expect((await move(till, "out", 1)).code).toBe("SYNC_APPROVAL_REQUIRED");
+    Object.assign(till, first);
+    expect((await move(till, "in", 1)).code).toBe("SYNC_APPROVAL_REQUIRED");
+    // The approval the till asks for is the drawer's total, and that is what is checked.
+    const approvalId = await approvedFor(till, 800_000);
+    expect((await move(till, "out", 300_000, approvalId)).status).toBe("accepted");
+  });
+
   // The manager agreed to one figure: an approval covers that total, not one below or above.
   it.each([
     ["less", 100_000],
@@ -127,17 +145,6 @@ describe("shift.cash_move", () => {
     expect((await pushShift(app, till, sent)).code).toBe("SYNC_APPROVAL_EXPIRED");
     // The refusal did not spend it: the same move recorded in time takes it.
     expect((await move(till, "out", 100_000, approvalId)).status).toBe("accepted");
-  });
-
-  it("keeps each staff member's total apart, on the same till and shift", async () => {
-    const { till } = await openTill();
-    await move(till, "out", 500_000);
-    const secondId = await hire(app, s.shop, SECOND_CASHIER_PIN);
-    const session = await startShift(app, till.deviceToken, secondId, SECOND_CASHIER_PIN);
-    // The same till hands over to the second cashier; its command numbers carry on.
-    Object.assign(till, { staffId: secondId, staffToken: session.body.staffSessionToken });
-    expect((await move(till, "out", 400_000)).status).toBe("accepted");
-    expect((await move(till, "out", 100_001)).code).toBe("SYNC_APPROVAL_REQUIRED");
   });
 
   it("starts every shift from nothing", async () => {

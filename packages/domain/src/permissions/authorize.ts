@@ -31,6 +31,11 @@ export interface PermissionAction {
    * has no shift yet, so the caller adds it up from the shift's cash moves.
    */
   readonly amount?: Vnd;
+  /**
+   * For accept_close_difference: counted − expected, signed. It decides nothing here (the key
+   * is held or not), but it is what a manager approves, so an approval matches one figure.
+   */
+  readonly difference?: Vnd;
 }
 
 /**
@@ -89,7 +94,12 @@ function measuredValue(
       reason,
     });
   };
-  const { discountRate, amount } = action;
+  const { discountRate, amount, difference } = action;
+  if (definition.figure === "difference") {
+    if (typeof difference !== "bigint") fail("missing difference");
+  } else if (difference !== undefined) {
+    fail("unexpected difference");
+  }
   if (definition.threshold !== "max_rate" && discountRate !== undefined) fail("unexpected rate");
   if (definition.threshold !== "max_amount" && amount !== undefined) fail("unexpected amount");
   if (definition.threshold === "max_rate") {

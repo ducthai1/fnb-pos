@@ -49,8 +49,15 @@ const shiftRow = async (shiftId: string) =>
     )
   )[0];
 
-const acceptDifference = (till: Till) =>
-  approval(app, till, { key: "accept_close_difference" }, managerId, MANAGER_PIN);
+/** A manager's acceptance of exactly `difference` (counted − expected) on `till`. */
+const acceptDifference = (till: Till, difference: number) =>
+  approval(
+    app,
+    till,
+    { key: "accept_close_difference", difference: String(difference) },
+    managerId,
+    MANAGER_PIN,
+  );
 
 /** A till whose shift opened on a 500.000 đ float and sold one coffee (29.000 đ) in cash. */
 async function tillWithSale() {
@@ -94,7 +101,7 @@ describe("shift.close", () => {
 
   it("accepts the difference with a manager's approval and records who accepted it", async () => {
     const { till, shiftId } = await tillWithSale();
-    const approvalId = await acceptDifference(till);
+    const approvalId = await acceptDifference(till, -20_000);
     const result = await pushShift(app, till, closeShift(till, 509_000, { approvalId }));
     expect(result.status).toBe("accepted");
     expect(result.snapshot?.close).toMatchObject({ difference: -20_000, approvalId });
@@ -144,9 +151,26 @@ describe("shift.close refusals", () => {
     expect(refused.code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
   });
 
+  // The manager agreed to one figure: a shortfall the till did not show is not covered.
+  it.each([
+    ["no difference at all", 0],
+    ["a smaller shortfall", -9_000],
+    ["the same amount over", 20_000],
+  ])("refuses an approval given for %s", async (_label, approved) => {
+    const { till } = await tillWithSale();
+    const other = await acceptDifference(till, approved);
+    const refused = await pushShift(app, till, closeShift(till, 509_000, { approvalId: other }));
+    expect(refused.code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
+    // Refused, it is not spent: the same close with the right figure goes through after.
+    const right = await acceptDifference(till, -20_000);
+    expect((await pushShift(app, till, closeShift(till, 509_000, { approvalId: right }))).status).toBe(
+      "accepted",
+    );
+  });
+
   it("refuses an approval granted on another till", async () => {
     const { till } = await tillWithSale();
-    const elsewhere = await acceptDifference(s.tillA);
+    const elsewhere = await acceptDifference(s.tillA, -20_000);
     const refused = await pushShift(
       app,
       till,
@@ -157,7 +181,7 @@ describe("shift.close refusals", () => {
 
   it("refuses an approval already spent on an earlier close", async () => {
     const { till } = await tillWithSale();
-    const approvalId = await acceptDifference(till);
+    const approvalId = await acceptDifference(till, -20_000);
     expect((await pushShift(app, till, closeShift(till, 509_000, { approvalId }))).status).toBe(
       "accepted",
     );

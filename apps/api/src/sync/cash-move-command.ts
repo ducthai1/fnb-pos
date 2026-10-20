@@ -10,8 +10,9 @@ import { CommandRejection } from "./sync-error-codes";
 
 /**
  * shift.cash_move: cash put into or taken out of the till's drawer outside a sale. The
- * cash_move limit is judged on everything the staff member has moved in this shift once
- * this move is made, so ten small moves cannot add up past the cap unseen. Returns the
+ * cash_move limit is judged on everything moved through this shift's drawer once this
+ * move is made, whoever moved it, so ten small moves (or two cashiers taking turns on one
+ * drawer) cannot add up past the cap unseen. Returns the
  * shift id: the answer is the shift with the move in its cash book.
  */
 async function moveCash(context: SyncCommandContext, payload: CashMovePayload) {

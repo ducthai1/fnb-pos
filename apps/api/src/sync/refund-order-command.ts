@@ -12,7 +12,7 @@ import { queueRefundInvoice } from "../einvoice/queue-einvoice";
 import { orderOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
 import { paidTimesOf } from "./paid-times";
-import { announceLatePayment, shiftForPayment } from "./payment-shift";
+import { announceShiftCash, shiftForPayment } from "./payment-shift";
 import { insertRefundAmounts } from "./refund-amounts-store";
 import { insertRefundHeader } from "./refund-order-writes";
 import { requirePermission } from "./staff-permission-check";
@@ -92,7 +92,11 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
     order: paid,
     chargeProfile: sale.chargeProfile,
   });
-  await announceLatePayment(context, shift);
+  await announceShiftCash(
+    context,
+    shift,
+    payload.payouts.map((tender) => tender.method),
+  );
   return refund.id;
 }
 

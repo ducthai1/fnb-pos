@@ -87,7 +87,16 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
   const unreachable = () => refusal(null, null);
   const tableName = (id: string) => state.floorPlan.tables.find((t) => t.id === id)?.name ?? "";
   const menu = buildTillMenu(snapshot, NO_MENU_COPIES, new Set());
-  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId, menu, tableName);
+  const announce = (entity: string, row: Record<string, unknown>) => {
+    state.feed.push({ entity, entityId: String(row.id), snapshot: row });
+  };
+  const rows = fakeServerRows(
+    CREDENTIAL.deviceId,
+    CREDENTIAL.branchId,
+    menu,
+    tableName,
+    announce,
+  );
   const floor = fakeFloorSource(state, rows.rows, state.calls);
 
   // The calls outside sync read the same state the tests script.

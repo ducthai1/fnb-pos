@@ -8,7 +8,7 @@ import { SHIFT_ERROR_CODES } from "./shift-error-codes";
  * which way the cash went, so a sign slip on a till cannot turn a refund into takings.
  * cash_sale / cash_refund: cash a sale took in or a refund paid out. cash_in / cash_out: cash
  * moved outside a sale (change float topped up, the ice delivery paid from the drawer), by
- * the staff member recorded, whose running total is what their cash_move limit caps.
+ * the staff member recorded; the shift's running total of them is what cash_move caps.
  */
 export type ShiftCashEvent =
   | { readonly kind: "cash_sale" | "cash_refund"; readonly amount: Vnd }
@@ -73,29 +73,29 @@ export function netCashOf(events: readonly ShiftCashEvent[]): Vnd {
 }
 
 /**
- * The cash `staffId` has moved in or out of this shift's drawer, every move counted as a
+ * The cash moved in or out of this shift's drawer by anyone, every move counted as a
  * magnitude: taking 400.000 đ out and putting 400.000 đ back is 800.000 đ handled, and a
  * limit judged per move, or on the net, would let it be split into steps under the cap.
+ * The cap is the drawer's, not each person's: two cashiers on one drawer (or one signing in
+ * again as someone else) cannot each move a full cap's worth unseen, and the till, whose
+ * copy of the shift knows the totals but not who made each move, judges it the same way.
  */
-export function cumulativeCashMovedBy(ledger: ShiftCashLedger, staffId: string): Vnd {
+export function cumulativeCashMovedInShift(ledger: ShiftCashLedger): Vnd {
   let moved = ZERO_VND;
   for (const event of ledger.events) {
     if (event.kind !== "cash_in" && event.kind !== "cash_out") continue;
     assertMagnitude(event.amount);
-    if (event.staffId === staffId) moved = addVnd(moved, event.amount);
+    moved = addVnd(moved, event.amount);
   }
   return moved;
 }
 
-/** The permission action a new cash move is judged by: the mover's total once it is made. */
+/** The permission action a new cash move is judged by: the shift's total once it is made. */
 export function cashMoveAction(
   ledger: ShiftCashLedger,
   move: Extract<ShiftCashEvent, { kind: "cash_in" | "cash_out" }>,
 ): PermissionAction {
-  const amount = cumulativeCashMovedBy(
-    { ...ledger, events: [...ledger.events, move] },
-    move.staffId,
-  );
+  const amount = cumulativeCashMovedInShift({ ...ledger, events: [...ledger.events, move] });
   return { key: "cash_move", amount };
 }
 

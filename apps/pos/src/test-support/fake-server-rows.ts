@@ -15,10 +15,11 @@ export function fakeServerRows(
   branchId: string,
   menu: TillMenu,
   tableNameOf: (tableId: string) => string,
+  announce: (entity: string, row: Row) => void,
 ) {
   const rows = new Map<string, Row>();
   const tables = fakeTableRows(rows, menu, { deviceId, branchId }, tableNameOf);
-  const shifts = fakeShiftBook(rows, deviceId);
+  const shifts = fakeShiftBook(rows, deviceId, (row) => announce("shift", row));
   /** How long a QR stays payable from the till's command, as the server would decide it. */
   const qr = { lifetimeMs: 15 * 60_000 };
   const bump = (id: string, fields: Record<string, unknown>): Row => {

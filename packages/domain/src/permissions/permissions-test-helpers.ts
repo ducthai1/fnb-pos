@@ -9,6 +9,7 @@ export function actionFor(key: PermissionKey, value = 0): PermissionAction {
   const threshold = PERMISSION_DEFINITIONS[key].threshold;
   if (threshold === "max_rate") return { key, discountRate: basisPoints(value) };
   if (threshold === "max_amount") return { key, amount: vnd(value) };
+  if (PERMISSION_DEFINITIONS[key].figure === "difference") return { key, difference: vnd(value) };
   return { key };
 }
 
