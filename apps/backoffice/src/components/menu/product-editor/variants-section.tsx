@@ -1,8 +1,11 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { vi } from "../../../messages/vi";
+import { Icon } from "../../ui/icon";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, variantPath } from "./draft-error-paths";
+import { EDITOR_SECTIONS } from "./editor-sections";
 import type { ProductDraft } from "./product-draft";
 import { type DraftEdit, addVariant, removeVariant, setVariant } from "./product-draft-edits";
 
@@ -18,7 +21,7 @@ export function VariantsSection({
   edit: (change: DraftEdit) => void;
 }) {
   return (
-    <fieldset className="bo-card bo-fieldset-card">
+    <fieldset className="bo-card bo-fieldset-card" id={EDITOR_SECTIONS.variants}>
       <legend className="bo-subtitle">{T.variants}</legend>
       <p className="bo-muted">{T.variantsHint}</p>
       {draft.variants.map((variant, index) => (
@@ -47,7 +50,8 @@ export function VariantsSection({
           <FieldError message={errors[variantPath(variant.id)]} />
         </div>
       ))}
-      <button type="button" className="bo-button" onClick={() => edit(addVariant())}>
+      <button type="button" className="bo-button bo-button--add" onClick={() => edit(addVariant())}>
+        <Icon of={Plus} size={16} />
         {T.addVariant}
       </button>
     </fieldset>

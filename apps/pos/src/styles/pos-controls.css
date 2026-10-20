@@ -1,0 +1,187 @@
+/* The till's controls: buttons and badges.
+   Pressing is shown by :active (a till has no hover); hover only adds, never informs. */
+
+.pos-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--tap-lg);
+  min-width: var(--tap-lg);
+  max-width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    transform 80ms ease;
+}
+
+.pos-button:active:not(:disabled) {
+  transform: scale(0.98);
+  background: var(--c-surface-3);
+}
+
+.pos-button:focus-visible,
+.pos-tab:focus-visible,
+.pos-badge:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.pos-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pos-button--primary {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-brand);
+}
+
+.pos-button--primary:active:not(:disabled) {
+  background: var(--c-brand-strong);
+}
+
+/* A second way forward that is not the main one, e.g. send to the kitchen beside pay. */
+.pos-button--secondary {
+  border-color: var(--c-brand-soft);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-button--secondary:active:not(:disabled) {
+  background: var(--c-brand-soft-pressed);
+}
+
+/* The bank's way: a VietQR transfer. */
+.pos-button--info {
+  border-color: var(--c-info);
+  background: var(--c-info);
+  color: var(--c-on-info);
+  font-weight: var(--fw-semibold);
+}
+
+/* A step before paying that the guests hold in hand: the pre-bill. */
+.pos-button--amber {
+  border-color: var(--c-amber-line);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+  font-weight: var(--fw-semibold);
+}
+
+/* Confirming something that cannot be taken back: a void, cancelling an order. */
+.pos-button--destructive {
+  border-color: var(--c-danger);
+  background: var(--c-danger);
+  color: var(--c-on-danger);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-button--danger {
+  border-color: var(--c-danger);
+  background: var(--c-surface);
+  color: var(--c-danger);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-button--quiet {
+  align-self: flex-start;
+  border-color: transparent;
+  background: transparent;
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-button--quiet:active:not(:disabled) {
+  background: var(--c-brand-soft);
+}
+
+.pos-button--sm {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-md);
+  border-radius: var(--r-sm);
+}
+
+.pos-button--lg {
+  min-height: 72px;
+  font-size: var(--fs-xl);
+  border-radius: var(--r-lg);
+}
+
+.pos-button--block {
+  width: 100%;
+}
+
+/* A small fact in a pill; tone by data-tone, so the words always say it too. */
+.pos-badge {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 6px var(--sp-3);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  overflow-wrap: anywhere;
+}
+
+/* Still checking the link: the loader icon turns, so the pill does not read as stuck. */
+.pos-badge[data-connection="checking"] .pos-icon {
+  animation: pos-spin 1.2s linear infinite;
+}
+
+.pos-badge[data-tone="ok"] {
+  border-color: transparent;
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.pos-badge[data-tone="warn"] {
+  border-color: transparent;
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+}
+
+.pos-badge[data-tone="danger"] {
+  border-color: transparent;
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.pos-badge[data-tone="info"] {
+  border-color: transparent;
+  background: var(--c-info-soft);
+  color: var(--c-info);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-button {
+    transition: none;
+  }
+  .pos-badge[data-connection="checking"] .pos-icon {
+    animation-duration: 4s;
+  }
+}

@@ -1,0 +1,194 @@
+/* The frame: a bar over everything, a side menu of grouped pages and the content. On a
+   computer the menu narrows to its icons; on a phone (360px) it slides over the content
+   from a button, the branch picker taking a row of its own under the bar. */
+
+.bo-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sidenav-w) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.bo-shell[data-nav-collapsed="true"] {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.bo-topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+  min-height: var(--topbar-h);
+  padding: var(--sp-2) var(--sp-5);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.bo-topbar__name {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+}
+
+/* The shop's mark before its name: a plain brand square, no logo of anyone's. */
+.bo-topbar__mark {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--c-brand-tint), var(--c-brand));
+}
+
+.bo-topbar__branch {
+  flex: 0 1 260px;
+  min-width: 0;
+}
+
+.bo-branch-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding-left: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+}
+
+.bo-branch-picker:focus-within {
+  border-color: var(--c-focus);
+  box-shadow: var(--ring);
+}
+
+.bo-branch-picker__select.bo-input {
+  flex: 1;
+  min-height: 38px;
+  padding-left: 0;
+  border: 0;
+  background: transparent;
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+  text-overflow: ellipsis;
+}
+
+.bo-branch-picker__select.bo-input:focus-visible {
+  box-shadow: none;
+}
+
+.bo-topbar__account {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 320px;
+}
+
+.bo-topbar__person {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+.bo-avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-bold);
+}
+
+.bo-avatar::before {
+  content: attr(data-initial);
+}
+
+.bo-logout {
+  flex: none;
+}
+
+.bo-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.bo-icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* Scoped to the bar so the button style, loaded after this file, cannot show it on a computer. */
+.bo-topbar .bo-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .bo-topbar__person {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .bo-shell,
+  .bo-shell[data-nav-collapsed="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bo-topbar {
+    flex-wrap: wrap;
+    row-gap: var(--sp-2);
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .bo-topbar .bo-menu-toggle {
+    display: inline-grid;
+  }
+
+  .bo-topbar__name {
+    font-size: var(--fs-md);
+  }
+
+  .bo-topbar__mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .bo-topbar__branch {
+    order: 9;
+    flex: 1 0 100%;
+  }
+
+  .bo-logout__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .bo-logout.bo-button {
+    width: var(--control-h);
+    padding: 0;
+  }
+}

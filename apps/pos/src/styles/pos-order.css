@@ -1,35 +1,17 @@
-/* The order beside the menu, the option picker, the shift float. Long names wrap anywhere;
-   columns are minmax(0, …) so no name can widen the screen. */
-
-.pos-screen__inner--wide {
-  max-width: 1200px;
-}
-
-.pos-till-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.pos-till-header__who {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  min-width: 0;
-}
+/* The order beside the menu: its lines, totals and the pay button. Long names wrap
+   anywhere; columns are minmax(0, …) so no name can widen the screen. */
 
 .pos-sale {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  align-items: start;
+  gap: var(--sp-4);
 }
 
-/* A tablet held sideways: the menu on the left, the order always in view on the right. */
+/* A tablet: the menu on the left, the order always in view on the right. */
 @media (min-width: 760px) {
   .pos-sale {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 36%);
   }
   .pos-cart {
     position: sticky;
@@ -37,123 +19,167 @@
   }
 }
 
+/* Under the till's bar, which stays in view from this width up. */
+@media (min-width: 1024px) {
+  .pos-sale {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+  }
+  .pos-cart {
+    top: calc(var(--bar-h) + var(--sp-3));
+  }
+}
+
+.pos-sale__menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
 .pos-cart {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-3);
   min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--pos-border);
-  border-radius: 12px;
-  background: var(--pos-surface);
+  padding: var(--sp-4) var(--sp-4) 0;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .pos-cart__number {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--fs-lg);
+}
+
+.pos-cart__lines:empty {
+  display: none;
+}
+
+/* The totals and the pay button stay at the foot of the screen while a long order scrolls. */
+.pos-cart__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-inline: calc(-1 * var(--sp-4));
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  border-top: 1px solid var(--c-border-soft);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-dock);
 }
 
 .pos-cart-line {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--pos-border);
+  gap: 6px;
+  padding-block: var(--sp-3);
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-cart-line:first-child {
+  padding-top: 0;
+}
+
+.pos-cart-line:last-child {
+  border-bottom: 0;
 }
 
 .pos-cart-line__head {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--sp-2);
+  margin: 0;
 }
 
 .pos-cart-line__name {
   flex: 1 1 auto;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 .pos-cart-line__amount {
   flex: 0 0 auto;
+  font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 /* Options sit under their item, indented: the tree the bill and the bar ticket print. */
 .pos-cart-line__children {
   margin: 0;
-  padding: 0 0 0 20px;
+  padding: 0 0 0 var(--sp-4);
   list-style: none;
-  color: var(--pos-muted);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
 }
 
+/* A note is for whoever makes the drink, so it stands out from the options. */
 .pos-cart-line__note {
-  margin: 0;
-  padding-left: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 0 var(--sp-4);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+  font-size: var(--fs-sm);
   white-space: pre-wrap;
-  color: var(--pos-muted);
+}
+
+.pos-cart-line__note > .pos-icon {
+  margin-top: 2px;
 }
 
 .pos-cart-line__actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
-.pos-stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.pos-cart-line__remove {
+  color: var(--c-danger);
 }
 
-.pos-stepper__value {
-  min-width: 3ch;
-  text-align: center;
-  font-size: 1.25rem;
-  font-variant-numeric: tabular-nums;
-}
-
+/* The names are short and ours; an amount too long for a narrow cart wraps under itself
+   instead of pushing over its name ("Cần thu" hidden under 215.932.943.880 đ at 800px). */
 .pos-totals {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 12px;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--sp-1) var(--sp-3);
   margin: 0;
+  color: var(--c-text-2);
 }
 
 .pos-totals dd {
   margin: 0;
+  overflow-wrap: anywhere;
   text-align: right;
+  color: var(--c-text);
   font-variant-numeric: tabular-nums;
 }
 
-.pos-totals__due {
-  font-size: 1.375rem;
-  font-weight: 700;
+.pos-totals .pos-totals__due {
+  align-self: baseline;
+  color: var(--c-text);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+}
+
+.pos-totals dd.pos-totals__due {
+  color: var(--c-brand-strong);
 }
 
 .pos-cart__checkout {
   width: 100%;
   min-height: 64px;
-  font-size: 1.25rem;
-}
-
-.pos-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.pos-group__legend {
-  margin-bottom: 8px;
-  padding: 0;
-  font-weight: 600;
-}
-
-.pos-group__rule {
-  margin-left: 8px;
-  color: var(--pos-muted);
-  font-weight: 400;
+  font-size: var(--fs-xl);
 }

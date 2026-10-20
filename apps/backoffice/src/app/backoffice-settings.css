@@ -74,3 +74,41 @@
     text-align: left;
   }
 }
+
+/* Settings in groups: a heading with its icon, then its cards two across when there is room. */
+.bo-settings {
+  gap: var(--sp-6);
+}
+
+.bo-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-group-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-group-title .bo-icon {
+  color: var(--c-brand);
+}
+
+.bo-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: var(--sp-4);
+  align-items: start;
+  min-width: 0;
+}
+
+.bo-settings-group[id] {
+  scroll-margin-top: 72px;
+}

@@ -6,8 +6,12 @@ import type { Branch } from "../../lib/api/branch-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { ErrorNotice } from "../ui/error-notice";
-import { BranchPicker } from "./branch-picker";
+import { Icon } from "../ui/icon";
+import { AdminTopbar } from "./admin-topbar";
+import { BranchNotice } from "./branch-picker";
+import { rememberedCollapse, rememberCollapse } from "./nav-collapse";
 import {
   type Session,
   SessionContext,
@@ -29,8 +33,9 @@ export interface AdminShellProps {
 }
 
 /**
- * Every signed-in page: checks the session first (GET /auth/me), then shows the side
- * menu, which folds into a button on a phone, and the branch the pages are about.
+ * Every signed-in page: checks the session first (GET /auth/me), then shows the bar (shop,
+ * branch, account) and the side menu, which narrows to its icons on a computer and folds
+ * behind a button on a phone.
  */
 export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps) {
   const api = useApi();
@@ -39,6 +44,7 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
   const [branchesError, setBranchesError] = useState<string | null>(null);
   const [branchId, setBranchId] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(rememberedCollapse);
   const [leaving, setLeaving] = useState(false);
 
   const checkSession = useCallback(async () => {
@@ -84,7 +90,7 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
     onSignedOut();
   }
 
-  if (check.phase === "checking") return <p className="bo-splash">{T.loading}</p>;
+  if (check.phase === "checking") return <p className="bo-splash bo-loading">{T.loading}</p>;
   if (check.phase === "failed" || session === null) {
     return (
       <div className="bo-splash">
@@ -96,30 +102,38 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
     );
   }
   const { user } = session;
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+    rememberCollapse(!collapsed);
+  };
   return (
     <SessionContext.Provider value={session}>
-      <div className="bo-shell" data-nav-open={navOpen}>
-        <header className="bo-topbar">
-          <button
-            type="button"
-            className="bo-button bo-menu-toggle"
-            aria-expanded={navOpen}
-            aria-controls="bo-sidenav"
-            onClick={() => setNavOpen((open) => !open)}
-          >
-            {navOpen ? T.closeMenu : T.openMenu}
-          </button>
-          <span className="bo-topbar__name bo-wrap">{user.organizationName ?? T.appName}</span>
-          <button type="button" className="bo-link-button" disabled={leaving} onClick={() => void logout()}>
-            {leaving ? T.loggingOut : T.logout}
-          </button>
-        </header>
+      <div className="bo-shell" data-nav-open={navOpen} data-nav-collapsed={collapsed}>
+        <AdminTopbar
+          user={user}
+          branches={branches}
+          branchesFailed={branchesError !== null}
+          navOpen={navOpen}
+          onToggleNav={() => setNavOpen((open) => !open)}
+          leaving={leaving}
+          onLogout={() => void logout()}
+        />
         <nav id="bo-sidenav" className="bo-sidenav" aria-label={T.navigation}>
           {renderNav(() => setNavOpen(false))}
-          <p className="bo-sidenav__user bo-wrap">{user.displayName ?? user.accountId}</p>
+          <button
+            type="button"
+            className="bo-sidenav__collapse"
+            aria-controls="bo-sidenav"
+            aria-expanded={!collapsed}
+            onClick={toggleCollapse}
+          >
+            <Icon of={collapsed ? PanelLeftOpen : PanelLeftClose} size={20} />
+            <span className="bo-sidenav__label">{collapsed ? T.expandMenu : T.collapseMenu}</span>
+          </button>
         </nav>
+        {navOpen && <div className="bo-shell__backdrop" aria-hidden="true" onClick={() => setNavOpen(false)} />}
         <main className="bo-main" data-scroll-root>
-          <BranchPicker branches={branches} error={branchesError} />
+          <BranchNotice branches={branches} error={branchesError} />
           {children}
         </main>
       </div>

@@ -129,3 +129,25 @@ describe("closing a business day", () => {
     await screen.findByRole("heading", { name: vi.shell.permissionDeniedTitle });
   });
 });
+
+describe("what a close waits for, at a glance", () => {
+  const check = (key: string) => document.querySelector<HTMLElement>(`[data-check="${key}"]`)!;
+
+  it("ticks what is done and counts what is left, on a day not closed", async () => {
+    await renderSignedIn(<DayCloseScreen />, server(dayStatus({ openShiftIds: [SHIFT], openDrafts: [DRAFT, { ...DRAFT, id: fixtureId(73) }] })));
+    await screen.findByRole("list", { name: T.checklistTitle });
+    expect(check("shifts").dataset.done).toBe("false");
+    expect(check("shifts").textContent).toContain(T.checkLeft(1));
+    expect(check("drafts").textContent).toContain(T.checkLeft(2));
+    expect(check("invoices").dataset.done).toBe("true");
+    expect(check("invoices").textContent).toContain(T.checkDone);
+    expect(document.querySelector('[data-state="open"]')).not.toBeNull();
+  });
+
+  it("drops the checklist once the day is closed, and says when", async () => {
+    await renderSignedIn(<DayCloseScreen />, server(dayStatus({ dayClose: { closedByAppUserId: OWNER.appUserId, closedAt: "2026-10-20T16:00:00.000Z" } })));
+    await screen.findByText(/^Đã chốt lúc/);
+    expect(screen.queryByRole("list", { name: T.checklistTitle })).toBeNull();
+    expect(document.querySelector('[data-state="closed"]')).not.toBeNull();
+  });
+});

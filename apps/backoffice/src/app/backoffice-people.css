@@ -57,3 +57,46 @@ input[type="radio"] {
   flex: none;
   accent-color: var(--bo-primary);
 }
+
+/* A short form on a computer: its fields two across, the title, notices and button full width. */
+@media (min-width: 1024px) {
+  .bo-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .bo-form-grid > h2,
+  .bo-form-grid > .bo-notice,
+  .bo-form-grid > button[type="submit"] {
+    grid-column: 1 / -1;
+  }
+
+  .bo-form-grid > button[type="submit"] {
+    justify-self: start;
+  }
+}
+
+/* Pairing a till: what to do, and the button, on one line while they fit. */
+.bo-pairing__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+  min-width: 0;
+}
+
+.bo-pairing__head > p {
+  flex: 1 1 240px;
+}
+
+.bo-pairing__icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}

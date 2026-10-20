@@ -1,0 +1,59 @@
+/* Counting the drawer note by note (opening and closing a shift), and the total it makes. */
+
+.pos-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-note-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4ch auto;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 6px;
+  border: 1px solid var(--c-border-soft);
+  /* The note's own colour as a stripe at the start of its row (data-tone). */
+  border-left: 6px solid var(--cat, var(--c-border-soft));
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+}
+
+.pos-note-row .pos-note-row__add {
+  justify-content: flex-start;
+  border-color: transparent;
+  background: var(--cat-soft, var(--c-brand-soft));
+  color: var(--cat, var(--c-brand-strong));
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-note-row__count {
+  text-align: center;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-total {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The close's difference in the dock: short in red, over in amber, none in green. */
+.pos-total[data-difference-sign="-1"] {
+  color: var(--c-danger);
+}
+
+.pos-total[data-difference-sign="1"] {
+  color: var(--c-amber);
+}
+
+.pos-total[data-difference-sign="0"] {
+  color: var(--c-success);
+}

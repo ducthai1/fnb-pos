@@ -75,3 +75,24 @@ export function readProductDocument(body: unknown): ProductDocument | null {
     combo: (body.combo ?? null) as ProductDocument["combo"],
   };
 }
+
+/** The body that saves a document back unchanged; a caller then sets what it changes. */
+export function bodyOfDocument(document: ProductDocument): ProductBody {
+  return {
+    version: document.version,
+    brandId: document.brandId,
+    categoryId: document.categoryId,
+    kind: document.kind,
+    name: document.name,
+    basePrice: document.basePrice,
+    pricingMode: document.pricingMode,
+    taxRateBp: document.taxRateBp,
+    stationId: document.stationId,
+    trackStock: document.trackStock,
+    earnsPoints: document.earnsPoints,
+    printCupLabel: document.printCupLabel,
+    variants: document.variants,
+    modifierGroups: document.modifierGroups,
+    combo: document.combo,
+  };
+}

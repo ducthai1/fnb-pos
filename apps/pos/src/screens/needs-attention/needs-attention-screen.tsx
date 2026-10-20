@@ -3,6 +3,7 @@ import { orderIdOfRejected } from "../../features/payment/use-settled-qr-closing
 import { refusalSentence, vi } from "../../messages/vi";
 import { commandNameOf } from "../../messages/vi-sync-errors";
 import { ScreenFrame } from "../shared/screen-frame";
+import { EmptyState } from "../shared/state-view";
 
 const NO_CLOSABLE: ReadonlySet<string> = new Set();
 
@@ -26,7 +27,7 @@ export function NeedsAttentionScreen({
     <ScreenFrame title={vi.needsAttention.title}>
       <p className="pos-hint">{vi.needsAttention.hint}</p>
       {rejected.length === 0 ? (
-        <p className="pos-hint">{vi.needsAttention.empty}</p>
+        <EmptyState title={vi.needsAttention.empty} />
       ) : (
         <ul className="pos-list">
           {rejected.map((entry) => {

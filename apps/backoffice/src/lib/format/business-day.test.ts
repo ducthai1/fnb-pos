@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shopDaysWindow, todaysBusinessDate } from "./business-day";
+import { dayAfter, dayBefore, firstOfLastDays, shopDaysWindow, todaysBusinessDate } from "./business-day";
 
 const at = (text: string) => Date.parse(text);
 const inside = (window: { from: string; to: string }, instant: number) =>
@@ -34,5 +34,39 @@ describe("shopDaysWindow", () => {
     ["20/10/2026", "2026-10-21"],
   ])("refuses %s to %s", (fromDate, toDate) => {
     expect(shopDaysWindow(fromDate, toDate)).toBeNull();
+  });
+});
+
+describe("dayBefore", () => {
+  it("steps back over a month, a year and a leap day", () => {
+    expect(dayBefore("2026-10-20")).toBe("2026-10-19");
+    expect(dayBefore("2026-03-01")).toBe("2026-02-28");
+    expect(dayBefore("2028-03-01")).toBe("2028-02-29");
+    expect(dayBefore("2027-01-01")).toBe("2026-12-31");
+  });
+
+  it("leaves text that is not a day as it is", () => {
+    expect(dayBefore("2026-02-30")).toBe("2026-02-30");
+  });
+});
+
+describe("dayAfter", () => {
+  it("steps forward over a month end, a leap day and a year", () => {
+    expect(dayAfter("2026-10-20")).toBe("2026-10-21");
+    expect(dayAfter("2028-02-28")).toBe("2028-02-29");
+    expect(dayAfter("2026-12-31")).toBe("2027-01-01");
+    expect(dayAfter(dayBefore("2026-03-01"))).toBe("2026-03-01");
+  });
+
+  it("leaves text that is not a day as it is", () => {
+    expect(dayAfter("")).toBe("");
+  });
+});
+
+describe("firstOfLastDays", () => {
+  it("counts the last day in, across a month", () => {
+    expect(firstOfLastDays("2026-10-20", 1)).toBe("2026-10-20");
+    expect(firstOfLastDays("2026-10-20", 7)).toBe("2026-10-14");
+    expect(firstOfLastDays("2026-03-02", 30)).toBe("2026-02-01");
   });
 });

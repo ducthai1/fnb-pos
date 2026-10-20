@@ -22,6 +22,14 @@ export const VI_DAY_CLOSE = {
   invoice: (orderId: string, status: string, errorCode: string | null) =>
     `Đơn …${orderId.slice(-6)} · ${status}${errorCode === null ? "" : ` · ${errorCode}`}`,
   nothingOpen: "Không còn gì chặn việc chốt ngày.",
+  checklistTitle: "Trước khi chốt",
+  checks: {
+    shifts: "Mọi ca đã đóng",
+    drafts: "Không còn đơn chưa thanh toán",
+    invoices: "Không còn hóa đơn chờ phát hành",
+  },
+  checkLeft: (count: number) => `còn ${count}`,
+  checkDone: "xong",
   close: "Chốt ngày",
   closeTitle: (date: string) => `Chốt ngày ${date}?`,
   closeHint: "Số liệu ngày được giữ nguyên từ lúc này. Không hủy được thao tác này.",
@@ -34,6 +42,8 @@ export const VI_DAY_CLOSE = {
 export const VI_TRANSFERS = {
   title: "Khớp chuyển khoản",
   hint: "Chuyển khoản hệ thống không tự khớp được (sai nội dung, mã QR đã hết hạn…). Chọn một giao dịch và mã QR của đơn đang chờ, rồi khớp.",
+  counts: { transfers: "Chuyển khoản chưa khớp", intents: "Mã QR đang chờ tiền", refundDue: "Khoản cần hoàn" },
+  countsNote: { transfers: "Chọn một dòng để khớp", intents: "Đơn chờ khách chuyển", refundDue: "Tiền QR không đơn nào dùng" },
   refundTitle: "Cần hoàn cho khách",
   refundHint: "Tiền QR ngân hàng đã báo nhận nhưng không đơn nào dùng (thiếu, thừa, hoặc đơn đã trả cách khác): cần hoàn cho khách.",
   refundRow: (code: string, received: string, asked: string) =>

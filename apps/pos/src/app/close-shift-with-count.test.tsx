@@ -51,6 +51,8 @@ describe("closing the shift on the cashier's count", () => {
     expect(shown("counted")).toBe("29000");
     expect(shown("difference")).toBe("0");
     expect(screen.getByText(T.noDifference)).toBeTruthy();
+    // Coloured by its sign as well as said: none is the good case.
+    expect(screen.getByText(T.noDifference).getAttribute("data-difference-sign")).toBe("0");
     tap(T.confirm);
     await screen.findByRole("heading", { name: T.doneTitle });
     await waitFor(() => expect(pushedOf(server, "shift.close")).toHaveLength(1));
@@ -78,6 +80,11 @@ describe("closing the shift on the cashier's count", () => {
     expect(shown("difference")).toBe("-9000");
     // Money carries a no-break space, which text matchers fold away: read the page's text.
     expect(document.body.textContent).toContain(T.short(money(9_000)));
+    const said = document.querySelector("[data-difference-sign]");
+    expect([said?.textContent, said?.getAttribute("data-difference-sign")]).toEqual([
+      T.short(money(9_000)),
+      "-1",
+    ]);
     expect(screen.getByText(T.needsApproval)).toBeTruthy();
     tap(T.confirm);
     await screen.findByRole("heading", { name: text.approval.title });

@@ -1,5 +1,6 @@
 import type { PosProduct } from "@fnb/contracts";
 import { formatVnd } from "@fnb/domain";
+import { Check } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { newId } from "../../features/ids/new-id";
 import { type CartLine, MAX_LINE_QUANTITY, cleanNote } from "../../features/order/counter-order";
@@ -14,8 +15,12 @@ import {
 import { linePreviewTotal } from "../../features/order/line-preview-total";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
+import { useTillKey } from "../shared/use-till-key";
+import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { ModifierGroupField } from "./modifier-group-field";
+import { PickerProductHead } from "./picker-product-head";
+import { QuickNotes } from "./quick-notes";
 import { QuantityStepper } from "./quantity-stepper";
 
 const P = vi.sale.picker;
@@ -52,6 +57,7 @@ export function ModifierPickerScreen({
     note: null,
   };
   const total = linePreviewTotal(menu, draft, now);
+  useTillKey(vi.sale.keys.back, onCancel);
 
   function tap(groupId: string, optionId: string) {
     const group = product.modifierGroups.find((candidate) => candidate.id === groupId);
@@ -82,28 +88,53 @@ export function ModifierPickerScreen({
   }
 
   return (
-    <ScreenFrame title={product.name}>
-      {header}
-      {product.variants.length > 0 ? (
-        <fieldset className="pos-group">
-          <legend className="pos-group__legend">{P.variant}</legend>
-          <div className="pos-tabs">
-            {product.variants.map((variant) => (
-              <button
-                key={variant.id}
-                type="button"
-                className="pos-tab pos-wrap"
-                aria-pressed={variant.id === variantId}
-                onClick={() => {
-                  setVariantId(variant.id);
-                  setChoices(choicesForVariant(product, variant.id, choices));
-                  setError(null);
-                }}
-              >
-                {variant.name}
-              </button>
-            ))}
+    <ScreenFrame
+      title={product.name}
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={onCancel}>
+              {P.cancel}
+              <kbd className="pos-kbd" aria-hidden>
+                {vi.sale.backKeyCap}
+              </kbd>
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary pos-button--lg pos-wrap"
+              onClick={add}
+            >
+              {total === null ? P.addNoPrice : P.add(formatVnd(total))}
+            </button>
           </div>
+        </>
+      }
+    >
+      {header}
+      <PickerProductHead menu={menu} product={product} now={now} />
+      {product.variants.length > 0 ? (
+        <fieldset className="pos-group pos-choice-group">
+          <legend className="pos-group__legend">{P.variant}</legend>
+          <ul className="pos-chips">
+            {product.variants.map((variant) => (
+              <li key={variant.id} className="pos-chip-item">
+                <button
+                  type="button"
+                  className="pos-chip pos-chip--size"
+                  aria-pressed={variant.id === variantId}
+                  onClick={() => {
+                    setVariantId(variant.id);
+                    setChoices(choicesForVariant(product, variant.id, choices));
+                    setError(null);
+                  }}
+                >
+                  <Icon of={Check} size={18} />
+                  <span className="pos-chip__name">{variant.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </fieldset>
       ) : null}
       {product.modifierGroups.map((group) => (
@@ -117,33 +148,30 @@ export function ModifierPickerScreen({
           onFewer={(optionId) => setChoices(dropOptionUnit(group, optionId, choices))}
         />
       ))}
-      <QuantityStepper
-        label={P.quantity}
-        name={product.name}
-        value={quantity}
-        max={MAX_LINE_QUANTITY}
-        onChange={setQuantity}
-      />
-      <label className="pos-field">
-        <span className="pos-field__label">{vi.sale.note}</span>
-        <textarea
-          className="pos-input pos-note"
-          rows={2}
-          maxLength={500}
-          placeholder={P.notePlaceholder}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-        />
-      </label>
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={onCancel}>
-          {P.cancel}
-        </button>
-        <button type="button" className="pos-button pos-button--primary pos-wrap" onClick={add}>
-          {total === null ? P.addNoPrice : P.add(formatVnd(total))}
-        </button>
-      </div>
+      <section className="pos-card pos-picker__more">
+        <div className="pos-picker__quantity">
+          <span className="pos-field__label">{P.quantity}</span>
+          <QuantityStepper
+            label={P.quantity}
+            name={product.name}
+            value={quantity}
+            max={MAX_LINE_QUANTITY}
+            onChange={setQuantity}
+          />
+        </div>
+        <label className="pos-field">
+          <span className="pos-field__label">{vi.sale.note}</span>
+          <textarea
+            className="pos-input pos-note"
+            rows={2}
+            maxLength={500}
+            placeholder={P.notePlaceholder}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+        </label>
+        <QuickNotes note={note} onChange={setNote} />
+      </section>
     </ScreenFrame>
   );
 }

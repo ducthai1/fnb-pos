@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
 import type { PrintFailure } from "../../lib/api/reports-api";
-import { todaysBusinessDate } from "../../lib/format/business-day";
+import { firstOfLastDays, todaysBusinessDate } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { fixtureId } from "../../test-support/fake-reports-and-day";
@@ -67,5 +67,21 @@ describe("slips the tills could not print", () => {
   it("explains a role without view_reports instead of an empty list", async () => {
     await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures: async () => refused(403, "API_PERMISSION_DENIED") });
     await screen.findByRole("heading", { name: vi.shell.permissionDeniedTitle });
+  });
+
+  it("picks the last seven business days in one tap, ending today, and marks it", async () => {
+    const getPrintFailures = mock.fn(async () => ok({ failures: [], truncated: false }));
+    await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures });
+    await screen.findByText(T.empty);
+    const week = screen.getByRole("button", { name: T.ranges.week });
+    expect(screen.getByRole("button", { name: T.ranges.today }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(week);
+    const today = todaysBusinessDate();
+    await mock.waitFor(() => expect(getPrintFailures).toHaveBeenCalledTimes(2));
+    const [, from, to] = getPrintFailures.mock.calls[1]! as unknown as [string, string, string];
+    expect(Date.parse(to) - Date.parse(from)).toBe(7 * 24 * 60 * 60_000);
+    expect(Date.parse(to)).toBe(Date.parse(`${today}T04:00:00+07:00`) + 24 * 60 * 60_000);
+    expect(week.getAttribute("aria-pressed")).toBe("true");
+    expect((screen.getByLabelText(T.fromLabel) as HTMLInputElement).value).toBe(firstOfLastDays(today, 7));
   });
 });

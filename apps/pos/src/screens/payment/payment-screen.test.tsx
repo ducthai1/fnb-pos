@@ -14,17 +14,18 @@ const shown = (attribute: string) =>
 function openPayment(amountDue: Vnd, qrAccountSet = true) {
   const paid: (readonly Tender[])[] = [];
   const qrShown: number[] = [];
+  const back: number[] = [];
   render(
     <PaymentScreen
       header={null}
       amountDue={amountDue}
       qrAccountSet={qrAccountSet}
-      onBack={() => {}}
+      onBack={() => void back.push(1)}
       onQr={() => void qrShown.push(1)}
       onPaid={async (tenders) => void paid.push(tenders)}
     />,
   );
-  return { paid, qrShown };
+  return { paid, qrShown, back };
 }
 
 describe("taking the money", () => {
@@ -93,5 +94,12 @@ describe("taking the money", () => {
     expect(screen.queryByRole("button", { name: T.addCash })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: T.finish }));
     expect(paid).toEqual([[]]);
+  });
+
+  it("goes back to the order on Esc, like the button", () => {
+    const { back } = openPayment(vnd(129_000));
+    fireEvent.keyDown(window, { key: text.sale.keys.back });
+    expect(back).toHaveLength(1);
+    expect(screen.getByRole("button", { name: T.back })).toBeTruthy();
   });
 });

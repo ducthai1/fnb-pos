@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./messages/vi": "./src/messages/vi.ts",
+    "./sheet/write-xlsx-sheet": "./src/lib/sheet/write-xlsx-sheet.ts",
     "./test-support/hostile-catalog": "./src/test-support/hostile-catalog.ts"
   },
   "scripts": {
@@ -17,6 +18,9 @@
   "dependencies": {
     "@fnb/contracts": "workspace:*",
     "@fnb/domain": "workspace:*",
+    "@fontsource/be-vietnam-pro": "5.3.0",
+    "fflate": "0.8.3",
+    "lucide-react": "1.52.0",
     "next": "15.5.28",
     "react": "19.1.10",
     "react-dom": "19.1.10",

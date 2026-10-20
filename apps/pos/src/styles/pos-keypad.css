@@ -1,0 +1,81 @@
+/* The notes a customer hands over, as quick keys, and the number keys under the field. */
+
+.pos-quick-cash {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr));
+  gap: var(--sp-2);
+}
+
+.pos-quick-cash__key {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  min-height: var(--tap-lg);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-brand-soft);
+  border-radius: var(--r-md);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pos-quick-cash__key:active {
+  background: var(--c-brand-soft-pressed);
+}
+
+.pos-quick-cash__key:focus-visible,
+.pos-keypad__key:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.pos-quick-cash__hint {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.pos-quick-cash__amount {
+  max-width: 100%;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-2);
+}
+
+.pos-keypad__key {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap-lg);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-surface-3);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pos-keypad__key:active:not(:disabled) {
+  transform: scale(0.97);
+  background: var(--c-border);
+}
+
+.pos-keypad__key:disabled {
+  color: var(--c-text-3);
+  cursor: default;
+}

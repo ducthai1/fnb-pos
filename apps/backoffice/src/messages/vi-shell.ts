@@ -12,6 +12,12 @@ export const VI_LOGIN = {
   chooseOrganizationHint: "Tài khoản này thuộc nhiều tổ chức. Chọn nơi bạn muốn vào.",
   enterOrganization: (name: string) => `Vào ${name}`,
   back: "Đăng nhập tài khoản khác",
+  asideTitle: "Quản lý quán từ một nơi",
+  asidePoints: [
+    "Máy quầy bán tại quầy và tại bàn, vẫn bán được khi mất mạng.",
+    "Tiền mặt và chuyển khoản QR tự xác nhận, hoàn tiền có duyệt.",
+    "Doanh thu ngày, chốt ngày và hóa đơn điện tử ngay tại đây.",
+  ],
 } as const;
 
 export const VI_SHELL = {
@@ -21,7 +27,18 @@ export const VI_SHELL = {
   openMenu: "Mở menu",
   closeMenu: "Đóng menu",
   navigation: "Các mục quản lý",
+  collapseMenu: "Thu gọn menu",
+  expandMenu: "Mở rộng menu",
+  breadcrumb: "Bạn đang ở",
+  account: "Tài khoản đang đăng nhập",
+  groups: {
+    people: "Nhân sự & thiết bị",
+    menu: "Thực đơn",
+    sales: "Bán hàng & tiền",
+    shop: "Cửa hàng",
+  },
   nav: {
+    home: "Tổng quan",
     devices: "Thiết bị",
     staff: "Nhân viên",
     roles: "Vai trò",
@@ -68,4 +85,25 @@ export const VI_COMMON = {
   nameTooLong: (max: number) => `Tên dài tối đa ${max} ký tự.`,
   amountInvalid: "Nhập số tiền là số đồng nguyên, ví dụ 35000 hoặc 35.000.",
   countInvalid: "Nhập số nguyên từ 0.",
+} as const;
+
+export const VI_DAY_PICKER = {
+  previous: "Ngày trước",
+  next: "Ngày sau",
+  today: "Hôm nay",
+} as const;
+
+export const VI_TABLE = {
+  search: "Tìm",
+  clearSearch: "Xóa chữ tìm",
+  filter: "Lọc",
+  all: "Tất cả",
+  count: (label: string, count: number) => `${label} (${count})`,
+  sortBy: "Sắp xếp theo",
+  sortNone: "Thứ tự gốc",
+  sortOption: (label: string, ascending: boolean) => `${label} ${ascending ? "↑" : "↓"}`,
+  sortColumn: (label: string) => `Sắp xếp theo ${label}`,
+  shown: (shown: number, total: number) => (shown === total ? `${total} dòng` : `Đang hiện ${shown} / ${total} dòng`),
+  noMatch: "Không có dòng nào khớp. Thử bỏ bớt chữ tìm hoặc chọn bộ lọc khác.",
+  actions: "Thao tác",
 } as const;

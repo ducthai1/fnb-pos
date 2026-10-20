@@ -1,13 +1,21 @@
 import type { PaymentAccount } from "@fnb/contracts";
 import { type Vnd, formatVnd } from "@fnb/domain";
+import { CircleCheck, Clock, LoaderCircle, type LucideIcon, TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { type QrPhase, countdownText } from "../../features/payment/qr-intent-phase";
 import { ORDER_HAS_SETTLED_QR } from "../../features/payment/settled-qr";
 import { messageForCode, vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { QrCodeImage } from "./qr-code-image";
 
 const Q = vi.qr;
+
+const STATUS_ICON: Readonly<Record<"info" | "ok" | "warn", LucideIcon>> = {
+  info: LoaderCircle,
+  ok: CircleCheck,
+  warn: TriangleAlert,
+};
 
 export interface QrPaymentScreenProps {
   header: ReactNode;
@@ -80,17 +88,27 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
         ? [button(Q.closeWithSettledQr, props.onCloseWithSettledQr, true)]
         : [other, renew],
   };
+  const actionRow = actions[phase.kind];
   return (
-    <ScreenFrame title={Q.title}>
+    <ScreenFrame
+      title={Q.title}
+      dock={
+        actionRow.length === 0 ? undefined : (
+          <div className="pos-actions pos-actions--split">{actionRow}</div>
+        )
+      }
+    >
       {props.header}
-      <p className="pos-due">
-        {Q.amount}: <strong data-qr-amount={String(amount)}>{formatVnd(amount)}</strong>
+      <p className="pos-due pos-due--center">
+        <span className="pos-due__label">{Q.amount}</span>
+        <strong data-qr-amount={String(amount)}>{formatVnd(amount)}</strong>
       </p>
       <p
         className={`pos-qr-status pos-qr-status--${status.tone}`}
         role="status"
         data-qr-phase={phase.kind}
       >
+        <Icon of={STATUS_ICON[status.tone]} size={phase.kind === "paid" ? 28 : 22} />
         {status.text}
       </p>
       {phase.kind === "short" || phase.kind === "over" ? (
@@ -98,23 +116,35 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
       ) : null}
       {phase.kind === "waiting" && qr !== null ? (
         <section className="pos-card pos-qr" aria-label={Q.title}>
-          <QrCodeImage text={qr.payload} label={Q.imageLabel(formatVnd(amount))} />
+          <div className="pos-qr__frame">
+            <QrCodeImage text={qr.payload} label={Q.imageLabel(formatVnd(amount))} />
+          </div>
           <dl className="pos-qr__facts">
-            <dt>{Q.content}</dt>
-            <dd className="pos-qr__code" data-qr-content={qr.contentCode}>
-              {qr.contentCode}
-            </dd>
-            <dt>{Q.accountNumber}</dt>
-            <dd className="pos-wrap">{account.accountNumber}</dd>
-            <dt>{Q.accountName}</dt>
-            <dd className="pos-wrap">{account.accountName}</dd>
-            <dt>{Q.timeLeft}</dt>
-            <dd data-qr-seconds-left={phase.secondsLeft}>{countdownText(phase.secondsLeft)}</dd>
+            <div className="pos-qr__fact pos-qr__fact--code">
+              <dt>{Q.content}</dt>
+              <dd className="pos-qr__code" data-qr-content={qr.contentCode}>
+                {qr.contentCode}
+              </dd>
+            </div>
+            <div className="pos-qr__fact">
+              <dt>{Q.accountNumber}</dt>
+              <dd className="pos-wrap">{account.accountNumber}</dd>
+            </div>
+            <div className="pos-qr__fact">
+              <dt>{Q.accountName}</dt>
+              <dd className="pos-wrap">{account.accountName}</dd>
+            </div>
+            <div className="pos-qr__fact pos-qr__fact--time" data-low={phase.secondsLeft < 60}>
+              <dt>{Q.timeLeft}</dt>
+              <dd data-qr-seconds-left={phase.secondsLeft}>
+                <Icon of={Clock} size={20} />
+                {countdownText(phase.secondsLeft)}
+              </dd>
+            </div>
           </dl>
         </section>
       ) : null}
       <Alert message={props.error} />
-      <div className="pos-actions">{actions[phase.kind]}</div>
     </ScreenFrame>
   );
 }

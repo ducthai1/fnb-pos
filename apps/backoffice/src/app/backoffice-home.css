@@ -1,0 +1,198 @@
+/* The home page: today's figures across, the chart beside what needs doing, best sellers
+   and shortcuts below; one column on a phone. */
+
+.bo-home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+  min-width: 0;
+}
+
+.bo-home-grid > .bo-stats,
+.bo-home-grid > .bo-stack {
+  grid-column: 1 / -1;
+}
+
+.bo-home-hours {
+  grid-column: 1;
+}
+
+.bo-home-todo {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+}
+
+.bo-home-top {
+  grid-column: 1;
+}
+
+.bo-top-items,
+.bo-todos {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-top-items__row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.bo-top-items__row:last-child {
+  border-bottom: 0;
+}
+
+.bo-top-items__rank {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.bo-top-items__row:first-child .bo-top-items__rank {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.bo-top-items__name {
+  font-weight: var(--fw-medium);
+}
+
+.bo-top-items__units {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+.bo-top-items__amount {
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bo-todos {
+  gap: var(--sp-2);
+}
+
+.bo-todo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border-soft);
+  border-left: 4px solid var(--c-info);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+
+.bo-todo[data-tone="danger"] {
+  border-left-color: var(--c-danger);
+  color: var(--c-danger);
+}
+
+.bo-todo[data-tone="warn"] {
+  border-left-color: var(--c-amber-bold);
+  color: var(--c-amber);
+}
+
+.bo-todo:hover {
+  background: var(--c-surface-2);
+}
+
+.bo-todo:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-todo-clear {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  color: var(--c-success);
+  font-weight: var(--fw-medium);
+}
+
+.bo-home-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-home-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 48px;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.bo-home-link .bo-icon {
+  color: var(--c-brand);
+}
+
+.bo-home-link:hover {
+  border-color: var(--c-brand-tint);
+  color: var(--c-brand-strong);
+}
+
+.bo-home-link:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+@media (max-width: 1023px) {
+  .bo-home-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bo-home-hours,
+  .bo-home-todo,
+  .bo-home-top {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .bo-home-todo {
+    order: -1;
+  }
+
+  .bo-home-grid > .bo-stats {
+    order: -2;
+  }
+}
+
+@media (max-width: 479px) {
+  .bo-top-items__row {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
+  .bo-top-items__units {
+    grid-column: 2;
+  }
+}

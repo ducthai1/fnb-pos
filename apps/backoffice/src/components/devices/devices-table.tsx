@@ -1,5 +1,6 @@
 "use client";
 
+import { TabletSmartphone, Unplug } from "lucide-react";
 import { useState } from "react";
 import type { Device } from "../../lib/api/devices-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
@@ -8,12 +9,49 @@ import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
 import { ConfirmPanel } from "../ui/confirm-panel";
+import { type DataColumn, DataTable } from "../ui/data-table";
+import { EmptyState } from "../ui/empty-state";
 import { SuccessNotice } from "../ui/error-notice";
+import { Icon } from "../ui/icon";
 
 const T = vi.devices;
 
+const COLUMNS: readonly DataColumn<Device>[] = [
+  {
+    key: "name",
+    label: T.columns.name,
+    cell: (device) => <strong>{device.name}</strong>,
+    sortValue: (device) => device.name,
+  },
+  {
+    key: "pairedAt",
+    label: T.columns.pairedAt,
+    cell: (device) => formatDateTime(device.pairedAt),
+    sortValue: (device) => device.pairedAt,
+  },
+  {
+    key: "status",
+    label: T.columns.status,
+    cell: (device) =>
+      device.revokedAt === null ? (
+        <span className="bo-badge" data-tone="ok">
+          {T.active}
+        </span>
+      ) : (
+        <span className="bo-badge">{T.revoked(formatDateTime(device.revokedAt))}</span>
+      ),
+    sortValue: (device) => (device.revokedAt === null ? 0 : 1),
+  },
+];
+
 /** The tills of the branch; revoking one asks first, then reloads the list. */
-export function DevicesTable({ devices, onChanged }: { devices: readonly Device[]; onChanged: () => void }) {
+export function DevicesTable({
+  devices,
+  onChanged,
+}: {
+  devices: readonly Device[];
+  onChanged: () => void;
+}) {
   const api = useApi();
   const { signedOut } = useSession();
   const [confirming, setConfirming] = useState<Device | null>(null);
@@ -35,7 +73,6 @@ export function DevicesTable({ devices, onChanged }: { devices: readonly Device[
     onChanged();
   }
 
-  if (devices.length === 0) return <p className="bo-muted">{T.empty}</p>;
   return (
     <div className="bo-stack">
       <SuccessNotice message={done} />
@@ -54,42 +91,37 @@ export function DevicesTable({ devices, onChanged }: { devices: readonly Device[
           }}
         />
       )}
-      <table className="bo-table">
-        <thead>
-          <tr>
-            <th scope="col">{T.columns.name}</th>
-            <th scope="col">{T.columns.pairedAt}</th>
-            <th scope="col">{T.columns.status}</th>
-            <th scope="col">{T.columns.actions}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {devices.map((device) => (
-            <tr key={device.id} data-device-id={device.id}>
-              <td data-label={T.columns.name}>{device.name}</td>
-              <td data-label={T.columns.pairedAt}>{formatDateTime(device.pairedAt)}</td>
-              <td data-label={T.columns.status}>
-                {device.revokedAt === null ? T.active : T.revoked(formatDateTime(device.revokedAt))}
-              </td>
-              <td>
-                {device.revokedAt === null && (
-                  <button
-                    type="button"
-                    className="bo-button bo-button--danger"
-                    aria-label={T.revokeLabel(device.name)}
-                    onClick={() => {
-                      setDone(null);
-                      setConfirming(device);
-                    }}
-                  >
-                    {T.revoke}
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <DataTable
+        label={T.title}
+        rows={devices}
+        rowKey={(device) => device.id}
+        rowData={(device) => ({ "data-device-id": device.id })}
+        columns={COLUMNS}
+        search={{ label: T.search, text: (device) => device.name }}
+        filters={[
+          { key: "active", label: T.filters.active, test: (device) => device.revokedAt === null },
+          { key: "revoked", label: T.filters.revoked, test: (device) => device.revokedAt !== null },
+        ]}
+        actions={(device) =>
+          device.revokedAt === null && (
+            <div>
+              <button
+                type="button"
+                className="bo-button bo-button--danger bo-button--sm"
+                aria-label={T.revokeLabel(device.name)}
+                onClick={() => {
+                  setDone(null);
+                  setConfirming(device);
+                }}
+              >
+                <Icon of={Unplug} size={16} />
+                {T.revoke}
+              </button>
+            </div>
+          )
+        }
+        empty={<EmptyState icon={TabletSmartphone}>{T.empty}</EmptyState>}
+      />
     </div>
   );
 }

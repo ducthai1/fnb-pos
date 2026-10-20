@@ -1,11 +1,14 @@
+import { ChevronLeft } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import type { StaffSession } from "../../features/api/pos-api";
 import type { BootstrapStaff } from "../../features/bootstrap/bootstrap-source";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
 import { ScreenFrame } from "../shared/screen-frame";
+import { StaffAvatar } from "../shared/staff-avatar";
 
 export interface PinEntryProps {
   staff: BootstrapStaff;
@@ -33,9 +36,12 @@ export function PinEntry({ staff, signIn, onSignedIn, onBack }: PinEntryProps) {
   }
 
   return (
-    <ScreenFrame title={vi.staff.pinTitle}>
-      <p className="pos-hint pos-wrap">{vi.staff.pinFor(staff.displayName)}</p>
-      <form className="pos-form pos-pin" onSubmit={submit} noValidate>
+    <ScreenFrame title={vi.staff.pinTitle} width="narrow">
+      <form className="pos-form pos-pin pos-signin" onSubmit={submit} noValidate>
+        <div className="pos-signin__who">
+          <StaffAvatar id={staff.id} name={staff.displayName} size="lg" />
+          <p className="pos-signin__name">{vi.staff.pinFor(staff.displayName)}</p>
+        </div>
         <PinPad
           pin={pin}
           onPin={setPin}
@@ -45,6 +51,7 @@ export function PinEntry({ staff, signIn, onSignedIn, onBack }: PinEntryProps) {
           busyLabel={vi.staff.submitting}
         />
         <button type="button" className="pos-button pos-button--quiet" onClick={onBack}>
+          <Icon of={ChevronLeft} />
           {vi.staff.back}
         </button>
       </form>

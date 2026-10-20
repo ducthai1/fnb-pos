@@ -15,7 +15,12 @@ import { TillHeader } from "../../../src/screens/till/till-header";
 import { hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
-import { HOSTILE_AREAS, HOSTILE_FLOOR_NAMES, HOSTILE_TABLES } from "./hostile-floor";
+import {
+  HOSTILE_AREAS,
+  HOSTILE_FLOOR_NAMES,
+  HOSTILE_PLAN_TABLES,
+  HOSTILE_TABLES,
+} from "./hostile-floor";
 
 // Serving at tables with the worst data a shop can enter; see screens-page.tsx.
 
@@ -59,6 +64,19 @@ export const TABLE_SCREENS = {
       now={now}
       loadError={`${HOSTILE_NAMES.unknownCode} ${formatVnd(priced.totals.amountDue)}`}
       notice={<p className="pos-notice">{HOSTILE_NAMES.emoji}</p>}
+      onOpenTable={() => {}}
+    />
+  ),
+  // The same floor drawn where the editor placed the tables, at the editor's limits.
+  "floor-plan": () => (
+    <FloorScreen
+      header={header}
+      areas={HOSTILE_AREAS}
+      tables={HOSTILE_PLAN_TABLES}
+      now={now}
+      loadError={null}
+      notice={null}
+      initialView="plan"
       onOpenTable={() => {}}
     />
   ),

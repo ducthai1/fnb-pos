@@ -3,6 +3,8 @@ import {
   type DenominationCount,
   type ShiftCashSummary,
   type Vnd,
+  ZERO_VND,
+  compareVnd,
   countedTotal,
   formatVnd,
   negateVnd,
@@ -55,12 +57,45 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
     [F.difference, assessment.difference, "difference"],
   ];
   return (
-    <ScreenFrame title={T.title}>
+    <ScreenFrame
+      title={T.title}
+      dock={
+        <>
+          <p
+            className="pos-total pos-wrap"
+            aria-live="polite"
+            data-difference-sign={compareVnd(assessment.difference, ZERO_VND)}
+          >
+            {differenceSentence(assessment.difference)}
+          </p>
+          <Alert message={error} />
+          <div className="pos-actions">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {T.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true);
+                void props.onConfirm(notes.counts, assessment).then((refused) => {
+                  setBusy(false);
+                  setError(refused);
+                });
+              }}
+            >
+              {T.confirm}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <Alert message={props.notice} />
       <p className="pos-hint">{T.hint}</p>
       <NoteCounter counts={notes.counts} onChange={notes.change} />
-      <dl className="pos-figures">
+      <dl className="pos-figures pos-card">
         {rows.map(([label, amount, key]) => (
           <div key={label} style={{ display: "contents" }}>
             <dt className={key === undefined ? undefined : "pos-figures__strong"}>{label}</dt>
@@ -73,31 +108,8 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
           </div>
         ))}
       </dl>
-      <p className="pos-total pos-wrap" aria-live="polite">
-        {differenceSentence(assessment.difference)}
-      </p>
       {assessment.needsAcceptance ? <p className="pos-hint">{T.needsApproval}</p> : null}
       <p className="pos-hint">{T.estimateNote}</p>
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {T.back}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            void props.onConfirm(notes.counts, assessment).then((refused) => {
-              setBusy(false);
-              setError(refused);
-            });
-          }}
-        >
-          {T.confirm}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

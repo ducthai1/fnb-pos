@@ -1,6 +1,6 @@
 import { type Vnd, computeOrderTotals } from "@fnb/domain";
 import type { StoredTableOrder } from "../table-order/stored-table-order";
-import type { FloorOccupancy, FloorTable } from "./floor-occupancy";
+import type { FloorOccupancy, FloorTable, TableLayout } from "./floor-occupancy";
 import { type ShownTableStatus, shownStatusOf } from "./shown-table-status";
 
 export interface FloorTableView {
@@ -13,6 +13,8 @@ export interface FloorTableView {
   readonly openedAt: string | null;
   /** The domain's amount due of the order at the table, when the till holds that order. */
   readonly amountDue: Vnd | null;
+  /** Where it stands on the plan; null lists it in a grid. */
+  readonly layout: TableLayout | null;
 }
 
 function amountDueOf(order: StoredTableOrder): Vnd | null {
@@ -32,7 +34,13 @@ function viewOf(
   order: StoredTableOrder | null,
   preBilled: ReadonlySet<string>,
 ): FloorTableView {
-  const base = { id: table.id, areaId: table.areaId, name: table.name, seats: table.seats };
+  const base = {
+    id: table.id,
+    areaId: table.areaId,
+    name: table.name,
+    seats: table.seats,
+    layout: table.layout,
+  };
   if (order === null) {
     return {
       ...base,

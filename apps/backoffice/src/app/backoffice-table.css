@@ -7,16 +7,32 @@
 
 .bo-table th,
 .bo-table td {
-  padding: 8px;
+  padding: 10px 12px;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid var(--bo-border);
+  border-bottom: 1px solid var(--c-border-soft);
   overflow-wrap: anywhere;
+}
+
+.bo-table th {
+  overflow-wrap: break-word;
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-table tbody tr:hover {
+  background: var(--c-surface-2);
 }
 
 @media (max-width: 767px) {
   .bo-table thead {
     display: none;
+  }
+
+  .bo-table tbody tr:hover {
+    background: none;
   }
 
   .bo-table,

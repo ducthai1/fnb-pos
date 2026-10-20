@@ -1,7 +1,8 @@
 import type { DailySalesReport } from "../../lib/api/reports-api";
-import { quantityText, vndText } from "../../lib/format/business-day";
+import { vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { SimpleTable, type TableRow } from "../ui/simple-table";
+import { DailyItemsTable } from "./daily-items-table";
 
 const T = vi.dailySales;
 const rateText = (rate: number) => String(rate / 100).replace(".", ",");
@@ -52,15 +53,14 @@ function SummaryTable({ report }: { report: DailySalesReport }) {
 export function DailySalesTables({ report }: { report: DailySalesReport }) {
   const P = T.paymentColumns;
   const H = T.hourColumns;
-  const I = T.itemColumns;
   return (
-    <div className="bo-stack">
-      {report.sales.orderCount === 0 && report.refunds.orderCount === 0 && <p className="bo-muted">{T.emptyDay}</p>}
-      <div className="bo-card">
+    <div className="bo-report-grid">
+      {report.sales.orderCount === 0 && report.refunds.orderCount === 0 && <p className="bo-empty">{T.emptyDay}</p>}
+      <div className="bo-card bo-report-grid__summary">
         <SummaryTable report={report} />
         <p className="bo-muted bo-wrap">{T.definitions}</p>
       </div>
-      <div className="bo-card">
+      <div className="bo-card bo-report-grid__side">
         <SimpleTable
           caption={T.paymentsTitle}
           columns={[{ label: P.method }, { label: P.sales, numeric: true }, { label: P.refunds, numeric: true }, { label: P.net, numeric: true }]}
@@ -72,7 +72,7 @@ export function DailySalesTables({ report }: { report: DailySalesReport }) {
           empty={T.empty}
         />
       </div>
-      <div className="bo-card">
+      <div className="bo-card bo-report-grid__side">
         <SimpleTable
           caption={T.hoursTitle}
           columns={[{ label: H.hour }, { label: H.orderCount, numeric: true }, { label: H.collected, numeric: true }]}
@@ -83,31 +83,12 @@ export function DailySalesTables({ report }: { report: DailySalesReport }) {
           empty={T.empty}
         />
       </div>
-      <div className="bo-card">
-        <SimpleTable
-          caption={T.itemsTitle}
-          columns={[
-            { label: I.name },
-            { label: I.quantity, numeric: true },
-            { label: I.gross, numeric: true },
-            { label: I.discount, numeric: true },
-            { label: I.net, numeric: true },
-            { label: I.tax, numeric: true },
-          ]}
-          rows={report.items.map((item, index) => ({
-            key: `${index}`,
-            cells: [
-              T.lineTypes[item.lineType] === undefined ? item.name : `${item.name} (${T.lineTypes[item.lineType]})`,
-              quantityText(item.quantity),
-              vndText(item.gross),
-              vndText(item.discount),
-              vndText(item.net),
-              vndText(item.tax),
-            ],
-          }))}
-          empty={T.empty}
-        />
-      </div>
+      <section className="bo-card bo-report-grid__wide" aria-labelledby="daily-items-title">
+        <h2 id="daily-items-title" className="bo-subtitle">
+          {T.itemsTitle}
+        </h2>
+        <DailyItemsTable report={report} />
+      </section>
     </div>
   );
 }

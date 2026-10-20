@@ -49,7 +49,10 @@ export function StaffedTill(props: StaffedTillProps) {
   const header = (
     <TillHeader
       branchName={snapshot.branch.name}
+      brandName={snapshot.brand.name}
+      deviceName={snapshot.device.name}
       staffName={staff.displayName}
+      shiftDate={shift.loaded ? (shift.shift?.businessDate ?? null) : undefined}
       status={props.status}
       onOpenNeedsAttention={props.onOpenNeedsAttention}
       onSwitchStaff={props.onSwitchStaff}

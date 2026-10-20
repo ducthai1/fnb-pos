@@ -1,0 +1,60 @@
+/* The − n + stepper of a line, and the bar that takes a phone down to its order. */
+
+.pos-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px;
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+}
+
+.pos-stepper .pos-stepper__step {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  border-color: var(--c-border-soft);
+}
+
+.pos-stepper__value {
+  min-width: 3ch;
+  text-align: center;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A phone: kept at the foot of the screen while the menu scrolls, it leaves with the menu's
+   end, where the order starts. A tablet shows the order beside the menu instead. */
+.pos-cart-peek {
+  position: sticky;
+  bottom: var(--sp-3);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  min-height: var(--tap-lg);
+  padding: var(--sp-2) var(--sp-4);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  box-shadow: var(--shadow-raised);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.pos-cart-peek:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+@media (min-width: 760px) {
+  .pos-cart-peek {
+    display: none;
+  }
+}

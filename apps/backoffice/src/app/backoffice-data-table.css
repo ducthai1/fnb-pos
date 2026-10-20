@@ -1,0 +1,193 @@
+/* A list of records: tools over it (search, filters, sort, count), the table, its states. */
+
+.bo-data {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-data__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  min-width: 0;
+}
+
+.bo-search {
+  display: flex;
+  flex: 1 1 240px;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  max-width: 420px;
+  min-height: var(--control-h);
+  padding: 0 var(--sp-2) 0 var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-3);
+}
+
+.bo-search:focus-within {
+  border-color: var(--c-focus);
+  box-shadow: var(--ring);
+}
+
+.bo-search__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.bo-search__input:focus {
+  outline: none;
+}
+
+.bo-search__clear {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  cursor: pointer;
+}
+
+.bo-search__clear:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-data__tools .bo-tabs {
+  max-width: 100%;
+}
+
+.bo-data__sort {
+  display: none;
+  min-width: 0;
+}
+
+.bo-data__count {
+  margin: 0 0 0 auto;
+  color: var(--c-text-3);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+.bo-data__table {
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--c-surface);
+}
+
+.bo-data__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.bo-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  /* Column names are ours, never hostile: break between words, so "Loại phiếu" is not "phiế u". */
+  overflow-wrap: break-word;
+  cursor: pointer;
+}
+
+.bo-sort:hover {
+  color: var(--c-text);
+}
+
+.bo-sort:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+th[aria-sort] .bo-sort {
+  color: var(--c-brand-strong);
+}
+
+.bo-data__actions {
+  white-space: normal;
+}
+
+.bo-data__actions > * {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.bo-data__panel > td {
+  background: var(--c-surface-2);
+}
+
+.bo-empty .bo-button {
+  margin-top: var(--sp-3);
+}
+
+@media (max-width: 767px) {
+  .bo-search {
+    max-width: none;
+  }
+
+  .bo-data__sort {
+    display: flex;
+    flex: 1 1 100%;
+  }
+
+  .bo-data__count {
+    margin-left: 0;
+  }
+
+  .bo-data__table {
+    border: 0;
+    background: none;
+    overflow: visible;
+  }
+
+  .bo-data__table tr:not(.bo-data__panel) {
+    margin-bottom: var(--sp-2);
+    padding: var(--sp-3);
+    border: 1px solid var(--c-border-soft);
+    border-radius: var(--r-md);
+    background: var(--c-surface);
+  }
+
+  .bo-data__actions {
+    padding-top: var(--sp-2);
+  }
+
+  /* The first column names the card: it heads it, without its column's label. */
+  .bo-data__table td:first-child::before {
+    content: none;
+  }
+
+  .bo-data__table td:first-child {
+    padding-bottom: var(--sp-2);
+    font-size: var(--fs-lg);
+  }
+}
+

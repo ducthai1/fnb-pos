@@ -9,6 +9,7 @@ import { useApi } from "../app/api-context";
 import { ConfirmPanel } from "../ui/confirm-panel";
 import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
 import { TextField } from "../ui/text-field";
+import { AreaPlan } from "./area-plan";
 import { TableRowEditor } from "./table-row-editor";
 import { useFloorWrite } from "./use-floor-write";
 
@@ -129,6 +130,9 @@ export function AreaCard({ area, tables, onChanged }: { area: Area; tables: read
         <ErrorNotice message={write.error} />
       )}
       <SuccessNotice message={write.done} />
+      {tables.some((table) => table.archivedAt === null) && (
+        <AreaPlan areaName={area.name} tables={tables.filter((table) => table.archivedAt === null)} onChanged={onChanged} />
+      )}
       {tables.length === 0 ? (
         <p className="bo-muted">{T.noTables}</p>
       ) : (

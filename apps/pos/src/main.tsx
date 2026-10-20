@@ -8,14 +8,7 @@ import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { httpFloorSource } from "./features/floor/floor-occupancy";
 import { printerForBuild } from "./features/printing/printer-port";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
-import "./styles/pos-base.css";
-import "./styles/pos-screens.css";
-import "./styles/pos-sale.css";
-import "./styles/pos-order.css";
-import "./styles/pos-picker.css";
-import "./styles/pos-checkout.css";
-import "./styles/pos-floor.css";
-import "./styles/pos-operations.css";
+import "./styles/pos-styles";
 
 /** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
 const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";

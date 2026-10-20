@@ -19,7 +19,7 @@ afterAll(async () => {
   await browser?.close();
 });
 
-describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (width) => {
+describe.each([360, 800, 1280])("the POS screens at %ipx wide with hostile names", (width) => {
   it.each(SCREEN_NAMES)("%s stays within the screen", async (name) => {
     const page = await browser!.newPage({ viewport: { width, height: 640 } });
     const errors: string[] = [];
@@ -29,7 +29,9 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     await typeTheWorst(page, name);
     const overflow = await measureScreenOverflow(page);
     // Every table of the hostile floor is on screen, so the grid is measured full.
-    const tableTiles = name === "floor" ? await page.locator("[data-table]").count() : null;
+    const tableTiles = ["floor", "floor-plan"].includes(name)
+      ? await page.locator("[data-table]").count()
+      : null;
     // A typed value is not in the screen's text: read it off the field it fills.
     const buyerName =
       name === "buyer-info" ? await page.locator('input[name="buyer-name"]').inputValue() : null;
@@ -47,10 +49,10 @@ describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (wi
     if (name === "payment") expect(overflow.text).toContain(HOSTILE_NAMES.branch);
     if (name === "sale-done-invoice") expect(overflow.text).toContain(HOSTILE_INVOICE.lookupCode);
     if (name === "buyer-info") expect(buyerName).toContain(HOSTILE_NAMES.staff);
-    if (["floor", "table-order", "transfer-table"].includes(name)) {
+    if (["floor", "floor-plan", "table-order", "transfer-table"].includes(name)) {
       expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.table);
     }
-    if (name === "floor") {
+    if (["floor", "floor-plan"].includes(name)) {
       expect(overflow.text).toContain(HOSTILE_FLOOR_NAMES.area);
       expect(overflow.text).toContain(formatVnd(NINE_DIGIT_BILL));
       expect(tableTiles).toBe(60);

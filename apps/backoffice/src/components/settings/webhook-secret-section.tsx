@@ -50,9 +50,9 @@ export function WebhookSecretSection({ branchId }: { branchId: string }) {
 
   return (
     <section className="bo-card" aria-labelledby={titleId}>
-      <h2 id={titleId} className="bo-subtitle">
+      <h3 id={titleId} className="bo-subtitle">
         {T.title}
-      </h2>
+      </h3>
       <p className="bo-muted bo-wrap">{T.hint}</p>
       <form className="bo-stack" onSubmit={(event) => void submit(event)} noValidate>
         <SelectField

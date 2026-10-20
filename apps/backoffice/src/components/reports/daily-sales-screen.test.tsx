@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
-import { todaysBusinessDate, vndText } from "../../lib/format/business-day";
+import { dayBefore, todaysBusinessDate, vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { dailySalesReport } from "../../test-support/fake-reports-and-day";
@@ -52,6 +52,24 @@ describe("the daily sales report", () => {
     fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "" } });
     expect(await screen.findByText(T.dateInvalid)).toBeTruthy();
     expect(getDailySales.mock.calls.length).toBe(calls);
+  });
+
+  it("steps a day back and on, never past today, and comes back to today", async () => {
+    const getDailySales = mock.fn(async () => ok(dailySalesReport()));
+    await renderSignedIn(<DailySalesScreen />, { getDailySales });
+    await screen.findByText(T.summaryTitle, { selector: "caption" });
+    const P = vi.dayPicker;
+    const today = todaysBusinessDate();
+    expect((screen.getByRole("button", { name: P.next }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: P.today }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: P.previous }));
+    await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, dayBefore(today)));
+    expect((screen.getByLabelText(T.dateLabel) as HTMLInputElement).value).toBe(dayBefore(today));
+    fireEvent.click(screen.getByRole("button", { name: P.next }));
+    await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, today));
+    fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "2026-01-02" } });
+    fireEvent.click(screen.getByRole("button", { name: P.today }));
+    await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, today));
   });
 
   it("explains a role without view_reports instead of an empty report", async () => {

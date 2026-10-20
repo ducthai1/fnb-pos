@@ -1,5 +1,7 @@
 import { type Vnd, formatVnd } from "@fnb/domain";
+import { QrCode } from "lucide-react";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 
 const Q = vi.qr;
 
@@ -22,6 +24,10 @@ export function QrOffer({
   const unavailable = !accountSet ? Q.noAccount : cashTaken ? Q.wholeOrderOnly : null;
   return (
     <section className="pos-card pos-cash" aria-label={Q.title}>
+      <h2 className="pos-card__title">
+        <Icon of={QrCode} size={22} />
+        {Q.title}
+      </h2>
       {unavailable !== null ? (
         <p className="pos-hint pos-wrap" data-qr-unavailable>
           {unavailable}
@@ -29,7 +35,8 @@ export function QrOffer({
       ) : (
         <>
           <p className="pos-hint pos-wrap">{Q.offerHint}</p>
-          <button type="button" className="pos-button" onClick={onShow}>
+          <button type="button" className="pos-button pos-button--info pos-wrap" onClick={onShow}>
+            <Icon of={QrCode} />
             {Q.offer(formatVnd(amountDue))}
           </button>
         </>

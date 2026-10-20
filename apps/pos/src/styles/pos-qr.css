@@ -1,0 +1,130 @@
+/* The VietQR: as large as a phone camera needs, never wider than the screen; beside its
+   facts on a tablet, under them on a phone. */
+.pos-qr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 640px) {
+  .pos-qr {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+
+.pos-qr__frame {
+  box-sizing: border-box;
+  width: min(100%, 320px);
+  padding: var(--sp-3);
+  border: 2px solid var(--c-info-line);
+  border-radius: var(--r-lg);
+}
+
+.pos-qr-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.pos-qr__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.pos-qr__fact dt {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.pos-qr__fact dd {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* What the customer must type if their bank app drops it: big, spaced, in a box. */
+.pos-qr__code {
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-info-soft);
+  color: var(--c-info);
+  font-family: ui-monospace, "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.pos-qr__fact--time dd {
+  font-size: var(--fs-2xl);
+}
+
+.pos-qr__fact--time[data-low="true"] dd {
+  color: var(--c-amber);
+}
+
+.pos-due--center {
+  align-items: center;
+  text-align: center;
+}
+
+.pos-qr-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font-weight: var(--fw-medium);
+  overflow-wrap: anywhere;
+}
+
+.pos-qr-status > .pos-icon {
+  flex: none;
+}
+
+.pos-qr-status--info {
+  border-color: var(--c-info-line);
+  background: var(--c-info-soft);
+  color: var(--c-info);
+}
+
+/* Waiting on the bank: the loader turns, slower when the till asks for less motion. */
+.pos-qr-status--info > .pos-icon {
+  animation: pos-spin 1.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-qr-status--info > .pos-icon {
+    animation-duration: 4s;
+  }
+}
+
+.pos-qr-status--ok {
+  border-color: var(--c-success-line);
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.pos-qr-status[data-qr-phase="paid"] {
+  padding-block: var(--sp-5);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-qr-status--warn {
+  border-color: var(--c-amber-line);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+}

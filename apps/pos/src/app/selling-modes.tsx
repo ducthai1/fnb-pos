@@ -38,10 +38,10 @@ export function SellingModes(props: SellingModesProps) {
   const [tool, setTool] = useState<TillTool | null>(null);
   const tablesOn = menu.config.flags.tables === true;
   const modeSwitch = (
-    <>
+    <div className="pos-navbar">
       {tablesOn ? <SellingModeSwitch mode={mode} onChange={setMode} /> : null}
       <TillTools onOpen={setTool} />
-    </>
+    </div>
   );
   const leave = () => setTool(null);
   if (tool === "history") {

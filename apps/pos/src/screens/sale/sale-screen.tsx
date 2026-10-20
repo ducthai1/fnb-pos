@@ -6,7 +6,9 @@ import type { CounterOrder } from "../../features/order/counter-order";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { type CartPanelProps, CartPanel } from "./cart-panel";
+import { CartPeek } from "./cart-peek";
 import { MenuPanel } from "./menu-panel";
+import { unitsByProduct } from "./product-mark";
 
 export interface SaleScreenProps extends Omit<CartPanelProps, "order" | "view"> {
   header: ReactNode;
@@ -30,11 +32,14 @@ export function SaleScreen({
   ...cart
 }: SaleScreenProps) {
   return (
-    <ScreenFrame title={vi.sales.title} wide>
+    <ScreenFrame title={vi.sales.title} wide titleHidden>
       {header}
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
       <div className="pos-sale">
-        <MenuPanel menu={menu} now={now} onPick={onPick} />
+        <div className="pos-sale__menu">
+          <MenuPanel menu={menu} now={now} inCart={unitsByProduct(order.lines)} onPick={onPick} />
+          <CartPeek lines={order.lines} view={view} />
+        </div>
         <CartPanel order={order} view={view} {...cart} />
       </div>
     </ScreenFrame>

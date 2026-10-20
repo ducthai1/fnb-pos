@@ -1,10 +1,13 @@
+import { ShieldCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import type { BootstrapStaff } from "../../features/bootstrap/bootstrap-source";
 import { vi } from "../../messages/vi";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
+import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
+import { StaffAvatar } from "../shared/staff-avatar";
 
 const A = vi.approval;
 const SESSION_INVALID = "API_STAFF_SESSION_INVALID";
@@ -51,8 +54,19 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
   };
 
   return (
-    <ScreenFrame title={A.title}>
-      <section className="pos-card pos-approval" aria-label={A.title}>
+    <ScreenFrame
+      title={A.title}
+      width="narrow"
+      dock={
+        <button type="button" className="pos-button" onClick={props.onCancel}>
+          {A.cancel}
+        </button>
+      }
+    >
+      <section className="pos-card pos-approval pos-approval--asked" aria-label={A.title}>
+        <span className="pos-approval__mark">
+          <Icon of={ShieldCheck} size={28} />
+        </span>
         <p className="pos-approval__what pos-wrap" data-approval-for={props.description}>
           {props.description}
         </p>
@@ -61,8 +75,15 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
       {chosen === null ? (
         <ApproverList approvers={props.approvers} onChoose={choose} />
       ) : (
-        <form className="pos-form pos-pin" onSubmit={submit} noValidate>
-          <p className="pos-hint pos-wrap">{A.pinFor(chosen.displayName)}</p>
+        <form
+          className="pos-form pos-pin pos-signin pos-signin--center"
+          onSubmit={submit}
+          noValidate
+        >
+          <div className="pos-signin__who">
+            <StaffAvatar id={chosen.id} name={chosen.displayName} size="lg" />
+            <p className="pos-hint pos-wrap">{A.pinFor(chosen.displayName)}</p>
+          </div>
           <PinPad
             pin={pin}
             onPin={setPin}
@@ -80,9 +101,6 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
           </button>
         </form>
       )}
-      <button type="button" className="pos-button" onClick={props.onCancel}>
-        {A.cancel}
-      </button>
     </ScreenFrame>
   );
 }
@@ -103,7 +121,8 @@ function ApproverList(props: {
               className="pos-button pos-staff-button pos-wrap"
               onClick={() => props.onChoose(member)}
             >
-              {member.displayName}
+              <StaffAvatar id={member.id} name={member.displayName} />
+              <span className="pos-staff-button__name">{member.displayName}</span>
             </button>
           </li>
         ))}

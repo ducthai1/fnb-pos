@@ -19,7 +19,7 @@ export function ServiceTypePicker({
   return (
     <fieldset className="pos-group">
       <legend className="pos-group__legend">{S.serviceType}</legend>
-      <div className="pos-tabs">
+      <div className="pos-tabs" role="group">
         <button
           type="button"
           className="pos-tab"

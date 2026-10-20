@@ -46,7 +46,7 @@ export function PinPad({ pin, onPin, error, busy, submitLabel, busyLabel }: PinP
             {digit}
           </button>
         ))}
-        <button type="button" className="pos-button" onClick={() => onPin("")}>
+        <button type="button" className="pos-button pos-pin-pad__clear" onClick={() => onPin("")}>
           {vi.staff.clear}
         </button>
         <button type="button" className="pos-button" onClick={() => onPin(cleanPin(pin + "0"))}>

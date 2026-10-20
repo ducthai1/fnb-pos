@@ -14,6 +14,12 @@ export const VI_TABLES = {
     loadFailed: "Không tải được sơ đồ bàn. Kiểm tra mạng; máy sẽ tự thử lại.",
     noPlan: "Chi nhánh chưa có bàn nào. Thêm khu và bàn ở trang quản lý, mục Sơ đồ bàn.",
     emptyArea: "Khu này chưa có bàn.",
+    legendLabel: "Chú thích trạng thái bàn",
+    filterLabel: "Lọc bàn",
+    filters: { all: "Tất cả", seated: "Có khách", free: "Bàn trống" },
+    viewLabel: "Cách xem",
+    views: { plan: "Sơ đồ", grid: "Lưới" },
+    noneShown: "Không có bàn nào khớp bộ lọc.",
     seats: (count: number) => `${count} chỗ`,
     status: {
       free: "Trống",

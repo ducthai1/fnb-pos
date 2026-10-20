@@ -1,0 +1,93 @@
+/* The day by hour as columns: one per hour, the busiest darker with its amount over it. */
+
+.bo-hours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  min-width: 0;
+}
+
+.bo-hours__plot,
+.bo-hours__ticks {
+  display: grid;
+  grid-template-columns: repeat(var(--bars), minmax(0, 1fr));
+  gap: 4px;
+}
+
+.bo-hours__plot {
+  height: 180px;
+  padding-top: 24px;
+  border-bottom: 1px solid var(--c-border);
+  background: repeating-linear-gradient(to top, var(--c-border-soft) 0 1px, transparent 1px 39px);
+}
+
+.bo-hours__col {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+}
+
+.bo-hours__bar {
+  display: block;
+  width: min(100%, 28px);
+  height: var(--h);
+  border-radius: 6px 6px 2px 2px;
+  background: var(--c-brand-tint);
+}
+
+.bo-hours__bar[data-empty] {
+  background: var(--c-surface-3);
+}
+
+.bo-hours__col[data-busiest] .bo-hours__bar {
+  background: var(--c-brand);
+}
+
+/* The busiest hour's amount, over its column; it may run wider than the column. */
+.bo-hours__value {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 120px;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand-strong);
+  color: var(--c-on-brand);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* Near either end the amount lines up with the chart's edge instead of running past it. */
+.bo-hours__col[data-edge="start"] .bo-hours__value {
+  left: 0;
+  transform: none;
+}
+
+.bo-hours__col[data-edge="end"] .bo-hours__value {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.bo-hours__ticks span {
+  overflow: hidden;
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .bo-hours__ticks span:not([data-major]) {
+    visibility: hidden;
+  }
+
+  .bo-hours__plot {
+    height: 150px;
+  }
+}

@@ -1,10 +1,27 @@
 import { type DenominationCount, VND_DENOMINATIONS, formatVnd } from "@fnb/domain";
 import { useState } from "react";
+import { Minus } from "lucide-react";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 
 const T = vi.checkout.openShift;
 /** Largest note first: a drawer is mostly counted in big notes. */
 const NOTES = [...VND_DENOMINATIONS].reverse();
+
+/**
+ * Roughly the colour each Vietnamese note is printed in, as a stripe on its row, so a
+ * cashier finds the 200.000 by colour while counting; the amount is always written too.
+ */
+const NOTE_TONE: ReadonlyMap<bigint, number> = new Map([
+  [500_000n, 6],
+  [200_000n, 7],
+  [100_000n, 1],
+  [50_000n, 5],
+  [20_000n, 2],
+  [10_000n, 3],
+  [5_000n, 4],
+  [1_000n, 8],
+]);
 
 /** The count so far, note by note, and a way to change it; the total is the domain's sum. */
 export function useNoteCount() {
@@ -30,7 +47,11 @@ export function NoteCounter(props: {
   return (
     <ul className="pos-notes">
       {props.counts.map(({ denomination, pieces }) => (
-        <li key={String(denomination)} className="pos-note-row">
+        <li
+          key={String(denomination)}
+          className="pos-note-row"
+          data-tone={NOTE_TONE.get(denomination) ?? 0}
+        >
           <button
             type="button"
             className="pos-button pos-note-row__add"
@@ -48,7 +69,7 @@ export function NoteCounter(props: {
             disabled={pieces === 0}
             onClick={() => props.onChange(denomination, -1)}
           >
-            −
+            <Icon of={Minus} />
           </button>
         </li>
       ))}

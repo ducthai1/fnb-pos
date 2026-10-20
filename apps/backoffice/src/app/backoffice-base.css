@@ -1,32 +1,14 @@
-/* The frame: a side menu and one scrolling content area, which on a phone (a shop owner's,
-   360px wide) folds the menu above the content behind a button. Names come from the shop
-   and can be anything (80 characters with no space, emoji), so text that shows a name
-   wraps anywhere instead of pushing the page wider. */
+/* The page itself: type, the one scrolling area, and the whole-page states. Names come from
+   the shop and can be anything (80 characters with no space, emoji), so text that shows a
+   name wraps anywhere instead of pushing the page wider. The frame is backoffice-shell.css. */
 
 :root {
-  --bo-bg: #f3f5f4;
-  --bo-surface: #ffffff;
-  --bo-text: #17211e;
-  --bo-muted: #52605b;
-  --bo-primary: #1f6f5c;
-  --bo-primary-text: #ffffff;
-  --bo-border: #c9d3cf;
-  --bo-danger: #8a1c12;
-  --bo-danger-bg: #fdecea;
-  --bo-ok: #1b5e3f;
-  --bo-ok-bg: #e3f4ec;
-  --bo-warn: #6d4a00;
-  --bo-warn-bg: #fff4dc;
   color-scheme: light;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.4;
-  color: var(--bo-text);
+  line-height: var(--lh-body);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
 }
 
 html,
@@ -48,68 +30,30 @@ body {
   min-width: 0;
 }
 
-.bo-shell {
-  display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  height: 100dvh;
-}
-
-.bo-topbar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 8px 16px;
-  background: var(--bo-surface);
-  border-bottom: 1px solid var(--bo-border);
-}
-
-.bo-topbar__name {
-  flex: 1;
-  font-weight: 600;
-}
-
-.bo-menu-toggle {
-  display: none;
-}
-
-.bo-sidenav {
-  grid-row: 2;
-  overflow-y: auto;
-  padding: 12px 8px;
-  background: var(--bo-surface);
-  border-right: 1px solid var(--bo-border);
-}
-
-.bo-sidenav__links {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bo-sidenav__link {
+/* One line, cut with "…": on the block that is cut, never on an inline child of it. */
+.bo-clip {
   display: block;
-  padding: 10px 12px;
-  border-radius: 8px;
-  color: var(--bo-text);
-  text-decoration: none;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.bo-sidenav__link[aria-current="page"] {
-  background: var(--bo-ok-bg);
-  color: var(--bo-ok);
-  font-weight: 600;
+/* Words for a screen reader that the layout shows another way (an icon, the bar). */
+.bo-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.bo-sidenav__user {
-  margin: 16px 12px 0;
-  color: var(--bo-muted);
-  font-size: 0.875rem;
+.bo-icon {
+  flex: none;
 }
 
 /* The one element that scrolls: layout checks measure overflow here, not on the page. */
@@ -118,15 +62,15 @@ body {
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 16px;
+  padding: var(--sp-6);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--sp-5);
 }
 
 .bo-main > * {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1160px;
 }
 
 .bo-splash {
@@ -149,28 +93,8 @@ body {
 }
 
 @media (max-width: 767px) {
-  .bo-shell {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
-  }
-
-  .bo-menu-toggle {
-    display: inline-flex;
-  }
-
-  .bo-sidenav {
-    display: none;
-    max-height: 60dvh;
-    border-right: 0;
-    border-bottom: 1px solid var(--bo-border);
-  }
-
-  .bo-shell[data-nav-open="true"] .bo-sidenav {
-    display: block;
-  }
-
   .bo-main {
-    grid-row: 3;
-    padding: 12px;
+    padding: var(--sp-3);
+    gap: var(--sp-4);
   }
 }

@@ -1,8 +1,10 @@
+import { KeyRound, MonitorSmartphone } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import { vi } from "../../messages/vi";
 import type { DeviceCredential } from "../../shell-bridge/device-credential-store";
+import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 
 export const PAIRING_CODE_LENGTH = 8;
@@ -46,9 +48,14 @@ export function PairDeviceScreen({ pair, onPaired }: PairDeviceScreenProps) {
   }
 
   return (
-    <ScreenFrame title={vi.pairing.title}>
-      <p className="pos-hint">{vi.pairing.hint}</p>
-      <form className="pos-form" onSubmit={submit} noValidate>
+    <ScreenFrame title={vi.pairing.title} width="narrow">
+      <form className="pos-form pos-signin" onSubmit={submit} noValidate>
+        <div className="pos-signin__lead">
+          <span className="pos-signin__mark">
+            <Icon of={MonitorSmartphone} size={26} />
+          </span>
+          <p className="pos-hint">{vi.pairing.hint}</p>
+        </div>
         <label className="pos-field">
           <span className="pos-field__label">{vi.pairing.codeLabel}</span>
           <input
@@ -73,7 +80,12 @@ export function PairDeviceScreen({ pair, onPaired }: PairDeviceScreenProps) {
           />
         </label>
         <Alert message={error} />
-        <button type="submit" className="pos-button pos-button--primary" disabled={busy}>
+        <button
+          type="submit"
+          className="pos-button pos-button--primary pos-button--block"
+          disabled={busy}
+        >
+          <Icon of={KeyRound} />
           {busy ? vi.pairing.submitting : vi.pairing.submit}
         </button>
       </form>

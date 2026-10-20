@@ -36,7 +36,27 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
   }
 
   return (
-    <ScreenFrame title={T.title}>
+    <ScreenFrame
+      title={T.title}
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {vi.adjust.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--destructive"
+              disabled={busy || reason === null || props.remaining < 1}
+              onClick={() => void confirm()}
+            >
+              {T.confirm(units)}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <section className="pos-card pos-approval" aria-label={T.title}>
         <p className="pos-approval__what pos-wrap">{props.itemName}</p>
@@ -56,20 +76,6 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
         onChange={setUnits}
       />
       <ReasonPicker reasons={VOID_REASONS} chosen={reason} onChoose={setReason} />
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={props.onBack}>
-          {vi.adjust.back}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={busy || reason === null || props.remaining < 1}
-          onClick={() => void confirm()}
-        >
-          {T.confirm(units)}
-        </button>
-      </div>
     </ScreenFrame>
   );
 }

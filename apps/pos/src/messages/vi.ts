@@ -9,6 +9,7 @@ import { VI_ORDER_VERSION_ERRORS } from "./vi-order-version";
 import { VI_RATE_LIMIT_ERRORS } from "./vi-rate-limit";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
+import { VI_SHELL } from "./vi-shell";
 import { VI_CASH, VI_CLOSE_SHIFT, VI_SESSION, VI_SESSION_ERRORS } from "./vi-shift-tools";
 import { VI_SYNC_ERRORS } from "./vi-sync-errors";
 import { VI_TABLE_ERRORS, commandSpecificSentence } from "./vi-table-errors";
@@ -66,6 +67,7 @@ export const vi = {
   cash: VI_CASH,
   closeShift: VI_CLOSE_SHIFT,
   session: VI_SESSION,
+  shell: VI_SHELL,
   tools: { label: "Công cụ của máy" },
   sales: {
     title: "Bán hàng",

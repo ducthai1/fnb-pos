@@ -4,6 +4,12 @@ export const VI_SALE = {
   menuLabel: "Thực đơn",
   search: "Tìm món",
   searchPlaceholder: "Gõ tên món, không dấu cũng được",
+  clearSearch: "Xóa chữ đang tìm",
+  /** The keys of a till's keyboard, printed on the controls they press. */
+  keys: { search: "F2", preBill: "F8", pay: "F9", send: "F10", back: "Escape" },
+  /** Esc as its key cap reads; the key's own name is "Escape". */
+  backKeyCap: "Esc",
+  categoriesLabel: "Danh mục",
   allCategories: "Tất cả",
   emptyMenu: "Chưa có món nào để bán. Thêm món ở trang quản lý.",
   noMatch: "Không có món nào khớp.",
@@ -17,6 +23,7 @@ export const VI_SALE = {
   tableTag: "Số bàn",
   tableTagHint: "Ví dụ 5 hoặc A2",
   cartLabel: "Đơn đang bán",
+  peek: (count: number, amount: string) => `Xem đơn · ${count} món · ${amount}`,
   cartEmpty: "Chưa có món nào. Chạm vào món để thêm.",
   less: (name: string) => `Bớt một ${name}`,
   more: (name: string) => `Thêm một ${name}`,
@@ -35,6 +42,8 @@ export const VI_SALE = {
     variant: "Size",
     quantity: "Số lượng",
     notePlaceholder: "Ví dụ: ít đá, giao bàn 5",
+    quickNotesLabel: "Ghi chú nhanh",
+    quickNotes: ["Ít đá", "Không đá", "Ít đường", "Không đường", "Đá riêng", "Mang về riêng"],
     add: (amount: string) => `Thêm vào đơn · ${amount}`,
     addNoPrice: "Thêm vào đơn",
     cancel: "Quay lại",
@@ -42,6 +51,7 @@ export const VI_SALE = {
     pickUpTo: (max: number) => `Chọn tối đa ${max}`,
     pickBetween: (min: number, max: number) => `Chọn ${min}–${max}`,
     required: "Bắt buộc",
+    picked: (count: number, max: number) => `Đã chọn ${count}/${max}`,
     fewer: (name: string) => `Bớt ${name}`,
   },
   modifierErrors: {

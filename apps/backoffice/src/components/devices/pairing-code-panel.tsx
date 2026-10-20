@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyRound, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { PairingCode } from "../../lib/api/devices-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
@@ -8,6 +9,7 @@ import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
 import { ErrorNotice } from "../ui/error-notice";
+import { Icon } from "../ui/icon";
 
 const T = vi.devices;
 const TICK_MS = 5_000;
@@ -49,10 +51,17 @@ export function PairingCodePanel({ branchId, onTick }: { branchId: string; onTic
   }
 
   return (
-    <section className="bo-card" aria-label={T.codeLabel}>
-      <button type="button" className="bo-button bo-button--primary" disabled={busy} onClick={() => void create()}>
-        {busy ? T.creatingCode : T.createCode}
-      </button>
+    <section className="bo-card bo-pairing" aria-label={T.codeLabel}>
+      <div className="bo-pairing__head">
+        <span className="bo-pairing__icon" aria-hidden="true">
+          <Icon of={KeyRound} size={22} />
+        </span>
+        <p className="bo-muted bo-wrap">{T.pairHint}</p>
+        <button type="button" className="bo-button bo-button--primary" disabled={busy} onClick={() => void create()}>
+          <Icon of={Plus} size={16} />
+          {busy ? T.creatingCode : T.createCode}
+        </button>
+      </div>
       <ErrorNotice message={error} />
       {code !== null && (
         <div className="bo-stack">

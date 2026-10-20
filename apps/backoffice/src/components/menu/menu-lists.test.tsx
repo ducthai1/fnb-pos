@@ -76,4 +76,19 @@ describe("sold out by hand at a branch", () => {
     const coffee = await screen.findByRole("checkbox", { name: vi.menu.availability.toggleLabel("Cà phê đen đá") });
     expect((coffee as HTMLInputElement).checked).toBe(true);
   });
+
+  it("lists only what is sold out at the counter under its filter, with a word for each state", async () => {
+    await renderSignedIn(<AvailabilityScreen />, {
+      listProducts: async () => ok(PRODUCTS),
+      listSoldOut: async () => ok([{ productId: "p2", channelKey: null, unavailableUntil: null }]),
+    });
+    await screen.findByText("Cà phê đen đá");
+    const A = vi.menu.availability;
+    fireEvent.click(screen.getByRole("button", { name: vi.table.count(A.filters.soldOut, 1) }));
+    expect(screen.getByText("Cà phê đen đá").closest("tr")?.textContent).toContain(A.soldOut);
+    expect(screen.queryByText("Trà sữa trân châu")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: vi.table.count(A.filters.available, 1) }));
+    expect(screen.getByText("Trà sữa trân châu").closest("tr")?.textContent).toContain(A.available);
+    expect(screen.queryByText("Cà phê đen đá")).toBeNull();
+  });
 });

@@ -23,7 +23,7 @@
 4. **Property test cho domain:** Σ dòng = tổng đơn; tổng phân bổ = tổng giảm; hoàn ≤ gốc; không số âm ngoài dòng âm cố ý; kết quả không đổi khi đổi thứ tự thêm món.
 5. **Không mock thứ đang kiểm.** API test dùng Postgres thật; sync test dùng API thật. Chỉ giả lập bên thứ ba (ngân hàng, nhà cung cấp hóa đơn, máy in) bằng fake có ghi lại lời gọi.
 6. **Kịch bản chạy tiếp trên dữ liệu của lần trước:** bộ test đồng bộ có ít nhất một kịch bản không xóa state giữa các bước (bug lần chạy thứ 2 chỉ lộ ra vậy).
-7. **Dữ liệu XẤU** từ `packages/test-fixtures/hostile.ts`: tên 80+ ký tự không khoảng trắng, emoji, tổ hợp dấu tiếng Việt, giá 0đ, số lượng lớn, 30 topping, ghi chú nhiều dòng. Mọi màn mới phải có một test UI với bộ này ở khổ 360px và 800px, đo tràn trên **đúng phần tử đang cuộn**.
+7. **Dữ liệu XẤU** từ `packages/test-fixtures/hostile.ts`: tên 80+ ký tự không khoảng trắng, emoji, tổ hợp dấu tiếng Việt, giá 0đ, số lượng lớn, 30 topping, ghi chú nhiều dòng. Mọi màn mới phải có một test UI với bộ này ở khổ 360px và 800px (POS thêm 1280px — máy quầy ngang), đo tràn trên **đúng phần tử đang cuộn**.
 8. **E2E đọc mã HTTP và lỗi console**, không chỉ đọc chữ trên màn; chờ bằng thứ chỉ có sau khi React đã chạy (tránh bấm trước khi trang sẵn sàng).
 9. **Sửa bug = test tái hiện trước**, đỏ trên code cũ, xanh sau khi sửa; giữ lại vĩnh viễn trong thư mục của miền đó.
 10. **Không xóa/skip test để qua cổng.** Test sai thì sửa test và ghi lý do trong commit.
@@ -43,7 +43,7 @@
 25. Khi ghi file qua công cụ của agent, chuỗi `\uXXXX` trong nội dung bị giải mã thành ký tự thật (NBSP…) ⇒ kiểm byte sau khi ghi các file có ký tự đặc biệt.
 26. Golden file của gói in: test thường KHÔNG bao giờ ghi golden; thiếu golden là đỏ; cập nhật có chủ đích bằng `pnpm --filter @fnb/printing golden:update`.
 27. Máy thiếu RAM: turbo ở strict env mode bỏ biến VITEST_* ⇒ dùng `VITEST_MAX_FORKS=2 VITEST_MAX_THREADS=2 pnpm exec turbo run <task> --concurrency=1 --env-mode=loose`; `pnpm verify` thường chạy ~10 tiến trình tsc/vitest song song.
-28. `pnpm e2e` = turbo `test:browser` (hợp đồng LocalStore trong Chrome, bố cục POS với tên xấu ở 360/800, e2e `@fnb/e2e`); dùng Chrome hệ thống qua playwright-core, API thật + Postgres nhúng. Màn POS mới phải thêm vào `apps/pos/test/browser/pages/screen-names.ts`.
+28. `pnpm e2e` = turbo `test:browser` (hợp đồng LocalStore trong Chrome, bố cục POS với tên xấu ở 360/800/1280, e2e `@fnb/e2e`); dùng Chrome hệ thống qua playwright-core, API thật + Postgres nhúng. Màn POS mới phải thêm vào `apps/pos/test/browser/pages/screen-names.ts`.
 29. Component test POS chạy trong jsdom (không có IndexedDB/OPFS/Worker) với LocalStore node:sqlite `:memory:` + server giả; phần IndexedDB/OPFS qua reload do e2e bảo vệ.
 30. Test đồng bộ chạy API trên ManualClock (`tillsClock()` / `SERVER_STARTS_AT` trong `apps/api/test/integration/support/sync-commands.ts`, `pushOnTime` cho lệnh ghi giờ muộn hơn): server định giờ lệnh theo lúc nhận, test đọc đồng hồ thật sẽ cho kết quả khác vào ngày khác.
 31. Tính năng dựa trên bản sao lạc quan (máy hiện trước khi server trả lời) phải có ít nhất một test giữ lệnh ở trạng thái chờ (offline): server giả trả lời nhanh che mất lỗi (vd đánh số đơn 904 thay vì 2).
