@@ -1,7 +1,9 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import type { Category, Station } from "../../../lib/api/catalog-api";
 import { vi } from "../../../messages/vi";
+import { Icon } from "../../ui/icon";
 import { ErrorNotice } from "../../ui/error-notice";
 import { type DraftErrors, productPath } from "./draft-error-paths";
 import { EditorSectionNav } from "./editor-section-nav";
@@ -48,7 +50,8 @@ export function ProductEditorForm({
             edit={edit}
           />
         ))}
-        <button type="button" className="bo-button" onClick={() => edit(addGroup())}>
+        <button type="button" className="bo-button bo-button--add" onClick={() => edit(addGroup())}>
+          <Icon of={Plus} size={16} />
           {T.addGroup}
         </button>
       </fieldset>

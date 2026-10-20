@@ -160,3 +160,14 @@
   width: 100%;
   margin-bottom: var(--sp-1);
 }
+
+/* Adding a size, an option or a group: a dashed button the width of its words. */
+.bo-button--add {
+  align-self: flex-start;
+  border-style: dashed;
+  color: var(--c-brand-strong);
+}
+
+.bo-group-card__remove {
+  align-self: flex-end;
+}

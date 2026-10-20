@@ -1,6 +1,8 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import { vi } from "../../../messages/vi";
+import { Icon } from "../../ui/icon";
 import { CheckField } from "../../ui/select-field";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, groupPath } from "./draft-error-paths";
@@ -75,17 +77,19 @@ export function ModifierGroupCard({
             edit={edit}
           />
         ))}
-        <button type="button" className="bo-button" onClick={() => edit(addOption(group.id))}>
+        <button type="button" className="bo-button bo-button--add" onClick={() => edit(addOption(group.id))}>
+          <Icon of={Plus} size={16} />
           {T.addOption}
         </button>
       </fieldset>
       <VariantRulesEditor group={group} variants={variants} errors={errors} edit={edit} />
       <button
         type="button"
-        className="bo-button bo-button--danger"
+        className="bo-button bo-button--danger bo-button--sm bo-group-card__remove"
         aria-label={T.removeGroup(group.name || T.unnamed)}
         onClick={() => edit(removeGroup(group.id))}
       >
+        <Icon of={Trash2} size={16} />
         {vi.common.remove}
       </button>
     </section>

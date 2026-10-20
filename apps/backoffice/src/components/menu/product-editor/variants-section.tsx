@@ -1,6 +1,8 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { vi } from "../../../messages/vi";
+import { Icon } from "../../ui/icon";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, variantPath } from "./draft-error-paths";
 import { EDITOR_SECTIONS } from "./editor-sections";
@@ -48,7 +50,8 @@ export function VariantsSection({
           <FieldError message={errors[variantPath(variant.id)]} />
         </div>
       ))}
-      <button type="button" className="bo-button" onClick={() => edit(addVariant())}>
+      <button type="button" className="bo-button bo-button--add" onClick={() => edit(addVariant())}>
+        <Icon of={Plus} size={16} />
         {T.addVariant}
       </button>
     </fieldset>
