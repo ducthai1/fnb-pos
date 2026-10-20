@@ -66,6 +66,15 @@ importers:
 
   apps/pos:
     dependencies:
+      '@fnb/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@fnb/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@fnb/printing':
+        specifier: workspace:*
+        version: link:../../packages/printing
       '@fnb/sync-client':
         specifier: workspace:*
         version: link:../../packages/sync-client
@@ -75,6 +84,9 @@ importers:
       react-dom:
         specifier: 19.1.10
         version: 19.1.10(react@19.1.10)
+      uuid:
+        specifier: 11.1.1
+        version: 11.1.1
     devDependencies:
       '@testing-library/dom':
         specifier: 10.4.2

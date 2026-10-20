@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CREDENTIAL } from "../../test-support/fake-pos-server";
+import { MILK_TEA, tid, tillBootstrap, tillBootstrapWire } from "../../test-support/till-fixtures";
 import { httpBootstrapSource } from "../bootstrap/bootstrap-source";
 import type { FetchLike } from "./api-result";
 import { httpPosApi } from "./pos-api";
@@ -82,18 +83,14 @@ describe("the POS's calls outside the sync loop", () => {
 });
 
 describe("loading the till's bootstrap", () => {
-  const snapshot = {
-    branch: { id: "b", name: "Quận 1" },
-    staff: [{ id: "s", displayName: "Lan" }],
-    cursor: "42",
-  };
+  const wire = tillBootstrapWire({ staff: [{ id: tid(1), displayName: "Lan", active: true }] });
 
-  it("reads branch, staff and cursor, as the paired till", async () => {
-    const server = answering(200, JSON.stringify({ ...snapshot, menu: [] }));
-    expect(await httpBootstrapSource("/api", server.fetchImpl).load(CREDENTIAL)).toEqual({
-      ok: true,
-      value: snapshot,
-    });
+  it("parses the whole answer by the contract, as the paired till", async () => {
+    const server = answering(200, JSON.stringify(wire));
+    const result = await httpBootstrapSource("/api", server.fetchImpl).load(CREDENTIAL);
+    expect(result).toEqual({ ok: true, value: tillBootstrap({ staff: wire.staff }) });
+    // Money left the parse as the domain's amounts, ready for pricing.
+    expect(result.ok && result.value.menu.products[0]?.basePrice).toBe(35_000n);
     expect(server.asked[0]).toMatchObject({
       url: "/api/pos/bootstrap",
       method: "GET",
@@ -102,10 +99,17 @@ describe("loading the till's bootstrap", () => {
   });
 
   it.each([
-    ["no cursor", { ...snapshot, cursor: undefined }],
-    ["a staff member without a name", { ...snapshot, staff: [{ id: "s" }] }],
-    ["staff not a list", { ...snapshot, staff: {} }],
-    ["no branch name", { ...snapshot, branch: { id: "b" } }],
+    ["no cursor", { ...wire, cursor: undefined }],
+    ["a staff member without a name", { ...wire, staff: [{ id: tid(1), active: true }] }],
+    [
+      "a field the contract does not name",
+      { ...wire, staff: [{ ...wire.staff[0], pinHash: "x" }] },
+    ],
+    [
+      "a price that is not whole đồng",
+      { ...wire, menu: { ...wire.menu, products: [{ ...MILK_TEA, basePrice: 35_000.5 }] } },
+    ],
+    ["no branch name", { ...wire, branch: { id: wire.branch.id } }],
   ])("refuses an answer with %s", async (_label, body) => {
     const server = answering(200, JSON.stringify(body));
     expect(await httpBootstrapSource("/api", server.fetchImpl).load(CREDENTIAL)).toMatchObject({

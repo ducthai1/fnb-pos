@@ -10,10 +10,11 @@ import {
   memoryCredentials,
   refusal,
 } from "../test-support/fake-pos-server";
+import { tillBootstrap } from "../test-support/till-fixtures";
 import { PosApp } from "./pos-app";
 
-const LAN = { id: "0199f000-0000-7000-8000-0000000051a1", displayName: "Lan" };
-const SNAPSHOT = { branch: { id: CREDENTIAL.branchId, name: "Quận 1" }, staff: [LAN], cursor: "0" };
+const LAN = { id: "0199f000-0000-7000-8000-0000000051a1", displayName: "Lan", active: true };
+const SNAPSHOT = tillBootstrap({ staff: [LAN] });
 
 function serverWithLan() {
   const server = fakeServer(SNAPSHOT);

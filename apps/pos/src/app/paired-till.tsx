@@ -2,14 +2,18 @@ import type { LocalStore, RejectedCommand } from "@fnb/sync-client";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { failureMessage } from "../features/api/failure-message";
 import type { StaffSession } from "../features/api/pos-api";
-import type { BootstrapSnapshot, BootstrapStaff } from "../features/bootstrap/bootstrap-source";
+import {
+  type BootstrapSnapshot,
+  type BootstrapStaff,
+  staffWhoMaySignIn,
+} from "../features/bootstrap/bootstrap-source";
 import { INITIAL_SYNC_STATUS } from "../features/sync/till-sync-status";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
-import { SalesHomeScreen } from "../screens/sales-home/sales-home-screen";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
 import type { PosDependencies } from "./pos-dependencies";
+import { StaffedTill } from "./staffed-till";
 import { useBackgroundSync } from "./use-background-sync";
 
 const noSubscription = () => () => {};
@@ -50,7 +54,7 @@ export function PairedTill(props: {
     return (
       <StaffLoginScreen
         branchName={snapshot.branch.name}
-        staff={snapshot.staff}
+        staff={staffWhoMaySignIn(snapshot)}
         signIn={(staffId, pin) => deps.api.startStaffSession(credential, { staffId, pin })}
         onSignedIn={(staff, session) => {
           staffToken.current = session.token;
@@ -64,8 +68,9 @@ export function PairedTill(props: {
     return <NeedsAttentionScreen rejected={rejected} onBack={() => setRejected(null)} />;
   }
   return (
-    <SalesHomeScreen
-      branchName={snapshot.branch.name}
+    <StaffedTill
+      snapshot={snapshot}
+      till={till}
       staffName={signedIn.staff.displayName}
       status={status}
       onOpenNeedsAttention={() => {

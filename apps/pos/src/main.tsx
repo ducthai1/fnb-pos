@@ -8,6 +8,7 @@ import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-base.css";
 import "./styles/pos-screens.css";
+import "./styles/pos-sale.css";
 
 /** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
 const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";

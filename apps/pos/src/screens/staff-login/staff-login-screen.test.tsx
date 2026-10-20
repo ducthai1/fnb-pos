@@ -6,8 +6,8 @@ import { vi as text } from "../../messages/vi";
 import { refusal } from "../../test-support/fake-pos-server";
 import { StaffLoginScreen } from "./staff-login-screen";
 
-const LAN = { id: "0199f000-0000-7000-8000-0000000051a1", displayName: "Lan" };
-const MINH = { id: "0199f000-0000-7000-8000-0000000051a2", displayName: "Minh" };
+const LAN = { id: "0199f000-0000-7000-8000-0000000051a1", displayName: "Lan", active: true };
+const MINH = { id: "0199f000-0000-7000-8000-0000000051a2", displayName: "Minh", active: true };
 const SESSION: StaffSession = {
   staffId: LAN.id,
   token: "staff-token",

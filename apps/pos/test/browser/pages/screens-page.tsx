@@ -9,18 +9,24 @@ import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-s
 import { SalesHomeScreen } from "../../../src/screens/sales-home/sales-home-screen";
 import { PinEntry } from "../../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../../src/screens/staff-login/staff-picker";
+import { hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import "../../../src/styles/pos-base.css";
 import "../../../src/styles/pos-screens.css";
+import "../../../src/styles/pos-sale.css";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
 // Every screen of the POS, chosen by ?screen=, filled with the worst names a shop can type.
 
 const staff = [
-  { id: "s1", displayName: HOSTILE_NAMES.staff },
-  { id: "s2", displayName: HOSTILE_NAMES.emoji },
-  { id: "s3", displayName: HOSTILE_NAMES.decomposed },
-  ...["Lan", "Minh", "Hùng", "Thu", "Vy"].map((name, i) => ({ id: `n${i}`, displayName: name })),
+  { id: "s1", displayName: HOSTILE_NAMES.staff, active: true },
+  { id: "s2", displayName: HOSTILE_NAMES.emoji, active: true },
+  { id: "s3", displayName: HOSTILE_NAMES.decomposed, active: true },
+  ...["Lan", "Minh", "Hùng", "Thu", "Vy"].map((name, i) => ({
+    id: `n${i}`,
+    displayName: name,
+    active: true,
+  })),
 ];
 const never = () => new Promise<never>(() => {});
 const rejected = (index: number): RejectedCommand => ({
@@ -59,6 +65,9 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
       branchName={HOSTILE_NAMES.branch}
       staffName={HOSTILE_NAMES.staff}
       status={{ connection: "server_error", pending: 123_456, needsAttention: 9_999 }}
+      menu={hostileTillMenu()}
+      now={Date.now()}
+      onPick={() => {}}
       onOpenNeedsAttention={() => {}}
       onSwitchStaff={() => {}}
     />

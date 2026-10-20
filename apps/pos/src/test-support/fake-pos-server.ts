@@ -1,3 +1,4 @@
+import type { SyncCommandEnvelope } from "@fnb/contracts";
 import {
   type LocalCommand,
   type LocalStore,
@@ -79,6 +80,9 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     pins: new Map<string, string>(),
     bootstrapFailure: null as ApiFailure | null,
     refuseCommandsWith: null as string | null,
+    /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
+    feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
+    pushed: [] as SyncCommandEnvelope[],
     calls: {
       pair: [] as { code: string; deviceName: string }[],
       signIn: [] as { staffId: string; pin: string; deviceToken: string }[],
@@ -117,6 +121,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     async pushCommands(batch) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pushedCommands += batch.length;
+      state.pushed.push(...batch);
       const code = state.refuseCommandsWith;
       return batch.map((command) =>
         code === null
@@ -127,7 +132,11 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     async pullChanges(cursor) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pulls += 1;
-      return { changes: [], nextCursor: cursor };
+      const read = Number(cursor);
+      const changes = state.feed
+        .slice(read)
+        .map((change, index) => ({ changeSeq: String(read + index + 1), ...change }));
+      return { changes, nextCursor: String(Math.max(read, state.feed.length)) };
     },
   };
 
