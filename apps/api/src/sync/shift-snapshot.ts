@@ -49,6 +49,10 @@ function closeOf(shift: StoredShift, denominations: DenominationCountSnapshot[])
  * The whole shift as tills and the closing slip read it. The figures are recomputed from
  * the cash book by the domain; the close is what was stored at the moment of closing, so
  * a late sale shows up beside it (cashRecordedAfterClose) instead of changing it.
+ *
+ * Its version counts the cash book's entries on top of the row's own version: a cash move,
+ * or cash recorded after the close (when the row may no longer change), alters the copy
+ * without touching the row, and a till keeps a copy until one strictly newer arrives.
  */
 export async function shiftSnapshotOf(
   client: pg.ClientBase,
@@ -63,7 +67,7 @@ export async function shiftSnapshotOf(
     deviceId: shift.deviceId,
     status: shift.status,
     businessDate: shift.businessDate,
-    version: shift.version,
+    version: shift.version + book.entryCount,
     openedByStaffId: shift.openedByStaffId,
     openingDenominations: counts.opening,
     figures: {

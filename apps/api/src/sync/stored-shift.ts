@@ -98,6 +98,11 @@ export interface ShiftCashBook {
   readonly ledger: ShiftCashLedger;
   /** Cash of sales made during the shift that reached the server after its close. */
   readonly recordedAfterClose: readonly ShiftCashEvent[];
+  /**
+   * How many entries the book holds. Entries are only ever added (a closed order keeps its
+   * payments, a cash move is never undone), so the count rises with every change to it.
+   */
+  readonly entryCount: number;
 }
 
 /**
@@ -134,5 +139,9 @@ export async function readShiftCashBook(
       staffId: row.staff_id,
     });
   }
-  return { ledger: { openingCash: shift.openingCash, events: onTime }, recordedAfterClose: late };
+  return {
+    ledger: { openingCash: shift.openingCash, events: onTime },
+    recordedAfterClose: late,
+    entryCount: payments.rows.length + moves.rows.length,
+  };
 }

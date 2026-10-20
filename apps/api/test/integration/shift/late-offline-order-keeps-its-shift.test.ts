@@ -91,12 +91,19 @@ describe("a payment that reaches the server after its shift closed", () => {
 
   it("sends the closed shift out again with the late cash beside its unchanged close", async () => {
     const { handheld, shiftId, orderId } = await closedBeforeTheHandheldSynced();
-    const { cursor } = await pullAll(app, handheld);
+    const seen = await pullAll(app, handheld);
+    const copiesOf = (changes: typeof seen.changes) =>
+      changes
+        .filter((c) => c.entity === "shift" && c.entityId === shiftId)
+        .map((c) => c.snapshot as ShiftSnapshot);
+    const closedCopy = copiesOf(seen.changes).at(-1);
+    expect(closedCopy?.status).toBe("closed");
     await pushOne(app, handheld, payInShift(handheld, orderId, 29_000, shiftId));
-    const { changes } = await pullAll(app, handheld, cursor);
-    const shifts = changes.filter((c) => c.entity === "shift" && c.entityId === shiftId);
+    const shifts = copiesOf((await pullAll(app, handheld, seen.cursor)).changes);
     expect(shifts).toHaveLength(1);
-    const snapshot = shifts[0]?.snapshot as ShiftSnapshot;
+    const snapshot = shifts[0] as ShiftSnapshot;
+    // A till keeps the copy it has until a strictly newer one arrives.
+    expect(snapshot.version).toBeGreaterThan(closedCopy?.version ?? Number.POSITIVE_INFINITY);
     expect(snapshot.cashRecordedAfterClose).toBe(29_000);
     expect(snapshot.figures.cashSales).toBe(0);
     expect(snapshot.close).toMatchObject({ expectedCash: 300_000, difference: 0 });

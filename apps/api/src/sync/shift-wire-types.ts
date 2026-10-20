@@ -34,6 +34,7 @@ export interface ShiftSnapshot {
   readonly deviceId: string | null;
   readonly status: string;
   readonly businessDate: string;
+  /** Rises with every change a till must see: the row's version plus its cash book entries. */
   readonly version: number;
   readonly openedByStaffId: string;
   readonly openingDenominations: readonly DenominationCountSnapshot[];
