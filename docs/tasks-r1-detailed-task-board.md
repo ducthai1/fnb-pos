@@ -6,9 +6,10 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 10:35 — Đợt 7 cặp 1 (2 agent, 953k token, 75 phút) đã merge + push (`e91e5be`): **màn bán hàng POS** (menu = bootstrap + thay đổi kéo về, hết món mờ đi, mở ca đếm mệnh giá, chọn size/topping theo đúng luật nhóm, giỏ dạng cây, tổng do domain tính, tiền mặt + tiền thừa, QR xác nhận tay, nhiều phương thức, xem trước bill/tem ly/phiếu bếp — chỉ báo đã gửi bếp khi máy in thật báo thành công); e2e bán ở quầy (132.000 đ khớp domain, thối 68k) + bán khi offline; **QR VietQR** (payload EMVCo + CRC, intent 15 phút, webhook SePay/PayOS idempotent + chữ ký, bí mật mã hóa AES-256-GCM, tự khớp đủ/thiếu/thừa, khớp tay, `order.pay` qr_transfer cần intent đã paid đúng số).
-- Cổng: unit ~1.540 · `test:api` 1.364 · `test:sync` 14 · `test:browser`/e2e 43 — xanh.
-- User đã cho chạy tiếp các đợt sau không cần hỏi (2026-10-20 09:06). Tiếp: đợt 7 cặp 2 — backoffice web (Next.js 15.5) + hóa đơn điện tử (adapter + bản giả) + chốt ngày + báo cáo.
+- 2026-10-20 11:55 — Đợt 7 cặp 2 (2 agent, 1,06M token, 74 phút) đã merge + push (`a601e37`): **backoffice web** (`apps/backoffice`, Next.js 15.5.28: đăng nhập + chọn tổ chức, chọn chi nhánh, thiết bị + mã ghép + thu hồi, nhân viên + PIN, vai trò + ngưỡng, danh mục, trình sửa món với xem trước lựa chọn của khách bằng domain, hết món) + e2e dựng menu trà sữa / ghép thiết bị / dữ liệu xấu; **hóa đơn điện tử** (hồ sơ theo chi nhánh, interface nhà cung cấp + bản giả, 1 hóa đơn mỗi lần thanh toán qua hàng đợi SKIP LOCKED + backoff, thông tin người mua, gửi cuối ngày), **chốt ngày** (chặn khi còn ca mở / hóa đơn chưa phát), **báo cáo doanh thu ngày** theo định nghĩa cố định.
+- **Lỗ hổng tích hợp:** backoffice gọi `GET /branches`, `GET /devices?branchId=`, `GET /staff` mà API CHƯA có (e2e dùng bản giả lập trong `e2e/backoffice/support/pending-backoffice-read-routes.ts`) ⇒ bản thật báo lỗi ở chọn chi nhánh/danh sách thiết bị/nhân viên. Việc đầu của đợt 8.
+- Cổng: unit ~1.700 · `test:api` 1.459 · `test:sync` 14 · `test:browser`/e2e 46 — xanh.
+- Tiếp: đợt 8 — cặp 8a: review sâu đợt 3–7 (chỉ đọc) + route server còn thiếu (3 route đọc, `/auth/me` kèm quyền, route ghi cấu hình, gộp chuyển đổi tài liệu món); cặp 8b: POS màn bàn + QR tự xác nhận + người mua hóa đơn; backoffice cài đặt + báo cáo + chốt ngày + khớp tay.
 
 ---
 
@@ -115,6 +116,7 @@
 ### T01-10 Backoffice khung
 - **Làm:** Next.js: đăng nhập, chi nhánh, nhân viên, vai trò, thiết bị (ghép/thu hồi), cấu hình.
 - **Test:** `e2e/backoffice/pair-a-device.spec.ts`.
+- **Trạng thái:** done (2026-10-20) — `apps/backoffice` Next.js 15.5: đăng nhập, chọn tổ chức/chi nhánh, thiết bị, nhân viên, vai trò. **Thiếu route đọc phía API** (Backlog).
 
 ---
 
@@ -185,7 +187,11 @@
 - **Trạng thái:** done (2026-10-20) — PUT/GET món dạng tài liệu lồng nhau, khóa lạc quan theo version (409), danh mục, trạm, hết món tay, bảng giá; lỗi domain ⇒ 400 `{code}`. **Chưa gắn `edit_menu`** (đợt 4).
 
 ### T03-03 UI danh mục / món / biến thể
+- **Trạng thái:** done (2026-10-20) — danh mục + danh sách món + trình sửa món (backoffice).
+
 ### T03-04 UI nhóm tùy chọn + điều kiện + xem trước lựa chọn của khách
+- **Trạng thái:** done (2026-10-20) — nhóm tùy chọn, luật theo size, xem trước lựa chọn bằng domain.
+
 ### T03-05 UI combo
 - **Test chung T03-03…05:** `e2e/backoffice/build-milk-tea-menu.spec.ts` — dựng 1 món trà sữa đủ size/đường/đá/topping, xem trước, lưu, mở lại đúng.
 
@@ -334,19 +340,33 @@
 - **Trạng thái:** done phía API (2026-10-20) — `GET /payments/unmatched`, `POST /payments/match`; UI backoffice chưa.
 
 ### T05-05 Hồ sơ HĐĐT theo chi nhánh
+- **Trạng thái:** done (2026-10-20) — hồ sơ HĐĐT theo chi nhánh qua config (regime `nd254-tt91`, ký hiệu có M).
+
 ### T05-06 Adapter nhà cung cấp HĐĐT
 - **Test:** `apps/api/test/integration/einvoice/provider-adapter-contract.test.ts` (fake ghi lại lời gọi + sandbox thật chạy tay).
+- **Trạng thái:** một phần (2026-10-20) — interface EInvoiceProvider + FakeEInvoiceProvider; adapter thật chờ sandbox nhà cung cấp.
+
 ### T05-07 Phát hành mỗi thanh toán + hàng đợi + mã tra cứu trên bill
 - **Test:** `apps/api/test/integration/einvoice/{one-invoice-per-payment,queued-while-offline}.test.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — 1 hóa đơn mỗi lần thanh toán, hàng đợi SKIP LOCKED + lease, backoff 30s→1h, tối đa 20 lần; snapshot đơn mang mã tra cứu. UI POS chưa.
+
 ### T05-08 Thông tin người mua
 - **Test:** `e2e/pos/invoice-with-buyer-tax-code.spec.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — `order.set_buyer_info`; UI POS chưa.
+
 ### T05-09 Gửi cuối ngày + cảnh báo
 - **Test:** `apps/api/test/integration/einvoice/daily-batch-submission.test.ts`.
+- **Trạng thái:** done (2026-10-20) — einvoice_daily_batch gửi theo ngày kinh doanh.
+
 ### T05-10 Hoàn tiền sau khi có hóa đơn (theo T00-05)
 ### T05-11 Chốt ngày kinh doanh
 - **Test:** `apps/api/test/integration/day-close/end-of-day-close.test.ts` — còn ca mở thì không chốt.
+- **Trạng thái:** done phía API (2026-10-20) — `POST /branches/:id/day-close` (view_reports + accept_close_difference).
+
 ### T05-12 Báo cáo cơ bản
 - **Test:** `apps/api/test/integration/reports/revenue-definitions.test.ts` — gộp/giảm/thuần/thuế/hoàn khớp bảng tay.
+- **Trạng thái:** done phía API (2026-10-20) — `GET /reports/daily-sales` (gộp/giảm/thuần/thuế theo thuế suất/phí dịch vụ/hoàn/phương thức/giờ/món); UI chưa.
+
 ### T05-13 Chạy song song 3–5 ngày + go-live R1 — Claude + `user`
 - **Xong khi:** số từng ngày khớp phần mềm cũ; checklist go-live ký.
 
@@ -418,4 +438,7 @@
 - 2026-10-20 · Lưu trữ bản web POS: reverse proxy `/api` cùng origin (đang dùng) hay `VITE_FNB_API_BASE` + CORS? → T11-05.
 - 2026-10-20 · POS: màn QR tự đổi trạng thái theo intent (đã có snapshot payment_intent); QR thiếu/thừa xử lý thế nào (QR thứ hai cho phần còn lại? tiền mặt? hoàn phần thừa?) — chờ user; mở lại nháp chưa trả sau khi tải lại; số gọi món nên do server cấp lúc trả?; nhóm tùy chọn cần "vai trò" (đường/đá) để in tem ly đúng; hồ sơ máy in theo máy quầy (khổ giấy, code page 1258); combo/giá mở/món cân trên POS.
 - 2026-10-20 · `/tmp` là tmpfs + quota chung (~7 GB/user): Postgres nhúng của test để dữ liệu trong os.tmpdir() — nếu gặp EDQUOT thì chuyển thư mục dữ liệu test về ổ home.
+- 2026-10-20 · **[gấp, đợt 8]** API thiếu `GET /branches`, `GET /devices?branchId=`, `GET /staff` (hợp đồng đề xuất trong `apps/backoffice` + `e2e/backoffice/support/pending-backoffice-read-routes.ts`); `/auth/me` chưa trả permissionKeys; chuyển ProductDocumentInput → Product bị viết 2 lần (api + backoffice) ⇒ gộp vào gói thuần; lỗi 400 của domain nên mang ids (groupId/optionId/variantId).
+- 2026-10-20 · HĐĐT: adapter thật cần sandbox + câu hỏi idempotency của nhà cung cấp; bán của ngày đã chốt đồng bộ muộn ⇒ batch bổ sung tự động hay tay?; ai sửa/đẩy lại hóa đơn failed_permanent, có chặn chốt ngày không; đơn 0đ có xuất hóa đơn không; hoàn tiền: điều chỉnh hay chỉ ghi sổ (mặc định none) — chờ kế toán/user.
+- 2026-10-20 · Backoffice: trạm thuộc chi nhánh nhưng món thuộc thương hiệu (product.stationId) — mô hình đúng chưa?; hết món theo kênh/có hạn chưa có UI; sửa/khóa nhân viên, đặt lại PIN, mở khóa PIN, xóa vai trò chưa có UI.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.
