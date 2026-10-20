@@ -1,0 +1,36 @@
+# /etc/systemd/system/fnb-backoffice.service
+# Backoffice Next.js bằng `next start` trên bản build trong apps/backoffice/dist (distDir
+# của next.config.ts). Không cần biến bí mật: trình duyệt gọi /api qua Caddy, cookie phiên
+# là của API. Chỉ nghe 127.0.0.1, Caddy đứng trước.
+[Unit]
+Description=fnb-pos backoffice (Next.js)
+Wants=network-online.target
+After=network-online.target fnb-api.service
+
+[Service]
+Type=simple
+User=fnb
+Group=fnb
+WorkingDirectory=/srv/fnb/current/apps/backoffice
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3001
+KillSignal=SIGTERM
+TimeoutStopSec=20
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
