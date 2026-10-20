@@ -2,16 +2,31 @@ import { newId } from "@fnb/db";
 import type pg from "pg";
 import type { SyncCommandEnvelope, SyncCommandResult } from "./sync-wire-types";
 
-/** The answer stored for this command id the first time it was applied, if it was. */
-export async function storedResultOf(
+/** What the ledger knows of a command id, as seen from the till sending it. */
+export interface CommandIdUse {
+  /** This till's answer to the id the first time it was applied, if it was. */
+  readonly stored: SyncCommandResult | undefined;
+  /** Another till of the tenant used the id first: its answer is never this till's. */
+  readonly takenByAnotherTill: boolean;
+}
+
+/**
+ * Command ids are a till's own: a till is answered only from its own ledger, so an id that
+ * another till drew first never hands this one that till's answer or its order.
+ */
+export async function commandIdUseOf(
   client: pg.ClientBase,
   commandId: string,
-): Promise<SyncCommandResult | undefined> {
-  const { rows } = await client.query<{ result: SyncCommandResult }>(
-    "SELECT result FROM applied_command WHERE command_id = $1",
+  deviceId: string,
+): Promise<CommandIdUse> {
+  const { rows } = await client.query<{ device_id: string; result: SyncCommandResult }>(
+    "SELECT device_id, result FROM applied_command WHERE command_id = $1",
     [commandId],
   );
-  return rows[0]?.result;
+  return {
+    stored: rows.find((row) => row.device_id === deviceId)?.result,
+    takenByAnotherTill: rows.some((row) => row.device_id !== deviceId),
+  };
 }
 
 /** The device_seq this till must send next; its sync state row stays locked until COMMIT. */

@@ -4,6 +4,8 @@ export const SYNC_ERROR_CODES = {
   outOfOrder: "SYNC_OUT_OF_ORDER",
   /** A device_seq already used by a different command of this till. Not stored. */
   deviceSeqReused: "SYNC_DEVICE_SEQ_REUSED",
+  /** Another till already sent a command under this id; nothing of it is applied. */
+  commandIdTaken: "SYNC_COMMAND_ID_TAKEN",
   domainVersionUnsupported: "SYNC_DOMAIN_VERSION_UNSUPPORTED",
   unknownCommandType: "SYNC_UNKNOWN_COMMAND_TYPE",
   invalidPayload: "SYNC_INVALID_PAYLOAD",
