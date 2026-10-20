@@ -10,6 +10,7 @@ import {
 } from "../../features/payment/tenders";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
+import { useTillKey } from "../shared/use-till-key";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { CashEntry } from "./cash-entry";
 import { QrOffer } from "./qr-offer";
@@ -42,6 +43,7 @@ export function PaymentScreen(props: PaymentScreenProps) {
   const settlement = settleTenders(amountDue, tenders);
   const payable = paymentsToSend(amountDue, settlement) !== null;
   const owed = compareVnd(settlement.remaining, ZERO_VND) > 0;
+  useTillKey(vi.sale.keys.pay, () => void finish(), payable && !busy);
 
   function take(tender: Tender) {
     const refusal = refuseTender(amountDue, tenders, tender);
@@ -79,6 +81,9 @@ export function PaymentScreen(props: PaymentScreenProps) {
               onClick={finish}
             >
               {busy ? T.finishing : T.finish}
+              <kbd className="pos-kbd pos-kbd--on-brand" aria-hidden>
+                {vi.sale.keys.pay}
+              </kbd>
             </button>
           </div>
         </>

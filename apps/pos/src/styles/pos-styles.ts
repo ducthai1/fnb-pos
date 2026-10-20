@@ -7,6 +7,7 @@ import "@fontsource/be-vietnam-pro/700.css";
 import "./pos-tokens.css";
 import "./pos-base.css";
 import "./pos-controls.css";
+import "./pos-kbd.css";
 import "./pos-surfaces.css";
 import "./pos-shell.css";
 import "./pos-nav.css";

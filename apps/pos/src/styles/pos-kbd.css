@@ -1,0 +1,29 @@
+/* The key of a till's keyboard that does the same, printed on the control; only where a
+   keyboard is likely (a till held sideways), never the only way to know what it does. */
+.pos-kbd {
+  display: none;
+  min-width: 2.2em;
+  padding: 1px 6px;
+  border: 1px solid var(--c-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: 18px;
+  text-align: center;
+}
+
+.pos-kbd--on-brand {
+  border-color: transparent;
+  background: var(--c-on-brand-soft);
+  color: var(--c-on-brand);
+}
+
+@media (min-width: 1024px) {
+  .pos-kbd {
+    display: inline-block;
+  }
+}

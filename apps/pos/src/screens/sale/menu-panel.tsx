@@ -1,11 +1,12 @@
 import type { PosProduct } from "@fnb/contracts";
 import { Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { productsShown } from "../../features/menu/search-products";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { EmptyState } from "../shared/state-view";
+import { useTillKey } from "../shared/use-till-key";
 import { CategoryTabs } from "./category-tabs";
 import { categoryTones } from "./product-mark";
 import { ProductTile } from "./product-tile";
@@ -23,6 +24,11 @@ export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
   const [query, setQuery] = useState("");
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
   const shown = productsShown(menu.products, categoryId, query);
+  const search = useRef<HTMLInputElement>(null);
+  useTillKey(vi.sale.keys.search, () => {
+    search.current?.focus();
+    search.current?.select();
+  });
   return (
     <section className="pos-menu" aria-label={vi.sale.menuLabel}>
       <CategoryTabs
@@ -35,6 +41,7 @@ export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
       <div className="pos-search">
         <Icon of={Search} />
         <input
+          ref={search}
           className="pos-input pos-search__input"
           type="search"
           aria-label={vi.sale.search}
@@ -42,7 +49,11 @@ export function MenuPanel({ menu, now, onPick }: MenuPanelProps) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-        {query === "" ? null : (
+        {query === "" ? (
+          <kbd className="pos-kbd" aria-hidden>
+            {vi.sale.keys.search}
+          </kbd>
+        ) : (
           <button
             type="button"
             className="pos-search__clear"

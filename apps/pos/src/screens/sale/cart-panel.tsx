@@ -8,6 +8,7 @@ import type { KeptLines } from "../../features/order/price-counter-order";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { EmptyState } from "../shared/state-view";
+import { useTillKey } from "../shared/use-till-key";
 import { CartRow, type CartRowActions, type LineAdjustments } from "./cart-row";
 import { CartTotals } from "./cart-totals";
 import { ServiceTypePicker } from "./service-type-picker";
@@ -40,6 +41,8 @@ const NONE: KeptLines = new Map();
 /** The order as a tree (options indented under their item), with the domain's totals. */
 export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }: CartPanelProps) {
   const priced = view.kind === "priced" ? view.priced : null;
+  const payable = priced !== null && order.lines.length > 0;
+  useTillKey(S.keys.pay, on.onCheckout, payable);
   return (
     <section className="pos-cart" aria-label={S.cartLabel}>
       <p className="pos-cart__number">
@@ -72,11 +75,14 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
         <button
           type="button"
           className="pos-button pos-button--primary pos-cart__checkout"
-          disabled={priced === null || order.lines.length === 0}
+          disabled={!payable}
           onClick={on.onCheckout}
         >
           {S.checkout}
           <Icon of={ArrowRight} size={24} />
+          <kbd className="pos-kbd pos-kbd--on-brand" aria-hidden>
+            {S.keys.pay}
+          </kbd>
         </button>
       </div>
     </section>

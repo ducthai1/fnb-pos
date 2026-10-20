@@ -130,6 +130,12 @@
   font-size: var(--fs-lg);
 }
 
+.pos-search > .pos-kbd {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+}
+
 .pos-search__clear {
   position: absolute;
   right: 4px;

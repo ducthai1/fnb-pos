@@ -5,6 +5,8 @@ export const VI_SALE = {
   search: "Tìm món",
   searchPlaceholder: "Gõ tên món, không dấu cũng được",
   clearSearch: "Xóa chữ đang tìm",
+  /** The keys of a till's keyboard, printed on the controls they press. */
+  keys: { search: "F2", pay: "F9" },
   categoriesLabel: "Danh mục",
   allCategories: "Tất cả",
   emptyMenu: "Chưa có món nào để bán. Thêm món ở trang quản lý.",
