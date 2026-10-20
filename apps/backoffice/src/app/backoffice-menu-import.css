@@ -31,7 +31,7 @@
 
 .bo-import-file[data-dragging] {
   border-color: var(--c-brand);
-  background: var(--c-brand-tint);
+  background: var(--c-brand-soft);
 }
 
 .bo-import-file__pick {
