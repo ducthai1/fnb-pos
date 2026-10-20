@@ -21,8 +21,18 @@ const occupancy = (orderAtT1: string | null): FloorOccupancy => ({
       status: orderAtT1 === null ? "free" : "occupied",
       orderId: orderAtT1,
       openedAt: orderAtT1 === null ? null : OPENED,
+      layout: { x: 40, y: 40, width: 80, height: 80, shape: "circle" },
     },
-    { id: T2, areaId: tid(1), name: "2", seats: 2, status: "free", orderId: null, openedAt: null },
+    {
+      id: T2,
+      areaId: tid(1),
+      name: "2",
+      seats: 2,
+      status: "free",
+      orderId: null,
+      openedAt: null,
+      layout: null,
+    },
   ],
 });
 
@@ -76,6 +86,8 @@ describe("the floor as the till shows it", () => {
   it("seats an order the till holds at once, with the domain's amount, before the server knows", () => {
     const [t1] = floorTablesView(occupancy(null), [order()], NONE);
     expect(t1).toMatchObject({ status: "occupied", orderId: tid(500), openedAt: null });
+    // Where the table stands is the plan's, whoever sits at it.
+    expect(t1?.layout).toEqual({ x: 40, y: 40, width: 80, height: 80, shape: "circle" });
     expect(t1?.amountDue).toBe(29_000n);
   });
 

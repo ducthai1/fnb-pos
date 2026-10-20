@@ -50,5 +50,21 @@ export const HOSTILE_TABLES: readonly FloorTableView[] = Array.from({ length: 60
     orderId: status === "free" ? null : `order-${i}`,
     openedAt: status === "free" ? null : new Date(Date.now() - (i * 37 + 5) * 60_000).toISOString(),
     amountDue: status === "free" ? null : NINE_DIGIT_BILL,
+    layout: null,
   };
 });
+
+/**
+ * The same 60 tables placed on a plan at the editor's limits: ten to a row, the first as
+ * wide as a table can be, the last against the far edge, every other one round.
+ */
+export const HOSTILE_PLAN_TABLES: readonly FloorTableView[] = HOSTILE_TABLES.map((table, i) => ({
+  ...table,
+  layout: {
+    x: i === 59 ? 10_000 - 80 : (i % 10) * 120,
+    y: Math.floor(i / 10) * 120,
+    width: i === 0 ? 2_000 : 80,
+    height: 80,
+    shape: i % 2 === 0 ? "rectangle" : "circle",
+  },
+}));

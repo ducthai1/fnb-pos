@@ -16,6 +16,7 @@ export const SCREEN_NAMES = [
   "sale-done",
   "sale-done-invoice",
   "floor",
+  "floor-plan",
   "table-order",
   "transfer-table",
   "table-slips",

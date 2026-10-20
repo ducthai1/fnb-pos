@@ -29,6 +29,7 @@ export function fakeFloorSource(
           const order = seated.find((row) => row.tableId === table.id);
           return {
             ...table,
+            layout: null,
             status:
               order === undefined
                 ? "free"

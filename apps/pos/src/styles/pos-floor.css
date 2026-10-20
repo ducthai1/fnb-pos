@@ -3,17 +3,10 @@
    Table and area names come from the shop, so tiles use minmax(min(100%, …), 1fr) columns
    and every name wraps anywhere. */
 
-.pos-tab[aria-pressed="true"] {
-  border-color: var(--pos-primary);
-  background: var(--pos-primary);
-  color: var(--pos-primary-text);
-  font-weight: 600;
-}
-
 .pos-table-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
-  gap: 10px;
+  gap: var(--sp-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -23,68 +16,103 @@
   min-width: 0;
 }
 
+/* A table, by status: free is plain with a dashed edge; seated is green, pre-billed blue,
+   changed after its pre-bill red. The status is written on it too. */
 .pos-table {
+  --table-line: var(--c-border);
+  --table-fill: var(--c-surface);
+  --table-ink: var(--c-text-2);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: var(--sp-1);
   width: 100%;
   height: 100%;
-  min-height: 104px;
-  padding: 12px;
-  border: 2px solid var(--pos-border);
-  border-radius: 12px;
-  background: var(--pos-surface);
-  color: var(--pos-text);
+  min-height: 112px;
+  padding: var(--sp-3);
+  border: 2px solid var(--table-line);
+  border-radius: var(--r-lg);
+  background: var(--table-fill);
+  color: var(--c-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
 }
 
+.pos-table:active {
+  transform: scale(0.98);
+}
+
+.pos-table:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 .pos-table__name {
   max-width: 100%;
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
 }
 
 .pos-table__status {
   max-width: 100%;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--pos-bg);
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--table-ink);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.pos-table__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  max-width: 100%;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
   overflow-wrap: anywhere;
 }
 
 .pos-table__amount {
   max-width: 100%;
-  font-weight: 700;
+  margin-top: auto;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
+.pos-table--free {
+  border-style: dashed;
+}
+
 .pos-table--occupied {
-  border-color: var(--pos-warn-text);
-  background: var(--pos-warn-bg);
+  --table-line: var(--c-brand);
+  --table-fill: var(--c-brand-soft);
+  --table-ink: var(--c-on-brand);
 }
 
 .pos-table--awaiting_payment {
-  border-color: var(--pos-ok-text);
-  background: var(--pos-ok-bg);
+  --table-line: var(--c-info);
+  --table-fill: var(--c-info-soft);
+  --table-ink: var(--c-on-info);
 }
 
 .pos-table--changed_after_pre_bill {
-  border-color: var(--pos-danger-text);
-  background: var(--pos-danger-bg);
+  --table-line: var(--c-danger);
+  --table-fill: var(--c-danger-soft);
+  --table-ink: var(--c-on-danger);
 }
 
 .pos-table--occupied .pos-table__status,
 .pos-table--awaiting_payment .pos-table__status,
 .pos-table--changed_after_pre_bill .pos-table__status {
-  background: var(--pos-surface);
+  background: var(--table-line);
 }
 
 .pos-badge--sent {

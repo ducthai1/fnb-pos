@@ -1,0 +1,136 @@
+/* The floor drawn as the editor placed it, the filter and view switch above it, and the
+   legend of what each colour means (the status is also written on every table). */
+
+.pos-floor-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  min-width: 0;
+}
+
+.pos-floor-bar > .pos-tabs .pos-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pos-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-3);
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.pos-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pos-legend__swatch {
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--table-line);
+  border-radius: 4px;
+  background: var(--table-fill);
+}
+
+.pos-legend__count {
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* As wide as the screen allows, at most 1.6px per editor unit; the floor inside keeps the
+   plan's proportions and holds each table by percentages of it. */
+.pos-plan {
+  box-sizing: border-box;
+  width: min(100%, calc(var(--plan-w) * 1.6px + 2 * var(--sp-4) + 2px));
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  background-color: var(--c-surface-2);
+  background-image: radial-gradient(var(--c-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.pos-plan__floor {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--plan-w) / var(--plan-h);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-plan__spot {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 3px;
+}
+
+.pos-plan__spot[data-dimmed="true"] {
+  opacity: 0.3;
+}
+
+.pos-plan .pos-table {
+  container-type: size;
+  min-height: 0;
+  padding: var(--sp-2);
+  overflow: hidden;
+  gap: 2px;
+}
+
+/* A small table cuts its last lines, never its name: nothing in it shrinks to nothing. */
+.pos-plan .pos-table > * {
+  flex-shrink: 0;
+}
+
+.pos-plan .pos-table__name {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-md);
+}
+
+.pos-plan .pos-table__status {
+  display: block;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pos-plan .pos-table__amount {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 0;
+  font-size: var(--fs-sm);
+}
+
+.pos-plan .pos-table__fact {
+  font-size: var(--fs-xs);
+}
+
+/* A low table keeps its name, status and bill; the time sat goes first. */
+@container (max-height: 104px) {
+  .pos-plan .pos-table__fact {
+    display: none;
+  }
+}
+
+.pos-plan .pos-table[data-shape="circle"] {
+  align-items: center;
+  justify-content: safe center;
+  border-radius: var(--r-pill);
+  text-align: center;
+}

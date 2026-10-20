@@ -43,8 +43,36 @@ describe("reading the floor the server sends a till", () => {
         status: "free",
         orderId: null,
         openedAt: null,
+        layout: { x: 0, y: 0, width: 100, height: 100, shape: "rectangle" },
       },
-      { id: tid(102), areaId: area.id, name: "Bàn 2", seats: 4, ...seated },
+      {
+        id: tid(102),
+        areaId: area.id,
+        name: "Bàn 2",
+        seats: 4,
+        ...seated,
+        layout: { x: 0, y: 0, width: 100, height: 100, shape: "rectangle" },
+      },
+    ]);
+  });
+
+  it("keeps where each table stands, and lists one with no usable place in a grid", () => {
+    const floor = parseFloorOccupancy({
+      areas: [area],
+      tables: [
+        table(1, { x: 240, y: 120, width: 80, height: 60, shape: "circle" }),
+        table(2, { width: 0 }),
+        table(3, { x: -5 }),
+        table(4, { y: 1.5 }),
+        table(5, { height: undefined }),
+      ],
+    });
+    expect(floor?.tables.map((shown) => shown.layout)).toEqual([
+      { x: 240, y: 120, width: 80, height: 60, shape: "circle" },
+      null,
+      null,
+      null,
+      null,
     ]);
   });
 
