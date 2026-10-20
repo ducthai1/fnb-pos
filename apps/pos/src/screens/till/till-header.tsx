@@ -8,6 +8,7 @@ export interface TillHeaderProps {
   status: TillSyncStatus;
   onOpenNeedsAttention(): void;
   onSwitchStaff(): void;
+  onSignOut(): void;
 }
 
 /** On every screen of a signed-in till: where, who, and whether it is in sync. */
@@ -24,6 +25,9 @@ export function TillHeader(props: TillHeaderProps) {
           onClick={props.onSwitchStaff}
         >
           {vi.sales.switchStaff}
+        </button>
+        <button type="button" className="pos-button pos-button--quiet" onClick={props.onSignOut}>
+          {vi.session.signOut}
         </button>
       </div>
     </header>

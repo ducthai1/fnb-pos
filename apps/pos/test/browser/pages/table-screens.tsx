@@ -30,6 +30,7 @@ const header = (
       status={{ connection: "offline", pending: 123_456, needsAttention: 9_999 }}
       onOpenNeedsAttention={() => {}}
       onSwitchStaff={() => {}}
+      onSignOut={() => {}}
     />
     <SellingModeSwitch mode="tables" onChange={() => {}} />
   </>

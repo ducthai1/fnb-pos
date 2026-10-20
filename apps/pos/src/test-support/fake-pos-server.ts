@@ -159,7 +159,17 @@ export function fakeDependencies(
     api: server.api,
     bootstrap: server.bootstrap,
     floor: server.floor,
-    transportFor: () => server.transport,
+    // A push with a staff session the server no longer knows is refused 401, as the API does.
+    transportFor: (_credential, staffToken) => ({
+      pullChanges: (cursor, limit) => server.transport.pullChanges(cursor, limit),
+      async pushCommands(batch) {
+        const token = staffToken();
+        if (server.state.online && token !== null && server.state.expiredTokens.has(token)) {
+          throw new SyncTransportError("http", 401, "answered 401");
+        }
+        return server.transport.pushCommands(batch);
+      },
+    }),
     syncIdleMs: 20,
     printer: options.printer ?? previewOnlyPrinter,
     reload: () => {},

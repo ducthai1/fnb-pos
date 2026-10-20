@@ -20,6 +20,7 @@ const header = (
     status={{ connection: "server_error", pending: 123_456, needsAttention: 9_999 }}
     onOpenNeedsAttention={() => {}}
     onSwitchStaff={() => {}}
+    onSignOut={() => {}}
   />
 );
 const profile = { pricesIncludeTax: false, serviceCharge: null };

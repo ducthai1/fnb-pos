@@ -46,7 +46,11 @@ export function PairedTill(props: {
   const [signInNotice, setSignInNotice] = useState<string | null>(null);
   const [rejected, setRejected] = useState<readonly RejectedCommand[] | null>(null);
   const staffToken = useRef<string | null>(null);
-  const till = useBackgroundSync(deps, props.store, credential, staffToken);
+  const signOutRef = useRef<(notice: string | null) => void>(() => {});
+  const till = useBackgroundSync(deps, props.store, credential, staffToken, (token) => {
+    // The server no longer knows the session the till pushed with: the PIN screen again.
+    if (staffToken.current === token) signOutRef.current(vi.errors.API_STAFF_SESSION_INVALID);
+  });
   const status = useSyncExternalStore(
     till?.sync.subscribe ?? noSubscription,
     till?.sync.current ?? initialStatus,
@@ -69,6 +73,7 @@ export function PairedTill(props: {
     setSignedIn(null);
     setSignInNotice(notice);
   }, []);
+  signOutRef.current = signOut;
   const permissions = useMemo(() => {
     if (signedIn === null || snapshot === null) return null;
     const token = signedIn.session.token;
@@ -127,6 +132,7 @@ export function PairedTill(props: {
           void till?.client.rejectedCommands().then(setRejected);
         }}
         onSwitchStaff={() => signOut(null)}
+        onSignOut={() => signOut(vi.session.signedOut(signedIn.staff.displayName))}
       />
     </TillPermissionsProvider>
   );
