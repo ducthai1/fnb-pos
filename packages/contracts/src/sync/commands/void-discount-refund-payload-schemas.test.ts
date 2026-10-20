@@ -96,11 +96,17 @@ describe("refundOrderPayloadSchema", () => {
     expect(refundOrderPayloadSchema.parse(refund).payouts).toEqual(refund.payouts);
   });
 
+  it("keeps the shift whose drawer paid out, which a till may leave out", () => {
+    expect(refundOrderPayloadSchema.parse({ ...refund, shiftId: id(4) }).shiftId).toBe(id(4));
+    expect(refundOrderPayloadSchema.parse(refund).shiftId).toBeUndefined();
+  });
+
   it.each([
     ["a payout taking money in", { payouts: [{ method: "cash", amount: 1 }] }],
     ["no payout", { payouts: [] }],
     ["no line", { lines: [] }],
     ["a line without its restock choice", { lines: [{ lineId: id(3), quantity: "1" }] }],
+    ["a shift that is not a uuid", { shiftId: "ca-sang" }],
   ])("refuses %s", (_label, change) => {
     expect(outcomeOf(refundOrderPayloadSchema, { ...refund, ...change }).ok).toBe(false);
   });

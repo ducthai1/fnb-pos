@@ -27,6 +27,8 @@ export const refundOrderPayloadSchema = z.object({
     .max(10),
   /** A manager's approval, for staff who may not refund alone. */
   approvalId: uuidSchema.optional(),
+  /** The shift whose drawer the cash came out of; a late refund keeps that shift. */
+  shiftId: uuidSchema.optional(),
 });
 
 export type RefundOrderPayload = z.infer<typeof refundOrderPayloadSchema>;
