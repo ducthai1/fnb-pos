@@ -16,6 +16,18 @@ import { ItemTally, PaymentTally, TotalsTally } from "./daily-sales-tallies";
 import { qrRefundsOfTheDay } from "./qr-refunds-of-the-day";
 import { voidedUnitsValue } from "./voided-units-value";
 
+const DAY_MINUTES = 24 * 60;
+
+/**
+ * Where a local hour falls in the branch's business day, which runs from its start minute
+ * (04:00) to just before it the next morning: a night's 01:00 comes after its 23:00, not
+ * before the day opened. An hour is placed by its last minute, so the hour a day starts in
+ * leads (04:30 start: 04:30–04:59 of it belongs to the day's beginning).
+ */
+function hourInBusinessDay(hour: number, dayStartMinute: number): number {
+  return (hour * 60 + 59 - dayStartMinute + DAY_MINUTES) % DAY_MINUTES;
+}
+
 interface ClosedOrderRow {
   id: string;
   refund_of_order_id: string | null;
@@ -33,12 +45,13 @@ export async function readDailySalesReport(
   branchId: string,
   businessDate: string,
 ): Promise<DailySalesReport | null> {
-  const branch = await client.query<{ utc_offset_minutes: number }>(
-    "SELECT utc_offset_minutes FROM branch WHERE id = $1",
+  const branch = await client.query<{ utc_offset_minutes: number; day_start: number }>(
+    "SELECT utc_offset_minutes, business_day_start_minute AS day_start FROM branch WHERE id = $1",
     [branchId],
   );
   const offset = branch.rows[0]?.utc_offset_minutes;
-  if (offset === undefined) return null;
+  const dayStart = branch.rows[0]?.day_start;
+  if (offset === undefined || dayStart === undefined) return null;
   // paid_at is the till's moment of payment; orders closed before it was recorded fall back
   // to the server's time of the change. An order paid after the day was closed is left out:
   // the close froze the day's figures, and the day's status lists such orders beside it.
@@ -96,7 +109,7 @@ export async function readDailySalesReport(
     },
     payments: payments.rows(),
     byHour: [...hours.entries()]
-      .sort(([a], [b]) => a - b)
+      .sort(([a], [b]) => hourInBusinessDay(a, dayStart) - hourInBusinessDay(b, dayStart))
       .map(([hour, sum]) => ({
         hour,
         orderCount: sum.orderCount,
