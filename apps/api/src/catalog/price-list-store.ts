@@ -1,6 +1,8 @@
 import type { PriceListDocumentInput } from "@fnb/contracts";
 import type { PriceListItem } from "@fnb/domain";
 import type pg from "pg";
+import { lockTenantChangeFeed } from "../sync/change-feed";
+import { recordPriceListChange } from "./catalog-change-feed";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
 import { type CatalogWriteContext, insertCatalogRow, putVersionedRow } from "./catalog-row-writes";
 import { amountOf } from "./product-document";
@@ -20,7 +22,10 @@ const scopeIdOf = (scope: PriceListItem["scope"]): string | null => {
 
 const instantOf = (epoch: number | null): Date | null => (epoch === null ? null : new Date(epoch));
 
-/** Creates or replaces the list; its items are rewritten, as an item is only a rule. */
+/**
+ * Creates or replaces the list; its items are rewritten, as an item is only a rule. Takes
+ * the tenant's feed lock first, as a sync command does, and tells the brand's tills.
+ */
 export async function writePriceList(
   client: pg.PoolClient,
   context: CatalogWriteContext,
@@ -28,6 +33,7 @@ export async function writePriceList(
   input: PriceListDocumentInput,
   items: readonly PriceListItem[],
 ): Promise<{ created: boolean }> {
+  await lockTenantChangeFeed(client, context.tenantId);
   const saved = await putVersionedRow(client, context, {
     table: "price_list",
     id,
@@ -58,6 +64,7 @@ export async function writePriceList(
       priority: item.priority,
     });
   }
+  await recordPriceListChange(client, context.tenantId, input.brandId, id);
   return { created: saved.created };
 }
 

@@ -1,6 +1,8 @@
 import type { ProductDocumentInput } from "@fnb/contracts";
 import type pg from "pg";
+import { lockTenantChangeFeed } from "../sync/change-feed";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
+import { productCopies, productsSharingGroups, recordProductChanges } from "./catalog-change-feed";
 import { CatalogRequestError } from "./catalog-request-error";
 import {
   type CatalogWriteContext,
@@ -17,6 +19,11 @@ import { writeProductModifierGroups } from "./write-product-modifier-groups";
  * with their options and variant rules, and combo slots. Variants and options left out
  * of the body are archived, never deleted, since past orders point at them; the rows that
  * only arrange the product are replaced. Returns the product's new version.
+ *
+ * Tills hear of it in the same transaction, which takes the tenant's feed lock first, as a
+ * sync command does. A group is shared, so other products carrying a group this save
+ * changed have changed too; they are sent again only when their copy actually differs, or
+ * every save of one drink would resend every drink that offers the same toppings.
  */
 export async function writeProductDocument(
   client: pg.PoolClient,
@@ -25,6 +32,10 @@ export async function writeProductDocument(
   checked: CheckedProductDocument,
 ): Promise<{ version: number; created: boolean }> {
   const { product, taxRate } = checked;
+  await lockTenantChangeFeed(client, context.tenantId);
+  const groupIds = product.modifierGroups.map((group) => group.id);
+  const sharing = (await productsSharingGroups(client, groupIds)).filter((id) => id !== product.id);
+  const before = await productCopies(client, sharing);
   const saved = await putVersionedRow(client, context, {
     table: "product",
     id: product.id,
@@ -47,6 +58,11 @@ export async function writeProductDocument(
   await writeVariants(client, context, checked);
   await writeProductModifierGroups(client, context, product);
   await writeProductCombo(client, context, product);
+  const after = await productCopies(client, sharing);
+  const changed = sharing.filter(
+    (id) => JSON.stringify(before.get(id)) !== JSON.stringify(after.get(id)),
+  );
+  await recordProductChanges(client, context.tenantId, [product.id, ...changed]);
   return saved;
 }
 

@@ -106,11 +106,14 @@ describe("who sees a change", () => {
     const otherTenant = await pullAll(app, otherShop.tillA);
     expect(orderIds(ownBranch.changes)).toContain(orderIdOf(draft));
     expect(orderIds(otherBranch.changes)).not.toContain(orderIdOf(draft));
+    // Menu changes of the brand reach both branches; orders only their own.
+    const otherBranchOrders = otherBranch.changes.filter((c) => c.entity === "order");
     expect(
-      otherBranch.changes.every(
+      otherBranchOrders.every(
         (c) => (c.snapshot as { branchId: string }).branchId === s.shop.otherBranchId,
       ),
     ).toBe(true);
-    expect(otherTenant.changes).toEqual([]);
+    const ownIds = new Set(ownBranch.changes.map((c) => c.entityId));
+    expect(otherTenant.changes.filter((c) => ownIds.has(c.entityId))).toEqual([]);
   });
 });

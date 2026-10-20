@@ -5,6 +5,11 @@ export {
   posChargeProfileSchema,
   posDeviceConfigSchema,
 } from "./pos-device-config-schema";
+export {
+  POS_FEED_ENTITY,
+  POS_FEED_SNAPSHOT_SCHEMAS,
+  type PosFeedEntity,
+} from "./pos-feed-entities";
 export { feedCursorSchema, feedVersionSchema } from "./pos-feed-version-schema";
 export {
   type PosAvailability,

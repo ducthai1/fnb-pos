@@ -46,6 +46,47 @@ export async function appendChange(
   );
 }
 
+export interface SequencedChange {
+  branchId: string;
+  entity: string;
+  entityId: string;
+  /** The copy without its version; null when the copy is gone. */
+  snapshot: Record<string, unknown> | null;
+}
+
+/**
+ * Appends a copy whose version is its own change_seq, for copies assembled from several
+ * rows (a product and the groups it shares, a till's inherited settings), which no single
+ * row version follows. The number is drawn first so the copy can carry it; the caller
+ * holds lockTenantChangeFeed, so drawing it early changes nothing about commit order.
+ */
+export async function appendSequencedChange(
+  client: pg.ClientBase,
+  tenantId: string,
+  change: SequencedChange,
+) {
+  const { rows } = await client.query<{ seq: string }>(
+    "SELECT nextval('change_log_change_seq_seq')::text AS seq",
+  );
+  const seq = rows[0]?.seq;
+  if (seq === undefined) throw new Error("nextval returned no row");
+  const snapshot =
+    change.snapshot === null ? null : { ...change.snapshot, version: feedVersionOf(seq) };
+  await client.query(
+    "INSERT INTO change_log (id, tenant_id, change_seq, branch_id, entity, entity_id, snapshot) " +
+      "VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    [
+      newId(),
+      tenantId,
+      seq,
+      change.branchId,
+      change.entity,
+      change.entityId,
+      JSON.stringify(snapshot),
+    ],
+  );
+}
+
 /**
  * The branch's changes strictly after `cursor`, oldest first. change_seq is selected as the
  * bigint it is (pg hands int8 over as text): casting it to text in the select list would make
