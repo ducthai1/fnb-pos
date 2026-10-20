@@ -58,7 +58,7 @@ describe("archiving a role", () => {
 
   it("marks an archived role and offers nothing to do with it", async () => {
     await openArchive(async () => HELD);
-    const old = screen.getByText("Ca sáng cũ").closest("li") as HTMLElement;
+    const old = screen.getByText("Ca sáng cũ").closest("tr") as HTMLElement;
     expect(old.textContent).toContain(K.archivedBadge);
     expect(within(old).queryByRole("button")).toBeNull();
   });

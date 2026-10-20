@@ -49,6 +49,7 @@ export const VI_PRINT_FAILURES = {
   toLabel: "Đến ngày",
   rangeInvalid: "Chọn ngày bắt đầu không sau ngày kết thúc.",
   show: "Xem",
+  search: "Tìm máy in, đơn, mã lỗi",
   columns: {
     occurredAt: "Lúc",
     kind: "Loại phiếu",

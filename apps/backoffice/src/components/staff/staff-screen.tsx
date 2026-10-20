@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { LoadStateView } from "../shell/load-state-view";
+import { PageHeader } from "../shell/page-header";
 import { useApiLoad } from "../shell/use-api-load";
 import { SuccessNotice } from "../ui/error-notice";
 import { NewStaffFormView } from "./new-staff-form";
@@ -26,10 +27,7 @@ export function StaffScreen() {
 
   return (
     <section className="bo-stack" aria-labelledby="staff-title">
-      <h1 id="staff-title" className="bo-title">
-        {T.title}
-      </h1>
-      <p className="bo-muted">{T.hint}</p>
+      <PageHeader section="/staff" title={T.title} titleId="staff-title" hint={T.hint} />
       <LoadStateView loaded={roles} retry={reloadRoles}>
         {(roleList) => (
           <>
