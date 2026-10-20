@@ -1,0 +1,14 @@
+# /etc/cron.d/fnb-backup — quyền 644, chủ root (cron bỏ qua file ghi được bởi người khác).
+# Chạy bằng user fnbbackup, mật khẩu role fnb_backup nằm trong ~fnbbackup/.pgpass (600):
+#   127.0.0.1:5432:fnb:fnb_backup:<mật khẩu>
+# Log vào journal: journalctl -t fnb-backup
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# 03:30 giờ máy (đặt múi giờ Asia/Ho_Chi_Minh): sau khi quán đóng cửa, trước giờ bắt đầu
+# ngày kinh doanh 04:00. Giữ 14 bản mới nhất trong /var/backups/fnb.
+30 3 * * * fnbbackup cd /srv/fnb/current && FNB_PG_BIN_DIR=/usr/lib/postgresql/17/bin FNB_BACKUP_DATABASE_URL=postgresql://fnb_backup@127.0.0.1:5432/fnb FNB_BACKUP_DIRECTORY=/var/backups/fnb FNB_BACKUP_KEEP=14 node --import tsx scripts/src/ops/backup-cli.ts 2>&1 | logger -t fnb-backup
+
+# Bản backup nằm cùng ổ với database thì không sống sót khi ổ hỏng: chép ra ngoài server.
+# Bỏ dấu # sau khi cấu hình rclone (`rclone config` bằng user fnbbackup, remote tên fnb-offsite).
+# 50 3 * * * fnbbackup rclone copy /var/backups/fnb fnb-offsite:fnb-backups --max-age 48h 2>&1 | logger -t fnb-backup

@@ -1,7 +1,10 @@
 import pg from "pg";
 import { type AppDependencies, buildApp } from "../build-app";
 import { FakeEInvoiceProvider } from "../einvoice/providers/fake-einvoice-provider";
+import { systemClock } from "../clock";
+import { installRateLimits } from "../http/rate-limit-hooks";
 import { maskSecrets, serverErrorLines } from "../http/server-error-report";
+import { installCleanupJob } from "../ops/sign-in-cleanup-job";
 import type { ServerConfig } from "./server-config";
 
 export interface RunningServer {
@@ -34,6 +37,23 @@ export async function startServer(
       // Every 500, with its route and masked message, so a fault in production leaves a trace.
       onServerError: (report) => serverErrorLines(report).forEach(logError),
     });
+    installRateLimits(app, config.rateLimits, systemClock);
+    if (config.cleanup !== null) {
+      installCleanupJob(app, {
+        pool,
+        clock: systemClock,
+        settings: config.cleanup,
+        onRound: (report) => {
+          const removed = report.pairingCodes + report.staffSessions + report.backofficeSessions;
+          if (removed === 0) return;
+          log(
+            `cleanup removed ${report.pairingCodes} pairing codes, ${report.staffSessions} ` +
+              `staff sessions, ${report.backofficeSessions} backoffice sessions`,
+          );
+        },
+        onError: (error) => logError(`cleanup round failed: ${maskSecrets(String(error))}`),
+      });
+    }
     const url = await app.listen({ host: config.host, port: config.port });
     return {
       url,

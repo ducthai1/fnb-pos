@@ -23,6 +23,13 @@ export {
   type MigrationFile,
   listMigrationFiles,
 } from "./migrations/list-migration-files";
+export {
+  type PurgeCutoffs,
+  type PurgeReport,
+  type TenantPurge,
+  purgeExpiredCodesAndSessions,
+  purgeTenantCodesAndSessions,
+} from "./maintenance/purge-expired-codes-and-sessions";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
 export { databaseUrlFor } from "./provisioning/database-url";
 export {

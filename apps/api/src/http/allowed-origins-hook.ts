@@ -3,6 +3,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 export const HTTP_ERROR_CODES = {
   /** A browser page of a site the server was not told about tried to change something. */
   originNotAllowed: "API_ORIGIN_NOT_ALLOWED",
+  /** Too many sign-in, pairing, PIN or approval requests; Retry-After says when to retry. */
+  rateLimited: "API_RATE_LIMITED",
 } as const;
 
 const READ_ONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);

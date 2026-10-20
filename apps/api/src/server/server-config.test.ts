@@ -35,8 +35,79 @@ describe("server configuration", () => {
         einvoiceWorkerIntervalMs: 5_000,
         secureCookies: true,
         allowedOrigins: null,
+        rateLimits: {
+          windowMillis: 60_000,
+          loginPerAddress: 30,
+          loginPerAccount: 10,
+          pairingPerAddress: 10,
+          tillPerAddress: 300,
+          tillPerDevice: 60,
+          trustedProxies: [],
+        },
+        cleanup: { intervalMillis: 3_600_000, sessionRetentionMillis: 30 * 86_400_000 },
       },
     });
+  });
+
+  it("reads the cleanup job's schedule and retention, or leaves it off", () => {
+    const result = readServerConfig({
+      ...development,
+      FNB_CLEANUP_INTERVAL_MINUTES: "15",
+      FNB_SESSION_RETENTION_DAYS: "7",
+    });
+    expect(result.ok && result.config.cleanup).toEqual({
+      intervalMillis: 900_000,
+      sessionRetentionMillis: 7 * 86_400_000,
+    });
+    const off = readServerConfig({ ...development, FNB_CLEANUP_ENABLED: "false" });
+    expect(off.ok && off.config.cleanup).toBeNull();
+  });
+
+  it("refuses a retention of no days, which would delete sessions as they expire", () => {
+    expect(
+      problemsOf({ ...development, FNB_SESSION_RETENTION_DAYS: "0", FNB_CLEANUP_ENABLED: "yes" }),
+    ).toEqual([
+      "FNB_CLEANUP_ENABLED must be true or false",
+      "FNB_SESSION_RETENTION_DAYS must be at least 1",
+    ]);
+  });
+
+  it("reads the rate limits and the proxies whose forwarded address is believed", () => {
+    const result = readServerConfig({
+      ...development,
+      FNB_RATE_LIMIT_WINDOW_SECONDS: "120",
+      FNB_RATE_LIMIT_LOGIN_PER_ADDRESS: "5",
+      FNB_RATE_LIMIT_LOGIN_PER_ACCOUNT: "3",
+      FNB_RATE_LIMIT_PAIRING_PER_ADDRESS: "2",
+      FNB_RATE_LIMIT_TILL_PER_ADDRESS: "50",
+      FNB_RATE_LIMIT_TILL_PER_DEVICE: "20",
+      FNB_TRUSTED_PROXIES: "127.0.0.1, ::1",
+    });
+    if (!result.ok) throw new Error(result.problems.join("\n"));
+    expect(result.config.rateLimits).toEqual({
+      windowMillis: 120_000,
+      loginPerAddress: 5,
+      loginPerAccount: 3,
+      pairingPerAddress: 2,
+      tillPerAddress: 50,
+      tillPerDevice: 20,
+      trustedProxies: ["127.0.0.1", "::1"],
+    });
+  });
+
+  it("refuses a rate limit of zero, which would lock everyone out, and a proxy by name", () => {
+    expect(
+      problemsOf({
+        ...development,
+        FNB_RATE_LIMIT_LOGIN_PER_ACCOUNT: "0",
+        FNB_RATE_LIMIT_WINDOW_SECONDS: "1.5",
+        FNB_TRUSTED_PROXIES: "localhost",
+      }),
+    ).toEqual([
+      "FNB_RATE_LIMIT_WINDOW_SECONDS must be a whole number of seconds",
+      "FNB_RATE_LIMIT_LOGIN_PER_ACCOUNT must be at least 1",
+      "FNB_TRUSTED_PROXIES must be a comma separated list of addresses or ranges such as 127.0.0.1,::1",
+    ]);
   });
 
   it("reads every setting a production deployment names", () => {

@@ -1,0 +1,36 @@
+# /etc/systemd/system/fnb-api.service
+# API chạy thẳng bằng node + tsx: một tiến trình, SIGTERM tới thẳng server, request đang
+# chạy làm xong rồi mới đóng pool (main.ts tự thoát sau 10 giây nếu treo).
+[Unit]
+Description=fnb-pos API
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=fnb
+Group=fnb
+WorkingDirectory=/srv/fnb/current/apps/api
+EnvironmentFile=/etc/fnb/fnb-api.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --import tsx src/server/main.ts
+KillSignal=SIGTERM
+TimeoutStopSec=20
+Restart=on-failure
+RestartSec=5
+# Khởi động lại liên tục (cấu hình sai) thì dừng hẳn để người xem log: journalctl -u fnb-api
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

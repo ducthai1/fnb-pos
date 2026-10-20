@@ -1,0 +1,56 @@
+# /etc/caddy/Caddyfile — thay quan.example.vn bằng tên miền thật (bản ghi A trỏ về server,
+# cổng 80 + 443 mở). Caddy tự xin và gia hạn chứng chỉ Let's Encrypt.
+#
+# Một origin cho tất cả: POS ở /pos/, API ở /api/ (cắt tiền tố), còn lại là backoffice.
+# Cùng origin ⇒ không CORS, cookie phiên __Host- của API dùng được, FNB_ALLOWED_ORIGINS
+# chỉ cần https://quan.example.vn. Ngân hàng gọi webhook ở https://quan.example.vn/api/webhooks/...
+{
+	email admin@example.vn
+}
+
+quan.example.vn {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "same-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		-Server
+	}
+
+	# API: Caddy đặt X-Forwarded-For bằng địa chỉ thật của khách (bỏ giá trị khách tự gửi),
+	# API tin nó vì FNB_TRUSTED_PROXIES=127.0.0.1,::1.
+	handle_path /api/* {
+		request_body {
+			max_size 2MB
+		}
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	# POS: bản build tĩnh (vite build --base=/pos/). File trong assets/ có hash trong tên ⇒
+	# cache vĩnh viễn; index.html luôn hỏi lại để máy quầy thấy bản mới khi tải lại.
+	redir /pos /pos/ 308
+	handle_path /pos/* {
+		root * /srv/fnb/current/apps/pos/dist
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		@page not path /assets/*
+		header @page Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+
+	# Backoffice: next start.
+	handle {
+		reverse_proxy 127.0.0.1:3001
+	}
+
+	log {
+		output file /var/log/caddy/fnb-access.log {
+			roll_size 50MiB
+			roll_keep 10
+		}
+	}
+}
