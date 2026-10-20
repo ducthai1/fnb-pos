@@ -16,6 +16,7 @@ import { INITIAL_SYNC_STATUS } from "../features/sync/till-sync-status";
 import { vi } from "../messages/vi";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
+import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
 import type { PosDependencies } from "./pos-dependencies";
@@ -126,6 +127,7 @@ export function PairedTill(props: {
   }
   return (
     <TillPermissionsProvider value={permissions}>
+      <ServerRestoreNotice restore={status.restore} />
       <StaffedTill
         snapshot={snapshot}
         till={till}
