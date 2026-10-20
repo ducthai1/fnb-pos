@@ -13,6 +13,8 @@ import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 const TEN_MINUTES = 10 * 60_000;
+/** How far a till's clock may run behind the server's. */
+const TWO_MINUTES = 2 * 60_000;
 
 let pool: pg.Pool;
 let app: FastifyInstance;
@@ -113,13 +115,13 @@ describe("an on-the-spot approval relied on by a command", () => {
     expect(result).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_NOT_FOUND" });
   });
 
-  it("lasts ten minutes either side of when the till recorded the command", async () => {
+  it("covers a command the till recorded up to ten minutes after it, or two before", async () => {
     const at = async () => {
       const approvalId = await approve(app, s.tillB, managerId, openPrice);
       return { approvalId, when: await approvedAt(pool, s.shop.tenantId, approvalId) };
     };
     const outcomes = [];
-    for (const offset of [TEN_MINUTES, TEN_MINUTES + 1, -TEN_MINUTES, -TEN_MINUTES - 1]) {
+    for (const offset of [TEN_MINUTES, TEN_MINUTES + 1, -TWO_MINUTES, -TWO_MINUTES - 1]) {
       const { approvalId, when } = await at();
       const sent = typedPrice(approvalId, new Date(when + offset).toISOString());
       outcomes.push((await pushOne(app, s.tillB, sent)).code ?? "accepted");
