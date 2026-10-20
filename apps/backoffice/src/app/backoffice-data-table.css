@@ -178,6 +178,16 @@ th[aria-sort] .bo-sort {
   .bo-data__actions {
     padding-top: var(--sp-2);
   }
+
+  /* The first column names the card: it heads it, without its column's label. */
+  .bo-data__table td:first-child::before {
+    content: none;
+  }
+
+  .bo-data__table td:first-child {
+    padding-bottom: var(--sp-2);
+    font-size: var(--fs-lg);
+  }
 }
 
 
