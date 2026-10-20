@@ -1,4 +1,4 @@
-import { ACCEPT_CLOSE_DIFFERENCE, vnd } from "@fnb/domain";
+import { formatVnd, vnd } from "@fnb/domain";
 import type { ReactElement } from "react";
 import { cartView } from "../../../src/features/order/cart-view";
 import { vi } from "../../../src/messages/vi";
@@ -126,9 +126,9 @@ export const OPERATIONS_SCREENS = {
         expectedCash: NINE_DIGITS,
         countedCash: counted,
         difference: vnd(-987_654_321),
-        needsAcceptance: ACCEPT_CLOSE_DIFFERENCE.key === "accept_close_difference",
+        needsAcceptance: true,
       })}
-      notice={vi.closeShift.serverDisagreed}
+      notice={vi.closeShift.serverDisagreed(formatVnd(vnd(-987_654_321)))}
       onConfirm={never}
       onBack={() => {}}
     />

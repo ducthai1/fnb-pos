@@ -1,7 +1,7 @@
 import { appendChange } from "./change-feed";
 import { shiftSnapshotOf } from "./shift-snapshot";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
-import { readShift, readUnclosedShiftOfDevice } from "./stored-shift";
+import { CASH_METHOD, readShift, readUnclosedShiftOfDevice } from "./stored-shift";
 import type { SyncCommandContext } from "./sync-command-context";
 import { CommandRejection } from "./sync-error-codes";
 
@@ -38,11 +38,20 @@ export async function shiftForPayment(
 }
 
 /**
- * A payment recorded against a closed shift changes what its drawer should have held, so
- * the shift goes out again with the adjustment beside its unchanged close.
+ * Cash paid into or out of a shift changes what its drawer should hold, so the shift goes
+ * out again (its version counts the cash book's entries): every till showing it, the one
+ * that will close it included, then expects the server's figure rather than rebuilding one
+ * from the orders it happens to hold (a table opened in the previous shift, a handheld
+ * paying into the counter's drawer). A payment recorded against a closed shift goes out
+ * the same way, with the adjustment beside its unchanged close.
  */
-export async function announceLatePayment(context: SyncCommandContext, paid: PaymentShift) {
-  if (!paid.afterClose || paid.shiftId === null) return;
+export async function announceShiftCash(
+  context: SyncCommandContext,
+  paid: PaymentShift,
+  methods: readonly string[],
+) {
+  if (paid.shiftId === null) return;
+  if (!paid.afterClose && !methods.includes(CASH_METHOD)) return;
   const { client, device, command } = context;
   const shift = await readShift(client, paid.shiftId, false);
   if (shift === null) return;

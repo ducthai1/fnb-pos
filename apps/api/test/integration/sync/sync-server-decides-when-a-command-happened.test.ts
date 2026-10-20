@@ -99,24 +99,33 @@ describe("a command from a till whose clock is off", () => {
     expect((await pushOne(app, s.tillA, teaDraftAt(fromServer(-MINUTE)))).status).toBe("accepted");
   });
 
-  it("is taken one minute fast, acting on when the server received it, and noted", async () => {
+  it("is taken one minute fast at the till's own time, and not noted", async () => {
     const sent = teaDraftAt(fromServer(MINUTE));
     expect((await pushOne(app, s.tillA, sent)).status).toBe("accepted");
-    expect(await clampsOf(sent.commandId)).toEqual([
-      {
-        actor_kind: "device",
-        actor_id: s.tillA.deviceId,
-        entity_id: s.tillA.deviceId,
-        payload: expect.objectContaining({
-          commandType: "order.save_draft",
-          deviceAt: fromServer(MINUTE),
-          receivedAt: SERVER_STARTS_AT.toISOString(),
-          effectiveAt: SERVER_STARTS_AT.toISOString(),
-          skewMs: MINUTE,
-          clampedByMs: MINUTE,
-        }),
-      },
-    ]);
+    expect(await clampsOf(sent.commandId)).toEqual([]);
+  });
+
+  it("prices a sale on a till a little fast across the start of happy hour as the till did", async () => {
+    // 13:59:10 on the server, 14:00:40 on the till: inside the forgiven two minutes.
+    const before = clock.now().getTime();
+    const toHappyHour = Date.parse("2026-10-20T06:59:10.000Z") - before;
+    clock.advance(toHappyHour);
+    try {
+      const deviceAt = new Date(clock.now().getTime() + 90_000).toISOString();
+      const draft = teaDraftAt(deviceAt);
+      const saved = await pushOne(app, s.tillA, draft);
+      expect(priceOf(saved)).toBe(TEA_M / 2);
+      const paid = await pushOne(app, s.tillA, {
+        ...pay(s.tillA, orderIdOf(draft), TEA_M / 2),
+        createdAt: deviceAt,
+      });
+      expect(paid.status).toBe("accepted");
+      // The same tea a few seconds before happy hour on the till is the full price.
+      const early = teaDraftAt(new Date(clock.now().getTime() + 30_000).toISOString());
+      expect(priceOf(await pushOne(app, s.tillA, early))).toBe(TEA_M);
+    } finally {
+      clock.advance(-toHappyHour);
+    }
   });
 
   it("is not noted when the till's clock is right", async () => {

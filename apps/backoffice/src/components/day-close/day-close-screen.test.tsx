@@ -1,3 +1,4 @@
+import { formatVnd, vnd } from "@fnb/domain";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
 import type { ApiFailure } from "../../lib/api/api-result";
@@ -13,6 +14,7 @@ const T = vi.dayClose;
 const Q1 = BRANCHES[0]!.id;
 const SHIFT = fixtureId(70);
 const DRAFT = { id: fixtureId(71), deviceId: fixtureId(72), deviceOrderNo: 17 };
+const QR = fixtureId(73);
 const list = (name: string) => document.querySelector<HTMLElement>(`[data-day-list="${name}"]`);
 
 const blocked = (code: string, details: Record<string, unknown>): ApiFailure => ({
@@ -103,10 +105,15 @@ describe("closing a business day", () => {
     const closed = dayStatus({
       dayClose: { closedByAppUserId: OWNER.appUserId, closedAt: "2026-10-20T16:00:00.000Z" },
       paidAfterClose: [DRAFT],
+      qrRefundedAfterClose: [{ intentId: QR, amount: 40_000 }],
     });
     await renderSignedIn(<DayCloseScreen />, server(closed));
     await screen.findByText(T.closedAt("23:00 20/10/2026"));
     expect(within(list("paid-after-close")!).getByText(T.order(DRAFT.deviceId, 17))).toBeTruthy();
+    // Money carries a no-break space, which text matchers fold away: read the list's text.
+    expect(list("qr-refunded-after-close")?.textContent).toContain(
+      T.qrRefund(QR, formatVnd(vnd(40_000))),
+    );
     expect(screen.queryByRole("button", { name: T.close })).toBeNull();
   });
 

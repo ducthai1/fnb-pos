@@ -25,16 +25,16 @@ describe("a command's time", () => {
     });
   });
 
-  it("takes a till one minute ahead, acting on when the server received it", () => {
+  it("takes a till one minute ahead at its own time, the time it priced the sale at", () => {
     expect(timeOf(MINUTE)).toMatchObject({
       deviceAt: new Date(sentAt(MINUTE)),
-      effectiveAt: RECEIVED,
-      clampedByMs: MINUTE,
+      effectiveAt: new Date(sentAt(MINUTE)),
+      clampedByMs: 0,
     });
   });
 
-  it("takes a till exactly two minutes ahead, the last one it takes", () => {
-    expect(timeOf(2 * MINUTE).effectiveAt).toEqual(RECEIVED);
+  it("takes a till exactly two minutes ahead, the last one it takes, at its own time", () => {
+    expect(timeOf(2 * MINUTE).effectiveAt).toEqual(new Date(sentAt(2 * MINUTE)));
     expect(readCommandTime(sentAt(2 * MINUTE + 1), RECEIVED, VIETNAM).ok).toBe(false);
   });
 
@@ -68,10 +68,11 @@ describe("a command's time", () => {
       fc.property(fc.integer({ min: -72 * HOUR, max: DEVICE_CLOCK_LIMITS.aheadMs }), (offset) => {
         const time = timeOf(offset);
         const effective = time.effectiveAt.getTime() - RECEIVED.getTime();
-        expect(effective).toBeLessThanOrEqual(0);
+        expect(effective).toBeLessThanOrEqual(DEVICE_CLOCK_LIMITS.aheadMs);
         expect(effective).toBeGreaterThanOrEqual(-DEVICE_CLOCK_LIMITS.behindMs);
-        if (offset <= 0 && offset >= -DEVICE_CLOCK_LIMITS.behindMs) expect(effective).toBe(offset);
+        if (offset >= -DEVICE_CLOCK_LIMITS.behindMs) expect(effective).toBe(offset);
         expect(time.clampedByMs).toBe(offset - effective);
+        expect(time.clampedByMs).toBeLessThanOrEqual(0);
       }),
     );
   });

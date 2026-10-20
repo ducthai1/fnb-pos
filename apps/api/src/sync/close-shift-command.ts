@@ -1,5 +1,5 @@
 import { type CloseShiftPayload, closeShiftPayloadSchema } from "@fnb/contracts";
-import { ACCEPT_CLOSE_DIFFERENCE, assessClosingCount, transitionShift } from "@fnb/domain/shift";
+import { acceptCloseDifference, assessClosingCount, transitionShift } from "@fnb/domain/shift";
 import { readCloseDifferenceTolerance } from "./close-difference-tolerance";
 import { confirmedCount, insertShiftCount } from "./shift-counts";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
@@ -12,7 +12,9 @@ import { CommandRejection } from "./sync-error-codes";
 /**
  * shift.close: settles the till's shift on the cashier's count. The expected cash comes
  * from the server's own cash book, never from the till. A difference beyond the shop's
- * tolerance needs accept_close_difference, held by the cashier or lent by an approval.
+ * tolerance needs accept_close_difference, held by the cashier or lent by an approval given
+ * for this very difference: one a manager gave for the till's own figure does not cover
+ * a shortfall only the server's book shows.
  * Drafts still open do not block the close (a late table would keep the shift open all
  * night): they stay drafts and land in whichever shift takes their payment.
  */
@@ -27,7 +29,11 @@ async function closeShift(context: SyncCommandContext, payload: CloseShiftPayloa
   const tolerance = await readCloseDifferenceTolerance(client, device.deviceId);
   const assessment = assessClosingCount(ledger, count.total, tolerance);
   const spent = assessment.needsAcceptance
-    ? await requirePermission(context, ACCEPT_CLOSE_DIFFERENCE, payload.approvalId)
+    ? await requirePermission(
+        context,
+        acceptCloseDifference(assessment.difference),
+        payload.approvalId,
+      )
     : null;
   const carried = await client.query<{ n: number }>(
     "SELECT count(*)::int AS n FROM sales_order WHERE device_id = $1 AND status = 'draft'",

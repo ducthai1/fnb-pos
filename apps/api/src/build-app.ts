@@ -41,6 +41,7 @@ import { registerStaffListRoute } from "./routes/staff/staff-list-route";
 import { registerUpdateStaffRoute } from "./routes/staff/update-staff-route";
 import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
 import { registerPaymentWebhookRoute } from "./routes/webhooks/payment-webhook-route";
+import { type ServerErrorReport, serverErrorReport } from "./http/server-error-report";
 import { type SecretVerifier, verifySecret } from "./security/secret-hash";
 
 export interface AppDependencies {
@@ -78,6 +79,11 @@ export interface AppDependencies {
    * no Origin is checked, as when tests call the app directly.
    */
   allowedOrigins?: readonly string[];
+  /**
+   * Told of every request answered 500, secrets masked (see serverErrorReport): the client
+   * learns only API_INTERNAL, so this is the one trace a server fault leaves.
+   */
+  onServerError?: (report: ServerErrorReport) => void;
 }
 
 /**
@@ -111,12 +117,18 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
 
   // Error bodies carry a stable code only: no stack, SQL or library message reaches a
   // client, and a malformed request is told apart from a server fault by status alone.
-  app.setErrorHandler((error: FastifyError, _request, reply) => {
+  app.setErrorHandler((error: FastifyError, request, reply) => {
     const status = error.statusCode ?? 500;
     if (error.validation !== undefined || (status >= 400 && status < 500)) {
       return reply.code(error.validation !== undefined ? 400 : status).send({
         code: AUTH_ERROR_CODES.invalidRequest,
       });
+    }
+    const route = request.routeOptions.url ?? "(no route)";
+    try {
+      dependencies.onServerError?.(serverErrorReport(request.method, route, error));
+    } catch {
+      // A log that fails must not change what the client is told.
     }
     return reply.code(500).send({ code: AUTH_ERROR_CODES.internal });
   });

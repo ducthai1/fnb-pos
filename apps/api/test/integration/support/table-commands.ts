@@ -76,8 +76,12 @@ export const transferTable = (
     ...(approvalId === undefined ? {} : { approvalId }),
   });
 
-export const markPreBillPrinted = (till: Till, orderId: string) =>
-  command(till, "order.mark_pre_bill_printed", { orderId });
+/** The pre-bill printed for `printedVersion` of the order, or (unnamed) for it as it is. */
+export const markPreBillPrinted = (till: Till, orderId: string, printedVersion?: number) =>
+  command(till, "order.mark_pre_bill_printed", {
+    orderId,
+    ...(printedVersion === undefined ? {} : { printedVersion }),
+  });
 
 export interface OccupiedTable {
   id: string;

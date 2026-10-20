@@ -24,7 +24,8 @@ const id = uuidSchema.nullable();
  *   netExcludingTax = Σ base: what was sold, discount and VAT out, service charge in.
  * - collected: what customers paid for the day's sales (= Σ base + tax).
  * - refunds: kept apart, as negative amounts, on the day they were given back.
- * - byHour: sales by the branch's local hour at which the till took the money.
+ * - byHour: sales by the branch's local hour at which the till took the money, in the order
+ *   of the business day (from the hour it starts in: a night's 01:00 after its 23:00).
  * - items: goods sold, toppings and combo parts on their own rows, voided units left out.
  * - voids: units cancelled from orders of the day, valued at their price before discount.
  * - qrRefunds: money the bank brought for a QR that no sale counts (paid short or over, or

@@ -1,4 +1,5 @@
 import { readServerConfig } from "./server-config";
+import { maskSecrets } from "../http/server-error-report";
 import { type RunningServer, startServer } from "./start-server";
 
 /**
@@ -9,6 +10,7 @@ import { type RunningServer, startServer } from "./start-server";
  */
 const STOP_TIMEOUT_MS = 10_000;
 const log = (line: string) => console.log(`fnb-api: ${line}`);
+const logError = (line: string) => console.error(`fnb-api: ${line}`);
 
 const configured = readServerConfig(process.env);
 if (!configured.ok) {
@@ -20,9 +22,10 @@ const { config } = configured;
 
 let server: RunningServer;
 try {
-  server = await startServer(config, log);
+  server = await startServer(config, log, logError);
 } catch (error) {
-  console.error(`fnb-api: could not start: ${error instanceof Error ? error.message : error}`);
+  const reason = error instanceof Error ? error.message : String(error);
+  console.error(`fnb-api: could not start: ${maskSecrets(reason)}`);
   process.exit(1);
 }
 log(`listening on ${server.url} (${config.environment}, invoices: ${config.einvoiceProvider})`);

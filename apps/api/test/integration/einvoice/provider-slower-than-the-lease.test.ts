@@ -3,10 +3,7 @@ import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from "vitest";
 import { claimDueInvoice } from "../../../src/einvoice/einvoice-claims";
-import {
-  DEFAULT_EINVOICE_RETRY_POLICY as POLICY,
-  providerCallTimeoutMs,
-} from "../../../src/einvoice/einvoice-retry-policy";
+import { DEFAULT_EINVOICE_RETRY_POLICY as POLICY } from "../../../src/einvoice/einvoice-retry-policy";
 import {
   type InvoicingApi,
   invoicesOf,
@@ -32,7 +29,13 @@ afterAll(async () => {
   await pool.end();
 });
 
-const TIMEOUT = providerCallTimeoutMs(POLICY);
+/**
+ * The worker's lease on a row, and when it must have given the call up: 20 s before the
+ * lease ends, written out here rather than read from the code that computes it, so a
+ * give-up time at or past the lease's end cannot pass by moving both.
+ */
+const LEASE_MS = 120_000;
+const GIVEN_UP_AFTER_MS = 100_000;
 
 const callsFor = (id: string, operation: "issue" | "lookup") =>
   api.provider
@@ -64,10 +67,13 @@ describe("an invoice provider slower than the worker's lease", () => {
       const round = api.workFor(s.shop.tenantId);
       await vi.waitFor(() => expect(callsFor(id, "issue")).toHaveLength(1));
       const [call] = callsFor(id, "issue");
-      api.clock.advance(TIMEOUT - 1);
+      expect(POLICY.leaseMs).toBe(LEASE_MS);
+      api.clock.advance(GIVEN_UP_AFTER_MS - 1);
       expect(call?.signal?.aborted).toBe(false);
       api.clock.advance(1);
+      // Given up with the lease still 20 s from its end.
       expect(call?.signal?.aborted).toBe(true);
+      expect(GIVEN_UP_AFTER_MS).toBeLessThan(LEASE_MS);
       expect(await round).toMatchObject({ retrying: 1, stale: 0 });
     } finally {
       release();

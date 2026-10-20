@@ -1,26 +1,41 @@
-import type { ShiftCashLedger } from "@fnb/domain";
+import type { ShiftCashEvent, ShiftCashLedger } from "@fnb/domain";
 import type { SyncClient } from "@fnb/sync-client";
-import { useMemo } from "react";
-import { useOrderViews } from "../history/use-order-views";
-import { readStoredOrder } from "../order/stored-order";
-import { tillShiftLedger } from "./shift-cash";
+import { useEffect, useMemo, useState } from "react";
+import { tillShiftLedger, waitingShiftCash } from "./shift-cash";
 import type { StoredShift } from "./stored-shift";
 import { useStoredShift } from "./use-stored-shift";
 
-/** The till's open shift and the cash book the till rebuilds for it, kept current. */
+type Client = Pick<SyncClient, "snapshot" | "pendingCommands" | "onChange">;
+
+/** The till's cash still waiting for the server under `shiftId`, read again on every write. */
+function useWaitingShiftCash(client: Client, shiftId: string): readonly ShiftCashEvent[] | null {
+  const [waiting, setWaiting] = useState<readonly ShiftCashEvent[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    const read = () =>
+      client.pendingCommands().then((pending) => {
+        if (live) setWaiting(waitingShiftCash(pending, shiftId));
+      }, console.error);
+    // An answered command changes its own row, never the shift: listen to every write.
+    const unsubscribe = client.onChange(() => void read());
+    void read();
+    return () => {
+      live = false;
+      unsubscribe();
+    };
+  }, [client, shiftId]);
+  return waiting;
+}
+
+/** The till's open shift and the cash book it is counted against, kept current. */
 export function useShiftLedger(
-  client: Pick<SyncClient, "snapshot" | "snapshots" | "onChange">,
+  client: Client,
   shiftId: string,
-  staffId: string,
 ): { readonly shift: StoredShift; readonly ledger: ShiftCashLedger } | null {
   const shift = useStoredShift(client, shiftId);
-  const views = useOrderViews(client);
+  const waiting = useWaitingShiftCash(client, shiftId);
   return useMemo(() => {
-    if (shift === null) return null;
-    const orders = views.flatMap((view) => {
-      const order = readStoredOrder(view.snapshot);
-      return order === null ? [] : [order];
-    });
-    return { shift, ledger: tillShiftLedger(shift, orders, staffId) };
-  }, [shift, views, staffId]);
+    if (shift === null || waiting === null) return null;
+    return { shift, ledger: tillShiftLedger(shift, waiting) };
+  }, [shift, waiting]);
 }

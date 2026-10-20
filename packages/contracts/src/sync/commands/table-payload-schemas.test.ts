@@ -67,13 +67,23 @@ describe("table commands", () => {
     expect(outcomeOf(transferTablePayloadSchema, transfer).ok).toBe(true);
     expect(outcomeOf(transferTablePayloadSchema, { ...transfer, approvalId: id(3) }).ok).toBe(true);
     expect(outcomeOf(markPreBillPrintedPayloadSchema, { orderId: id(1) }).ok).toBe(true);
+    const printed = { orderId: id(1), printedVersion: 3 };
+    expect(markPreBillPrintedPayloadSchema.parse(printed)).toEqual(printed);
   });
 
   it.each([
     [transferTablePayloadSchema, { orderId: id(1) }],
     [transferTablePayloadSchema, { orderId: id(1), toTableId: "B02" }],
-    [markPreBillPrintedPayloadSchema, { orderId: "order-1" }],
   ])("refuse a missing or malformed id", (schema, payload) => {
     expect(outcomeOf(schema, payload).ok).toBe(false);
+  });
+
+  it.each([
+    { orderId: "order-1" },
+    { orderId: id(1), printedVersion: 0 },
+    { orderId: id(1), printedVersion: 1.5 },
+    { orderId: id(1), printedVersion: "3" },
+  ])("refuse a pre-bill mark of %o", (payload) => {
+    expect(outcomeOf(markPreBillPrintedPayloadSchema, payload).ok).toBe(false);
   });
 });

@@ -76,6 +76,10 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
     feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
     pushed: [] as SyncCommandEnvelope[],
+    /** Pushes fail as if the network dropped, while signing in still answers. */
+    pushesHeld: false,
+    /** The staff credential each batch was pushed with, and the commands in it. */
+    pushedWith: [] as { token: string | null; commands: SyncCommandEnvelope[] }[],
     calls: {
       ...apiState.calls,
       bootstrap: 0,
@@ -87,7 +91,10 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
   const unreachable = () => refusal(null, null);
   const tableName = (id: string) => state.floorPlan.tables.find((t) => t.id === id)?.name ?? "";
   const menu = buildTillMenu(snapshot, NO_MENU_COPIES, new Set());
-  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId, menu, tableName);
+  const announce = (entity: string, row: Record<string, unknown>) => {
+    state.feed.push({ entity, entityId: String(row.id), snapshot: row });
+  };
+  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId, menu, tableName, announce);
   const floor = fakeFloorSource(state, rows.rows, state.calls);
 
   // The calls outside sync read the same state the tests script.
@@ -164,6 +171,8 @@ export function fakeDependencies(
       pullChanges: (cursor, limit) => server.transport.pullChanges(cursor, limit),
       async pushCommands(batch) {
         const token = staffToken();
+        if (server.state.pushesHeld) throw new SyncTransportError("network", null, "held");
+        if (server.state.online) server.state.pushedWith.push({ token, commands: [...batch] });
         if (server.state.online && token !== null && server.state.expiredTokens.has(token)) {
           throw new SyncTransportError("http", 401, "answered 401");
         }

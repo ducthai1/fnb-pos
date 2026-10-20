@@ -1,3 +1,4 @@
+import type { SyncCommandEnvelope } from "@fnb/contracts";
 import type { EntityRef, LocalStore } from "../local-store/local-store";
 import { type SyncFailure, type SyncReport, failureOf } from "./sync-report";
 import type { SyncTransport } from "./sync-transport";
@@ -12,15 +13,28 @@ export interface SyncPassContext {
 }
 
 /**
- * Sends the oldest pending commands as one batch, the only one in flight for this till:
- * the server takes a till's commands strictly in device_seq order, so a second batch racing
- * the first would only come back as retries.
+ * The oldest pending commands made under one staff session: a batch is pushed with one
+ * session's credential and the server records that session's staff member as the author
+ * of every command in it, so commands one cashier recorded offline, before someone else
+ * signed in on the till, go in a batch of their own rather than under the newcomer's name.
+ */
+export function oneSessionsRun(pending: readonly SyncCommandEnvelope[]): SyncCommandEnvelope[] {
+  const first = pending[0];
+  if (first === undefined) return [];
+  const end = pending.findIndex((command) => command.staffSessionId !== first.staffSessionId);
+  return pending.slice(0, end === -1 ? pending.length : end);
+}
+
+/**
+ * Sends the oldest pending commands of one staff session as one batch, the only one in
+ * flight for this till: the server takes a till's commands strictly in device_seq order, so
+ * a second batch racing the first would only come back as retries.
  */
 export async function pushOneBatch(
   context: SyncPassContext,
   report: SyncReport,
 ): Promise<SyncFailure | null> {
-  const batch = await context.store.pendingCommands(context.batchSize);
+  const batch = oneSessionsRun(await context.store.pendingCommands(context.batchSize));
   if (batch.length === 0) return null;
   try {
     const results = await context.transport.pushCommands(batch);

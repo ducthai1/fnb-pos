@@ -147,3 +147,31 @@ describe("pushing the outbox", () => {
     expect(server.pushes.map((batch) => batch.map((c) => c.deviceSeq))).toEqual([[1, 2], [3]]);
   });
 });
+
+describe("pushing the commands of two staff sessions", () => {
+  it("sends each session's run of commands in a batch of its own, in device_seq order", async () => {
+    const { client, server } = scriptedTill();
+    const [lan, minh] = [testId(), testId()];
+    const by = (session: string | undefined) => ({ ...draft(testId()), staffSessionId: session });
+    const sent = [];
+    for (const session of [lan, lan, minh, undefined, lan]) {
+      sent.push(await client.enqueue(by(session)));
+    }
+    server.script.push = (batch) => batch.map((c) => answer(c, "accepted"));
+    for (let pass = 0; pass < 4; pass += 1) await client.syncOnce();
+    expect(server.pushes.map((batch) => batch.map((command) => command.deviceSeq))).toEqual([
+      [1, 2],
+      [3],
+      [4],
+      [5],
+    ]);
+    expect(server.pushes.map((batch) => batch[0]?.staffSessionId)).toEqual([
+      lan,
+      minh,
+      undefined,
+      lan,
+    ]);
+    expect(await client.pendingCount()).toBe(0);
+    expect(sent.map((command) => command.deviceSeq)).toEqual([1, 2, 3, 4, 5]);
+  });
+});

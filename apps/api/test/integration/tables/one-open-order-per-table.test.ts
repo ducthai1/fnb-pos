@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { expectStatus } from "../support/catalog-shop";
 import { areaWithTables, orderSeatedAt } from "../support/floor-plan";
-import { line, orderIdOf, pushOne, tillsClock } from "../support/sync-commands";
+import { line, orderIdOf, pay, pushOne, tillsClock } from "../support/sync-commands";
 import { cancel } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 import {
@@ -36,6 +36,16 @@ afterAll(async () => {
 });
 
 const coffee = () => line(s.menu.coffee.id);
+
+/** Every row of the till's floor screen, as the route lists them (duplicates included). */
+const occupiedRows = async () => {
+  const response = await app.inject({
+    method: "GET",
+    url: "/floor/occupancy",
+    headers: { authorization: `Device ${s.tillA.deviceToken}` },
+  });
+  return response.json().tables as { id: string; status: string; orderId: string | null }[];
+};
 const peachTea = () => line(s.menu.peachTea.id, { variantId: s.menu.peachTea.sizeM });
 
 describe("opening a table", () => {
@@ -91,6 +101,27 @@ describe("opening a table", () => {
       dineIn(s.tillB, [coffee()], { tableId: floor.tables.B03 }),
     );
     expect(next.status).toBe("accepted");
+  });
+
+  it("frees the table once its order is paid, and lists every table once", async () => {
+    const paid = dineIn(s.tillA, [coffee()], { tableId: floor.tables.B04 });
+    await pushOne(app, s.tillA, paid);
+    expect((await pushOne(app, s.tillA, pay(s.tillA, orderIdOf(paid), 29_000))).status).toBe(
+      "accepted",
+    );
+    const next = dineIn(s.tillB, [coffee()], { tableId: floor.tables.B04 });
+    expect((await pushOne(app, s.tillB, next)).status).toBe("accepted");
+    // The table has a paid order and an open one: the screen shows it once, with the open one.
+    const tables = await occupiedRows();
+    expect(tables.filter((table) => table.id === floor.tables.B04)).toEqual([
+      expect.objectContaining({ status: "occupied", orderId: orderIdOf(next) }),
+    ]);
+    expect(new Set(tables.map((table) => table.id)).size).toBe(tables.length);
+    await pushOne(app, s.tillB, pay(s.tillB, orderIdOf(next), 29_000));
+    expect(await seatingOf(app, s.tillA, floor.tables.B04)).toEqual({
+      status: "free",
+      orderId: null,
+    });
   });
 
   it("refuses a table of another branch, an unknown one and an archived one", async () => {

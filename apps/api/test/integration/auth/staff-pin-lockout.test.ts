@@ -44,6 +44,7 @@ describe("starting a shift with a PIN", () => {
     expect(status).toBe(201);
     expect(body).toEqual({
       staffSessionToken: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/),
+      staffSessionId: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-/),
       staffId,
       expiresAt: new Date(
         clock.now().getTime() + DEFAULT_AUTH_POLICY.staffSessionTtlMillis,

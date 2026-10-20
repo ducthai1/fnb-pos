@@ -84,6 +84,8 @@ describe("authorize rejects an action without the value its key is judged by", (
     ["a negative cash amount", { key: "cash_move", amount: -1n }],
     ["a rate above 100%", { key: "line_discount", discountRate: 10_001 }],
     ["a negative rate", { key: "line_discount", discountRate: -1 }],
+    ["a close difference as a number", { key: "accept_close_difference", difference: -9_000 }],
+    ["a plain key carrying a difference", { key: "refund", difference: 0n }],
   ])("%s", (_, action) => {
     const grants = [{ key: "line_discount" }, { key: "cash_move" }, { key: "refund" }] as Grant[];
     expect(codeOf(corrupt<PermissionAction>(action), grants)).toBe(
@@ -96,5 +98,8 @@ describe("authorize rejects an action without the value its key is judged by", (
       "needs_approval",
     );
     expect(authorize({ key: "cash_move", amount: vnd(0) }, [cashGrant(0)])).toBe("allowed");
+    // A shortfall is a negative difference: the sign is the figure, not a malformed amount.
+    const short = { key: "accept_close_difference", difference: vnd(-29_000) } as const;
+    expect(authorize(short, [{ key: "accept_close_difference" }])).toBe("allowed");
   });
 });

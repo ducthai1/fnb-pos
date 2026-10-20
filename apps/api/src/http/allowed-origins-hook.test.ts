@@ -4,11 +4,14 @@ import { HTTP_ERROR_CODES, allowedOriginsHook } from "./allowed-origins-hook";
 
 const app = Fastify();
 app.addHook("onRequest", allowedOriginsHook(["http://127.0.0.1:5173"]));
-app.post("/write", async () => ({ ok: true }));
+const WRITES = ["POST", "PUT", "PATCH", "DELETE"] as const;
+for (const method of WRITES)
+  app.route({ method, url: "/write", handler: async () => ({ ok: true }) });
 app.get("/read", async () => ({ ok: true }));
 afterAll(() => app.close());
 
-const send = (method: "GET" | "POST", url: string, origin?: string) =>
+type Method = (typeof WRITES)[number] | "GET";
+const send = (method: Method, url: string, origin?: string) =>
   app.inject({ method, url, headers: origin === undefined ? {} : { origin } });
 
 describe("allowed origins", () => {
@@ -20,6 +23,20 @@ describe("allowed origins", () => {
     const response = await send("POST", "/write", "https://evil.example");
     expect(response.statusCode).toBe(403);
     expect(response.json()).toEqual({ code: HTTP_ERROR_CODES.originNotAllowed });
+  });
+
+  // DELETE /roles/:id or /floor/... from a page of another site is as much a write as a POST.
+  it.each(WRITES)(
+    "refuses a %s from another site and takes it from a listed one",
+    async (method) => {
+      expect((await send(method, "/write", "https://evil.example")).statusCode).toBe(403);
+      expect((await send(method, "/write", "http://127.0.0.1:5173")).statusCode).toBe(200);
+    },
+  );
+
+  // What a sandboxed iframe or a page with Referrer-Policy no-referrer sends: still a page.
+  it("refuses a write whose Origin is the opaque null", async () => {
+    expect((await send("POST", "/write", "null")).statusCode).toBe(403);
   });
 
   it("refuses an origin that only starts like a listed one", async () => {

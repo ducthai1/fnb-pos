@@ -6,7 +6,7 @@ import {
   type ShiftCashEvent,
   type ShiftCashLedger,
   cashMoveAction,
-  cumulativeCashMovedBy,
+  cumulativeCashMovedInShift,
   expectedCash,
   netCashOf,
   summarizeShiftCash,
@@ -61,22 +61,21 @@ describe("netCashOf", () => {
   });
 });
 
-describe("cumulativeCashMovedBy", () => {
-  it("adds every move of the staff member as a magnitude, in and out alike", () => {
+describe("cumulativeCashMovedInShift", () => {
+  it("adds every move of the shift as a magnitude, in and out alike, whoever made it", () => {
     const shift = ledger(0, cashIn(400_000), cashOut(400_000), cashOut(100_000, "minh"));
-    expect(cumulativeCashMovedBy(shift, "lan")).toBe(vnd(800_000));
-    expect(cumulativeCashMovedBy(shift, "minh")).toBe(vnd(100_000));
+    expect(cumulativeCashMovedInShift(shift)).toBe(vnd(900_000));
   });
 
   it("does not count sales or refunds, which need no cash_move key", () => {
-    expect(cumulativeCashMovedBy(ledger(0, sale(900_000), refund(900_000)), "lan")).toBe(vnd(0));
+    expect(cumulativeCashMovedInShift(ledger(0, sale(900_000), refund(900_000)))).toBe(vnd(0));
   });
 
-  it("judges a new move by the mover's total once it is made", () => {
+  it("judges a new move by the drawer's total once it is made, the other cashier's included", () => {
     const shift = ledger(0, cashOut(300_000), cashOut(300_000, "minh"));
-    expect(cashMoveAction(shift, cashOut(250_000))).toEqual({
+    expect(cashMoveAction(shift, cashOut(300_000))).toEqual({
       key: "cash_move",
-      amount: vnd(550_000),
+      amount: vnd(900_000),
     });
   });
 });
@@ -111,9 +110,7 @@ describe("expected cash properties", () => {
     fc.assert(
       fc.property(shuffled, ({ shift, reordered }) => {
         expect(summarizeShiftCash(reordered)).toEqual(summarizeShiftCash(shift));
-        for (const id of ["lan", "minh", "hoa"]) {
-          expect(cumulativeCashMovedBy(reordered, id)).toBe(cumulativeCashMovedBy(shift, id));
-        }
+        expect(cumulativeCashMovedInShift(reordered)).toBe(cumulativeCashMovedInShift(shift));
       }),
     );
   });
@@ -136,12 +133,25 @@ describe("expected cash properties", () => {
     );
   });
 
-  it("counts each staff member's moves once, so the totals add up to every move", () => {
+  it("does not depend on who made each move, so signing in as someone else moves no cap", () => {
+    const renamed = shiftLedger.chain((shift) =>
+      fc.array(staffId, { minLength: shift.events.length, maxLength: shift.events.length }).map(
+        (ids) => ({
+          shift,
+          renamed: {
+            ...shift,
+            events: shift.events.map((e, i) =>
+              e.kind === "cash_in" || e.kind === "cash_out" ? { ...e, staffId: ids[i] ?? e.staffId } : e,
+            ),
+          },
+        }),
+      ),
+    );
     fc.assert(
-      fc.property(shiftLedger, (shift) => {
+      fc.property(renamed, ({ shift, renamed: other }) => {
         const moves = shift.events.filter((e) => e.kind === "cash_in" || e.kind === "cash_out");
-        const perStaff = ["lan", "minh", "hoa"].map((id) => cumulativeCashMovedBy(shift, id));
-        expect(addVnd(...perStaff)).toBe(addVnd(...moves.map((e) => e.amount)));
+        expect(cumulativeCashMovedInShift(other)).toBe(cumulativeCashMovedInShift(shift));
+        expect(cumulativeCashMovedInShift(shift)).toBe(addVnd(...moves.map((e) => e.amount)));
       }),
     );
   });

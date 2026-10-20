@@ -1,5 +1,5 @@
-import { cancelOrderPayloadSchema } from "@fnb/contracts";
-import { reversedQuantityOf } from "@fnb/domain";
+import { type EntitySnapshot, cancelOrderPayloadSchema } from "@fnb/contracts";
+import { type PermissionAction, reversedQuantityOf } from "@fnb/domain";
 import type { LocalCommand } from "@fnb/sync-client";
 import { tillOrderSnapshot } from "../order/order-snapshot-for-till";
 import type { AdjustableOrder } from "../order/order-session-types";
@@ -15,11 +15,28 @@ export function kitchenStillHasItems(settled: AdjustableOrder): boolean {
   );
 }
 
-/** order.cancel of a draft nobody will pay for, with why. */
+/** What closing a draft nobody paid for needs, once it is more than a draft on the till. */
+export const CLOSE_UNPAID_TABLE: PermissionAction = { key: "close_unpaid_table" };
+
+/**
+ * Whether cancelling needs close_unpaid_table, as the server judges it: the guests were
+ * shown a bill (a pre-bill printed, even of an earlier version) or the kitchen was sent
+ * part of the order (even if all of it was voided since). `row` is the order as the till
+ * holds it; the server's copy says when a pre-bill was last printed.
+ */
+export function cancelNeedsManager(settled: AdjustableOrder, row: EntitySnapshot | null): boolean {
+  const kitchenHadIt = settled.sent.some((line) => line.sentQuantity > 0n);
+  const shownABill =
+    row !== null && (row.preBillPrinted === true || typeof row.preBillPrintedVersion === "number");
+  return kitchenHadIt || shownABill;
+}
+
+/** order.cancel of a draft nobody will pay for, with why (and the manager who agreed). */
 export function cancelOrderCommand(
   place: TillPlace,
   settled: AdjustableOrder,
   reasonCode: string,
+  approvalId: string | null,
   at: number,
 ): LocalCommand {
   const orderId = settled.order.orderId;
@@ -30,7 +47,8 @@ export function cancelOrderCommand(
     version: settled.state.version + 1,
     sent: settled.sent,
   };
-  return tillCommand(place, "order.cancel", cancelOrderPayloadSchema, { orderId, reasonCode }, at, {
+  const payload = { orderId, reasonCode, ...(approvalId === null ? {} : { approvalId }) };
+  return tillCommand(place, "order.cancel", cancelOrderPayloadSchema, payload, at, {
     entity: "order",
     entityId: orderId,
     optimistic: tillOrderSnapshot(place, settled.order, settled.priced, state),

@@ -23,14 +23,15 @@ export interface CashMoveFlowProps {
 }
 
 /**
- * Cash in or out of the drawer: judged on everything the staff member has moved in the shift
- * once this move is made, so ten small moves cannot pass the cap unseen; past it, a manager.
+ * Cash in or out of the drawer: judged on everything moved through the shift's drawer once
+ * this move is made, whoever moved it, so ten small moves cannot pass the cap unseen; past
+ * it, a manager.
  */
 export function CashMoveFlow(props: CashMoveFlowProps) {
   const { client, place } = props;
   const gate = useApprovalGate();
   const { authority } = useTillPermissions();
-  const book = useShiftLedger(client, props.shiftId, authority.staffId);
+  const book = useShiftLedger(client, props.shiftId);
   const [done, setDone] = useState<string | null>(null);
   const [round, setRound] = useState(0);
   if (gate.sheet !== null) return gate.sheet;

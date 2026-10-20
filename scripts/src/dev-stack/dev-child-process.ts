@@ -8,6 +8,8 @@ export interface DevChildProcess {
   readonly exited: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
   /** Asks the process and everything it started to stop, then makes sure they have. */
   stop(): Promise<void>;
+  /** Ends the process and everything it started at once, without waiting: a forced stop. */
+  kill(): void;
 }
 
 const STOP_GRACE_MS = 8_000;
@@ -39,7 +41,13 @@ export function startDevChild(
   const exited = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) =>
     child.once("exit", (code, signal) => resolve({ code, signal })),
   );
-  return { name, pid, exited, stop: () => stopGroup(child, pid, exited) };
+  return {
+    name,
+    pid,
+    exited,
+    stop: () => stopGroup(child, pid, exited),
+    kill: () => signalGroup(pid, "SIGKILL"),
+  };
 }
 
 async function stopGroup(child: ChildProcess, pid: number, exited: Promise<unknown>) {

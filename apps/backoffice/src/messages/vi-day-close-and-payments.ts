@@ -16,6 +16,8 @@ export const VI_DAY_CLOSE = {
   failedTitle: "Hóa đơn điện tử lỗi hẳn (cần xử lý tay)",
   unsentTitle: "Hóa đơn đã phát hành nhưng chưa gửi cơ quan thuế",
   paidAfterTitle: "Đơn trả tiền sau khi đã chốt (không vào số liệu ngày đã chốt)",
+  qrRefundedAfterTitle: "Tiền QR hoàn cho khách sau khi đã chốt (không vào số liệu ngày đã chốt)",
+  qrRefund: (intentId: string, amount: string) => `Mã QR …${intentId.slice(-6)} · ${amount}`,
   order: tillOrder,
   invoice: (orderId: string, status: string, errorCode: string | null) =>
     `Đơn …${orderId.slice(-6)} · ${status}${errorCode === null ? "" : ` · ${errorCode}`}`,

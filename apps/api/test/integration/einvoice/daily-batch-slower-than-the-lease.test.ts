@@ -1,10 +1,7 @@
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from "vitest";
-import {
-  DEFAULT_EINVOICE_RETRY_POLICY as POLICY,
-  providerCallTimeoutMs,
-} from "../../../src/einvoice/einvoice-retry-policy";
+import { DEFAULT_EINVOICE_RETRY_POLICY as POLICY } from "../../../src/einvoice/einvoice-retry-policy";
 import {
   type InvoicingApi,
   invoicingApi,
@@ -16,6 +13,9 @@ import { BUSINESS_DATE } from "../support/sync-commands";
 import type { SyncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
+/** The worker's lease, and when the call must have been given up: 20 s before it ends. */
+const LEASE_MS = 120_000;
+const GIVEN_UP_AFTER_MS = 100_000;
 
 let pool: pg.Pool;
 let api: InvoicingApi;
@@ -73,9 +73,11 @@ describe("a daily batch the provider is slower to take than the worker's lease",
       const round = api.workFor(s.shop.tenantId);
       await vi.waitFor(() => expect(sentFor(s)).toHaveLength(2));
       const call = sentFor(s)[1];
-      api.clock.advance(providerCallTimeoutMs(POLICY) - 1);
+      expect(POLICY.leaseMs).toBe(LEASE_MS);
+      api.clock.advance(GIVEN_UP_AFTER_MS - 1);
       expect(call?.signal?.aborted).toBe(false);
       api.clock.advance(1);
+      expect(call?.signal?.aborted).toBe(true);
       expect(await round).toMatchObject({ retrying: 1, stale: 0 });
     } finally {
       release();

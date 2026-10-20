@@ -15,9 +15,14 @@ const wire = (amount: Vnd) => Number(amount);
 /**
  * The server's cash book of the till's shifts, kept from the commands that reach it: the
  * float, cash paid in and refunded out under the shift the till names, cash moves; the close
- * judged by the domain against it with no tolerance, as a shop that set none.
+ * judged by the domain against it with no tolerance, as a shop that set none. Cash paid into
+ * a shift sends the shift out again (`announce`, the feed), its figures and version risen.
  */
-export function fakeShiftBook(rows: Map<string, Row>, deviceId: string) {
+export function fakeShiftBook(
+  rows: Map<string, Row>,
+  deviceId: string,
+  announce: (row: Row) => void,
+) {
   const books = new Map<string, { opening: Vnd; events: ShiftCashEvent[] }>();
   const figuresOf = (shiftId: string) => {
     const book = books.get(shiftId) ?? { opening: ZERO_VND, events: [] };
@@ -36,8 +41,10 @@ export function fakeShiftBook(rows: Map<string, Row>, deviceId: string) {
     /** Cash a payment or refund took in or out, under the shift it names. */
     note(command: SyncCommandEnvelope) {
       const payload = command.payload as Payload;
-      const book = books.get(String(payload.shiftId));
+      const shiftId = String(payload.shiftId);
+      const book = books.get(shiftId);
       if (book === undefined) return;
+      const before = book.events.length;
       if (command.type === "order.pay") {
         for (const amount of cashOf(payload, "payments"))
           book.events.push({ kind: "cash_sale", amount });
@@ -46,6 +53,12 @@ export function fakeShiftBook(rows: Map<string, Row>, deviceId: string) {
         for (const amount of cashOf(payload, "payouts"))
           book.events.push({ kind: "cash_refund", amount });
       }
+      const shift = rows.get(shiftId);
+      if (book.events.length === before || shift === undefined) return;
+      const added = book.events.length - before;
+      const row: Row = { ...shift, version: shift.version + added, figures: figuresOf(shiftId).wire };
+      rows.set(shiftId, row);
+      announce(row);
     },
     /** SYNC_APPROVAL_REQUIRED for a close beyond the tolerance that names no approval. */
     refusalOf(command: SyncCommandEnvelope): string | undefined {

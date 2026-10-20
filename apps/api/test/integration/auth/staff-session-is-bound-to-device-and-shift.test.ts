@@ -1,3 +1,4 @@
+import { withTenant } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
@@ -58,6 +59,19 @@ describe("a staff session", () => {
         },
       },
     });
+  });
+
+  it("tells the till its id, the one its row has, to stamp on the commands it records", async () => {
+    const staffId = await hire(app, shop, "4826");
+    const { status, body } = await startShift(app, shop.deviceToken, staffId, "4826");
+    expect(status).toBe(201);
+    const stored = await withTenant(pool, shop.tenantId, (client) =>
+      client.query("SELECT staff_id, device_id FROM staff_session WHERE id = $1", [
+        body.staffSessionId,
+      ]),
+    );
+    expect(stored.rows).toEqual([{ staff_id: staffId, device_id: shop.deviceId }]);
+    expect(body.staffSessionId).not.toBe(body.staffSessionToken);
   });
 
   it("lasts one shift: until the moment it expires, and not after", async () => {

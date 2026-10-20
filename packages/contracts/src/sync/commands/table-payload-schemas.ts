@@ -15,9 +15,14 @@ export const transferTablePayloadSchema = z.object({
 
 /**
  * order.mark_pre_bill_printed: the till printed the pre-bill of a draft as it now stands,
- * so its table shows as waiting to pay until the order changes again.
+ * so its table shows as waiting to pay until the order changes again. `printedVersion` is
+ * the version of the order the slip shows: another till may have changed the order before
+ * this mark arrives, and the guests' slip then lacks what it added.
  */
-export const markPreBillPrintedPayloadSchema = z.object({ orderId: uuidSchema });
+export const markPreBillPrintedPayloadSchema = z.object({
+  orderId: uuidSchema,
+  printedVersion: z.number().int().positive().optional(),
+});
 
 export type TransferTablePayload = z.infer<typeof transferTablePayloadSchema>;
 export type MarkPreBillPrintedPayload = z.infer<typeof markPreBillPrintedPayloadSchema>;

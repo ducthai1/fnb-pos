@@ -1,3 +1,4 @@
+import { FLOOR_AREA_ENTITY, FLOOR_TABLE_ENTITY } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
@@ -5,6 +6,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { answer, areaWithTables, floorCall, orderSeatedAt, tableBody } from "../support/floor-plan";
+import { changesOf, feedAfter } from "../support/menu-feed-probes";
 import { type StaffedShop, staffedShop } from "../support/staffed-shop";
 
 const info = inject("testPostgres");
@@ -94,6 +96,19 @@ describe("taking an area off the floor plan", () => {
     const areas = await listedIds("areas");
     expect(areas.map((row) => row.id)).not.toContain(empty.areaId);
     expect(areas).toContainEqual({ id: used.areaId, archived: true });
+  });
+
+  it("tells the tills the archived area and its table are gone: their copies go out empty", async () => {
+    const used = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B06"]);
+    const tableId = used.tableIds[0]!;
+    await orderSeatedAt(pool, shop, tableId, "cancelled");
+    const { cursor } = await feedAfter(app, shop.deviceToken);
+    await answer(call("DELETE", `/floor/tables/${tableId}`));
+    expect((await answer(call("DELETE", `/floor/areas/${used.areaId}`))).status).toBe(200);
+    const { changes } = await feedAfter(app, shop.deviceToken, cursor);
+    const last = (entity: string, id: string) => changesOf(changes, entity, id).at(-1);
+    expect(last(FLOOR_TABLE_ENTITY, tableId)).toMatchObject({ snapshot: null });
+    expect(last(FLOOR_AREA_ENTITY, used.areaId)).toMatchObject({ snapshot: null });
   });
 
   it("refuses while a table of the area is still on the floor", async () => {

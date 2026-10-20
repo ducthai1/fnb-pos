@@ -33,6 +33,9 @@ export interface SyncClientOptions {
   maxPullPages?: number;
 }
 
+/** More than a till holds even after days offline; the outbox has no other bound. */
+const ALL_PENDING = 1_000_000;
+
 export type ChangeListener = (changed: readonly EntityRef[]) => void;
 
 export interface SyncClient {
@@ -44,6 +47,8 @@ export interface SyncClient {
   snapshots(entity: string): Promise<EntityView[]>;
   rejectedCommands(): Promise<RejectedCommand[]>;
   pendingCount(): Promise<number>;
+  /** Every command still waiting for the server's answer, in deviceSeq order. */
+  pendingCommands(): Promise<SyncCommandEnvelope[]>;
   /** Called after a write that changed what some rows show; returns the unsubscribe. */
   onChange(listener: ChangeListener): () => void;
 }
@@ -115,6 +120,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     snapshots: (entity) => store.snapshots(entity),
     rejectedCommands: () => store.rejectedCommands(),
     pendingCount: () => store.pendingCount(),
+    pendingCommands: () => store.pendingCommands(ALL_PENDING),
     onChange(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

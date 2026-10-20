@@ -17,14 +17,14 @@ import {
   clientPermissionErrorCode,
 } from "../../permissions/permission-error-codes";
 import { loadRoleGrants } from "../../permissions/role-grants-store";
-import { verifySecret } from "../../security/secret-hash";
+import { lockActiveStaff } from "../../staff/active-staff-lock";
 import { STAFF_SESSION_HEADER, findCurrentStaffSession } from "../../staff/current-staff-session";
 import { claimPinAttempt, clearPinAttempts, refusePinGate } from "../../staff/pin-attempt-gate";
 import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
 import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface ApprovalBody {
-  action: { key: string; discountRate?: number; amount?: string };
+  action: { key: string; discountRate?: number; amount?: string; difference?: string };
   approverStaffId: string;
   approverPin: string;
 }
@@ -43,6 +43,8 @@ const approvalBody = {
         discountRate: { type: "integer" },
         // Money travels as a decimal string: a JSON number rounds past 2^53.
         amount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
+        // A close difference is signed: counted − expected, short below zero.
+        difference: { type: "string", pattern: "^(0|-?[1-9][0-9]{0,18})$" },
       },
     },
     approverStaffId: uuidJsonSchema,
@@ -58,7 +60,7 @@ const approvalBody = {
  * so the endpoint does not tell anyone without it who can approve what.
  */
 export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext): void {
-  const { pool, clock, policy } = context;
+  const { pool, clock, policy, verifySecret } = context;
 
   app.post<{ Body: ApprovalBody }>(
     "/pos/approvals",
@@ -84,6 +86,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
           ? {}
           : { discountRate: sent.discountRate as BasisPoints }),
         ...(sent.amount === undefined ? {} : { amount: vnd(BigInt(sent.amount)) }),
+        ...(sent.difference === undefined ? {} : { difference: vnd(BigInt(sent.difference)) }),
       };
       try {
         // With no grants this only checks the action carries the value its key needs.
@@ -96,6 +99,13 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
       if (!PERMISSION_DEFINITIONS[action.key].approvable) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.notApprovable });
       }
+      // The manager agrees to a figure: an approval naming none would cover any of them.
+      if (
+        PERMISSION_DEFINITIONS[action.key].figure === "difference" &&
+        sent.difference === undefined
+      ) {
+        return reply.code(400).send({ code: PERMISSION_ERROR_CODES.invalidAction });
+      }
       if (approverStaffId === requester.staffId) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.selfApproval });
       }
@@ -105,17 +115,24 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         return reply.code(401).send({ code: STAFF_ERROR_CODES.pinInvalid });
       }
       const approvalId = await withTenant(pool, device.tenantId, async (client) => {
+        // The approver as they are now, locked out or given another role while their PIN
+        // was checked; read in the transaction that records the approval, so a role
+        // narrowed a moment ago is the role that is judged.
+        const approver = await lockActiveStaff(client, approverStaffId);
+        if (approver === null) return "inactive" as const;
         await clearPinAttempts(client, approverStaffId, gate.claimedAttempts);
-        // Read in the transaction that records the approval, so a role narrowed a moment
-        // ago is the role that is judged.
-        if (!canApprove(action, await loadRoleGrants(client, gate.roleId))) return null;
+        if (!canApprove(action, await loadRoleGrants(client, approver.roleId))) return null;
         const id = await recordApproval(client, {
           actionKey: action.key,
           requestedByStaffId: requester.staffId,
           approvedByStaffId: approverStaffId,
           deviceId: device.deviceId,
           branchId: device.branchId,
-          payload: { discountRate: action.discountRate, amount: action.amount },
+          payload: {
+            discountRate: action.discountRate,
+            amount: action.amount,
+            difference: action.difference,
+          },
           createdAt: now,
         });
         await appendAudit(client, {
@@ -127,6 +144,9 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         });
         return id;
       });
+      if (approvalId === "inactive") {
+        return reply.code(404).send({ code: STAFF_ERROR_CODES.staffNotFound });
+      }
       if (approvalId === null) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.approverNotPermitted });
       }

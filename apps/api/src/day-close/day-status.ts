@@ -17,6 +17,13 @@ export interface DayBatch {
   lastErrorCode: string | null;
 }
 
+/** QR money handed back to a customer once the day was closed, outside its figures. */
+export interface DayQrRefund {
+  intentId: string;
+  amount: number;
+  method: string;
+}
+
 /** An order of the day as a manager finds it on the till: which till, which number. */
 export interface DayOrder {
   id: string;
@@ -35,6 +42,8 @@ export interface DayStatus {
   openDrafts: DayOrder[];
   /** Settled once the day was closed: outside its figures, which the close froze. */
   paidAfterClose: (DayOrder & { refundOfOrderId: string | null })[];
+  /** Handed back once the day was closed: beside its figures, which the close froze. */
+  qrRefundedAfterClose: DayQrRefund[];
   unissuedInvoices: DayInvoice[];
   failedInvoices: DayInvoice[];
   /** Issued, but in no batch the provider has taken: the day's data is not all sent. */
@@ -62,6 +71,12 @@ export async function readDayStatus(
     "SELECT id, device_id, device_order_no, status, refund_of_order_id FROM sales_order " +
       "WHERE branch_id = $1 AND business_date = $2 " +
       "AND (status = 'draft' OR paid_after_day_close) ORDER BY device_id, device_order_no",
+    [branchId, businessDate],
+  );
+  const qrRefunds = await client.query<{ id: string; amount: string; method: string }>(
+    "SELECT id, received_amount AS amount, refund_method AS method FROM payment_intent " +
+      "WHERE branch_id = $1 AND refund_business_date = $2 AND refunded_after_day_close " +
+      "ORDER BY refunded_at, id",
     [branchId, businessDate],
   );
   const dayOrder = (row: (typeof orders.rows)[number]): DayOrder => ({
@@ -113,6 +128,11 @@ export async function readDayStatus(
     paidAfterClose: orders.rows
       .filter((row) => row.status !== "draft")
       .map((row) => ({ ...dayOrder(row), refundOfOrderId: row.refund_of_order_id })),
+    qrRefundedAfterClose: qrRefunds.rows.map((row) => ({
+      intentId: row.id,
+      amount: Number(row.amount),
+      method: row.method,
+    })),
     unissuedInvoices: where(
       (row) => row.invoice.status === "pending" || row.invoice.status === "failed_retryable",
     ),

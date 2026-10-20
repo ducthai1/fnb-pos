@@ -1,4 +1,4 @@
-import { bigint, date, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { newId } from "../ids/new-id";
 import { tenantRowColumns } from "./tenant-row-columns";
 
@@ -24,6 +24,8 @@ export const paymentIntent = pgTable("payment_intent", {
   refundMethod: text("refund_method"),
   refundNote: text("refund_note"),
   refundBusinessDate: date("refund_business_date"),
+  /** Handed back once its business day was closed: beside that day's report; see 0028. */
+  refundedAfterDayClose: boolean("refunded_after_day_close").notNull().default(false),
 });
 
 /** A transfer a payment gateway reported; append-only, one row per gateway reference. */

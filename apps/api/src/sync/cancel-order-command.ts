@@ -1,8 +1,9 @@
 import { type CancelOrderPayload, cancelOrderPayloadSchema } from "@fnb/contracts";
 import { appendAudit } from "@fnb/db";
-import { reversedQuantityOf, transitionOrder } from "@fnb/domain";
+import { type PermissionAction, reversedQuantityOf, transitionOrder } from "@fnb/domain";
 import { assertNoPaidQrLeftOut, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { orderOfBranch } from "./editable-order";
+import { requirePermission } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
@@ -12,7 +13,15 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * voided, the order is refused: cancelling it would hide food that was made, which is what
  * a void (with its approver) is for. So is an order a QR of which the bank already paid:
  * the customer's money would go nowhere. Who cancelled and why goes to the audit trail.
+ *
+ * Once guests were shown a bill (a pre-bill printed, even of an earlier version) or the
+ * kitchen was sent part of the order (even if all of it was voided since), cancelling it
+ * is closing a table nobody paid for: "print the pre-bill, take the cash, cancel" would
+ * leave no sale behind. That needs close_unpaid_table, held or lent by a manager's
+ * approval. A draft nobody was shown or served is cancelled as before.
  */
+const CLOSE_UNPAID_TABLE: PermissionAction = { key: "close_unpaid_table" };
+
 async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayload) {
   const { client, staffId } = context;
   const stored = await orderOfBranch(context, payload.orderId);
@@ -23,6 +32,12 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
     return sent > reversedQuantityOf(lines, line.id);
   });
   if (stillAtTheKitchen) throw new CommandRejection(SYNC_ERROR_CODES.orderHasSentItems);
+  const kitchenHadIt = [...stored.sentQuantityByLineId.values()].some((sent) => sent > 0n);
+  const shownABill = stored.preBillPrintedVersion !== null;
+  const spent =
+    kitchenHadIt || shownABill
+      ? await requirePermission(context, CLOSE_UNPAID_TABLE, payload.approvalId)
+      : null;
   await assertNoPaidQrLeftOut(context, payload.orderId);
   await withdrawPendingIntents(context, payload.orderId);
   await client.query(
@@ -35,7 +50,12 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
     action: "order.cancelled",
     entityKind: "sales_order",
     entityId: payload.orderId,
-    payload: { reasonCode: payload.reasonCode },
+    payload: {
+      reasonCode: payload.reasonCode,
+      ...(spent === null
+        ? {}
+        : { approvalId: spent.approvalId, approvedByStaffId: spent.approvedByStaffId }),
+    },
   });
   return payload.orderId;
 }

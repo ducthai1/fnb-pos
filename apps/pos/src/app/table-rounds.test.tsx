@@ -107,6 +107,15 @@ describe("an order at a table, round after round", () => {
     expect(preBill).toContain(text.tables.slips.preBillHeading);
     expect(preBill).toContain(money(58_000));
     await waitFor(() => expect(pushedOf(server, "order.mark_pre_bill_printed")).toHaveLength(1));
+    // The mark names the version the slip shows, the one the server then marks past.
+    const mark = pushedOf(server, "order.mark_pre_bill_printed")[0]?.payload as {
+      orderId: string;
+      printedVersion?: number;
+    };
+    await waitFor(() =>
+      expect(server.rows.get(mark.orderId)).toMatchObject({ preBillPrinted: true }),
+    );
+    expect(mark.printedVersion).toBe((server.rows.get(mark.orderId)?.version ?? 0) - 1);
     tap(text.tables.slips.backToOrder);
     expect(screen.getByText(T.preBillCurrent)).toBeTruthy();
     tap(T.backToFloor);

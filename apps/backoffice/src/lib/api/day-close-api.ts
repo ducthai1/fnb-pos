@@ -16,6 +16,12 @@ export interface DayInvoice {
   readonly lastErrorCode: string | null;
 }
 
+/** QR money handed back once the day was closed: listed beside the day, not in it. */
+export interface DayQrRefund {
+  readonly intentId: string;
+  readonly amount: number;
+}
+
 export interface ClosedDay {
   readonly closedByAppUserId: string;
   readonly closedAt: string;
@@ -27,6 +33,7 @@ export interface DayStatus {
   readonly openShiftIds: readonly string[];
   readonly openDrafts: readonly DayOrder[];
   readonly paidAfterClose: readonly DayOrder[];
+  readonly qrRefundedAfterClose: readonly DayQrRefund[];
   readonly unissuedInvoices: readonly DayInvoice[];
   readonly failedInvoices: readonly DayInvoice[];
   readonly unsentInvoices: readonly DayInvoice[];
@@ -47,6 +54,12 @@ export function readDayInvoice(item: JsonRecord): DayInvoice | null {
   const lastErrorCode = nullableTextOf(item, "lastErrorCode");
   if (id === null || orderId === null || status === null || attempts === null || lastErrorCode === undefined) return null;
   return { id, orderId, status, attempts, lastErrorCode };
+}
+
+function readDayQrRefund(item: JsonRecord): DayQrRefund | null {
+  const intentId = textOf(item, "intentId");
+  const amount = wholeNumberOf(item, "amount");
+  return intentId === null || amount === null ? null : { intentId, amount };
 }
 
 const readShiftId = (value: unknown) => (typeof value === "string" ? value : null);
@@ -72,12 +85,16 @@ function readDayStatus(body: unknown): DayStatus | null {
   const openShiftIds = readIds(body.openShiftIds);
   const openDrafts = listOf(body.openDrafts, readDayOrder);
   const paidAfterClose = listOf(body.paidAfterClose, readDayOrder);
+  // An older API sends no such list: nothing was handed back after its closes then.
+  const qrRefundedAfterClose = listOf(body.qrRefundedAfterClose ?? [], readDayQrRefund);
   const unissuedInvoices = listOf(body.unissuedInvoices, readDayInvoice);
   const failedInvoices = listOf(body.failedInvoices, readDayInvoice);
   const unsentInvoices = listOf(body.unsentInvoices, readDayInvoice);
   if (dayClose === undefined || openShiftIds === null || openDrafts === null || paidAfterClose === null) return null;
   if (unissuedInvoices === null || failedInvoices === null || unsentInvoices === null) return null;
-  return { dayClose, openShiftIds, openDrafts, paidAfterClose, unissuedInvoices, failedInvoices, unsentInvoices };
+  if (qrRefundedAfterClose === null) return null;
+  const lists = { paidAfterClose, qrRefundedAfterClose, unissuedInvoices, failedInvoices, unsentInvoices };
+  return { dayClose, openShiftIds, openDrafts, ...lists };
 }
 
 export interface DayCloseApi {
