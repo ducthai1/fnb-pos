@@ -80,7 +80,11 @@ export function ImportFileCard({
             className="bo-import-file__input"
             accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             aria-describedby={`${id}-hint`}
-            onChange={(event) => void pick(event.target.files?.[0])}
+            onChange={(event) => {
+              void pick(event.target.files?.[0]);
+              // Cleared, so picking the same file again (after fixing it) reads it again.
+              event.target.value = "";
+            }}
           />
           <label htmlFor={id} className="bo-button bo-import-file__choose">
             <Icon of={Upload} />
