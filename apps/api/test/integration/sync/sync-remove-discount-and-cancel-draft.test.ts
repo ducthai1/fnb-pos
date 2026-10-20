@@ -102,7 +102,10 @@ describe("order.cancel", () => {
     const approvalId = await approve(app, s.tillA, managerId, { key: "void_after_sent" });
     const voided = withApproval(voidUnits(s.tillA, orderId, coffee.lineId, "1"), approvalId);
     expect((await pushOne(app, s.tillA, voided)).status).toBe("accepted");
-    expect((await pushOne(app, s.tillA, cancel(s.tillA, orderId))).status).toBe("accepted");
+    // The kitchen was sent part of it: closing the unpaid order is a manager's call too.
+    const closing = await approve(app, s.tillA, managerId, { key: "close_unpaid_table" });
+    const cancelled = withApproval(cancel(s.tillA, orderId), closing);
+    expect((await pushOne(app, s.tillA, cancelled)).status).toBe("accepted");
   });
 
   it("refuses a paid order, and one of another branch as if it did not exist", async () => {

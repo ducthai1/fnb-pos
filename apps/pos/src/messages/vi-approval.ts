@@ -33,8 +33,10 @@ export const VI_APPROVAL = {
     refund: (amount: string, orderNo: number) => `Hoàn ${amount} cho đơn số ${orderNo}`,
     cashIn: (amount: string) => `Thu ${amount} vào két`,
     cashOut: (amount: string) => `Chi ${amount} khỏi két`,
-    cashInShift: (total: string) => `bạn đã thu và chi trong ca, kể cả lần này: ${total}`,
+    cashInShift: (total: string) => `két đã thu và chi trong ca, kể cả lần này: ${total}`,
     closeDifference: (difference: string) => `Đóng ca lệch ${difference} so với tiền dự kiến`,
+    closeUnpaid: (orderNo: number) =>
+      `Hủy đơn số ${orderNo} chưa thu tiền (đã in tạm tính hoặc đã gửi bếp)`,
   },
 } as const;
 

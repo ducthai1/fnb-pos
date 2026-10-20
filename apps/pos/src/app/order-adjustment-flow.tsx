@@ -1,16 +1,11 @@
 import type { DiscountScope } from "@fnb/domain";
 import { useEffect, useState } from "react";
-import {
-  cancelOrderCommand,
-  kitchenStillHasItems,
-} from "../features/order-adjust/cancel-order-command";
 import type { AdjustableOrder } from "../features/order/order-session-types";
-import { paidQrOfOrder } from "../features/payment/settled-qr";
 import { vi } from "../messages/vi";
-import { CancelOrderScreen } from "../screens/order-adjust/cancel-order-screen";
 import type { OrderAdjustments } from "../screens/sale/cart-panel";
 import { Alert, ScreenFrame } from "../screens/shared/screen-frame";
-import { type AdjustContext, attempt } from "./adjust-flow-parts";
+import type { AdjustContext } from "./adjust-flow-parts";
+import { CancelOrderFlow } from "./cancel-order-flow";
 import { DiscountFlow } from "./discount-flow";
 import { VoidLineFlow } from "./void-line-flow";
 
@@ -67,24 +62,5 @@ export function OrderAdjustmentFlow(props: OrderAdjustmentFlowProps) {
   const context: AdjustContext = { ...props, settled };
   if (step.kind === "void") return <VoidLineFlow {...context} lineId={step.lineId} />;
   if (step.kind === "discount") return <DiscountFlow {...context} scope={step.scope} />;
-  return (
-    <CancelOrderScreen
-      header={props.header}
-      orderNo={settled.order.deviceOrderNo}
-      onBack={() => props.onDone({ kind: "back" })}
-      onConfirm={(reasonCode) =>
-        attempt(async () => {
-          if (kitchenStillHasItems(settled)) return vi.errors.SYNC_ORDER_HAS_SENT_ITEMS;
-          if ((await paidQrOfOrder(props.client, settled.order.orderId)) !== null) {
-            return vi.errors.SYNC_ORDER_HAS_SETTLED_QR;
-          }
-          const now = await session.adjustable();
-          if (now === null) return vi.adjust.notSaved;
-          await session.record(cancelOrderCommand(props.place, now, reasonCode, Date.now()));
-          props.onDone({ kind: "cancelled" });
-          return null;
-        })
-      }
-    />
-  );
+  return <CancelOrderFlow {...context} />;
 }
