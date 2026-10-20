@@ -1,5 +1,5 @@
 import type { OrderLine } from "@fnb/domain";
-import { ArrowRight, ShoppingBag } from "lucide-react";
+import { ArrowRight, BadgePercent, Ban, ShoppingBag } from "lucide-react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CounterOrder } from "../../features/order/counter-order";
 import type { CartView } from "../../features/order/cart-view";
@@ -94,10 +94,16 @@ export function OrderTools({ adjust }: { adjust: OrderAdjustments }) {
   const T = vi.adjust.tools;
   return (
     <div className="pos-line-tools">
-      <button type="button" className="pos-button" onClick={adjust.onDiscountOrder}>
+      <button type="button" className="pos-button pos-button--sm" onClick={adjust.onDiscountOrder}>
+        <Icon of={BadgePercent} />
         {T.orderDiscount}
       </button>
-      <button type="button" className="pos-button" onClick={adjust.onCancelOrder}>
+      <button
+        type="button"
+        className="pos-button pos-button--danger pos-button--sm"
+        onClick={adjust.onCancelOrder}
+      >
+        <Icon of={Ban} />
         {T.cancelOrder}
       </button>
     </div>
