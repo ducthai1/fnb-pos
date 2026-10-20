@@ -8,8 +8,8 @@ import { StaffAvatar } from "../shared/staff-avatar";
 export interface TillHeaderProps {
   branchName: string;
   /** The shop's brand and this till's own name, when the till knows them. */
-  brandName?: string;
-  deviceName?: string;
+  brandName?: string | undefined;
+  deviceName?: string | undefined;
   staffName: string;
   /** The open shift's business date; null once known that no shift is open. */
   shiftDate?: string | null | undefined;
