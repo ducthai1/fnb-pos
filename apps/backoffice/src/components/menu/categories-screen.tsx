@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Tags, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Pencil, Tags, Trash2 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import type { ApiFailure } from "../../lib/api/api-result";
 import type { Category } from "../../lib/api/catalog-api";
@@ -15,12 +15,11 @@ import { EmptyState } from "../ui/empty-state";
 import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
 import { Icon } from "../ui/icon";
 import { TextField } from "../ui/text-field";
+import { SORT_STEP, inMenuOrder, moveCategory } from "../../lib/catalog/category-order";
 import { newId } from "./product-editor/product-draft";
 
 const T = vi.menu.categories;
 const NAME_MAX = 120;
-// Room between neighbours, so a category can later be slotted in without renumbering.
-const SORT_STEP = 10;
 
 function nameProblem(name: string): string | undefined {
   if (name.trim() === "") return vi.common.nameMissing;
@@ -39,6 +38,7 @@ export function CategoriesScreen() {
   const [failure, setFailure] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
+  const [moving, setMoving] = useState(false);
 
   const report = (result: ApiFailure) => {
     if (isSignedOut(result)) signedOut();
@@ -67,6 +67,22 @@ export function CategoriesScreen() {
     const result = await api.putCategory(category.id, body);
     if (!result.ok) return report(result);
     setRenaming(null);
+    refresh();
+  }
+
+  async function move(categories: readonly Category[], index: number, direction: -1 | 1) {
+    setDone(null);
+    setFailure(null);
+    setMoving(true);
+    for (const { category, sortOrder } of moveCategory(categories, index, direction)) {
+      const body = { version: category.version, brandId: category.brandId, name: category.name, sortOrder };
+      const result = await api.putCategory(category.id, body);
+      if (!result.ok) {
+        report(result);
+        break;
+      }
+    }
+    setMoving(false);
     refresh();
   }
 
@@ -104,7 +120,7 @@ export function CategoriesScreen() {
               </div>
             )}
             <ul className="bo-choice-list" aria-label={T.title}>
-              {categories.map((category, index) => (
+              {inMenuOrder(categories).map((category, index, ordered) => (
                 <li key={category.id} className="bo-card bo-row bo-category-row">
                   {renaming?.id === category.id ? (
                     <>
@@ -122,6 +138,24 @@ export function CategoriesScreen() {
                         {index + 1}
                       </span>
                       <span className="bo-wrap bo-grow bo-category-row__name">{category.name}</span>
+                      <button
+                        type="button"
+                        className="bo-icon-button"
+                        aria-label={T.moveUp(category.name)}
+                        disabled={moving || index === 0}
+                        onClick={() => void move(categories, index, -1)}
+                      >
+                        <Icon of={ArrowUp} size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="bo-icon-button"
+                        aria-label={T.moveDown(category.name)}
+                        disabled={moving || index === ordered.length - 1}
+                        onClick={() => void move(categories, index, 1)}
+                      >
+                        <Icon of={ArrowDown} size={16} />
+                      </button>
                       <button type="button" className="bo-button" aria-label={T.renameLabel(category.name)} onClick={() => setRenaming({ id: category.id, name: category.name })}>
                         <Icon of={Pencil} size={16} />
                         {T.rename}

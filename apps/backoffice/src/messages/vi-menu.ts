@@ -27,6 +27,8 @@ export const VI_MENU = {
     rename: "Đổi tên",
     renameLabel: (name: string) => `Đổi tên ${name}`,
     deleteLabel: (name: string) => `Xóa ${name}`,
+    moveUp: (name: string) => `Đưa ${name} lên trên`,
+    moveDown: (name: string) => `Đưa ${name} xuống dưới`,
     added: (name: string) => `Đã thêm danh mục “${name}”.`,
     deleted: (name: string) => `Đã xóa danh mục “${name}”.`,
   },
