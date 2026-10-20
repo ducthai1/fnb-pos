@@ -1,5 +1,7 @@
 import { type ZodErrorMap, z } from "zod";
+import type { RateLimitSettings } from "../http/rate-limit-hooks";
 import { PAYMENT_SECRET_KEY_ENV } from "../payments/webhook-secret-box";
+import { rateLimitEnvironment, rateLimitSettingsOf } from "./rate-limit-environment";
 
 /** What the server process is started with, read once from its environment. */
 export interface ServerConfig {
@@ -16,6 +18,8 @@ export interface ServerConfig {
   readonly secureCookies: boolean;
   /** Browser origins whose pages may write; null checks none. */
   readonly allowedOrigins: readonly string[] | null;
+  /** Sign-in, pairing, PIN and approval requests allowed per client and per account or till. */
+  readonly rateLimits: RateLimitSettings;
 }
 
 export type ServerConfigResult =
@@ -65,6 +69,7 @@ const environmentSchema = z
       .default(5_000),
     FNB_COOKIE_SECURE: flag.default("true"),
     FNB_ALLOWED_ORIGINS: origins.optional(),
+    ...rateLimitEnvironment,
   })
   .superRefine((env, context) => {
     if (env.FNB_ENV !== "production") return;
@@ -118,6 +123,7 @@ export function readServerConfig(
       einvoiceWorkerIntervalMs: values.FNB_EINVOICE_WORKER_INTERVAL_MS,
       secureCookies: values.FNB_COOKIE_SECURE === "true",
       allowedOrigins: values.FNB_ALLOWED_ORIGINS ?? null,
+      rateLimits: rateLimitSettingsOf(values),
     },
   };
 }

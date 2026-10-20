@@ -1,6 +1,8 @@
 import pg from "pg";
 import { type AppDependencies, buildApp } from "../build-app";
 import { FakeEInvoiceProvider } from "../einvoice/providers/fake-einvoice-provider";
+import { systemClock } from "../clock";
+import { installRateLimits } from "../http/rate-limit-hooks";
 import { maskSecrets, serverErrorLines } from "../http/server-error-report";
 import type { ServerConfig } from "./server-config";
 
@@ -34,6 +36,7 @@ export async function startServer(
       // Every 500, with its route and masked message, so a fault in production leaves a trace.
       onServerError: (report) => serverErrorLines(report).forEach(logError),
     });
+    installRateLimits(app, config.rateLimits, systemClock);
     const url = await app.listen({ host: config.host, port: config.port });
     return {
       url,
