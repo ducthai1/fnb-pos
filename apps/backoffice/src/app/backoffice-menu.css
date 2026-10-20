@@ -79,3 +79,101 @@
 .bo-stepper > .bo-button {
   padding: 0;
 }
+
+/* The editor's parts as segments that stay over the form while it scrolls. */
+.bo-editor-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  box-shadow: var(--shadow-card);
+}
+
+.bo-editor-nav .bo-tab {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bo-fieldset-card[id] {
+  scroll-margin-top: 72px;
+}
+
+/* Saving stays at the foot of the screen while the form is longer than it. */
+.bo-save-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  box-shadow: var(--shadow-raised);
+}
+
+@media (min-width: 1100px) {
+  .bo-preview {
+    position: sticky;
+    top: var(--sp-2);
+  }
+}
+
+.bo-preview__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+}
+
+.bo-preview__head .bo-stack {
+  gap: 0;
+}
+
+.bo-preview__mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-bold);
+}
+
+.bo-preview__mark::before {
+  content: attr(data-initial);
+}
+
+/* A choice the customer makes: a chip that fills in when it is picked. */
+.bo-preview .bo-field--inline {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  cursor: pointer;
+}
+
+.bo-preview .bo-field--inline:has(input:checked) {
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-preview .bo-field--inline input {
+  accent-color: var(--c-brand);
+}
+
+.bo-preview .bo-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.bo-preview .bo-fieldset > legend {
+  width: 100%;
+  margin-bottom: var(--sp-1);
+}

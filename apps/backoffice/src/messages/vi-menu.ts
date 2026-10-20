@@ -42,6 +42,9 @@ export const VI_MENU = {
     editTitle: (name: string) => `Sửa món: ${name}`,
     loading: "Đang tải món…",
     general: "Thông tin chung",
+    priceTitle: "Giá & thuế",
+    sectionsLabel: "Các phần của món",
+    sections: { info: "Thông tin", price: "Giá & thuế", variants: "Size", groups: "Tùy chọn" },
     name: "Tên món",
     kind: "Loại",
     kinds: {

@@ -2,6 +2,7 @@
 
 import { type ModifierGroup, type Product, effectiveModifierGroupRule, formatVnd } from "@fnb/domain";
 import { useState } from "react";
+import { nameMark } from "../../../lib/format/name-mark";
 import { vi } from "../../../messages/vi";
 import { CheckField } from "../../ui/select-field";
 import { type PreviewCounts, countKey, previewMessage, previewOutcome } from "./preview-outcome";
@@ -38,6 +39,13 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
     <section className="bo-card bo-preview" aria-label={T.title} aria-live="polite">
       <h2 className="bo-subtitle">{T.title}</h2>
       <p className="bo-muted">{T.hint}</p>
+      <div className="bo-preview__head" aria-hidden="true">
+        <span className="bo-preview__mark" data-initial={nameMark(product.name)} />
+        <span className="bo-stack">
+          <strong className="bo-wrap">{product.name}</strong>
+          {product.basePrice !== null && <span className="bo-muted">{formatVnd(product.basePrice)}</span>}
+        </span>
+      </div>
       {product.variants.length > 0 && (
         <fieldset className="bo-fieldset bo-row">
           <legend>{T.variant}</legend>
