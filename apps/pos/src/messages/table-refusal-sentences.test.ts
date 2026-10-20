@@ -1,3 +1,4 @@
+import { SYNC_ORDER_VERSION_ERROR_CODES } from "@fnb/contracts";
 import { ORDER_ERROR_CODES } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
 // The server's own list, so a table code added there without a sentence here fails this test.
@@ -7,6 +8,7 @@ import { messageForCode, refusalSentence, vi } from "./vi";
 const TABLE_CODES = Object.values(TABLE_SYNC_ERROR_CODES);
 /** What a table's order meets when another till got there first or closed it. */
 const ORDER_CODES = [
+  SYNC_ORDER_VERSION_ERROR_CODES.orderVersionStale,
   "SYNC_LINE_LOCKED",
   "SYNC_DEVICE_ORDER_NO_TAKEN",
   "SYNC_APPROVAL_REQUIRED",

@@ -9,6 +9,7 @@ import {
   staffWhoMaySignIn,
   tillPlaceOf,
 } from "../features/bootstrap/bootstrap-source";
+import { useTillStaff } from "../features/bootstrap/use-till-staff";
 import { useSettledQrClosing } from "../features/payment/use-settled-qr-closing";
 import { tillAuthority } from "../features/permissions/till-authority";
 import { TillPermissionsProvider } from "../features/permissions/till-permissions-context";
@@ -33,6 +34,8 @@ interface SignedIn {
   /** What they may do alone; none when the server's answer could not be read. */
   readonly grants: readonly Grant[];
 }
+
+const NO_STAFF: readonly BootstrapStaff[] = [];
 
 /** A paired till: the shop's data, then who is at the till, then selling. */
 export function PairedTill(props: {
@@ -61,6 +64,7 @@ export function PairedTill(props: {
     till?.sync.current ?? initialStatus,
   );
   const place = useMemo(() => (snapshot === null ? null : tillPlaceOf(snapshot)), [snapshot]);
+  const staff = useTillStaff(snapshot?.staff ?? NO_STAFF, till?.client ?? null);
   const settledQr = useSettledQrClosing(till?.client ?? null, place, rejected);
 
   const loadBootstrap = useCallback(async () => {
@@ -87,19 +91,19 @@ export function PairedTill(props: {
       authority: tillAuthority({
         staffId: signedIn.staff.id,
         grants: signedIn.grants,
-        staff: staffWhoMaySignIn(snapshot),
+        staff: staffWhoMaySignIn({ staff }),
         requestApproval: (request) => deps.api.requestApproval(credential, token, request),
       }),
       onSessionExpired: () => signOut(vi.errors.API_STAFF_SESSION_INVALID),
     };
-  }, [signedIn, snapshot, deps, credential, signOut]);
+  }, [signedIn, snapshot, staff, deps, credential, signOut]);
 
   if (snapshot === null) return <BootstrapScreen error={bootstrapError} onRetry={loadBootstrap} />;
   if (signedIn === null || permissions === null) {
     return (
       <StaffLoginScreen
         branchName={snapshot.branch.name}
-        staff={staffWhoMaySignIn(snapshot)}
+        staff={staffWhoMaySignIn({ staff })}
         notice={signInNotice}
         signIn={(staffId, pin) => deps.api.startStaffSession(credential, { staffId, pin })}
         onSignedIn={(staff, session) => {

@@ -5,7 +5,7 @@ import { MENU, tid } from "../../test-support/till-fixtures";
 import { tillOrderSnapshot } from "../order/order-snapshot-for-till";
 import { priceCounterOrder } from "../order/price-counter-order";
 import { readStoredTableOrder } from "./stored-table-order";
-import { openingFromStored } from "./table-order-opening";
+import { openingFromStored, tableOpeningFromStored } from "./table-order-opening";
 
 const AT = Date.UTC(2026, 9, 20, 3, 0);
 const PROFILE = { pricesIncludeTax: true, serviceCharge: null };
@@ -36,6 +36,18 @@ describe("opening the order seated at a table from the till's copy", () => {
     // It stays the order of the till that opened it, under that till's number.
     expect(opening.order).toEqual({ ...AT_TABLE, tableTag: null, openedOn: PLACE.deviceId });
     expect(opening.recorded).toMatchObject({ version: 4, preBillPrinted: true });
+  });
+
+  it("opens with the pre-bill out of date once the order moved past the version it showed", () => {
+    const { row } = storedRow();
+    const moved = { ...row, preBillPrinted: false, preBillPrintedVersion: 3 };
+    expect(tableOpeningFromStored(SALE_MENU, readStoredTableOrder(moved)!).preBillChanged).toBe(
+      true,
+    );
+    const never = { ...row, preBillPrinted: false, preBillPrintedVersion: null };
+    expect(tableOpeningFromStored(SALE_MENU, readStoredTableOrder(never)!).preBillChanged).toBe(
+      false,
+    );
   });
 
   it("keeps the items the kitchen has as stored, and prices the order as the server did", () => {

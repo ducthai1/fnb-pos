@@ -101,6 +101,7 @@ export function openingFromStored(menu: TillMenu, stored: StoredOrder): OrderOpe
       table,
       lines,
       openedOn: stored.deviceId,
+      ...(stored.openedAt === null ? {} : { openedAt: stored.openedAt }),
     },
     recorded: {
       chargeProfile: stored.chargeProfile,

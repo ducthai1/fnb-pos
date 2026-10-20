@@ -39,6 +39,8 @@ const order = (fields: Partial<StoredTableOrder> = {}): StoredTableOrder => ({
   tableId: T1,
   tableName: "1",
   preBillPrinted: false,
+  preBillPrintedVersion: null,
+  openedAt: null,
   reasonCode: null,
   refundOfOrderId: null,
   refundAmounts: null,
@@ -97,6 +99,24 @@ describe("the floor as the till shows it", () => {
       "changed_after_pre_bill",
     );
     expect(status(floorTablesView(occupancy(null), [order()], NONE))[0]).toBe("occupied");
+  });
+
+  it("says the order changed after its pre-bill on a till that never saw the pre-bill", () => {
+    const changed = order({ version: 3, preBillPrintedVersion: 2 });
+    expect(status(floorTablesView(occupancy(null), [changed], NONE))[0]).toBe(
+      "changed_after_pre_bill",
+    );
+    // The server's version wins over what this till once saw: printed again, it is current.
+    const current = order({ version: 3, preBillPrintedVersion: 3, preBillPrinted: true });
+    const seen = new Set([tid(500)]);
+    expect(status(floorTablesView(occupancy(null), [current], seen))[0]).toBe("awaiting_payment");
+    const never = order({ version: 3, preBillPrintedVersion: null });
+    expect(status(floorTablesView(occupancy(null), [never], NONE))[0]).toBe("occupied");
+  });
+
+  it("times the guests from when the order the till holds was opened", () => {
+    const [t1] = floorTablesView(occupancy(null), [order({ openedAt: OPENED })], NONE);
+    expect(t1?.openedAt).toBe(OPENED);
   });
 });
 

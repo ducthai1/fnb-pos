@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { FloorTableView } from "../features/floor/floor-tables-view";
 import { useFloor } from "../features/floor/use-floor";
 import { newId } from "../features/ids/new-id";
@@ -6,9 +6,11 @@ import type { OrderNumbers } from "../features/order/device-order-number";
 import {
   type TableOrderOpening,
   openingForNewTable,
-  openingFromStored,
+  tableOpeningFromStored,
 } from "../features/table-order/table-order-opening";
+import { readStoredOrder } from "../features/order/stored-order";
 import { useOrderRefusal } from "../features/table-order/use-order-refusal";
+import { useStaleDraftRedo } from "../features/table-order/use-stale-draft-redo";
 import { refusalSentence, vi } from "../messages/vi";
 import { FloorScreen } from "../screens/floor/floor-screen";
 import { Alert } from "../screens/shared/screen-frame";
@@ -50,9 +52,31 @@ export function TableService(props: TableServiceProps) {
     loadFloor: props.loadFloor,
     onSyncPass: props.onSyncPass,
     preBilled,
+    plan: props.tillStart?.floor,
+    openOrders: props.tillStart?.openOrders,
   });
-  const refusal = useOrderRefusal(client, null, recorded);
+  const redo = useStaleDraftRedo(client, props.place, menu, recorded);
+  const refusal = useOrderRefusal(client, null, recorded, redo.shows);
   const onRecorded = useCallback((commandId: string) => recorded.add(commandId), [recorded]);
+  const openOrder = useRef<string | null>(null);
+  openOrder.current = phase.kind === "order" ? phase.opening.order.orderId : null;
+
+  // The order open on screen was saved again over another till's change: it opens afresh
+  // from the till's copy, answering for the redo.
+  useEffect(() => {
+    const done = redo.redone;
+    if (done === null || openOrder.current !== done.orderId) return;
+    client
+      .snapshot("order", done.orderId)
+      .then((view) => {
+        const stored = view === null ? null : readStoredOrder(view.snapshot);
+        if (stored === null || openOrder.current !== done.orderId) return;
+        const copy = view?.source === "optimistic" ? { ...stored, heldOnTill: true } : stored;
+        const opening = { ...tableOpeningFromStored(menu, copy), answersFor: [done.commandId] };
+        setPhase({ kind: "order", opening });
+      })
+      .catch(console.error);
+  }, [client, menu, redo.redone]);
 
   async function open(table: FloorTableView) {
     setNotice(null);
@@ -69,7 +93,7 @@ export function TableService(props: TableServiceProps) {
     const stored = floor.orders.get(table.orderId);
     try {
       if (stored === undefined || stored.status !== "draft") throw new Error("not on the till");
-      setPhase({ kind: "order", opening: openingFromStored(menu, stored) });
+      setPhase({ kind: "order", opening: tableOpeningFromStored(menu, stored) });
     } catch {
       setNotice(vi.tables.floor.orderNotOnTill);
     }
@@ -79,7 +103,7 @@ export function TableService(props: TableServiceProps) {
     return (
       <TableOrdering
         {...props}
-        key={phase.opening.order.orderId}
+        key={`${phase.opening.order.orderId}:${phase.opening.answersFor?.join() ?? ""}`}
         opening={phase.opening}
         areas={floor.occupancy?.areas ?? []}
         tables={floor.tables}

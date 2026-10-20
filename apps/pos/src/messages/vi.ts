@@ -5,6 +5,8 @@ import { VI_CHECKOUT } from "./vi-checkout";
 import { VI_HISTORY, VI_REFUND } from "./vi-history-refund";
 import { VI_INVOICE } from "./vi-invoice";
 import { VI_ORDER_ADJUST, VI_ORDER_ADJUST_ERRORS, VI_REASONS } from "./vi-order-adjust";
+import { VI_ORDER_VERSION_ERRORS } from "./vi-order-version";
+import { VI_RATE_LIMIT_ERRORS } from "./vi-rate-limit";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
 import { VI_CASH, VI_CLOSE_SHIFT, VI_SESSION, VI_SESSION_ERRORS } from "./vi-shift-tools";
@@ -97,6 +99,8 @@ export const vi = {
     API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ.",
     ...VI_SYNC_ERRORS,
     ...VI_TABLE_ERRORS,
+    ...VI_ORDER_VERSION_ERRORS,
+    ...VI_RATE_LIMIT_ERRORS,
     ...VI_APPROVAL_ERRORS,
     ...VI_ORDER_ADJUST_ERRORS,
     ...VI_SESSION_ERRORS,

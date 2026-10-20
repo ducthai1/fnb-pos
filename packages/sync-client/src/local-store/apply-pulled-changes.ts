@@ -1,7 +1,7 @@
 import type { SyncChangesPage } from "@fnb/contracts";
 import { SYNC_CLIENT_ERROR_CODES, SyncClientError } from "../sync-client-error";
 import { ChangeTracker } from "./entity-views";
-import type { StoreWrite } from "./local-store";
+import type { EntityRef, StoreWrite } from "./local-store";
 import { READ_META_SQL, WRITE_META_SQL } from "./local-store-schema-sql";
 import { keepServerSnapshot } from "./server-snapshots";
 import { type SqliteDriver, inTransaction } from "./sqlite-driver";
@@ -35,6 +35,9 @@ export function applyPulledChanges(driver: SqliteDriver, page: SyncChangesPage):
       throw new SyncClientError(SYNC_CLIENT_ERROR_CODES.cursorRegressed);
     }
     const tracker = new ChangeTracker(driver);
+    // A removal is told even when the till showed nothing of the row: a copy it holds from
+    // elsewhere (its bootstrap) is gone too, which no change of its database would say.
+    const removed = new Map<string, EntityRef>();
     for (const change of page.changes) {
       if (cursorValue(change.changeSeq) <= current) {
         throw new SyncClientError(SYNC_CLIENT_ERROR_CODES.staleChange);
@@ -42,8 +45,11 @@ export function applyPulledChanges(driver: SqliteDriver, page: SyncChangesPage):
       const ref = { entity: change.entity, entityId: change.entityId };
       tracker.touch(ref);
       keepServerSnapshot(driver, ref, change.snapshot);
+      if (change.snapshot === null) removed.set(`${ref.entity}:${ref.entityId}`, ref);
     }
     driver.run(WRITE_META_SQL, ["cursor", next.toString()]);
-    return { changed: tracker.changed() };
+    const changed = tracker.changed();
+    for (const ref of changed) removed.delete(`${ref.entity}:${ref.entityId}`);
+    return { changed: [...changed, ...removed.values()] };
   });
 }

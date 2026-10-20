@@ -89,3 +89,28 @@ export async function ticketsOfOrder(pool: pg.Pool, tenantId: string, orderId: s
     return [...tickets.values()];
   });
 }
+
+/** The units of each product on the order's items, as the server stores them. */
+export async function itemsOfOrder(pool: pg.Pool, tenantId: string, orderId: string) {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query<{ product_id: string; units: string }>(
+      "SELECT product_id, sum(quantity)::text AS units FROM sales_order_line " +
+        "WHERE order_id = $1 AND line_type = 'item' AND parent_line_id IS NULL " +
+        "AND reverses_line_id IS NULL GROUP BY product_id ORDER BY product_id",
+      [orderId],
+    );
+    return Object.fromEntries(rows.map((row) => [row.product_id, row.units]));
+  });
+}
+
+/** The commands of one till the server refused, oldest first, with the code it refused with. */
+export async function refusalsOfTill(pool: pg.Pool, tenantId: string, deviceId: string) {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query<{ type: string; code: string }>(
+      "SELECT type, code FROM applied_command WHERE device_id = $1 AND status = 'rejected' " +
+        "ORDER BY device_seq",
+      [deviceId],
+    );
+    return rows.map((row) => ({ type: row.type, code: row.code }));
+  });
+}
