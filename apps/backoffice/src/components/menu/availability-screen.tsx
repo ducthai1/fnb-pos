@@ -111,14 +111,17 @@ export function AvailabilityScreen() {
             ]}
             actions={(product) => (
               <div>
-                <input
-                  type="checkbox"
-                  className="bo-toggle"
-                  checked={!soldOut.has(product.id)}
-                  disabled={pending === product.id}
-                  aria-label={T.toggleLabel(product.name)}
-                  onChange={(event) => void toggle(product.id, event.target.checked)}
-                />
+                <label className="bo-toggle">
+                  <input
+                    type="checkbox"
+                    className="bo-toggle__input"
+                    checked={!soldOut.has(product.id)}
+                    disabled={pending === product.id}
+                    aria-label={T.toggleLabel(product.name)}
+                    onChange={(event) => void toggle(product.id, event.target.checked)}
+                  />
+                  <span className="bo-toggle__track" aria-hidden="true" />
+                </label>
               </div>
             )}
             empty={<EmptyState icon={CircleOff}>{T.empty}</EmptyState>}
