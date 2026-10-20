@@ -1,16 +1,12 @@
-import type {
-  EntitySnapshot,
-  SyncChange,
-  SyncChangesPage,
-  SyncCommandEnvelope,
-  SyncCommandResult,
-} from "@fnb/contracts";
-import { orderCommand, testId } from "../local-store/local-store-test-support";
+import type { SyncChangesPage, SyncCommandEnvelope, SyncCommandResult } from "@fnb/contracts";
+import { testId } from "../local-store/local-store-fixtures";
 import { openNodeSqliteDriver } from "../local-store/node-sqlite-driver";
 import { createSqliteLocalStore } from "../local-store/sqlite-local-store";
 import { type SyncClientOptions, createSyncClient } from "./create-sync-client";
 import type { SyncClock } from "./sync-clock";
 import { SyncTransportError, type SyncTransport } from "./sync-transport";
+
+export { answer, change, draft, order, page } from "../local-store/local-store-fixtures";
 
 type PushAnswer = (batch: readonly SyncCommandEnvelope[]) => SyncCommandResult[];
 type PullAnswer = (cursor: string, limit: number) => SyncChangesPage;
@@ -69,46 +65,3 @@ export function scriptedTill(overrides: Partial<SyncClientOptions> = {}) {
   });
   return { store, server, time, client };
 }
-
-export const order = (
-  id: string,
-  version: number,
-  extra: object = {},
-): EntitySnapshot & { id: string } => ({
-  id,
-  version,
-  ...extra,
-});
-
-export const answer = (
-  command: SyncCommandEnvelope,
-  status: "accepted" | "rejected" | "retry",
-  extra: { snapshot?: EntitySnapshot; code?: string } = {},
-): SyncCommandResult =>
-  (status === "rejected"
-    ? { commandId: command.commandId, status, code: extra.code ?? "DOMAIN_TEST", ...extra }
-    : status === "accepted"
-      ? {
-          commandId: command.commandId,
-          status,
-          ...(extra.snapshot === undefined ? {} : { snapshot: extra.snapshot }),
-        }
-      : { commandId: command.commandId, status }) as SyncCommandResult;
-
-export const change = (seq: number, snapshot: EntitySnapshot & { id: string }): SyncChange => ({
-  changeSeq: String(seq),
-  entity: "order",
-  entityId: snapshot.id,
-  snapshot,
-});
-
-export const page = (changes: SyncChange[], nextCursor?: string): SyncChangesPage => ({
-  changes,
-  nextCursor: nextCursor ?? changes.at(-1)?.changeSeq ?? "0",
-});
-
-/** A save_draft for `orderId` with the till's expected row at `version`. */
-export const draft = (orderId: string, version = 1, extra: object = {}) =>
-  orderCommand(orderId, {
-    target: { entity: "order", entityId: orderId, optimistic: order(orderId, version, extra) },
-  });
