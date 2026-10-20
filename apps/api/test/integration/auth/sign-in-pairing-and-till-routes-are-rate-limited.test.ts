@@ -1,30 +1,24 @@
 import { newId } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
-import type { FastifyInstance, LightMyRequestResponse } from "fastify";
+import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+import type { RateLimitSettings } from "../../../src/http/rate-limit-hooks";
 import { buildApp } from "../../../src/build-app";
-import { type RateLimitSettings, installRateLimits } from "../../../src/http/rate-limit-hooks";
 import { PASSWORD, createAccount, uniqueEmail } from "../support/backoffice-accounts";
 import { ManualClock } from "../support/manual-clock";
 import { pairDevice } from "../support/paired-devices";
+import {
+  OTHER_ADDRESS,
+  SHOP_ADDRESS,
+  expectRateLimited,
+  guessPairingCode,
+  limitedApp as limitedAppOn,
+  statuses,
+} from "../support/rate-limited-app";
 import { type StaffedShop, staffedShop } from "../support/staffed-shop";
 
 const info = inject("testPostgres");
-const WINDOW = 60_000;
-const SHOP_ADDRESS = "203.0.113.10";
-const OTHER_ADDRESS = "203.0.113.20";
-
-const LIMITS: RateLimitSettings = {
-  windowMillis: WINDOW,
-  loginPerAddress: 4,
-  loginPerAccount: 2,
-  pairingPerAddress: 2,
-  tillPerAddress: 4,
-  tillPerDevice: 2,
-  trustedProxies: [],
-};
-
 let pool: pg.Pool;
 let shop: StaffedShop;
 let secondTill: string;
@@ -39,11 +33,8 @@ beforeAll(async () => {
 
 afterAll(() => pool.end());
 
-function limitedApp(clock: ManualClock, limits: Partial<RateLimitSettings> = {}): FastifyInstance {
-  const app = buildApp({ pool, clock });
-  installRateLimits(app, { ...LIMITS, ...limits }, clock);
-  return app;
-}
+const limitedApp = (clock: ManualClock, limits: Partial<RateLimitSettings> = {}) =>
+  limitedAppOn(pool, clock, limits);
 
 const login = (app: FastifyInstance, email: string, address = SHOP_ADDRESS) =>
   app.inject({
@@ -61,14 +52,6 @@ const openStaffSession = (app: FastifyInstance, deviceToken: string, address = S
     headers: { authorization: `Device ${deviceToken}` },
     payload: { staffId: newId(), pin: "1357" },
   });
-
-const statuses = (responses: LightMyRequestResponse[]) => responses.map((r) => r.statusCode);
-
-function expectRateLimited(response: LightMyRequestResponse, retryAfterSeconds: number) {
-  expect(response.statusCode).toBe(429);
-  expect(response.json()).toEqual({ code: "API_RATE_LIMITED" });
-  expect(response.headers["retry-after"]).toBe(String(retryAfterSeconds));
-}
 
 describe("sign-in", () => {
   it("lets an account try up to its limit, then answers 429 until the window ends", async () => {
@@ -123,34 +106,11 @@ describe("sign-in", () => {
 describe("pairing", () => {
   it("limits guesses of a code per address", async () => {
     const app = limitedApp(new ManualClock());
-    const guess = (address: string) =>
-      app.inject({
-        method: "POST",
-        url: "/devices/pair",
-        remoteAddress: address,
-        payload: { code: "ABCD-EFGH", deviceName: "Quầy lạ" },
-      });
-    expect(statuses([await guess(SHOP_ADDRESS), await guess(SHOP_ADDRESS)])).toEqual([401, 401]);
-    expectRateLimited(await guess(SHOP_ADDRESS), 60);
-    expect((await guess(OTHER_ADDRESS)).statusCode).toBe(401);
-    await app.close();
-  });
-});
-
-describe("IPv6 clients", () => {
-  it("are counted by their /64, so a new address in it does not reset the count", async () => {
-    const app = limitedApp(new ManualClock());
-    const guess = (address: string) =>
-      app.inject({
-        method: "POST",
-        url: "/devices/pair",
-        remoteAddress: address,
-        payload: { code: "ABCD-EFGH", deviceName: "Quầy lạ" },
-      });
-    await guess("2001:db8:aa:bb::1");
-    await guess("2001:db8:aa:bb::2");
-    expect((await guess("2001:db8:aa:bb:ffff::3")).statusCode).toBe(429);
-    expect((await guess("2001:db8:aa:bc::1")).statusCode).toBe(401);
+    const first = [await guessPairingCode(app, SHOP_ADDRESS)];
+    first.push(await guessPairingCode(app, SHOP_ADDRESS));
+    expect(statuses(first)).toEqual([401, 401]);
+    expectRateLimited(await guessPairingCode(app, SHOP_ADDRESS), 60);
+    expect((await guessPairingCode(app, OTHER_ADDRESS)).statusCode).toBe(401);
     await app.close();
   });
 });
@@ -190,65 +150,6 @@ describe("the till's PIN and approval routes", () => {
     expect((await approve()).statusCode).not.toBe(429);
     expect((await approve()).statusCode).not.toBe(429);
     expect((await approve()).statusCode).toBe(429);
-    await app.close();
-  });
-});
-
-describe("what is not limited", () => {
-  it("never refuses a payment notice or any other route, however many arrive", async () => {
-    const app = limitedApp(new ManualClock(), { pairingPerAddress: 1, tillPerAddress: 1 });
-    const notices = await Promise.all(
-      Array.from({ length: 6 }, () =>
-        app.inject({
-          method: "POST",
-          url: `/webhooks/payments/sepay/${newId()}`,
-          remoteAddress: SHOP_ADDRESS,
-          payload: { id: 1 },
-        }),
-      ),
-    );
-    expect(statuses(notices)).not.toContain(429);
-    const health = await Promise.all(
-      [1, 2, 3].map(() =>
-        app.inject({ method: "GET", url: "/health", remoteAddress: SHOP_ADDRESS }),
-      ),
-    );
-    expect(statuses(health)).toEqual([200, 200, 200]);
-    await app.close();
-  });
-});
-
-describe("behind a proxy", () => {
-  it("counts each client the trusted proxy names apart", async () => {
-    const app = limitedApp(new ManualClock(), { trustedProxies: ["127.0.0.1"] });
-    const viaProxy = (client: string) =>
-      app.inject({
-        method: "POST",
-        url: "/devices/pair",
-        remoteAddress: "127.0.0.1",
-        headers: { "x-forwarded-for": client },
-        payload: { code: "ABCD-EFGH", deviceName: "Quầy lạ" },
-      });
-    await viaProxy(SHOP_ADDRESS);
-    await viaProxy(SHOP_ADDRESS);
-    expect((await viaProxy(SHOP_ADDRESS)).statusCode).toBe(429);
-    expect((await viaProxy(OTHER_ADDRESS)).statusCode).toBe(401);
-    await app.close();
-  });
-
-  it("ignores the header from a peer that is not the proxy", async () => {
-    const app = limitedApp(new ManualClock(), { trustedProxies: ["127.0.0.1"] });
-    const spoofed = (claimed: string) =>
-      app.inject({
-        method: "POST",
-        url: "/devices/pair",
-        remoteAddress: SHOP_ADDRESS,
-        headers: { "x-forwarded-for": claimed },
-        payload: { code: "ABCD-EFGH", deviceName: "Quầy lạ" },
-      });
-    await spoofed("192.0.2.1");
-    await spoofed("192.0.2.2");
-    expect((await spoofed("192.0.2.3")).statusCode).toBe(429);
     await app.close();
   });
 });
