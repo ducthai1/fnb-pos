@@ -2,7 +2,11 @@ import { type PayOrderPayload, payOrderPayloadSchema } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import { addVnd, compareVnd, computeOrderTotals, transitionOrder, vnd } from "@fnb/domain";
 import { queueSaleInvoice } from "../einvoice/queue-einvoice";
-import { assertQrTransfersArePaid, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
+import {
+  assertNoPaidQrLeftOut,
+  assertQrTransfersArePaid,
+  withdrawPendingIntents,
+} from "../payments/qr-transfer-tenders";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
@@ -31,6 +35,8 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
     throw new CommandRejection(SYNC_ERROR_CODES.paymentsDoNotMatchAmountDue);
   }
   await assertQrTransfersArePaid(context, payload.orderId, payload.payments);
+  const usedIntents = payload.payments.flatMap((p) => p.paymentIntentId ?? []);
+  await assertNoPaidQrLeftOut(context, payload.orderId, usedIntents);
   const shift = await shiftForPayment(context, payload.shiftId);
   // Payments go in while the order is still a draft: a closed order refuses new rows.
   for (const payment of payload.payments) {

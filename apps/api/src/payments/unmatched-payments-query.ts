@@ -12,9 +12,17 @@ import {
 /** Enough for a day of trouble at a busy branch; older ones are for the reconciliation. */
 const LISTED = 200;
 
+const ORDER_IS_OPEN =
+  "EXISTS (SELECT 1 FROM sales_order o WHERE o.tenant_id = payment_intent.tenant_id " +
+  "AND o.id = payment_intent.order_id AND o.status = 'draft')";
+
 /**
- * The branch's transfers in that no QR claimed, newest first, and the QRs still waiting
- * for money (pending, or expired before any came), for a person to pair them up.
+ * The branch's transfers in that no QR claimed, newest first, and the QRs of open orders
+ * still waiting for money (pending, or expired before any came), for a person to pair them
+ * up. Beside them, the money the bank brought that no order counts, for a person to refund:
+ * a QR settled short or over (no payment can use it), or paid exactly for an order that
+ * was then paid another way or cancelled. An exact one of an open order is left out: the
+ * till closes the order with it.
  */
 export async function readUnmatchedPayments(
   client: pg.ClientBase,
@@ -36,7 +44,16 @@ export async function readUnmatchedPayments(
   );
   const intents = await client.query<PaymentIntentRow>(
     `SELECT ${INTENT_COLUMNS} FROM payment_intent WHERE branch_id = $1 ` +
-      "AND status IN ('pending', 'expired') ORDER BY created_at DESC, id DESC LIMIT $2",
+      `AND status IN ('pending', 'expired') AND ${ORDER_IS_OPEN} ` +
+      "ORDER BY created_at DESC, id DESC LIMIT $2",
+    [branchId, LISTED],
+  );
+  const refundDue = await client.query<PaymentIntentRow>(
+    `SELECT ${INTENT_COLUMNS} FROM payment_intent WHERE branch_id = $1 ` +
+      "AND status IN ('paid', 'partial', 'overpaid') AND NOT EXISTS (SELECT 1 FROM payment p " +
+      "WHERE p.tenant_id = payment_intent.tenant_id AND p.payment_intent_id = payment_intent.id) " +
+      `AND NOT (status = 'paid' AND ${ORDER_IS_OPEN}) ` +
+      "ORDER BY matched_at DESC, id DESC LIMIT $2",
     [branchId, LISTED],
   );
   return {
@@ -49,5 +66,6 @@ export async function readUnmatchedPayments(
       receivedAt: row.received_at.toISOString(),
     })),
     openIntents: intents.rows.map((row) => paymentIntentSnapshotOf(intentOfRow(row))),
+    refundDue: refundDue.rows.map((row) => paymentIntentSnapshotOf(intentOfRow(row))),
   };
 }

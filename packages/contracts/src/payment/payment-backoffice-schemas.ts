@@ -33,11 +33,16 @@ export const unmatchedTransferSchema = z
   })
   .strict();
 
-/** What a person matches by hand: unclaimed transfers, and the QRs still waiting for one. */
+/**
+ * What a person matches by hand: unclaimed transfers, and the QRs of open orders still
+ * waiting for one. `refundDue` is money the bank brought that no order counts (a QR paid
+ * short or over, or paid for an order that closed another way): the customer is owed it.
+ */
 export const unmatchedPaymentsSchema = z
   .object({
     transfers: z.array(unmatchedTransferSchema),
     openIntents: z.array(paymentIntentSnapshotSchema),
+    refundDue: z.array(paymentIntentSnapshotSchema),
   })
   .strict();
 

@@ -40,6 +40,26 @@ export async function assertQrTransfersArePaid(
 }
 
 /**
+ * Refuses to close or bill an order again while a QR of it holds money the bank confirmed
+ * exactly and no payment uses (`usedIntentIds` are the QRs the command itself pays with).
+ * Taking cash for it, cancelling it or showing a second QR would take the customer's money
+ * twice, and no list would show it; refusing is safer than swapping the till's tender for
+ * the QR, since the cashier really took that cash and must give it back. The till learns
+ * of the paid QR from the feed and closes the order with it. A short or excess transfer
+ * never blocks: no payment can use it, so it is listed for a person to refund instead.
+ */
+export async function assertNoPaidQrLeftOut(
+  context: SyncCommandContext,
+  orderId: string,
+  usedIntentIds: readonly string[] = [],
+): Promise<void> {
+  const paid = await readIntentsOfOrder(context.client, orderId, "paid");
+  if (paid.some((intent) => !usedIntentIds.includes(intent.id))) {
+    throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.orderHasSettledQr);
+  }
+}
+
+/**
  * Takes down the QR still out for an order that closes another way (paid in cash, or
  * cancelled), so a transfer arriving later is not counted as paying it twice: it waits for
  * a person instead. Each till of the branch learns of it through the change feed.

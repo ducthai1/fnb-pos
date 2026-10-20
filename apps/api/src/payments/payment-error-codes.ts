@@ -17,6 +17,11 @@ export const PAYMENT_SYNC_ERROR_CODES = {
   intentNotPaid: "SYNC_PAYMENT_INTENT_NOT_PAID",
   /** order.pay put down a different amount than the intent's. */
   intentAmountMismatch: "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
+  /**
+   * The bank paid a QR of the order exactly and nothing uses that money yet: the order is
+   * closed with that QR (order.pay naming it), not in cash, cancelled, or billed again.
+   */
+  orderHasSettledQr: "SYNC_ORDER_HAS_SETTLED_QR",
 } as const;
 
 /** Codes of the payment routes: gateway notices and the backoffice's matching by hand. */
@@ -38,4 +43,9 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
   intentNotMatchable: "API_PAYMENT_INTENT_NOT_MATCHABLE",
   /** The transfer arrived in another branch's account than the intent's QR named. */
   branchMismatch: "API_PAYMENT_BRANCH_MISMATCH",
+  /**
+   * The QR's order was paid another way or cancelled, or another QR of it already brought
+   * the money: the transfer is not this order's to take, it is for a person to refund.
+   */
+  orderNotPayable: "API_PAYMENT_ORDER_NOT_PAYABLE",
 } as const;

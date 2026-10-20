@@ -11,6 +11,7 @@ import {
   unclaimedTransfers,
 } from "./payment-intent-settlement";
 import { readPaymentIntent } from "./payment-intent-store";
+import { assertNoPaidQrLeftOut } from "./qr-transfer-tenders";
 
 /**
  * How long a QR stays payable from the moment the till showed it. Long enough for a
@@ -42,6 +43,7 @@ async function createPaymentIntent(
   if (compareVnd(amountDue, vnd(payload.amount)) !== 0) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderTotalMismatch);
   }
+  await assertNoPaidQrLeftOut(context, payload.orderId);
   if ((await readPaymentIntent(client, payload.intentId, false)) !== null) {
     throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentIdTaken);
   }

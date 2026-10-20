@@ -23,10 +23,26 @@ const refused = (status: 404 | 409, code: string): HandMatchOutcome => ({
 });
 
 /**
+ * Whether the QR's order may still take a transfer: it is open, and no other QR of it holds
+ * the bank's exact money already (both would be more than the order comes to, and the till
+ * could close it with neither). Otherwise the transfer is for a person to refund.
+ */
+async function orderTakesTransfer(client: pg.ClientBase, intent: StoredPaymentIntent) {
+  const { rows } = await client.query<{ takes: boolean }>(
+    "SELECT o.status = 'draft' AND NOT EXISTS (SELECT 1 FROM payment_intent i " +
+      "WHERE i.tenant_id = o.tenant_id AND i.order_id = o.id AND i.id <> $2 " +
+      "AND i.status = 'paid') AS takes FROM sales_order o WHERE o.id = $1",
+    [intent.orderId, intent.id],
+  );
+  return rows[0]?.takes === true;
+}
+
+/**
  * A person matches a transfer the system could not (wrong content, a QR that had expired,
  * a code typed by hand) to the QR it pays. The same rules as the automatic match hold: one
  * transfer for one QR, in the QR's own branch, settled by what it brought; only the content
- * and the clock are left to the person's judgement. Who did it goes to the audit trail.
+ * and the clock are left to the person's judgement, and only for an order still waiting for
+ * its money. Who did it goes to the audit trail.
  */
 export async function matchTransferByHand(
   client: pg.ClientBase,
@@ -54,6 +70,7 @@ export async function matchTransferByHand(
   const intent = await readPaymentIntent(client, match.intentId, true);
   if (intent === null) return refused(404, CODES.intentNotFound);
   if (intent.branchId !== transfer.branch_id) return refused(409, CODES.branchMismatch);
+  if (!(await orderTakesTransfer(client, intent))) return refused(409, CODES.orderNotPayable);
   let settled: StoredPaymentIntent;
   try {
     settled = await settleIntentWithTransfer(client, intent, {

@@ -1,7 +1,7 @@
 import { type CancelOrderPayload, cancelOrderPayloadSchema } from "@fnb/contracts";
 import { appendAudit } from "@fnb/db";
 import { reversedQuantityOf, transitionOrder } from "@fnb/domain";
-import { withdrawPendingIntents } from "../payments/qr-transfer-tenders";
+import { assertNoPaidQrLeftOut, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { orderOfBranch } from "./editable-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -10,7 +10,8 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 /**
  * order.cancel: drops a draft nobody will pay for. While the kitchen has units nobody
  * voided, the order is refused: cancelling it would hide food that was made, which is what
- * a void (with its approver) is for. Who cancelled and why goes to the audit trail.
+ * a void (with its approver) is for. So is an order a QR of which the bank already paid:
+ * the customer's money would go nowhere. Who cancelled and why goes to the audit trail.
  */
 async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayload) {
   const { client, staffId } = context;
@@ -22,6 +23,7 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
     return sent > reversedQuantityOf(lines, line.id);
   });
   if (stillAtTheKitchen) throw new CommandRejection(SYNC_ERROR_CODES.orderHasSentItems);
+  await assertNoPaidQrLeftOut(context, payload.orderId);
   await withdrawPendingIntents(context, payload.orderId);
   await client.query(
     "UPDATE sales_order SET status = $2, reason_code = $3, version = $4, updated_at = now() " +
