@@ -27,3 +27,11 @@ jobs:
       # against the real API on an embedded Postgres; no browser download, no Docker.
       - run: pnpm exec turbo run test:browser --concurrency=1
       - run: pnpm build
+      # The backup and restore drill needs pg_dump/pg_restore no older than the embedded
+      # Postgres 17; the runner ships an older client, so 17 comes from the PGDG archive.
+      - run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y --no-install-recommends postgresql-client-17
+      - run: pnpm test:ops
+        env:
+          FNB_PG_BIN_DIR: /usr/lib/postgresql/17/bin
