@@ -1,0 +1,53 @@
+// The sentence for each rule of the domain the backoffice can break while editing: the API
+// answers them as `{code}`, and the menu editor runs the same rules before it saves.
+
+export const VI_DOMAIN_ERRORS: Readonly<Record<string, string>> = {
+  DOMAIN_CATALOG_INVALID_MIN_SELECT: "Số chọn tối thiểu phải là số nguyên từ 0 trở lên.",
+  DOMAIN_CATALOG_INVALID_MAX_SELECT:
+    "Số chọn tối đa phải từ 1 trở lên. Muốn bỏ nhóm ở một size thì tick “Ẩn nhóm” cho size đó.",
+  DOMAIN_CATALOG_MIN_SELECT_ABOVE_MAX_SELECT: "Số chọn tối thiểu đang lớn hơn số tối đa.",
+  DOMAIN_CATALOG_DUPLICATE_OPTION_ID: "Một tùy chọn bị lặp trong nhóm. Xóa bản lặp.",
+  DOMAIN_CATALOG_INVALID_OPTION_MAX_QUANTITY:
+    "Tối đa mỗi tùy chọn phải là số nguyên từ 1, hoặc để trống nếu không giới hạn.",
+  DOMAIN_CATALOG_NEGATIVE_PRICE_DELTA: "Giá cộng thêm không được âm.",
+  DOMAIN_CATALOG_REQUIRED_GROUP_WITHOUT_OPTIONS: "Nhóm bắt buộc chọn nhưng chưa có tùy chọn nào.",
+  DOMAIN_CATALOG_UNSATISFIABLE_MODIFIER_GROUP:
+    "Khách không thể chọn đủ số tối thiểu: thêm tùy chọn, cho chọn trùng hoặc giảm số tối thiểu.",
+  DOMAIN_CATALOG_INVALID_COMBO_SLOT_LIMITS: "Giới hạn chọn của một phần combo không hợp lệ.",
+  DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_ID: "Một phần của combo bị lặp.",
+  DOMAIN_CATALOG_DUPLICATE_COMBO_SLOT_OPTION: "Một món bị lặp trong cùng phần combo.",
+  DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_WITHOUT_OPTIONS: "Phần combo bắt buộc nhưng chưa có món.",
+  DOMAIN_CATALOG_NEGATIVE_COMBO_UPCHARGE: "Phụ thu đổi món trong combo không được âm.",
+  DOMAIN_CATALOG_DUPLICATE_VARIANT_ID: "Một size bị lặp. Xóa bản lặp.",
+  DOMAIN_CATALOG_DUPLICATE_MODIFIER_GROUP_ID: "Một nhóm tùy chọn bị lặp trong món.",
+  DOMAIN_CATALOG_VARIANT_RULE_FOR_UNKNOWN_VARIANT:
+    "Nhóm có luật cho một size không còn trong món. Tải lại món.",
+  DOMAIN_CATALOG_NEGATIVE_PRODUCT_PRICE: "Giá không được âm.",
+  DOMAIN_CATALOG_COMBO_DEFINITION_ON_NON_COMBO: "Chỉ món loại combo mới có phần combo.",
+  DOMAIN_CATALOG_COMBO_DEFINITION_MISSING: "Món combo cần có các phần combo.",
+  DOMAIN_CATALOG_UNKNOWN_VARIANT: "Size này không còn trong món.",
+  DOMAIN_CATALOG_VARIANT_REQUIRED: "Chọn size trước.",
+  DOMAIN_CATALOG_UNKNOWN_MODIFIER_GROUP: "Nhóm tùy chọn không thuộc món này.",
+  DOMAIN_CATALOG_UNKNOWN_MODIFIER_OPTION: "Tùy chọn không thuộc nhóm này.",
+  DOMAIN_CATALOG_MODIFIER_GROUP_HIDDEN: "Nhóm này không áp dụng cho size đã chọn.",
+  DOMAIN_CATALOG_INVALID_SELECTION_QUANTITY: "Số lượng phải là số nguyên từ 1.",
+  DOMAIN_CATALOG_TOO_FEW_MODIFIER_SELECTIONS: "Chưa chọn đủ số tối thiểu của nhóm.",
+  DOMAIN_CATALOG_TOO_MANY_MODIFIER_SELECTIONS: "Đang chọn quá số tối đa của nhóm.",
+  DOMAIN_CATALOG_DUPLICATE_MODIFIER_NOT_ALLOWED: "Nhóm này không cho chọn trùng một tùy chọn.",
+  DOMAIN_CATALOG_OPTION_MAX_QUANTITY_EXCEEDED: "Vượt số tối đa của tùy chọn này.",
+  DOMAIN_CATALOG_REQUIRED_MODIFIER_GROUP_MISSING: "Nhóm này bắt buộc chọn.",
+  DOMAIN_CATALOG_NOT_A_COMBO: "Món này không phải combo.",
+  DOMAIN_CATALOG_UNKNOWN_COMBO_SLOT: "Phần combo này không thuộc món.",
+  DOMAIN_CATALOG_COMBO_OPTION_NOT_IN_SLOT: "Món này không có trong phần combo đã chọn.",
+  DOMAIN_CATALOG_TOO_FEW_COMBO_SELECTIONS: "Chưa chọn đủ món cho phần combo.",
+  DOMAIN_CATALOG_TOO_MANY_COMBO_SELECTIONS: "Chọn quá số món của phần combo.",
+  DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_MISSING: "Phần combo này bắt buộc chọn.",
+  DOMAIN_PRICING_MISSING_BASE_PRICE:
+    "Món bán giá cố định cần có giá: nhập giá món, hoặc giá cho từng size.",
+  DOMAIN_PRICING_SCOPE_VARIANT_NOT_ON_PRODUCT: "Bảng giá trỏ tới một size không còn trong món.",
+  DOMAIN_PRICING_SCOPE_PRODUCT_MISMATCH: "Bảng giá của món trỏ tới món khác.",
+  DOMAIN_MONEY_INVALID_RATE: "Tỉ lệ phải từ 0 đến 100%, tối đa 2 chữ số thập phân.",
+  DOMAIN_MONEY_NOT_AN_INTEGER: "Số tiền phải là số đồng nguyên.",
+  DOMAIN_PERMISSIONS_UNKNOWN_KEY: "Có một quyền không còn tồn tại.",
+  DOMAIN_PERMISSIONS_INVALID_GRANT: "Ngưỡng của quyền không hợp lệ.",
+};

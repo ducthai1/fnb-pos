@@ -1,0 +1,10 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": ["FNB_API_ORIGIN"],
+      "outputs": ["dist/**", "!dist/cache/**"]
+    }
+  }
+}
