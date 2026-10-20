@@ -25,7 +25,7 @@ function DeviceChoice({
   deviceId: string;
   onDevice: (deviceId: string) => void;
 }) {
-  if (devices.state === "loading") return <p className="bo-muted">{vi.common.loading}</p>;
+  if (devices.state === "loading") return <p className="bo-muted bo-loading">{vi.common.loading}</p>;
   if (devices.state === "denied") return <p className="bo-muted">{T.devicesDenied}</p>;
   if (devices.state === "failed") return <p className="bo-notice bo-notice--error bo-wrap">{devices.message}</p>;
   const inUse = devices.value.filter((device) => device.revokedAt === null);

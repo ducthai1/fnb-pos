@@ -17,7 +17,7 @@ export function BranchPicker({
 }) {
   const session = useSession();
   if (error !== null) return <ErrorNotice message={`${T.branchesFailed} ${error}`} />;
-  if (branches === null) return <p className="bo-muted">{T.loading}</p>;
+  if (branches === null) return <p className="bo-muted bo-loading">{T.loading}</p>;
   if (branches.length === 0) return <p className="bo-muted">{T.noBranches}</p>;
   return (
     <label className="bo-field bo-branch-picker">

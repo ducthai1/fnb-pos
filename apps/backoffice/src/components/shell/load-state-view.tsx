@@ -29,7 +29,7 @@ export function LoadStateView<T>({
   retry: () => void;
   children: (value: T) => ReactNode;
 }) {
-  if (loaded.state === "loading") return <p className="bo-muted">{T.loading}</p>;
+  if (loaded.state === "loading") return <p className="bo-muted bo-loading">{T.loading}</p>;
   if (loaded.state === "denied") return <PermissionDenied />;
   if (loaded.state === "failed") {
     return (

@@ -10,6 +10,7 @@ import "./backoffice-tokens.css";
 import "./backoffice-base.css";
 import "./backoffice-controls.css";
 import "./backoffice-notices.css";
+import "./backoffice-states.css";
 import "./backoffice-table.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";

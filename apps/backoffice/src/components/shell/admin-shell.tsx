@@ -84,7 +84,7 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
     onSignedOut();
   }
 
-  if (check.phase === "checking") return <p className="bo-splash">{T.loading}</p>;
+  if (check.phase === "checking") return <p className="bo-splash bo-loading">{T.loading}</p>;
   if (check.phase === "failed" || session === null) {
     return (
       <div className="bo-splash">
