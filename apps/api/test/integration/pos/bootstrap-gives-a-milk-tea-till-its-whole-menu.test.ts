@@ -67,7 +67,10 @@ describe("what a till starts with", () => {
     expect(q1.config.id).toBe(m.s.tillA.deviceId);
     expect(q1.config.flags["pay_first_counter"]).toBe(true);
     expect(q1.config.flags["tables"]).toBe(false);
-    expect(q1.config.settings).toEqual({ void_after_sent_needs_approval: true });
+    expect(q1.config.settings).toEqual({
+      void_after_sent_needs_approval: true,
+      payment_account: null,
+    });
     expect(q1.config.chargeProfile).toEqual({ pricesIncludeTax: true, serviceCharge: null });
   });
 });

@@ -70,6 +70,12 @@ export {
   salesOrderLine,
   shift,
 } from "./schema/order-tables";
+export {
+  bankTransaction,
+  paymentIntent,
+  paymentTables,
+  paymentWebhookEndpoint,
+} from "./schema/payment-tables";
 export { priceList, priceListItem, priceListTables } from "./schema/price-list-tables";
 export { cashMove, shiftCount, shiftTables } from "./schema/shift-tables";
 export { tenantRowColumns } from "./schema/tenant-row-columns";

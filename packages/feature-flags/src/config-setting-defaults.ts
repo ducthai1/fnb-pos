@@ -17,6 +17,12 @@ export const CONFIG_SETTING_DEFAULTS = {
   charge_profile: { pricesIncludeTax: true, serviceCharge: null },
   /** Cancelling units the kitchen already has needs someone allowed to approve it. */
   void_after_sent_needs_approval: true,
+  /**
+   * The bank account a branch's tills build their VietQR from, as { bankBin, accountNumber,
+   * accountName }. None until the shop sets one: a till without it offers no QR transfer,
+   * rather than a QR into an account nobody chose.
+   */
+  payment_account: null,
 } as const;
 
 export type ConfigSettingKey = keyof typeof CONFIG_SETTING_DEFAULTS;

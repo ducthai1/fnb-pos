@@ -1,4 +1,5 @@
 import { KITCHEN_SYNC_COMMANDS } from "./kitchen-sync-commands";
+import { PAYMENT_SYNC_COMMANDS } from "../payments/payment-sync-commands";
 import { ORDER_SYNC_COMMANDS } from "./order-sync-commands";
 import { PRINT_SYNC_COMMANDS } from "./print-sync-commands";
 import { SHIFT_SYNC_COMMANDS } from "./shift-sync-commands";
@@ -16,4 +17,5 @@ export const SYNC_COMMANDS = syncCommandRegistry([
   ...KITCHEN_SYNC_COMMANDS,
   ...PRINT_SYNC_COMMANDS,
   ...TABLE_SYNC_COMMANDS,
+  ...PAYMENT_SYNC_COMMANDS,
 ]);

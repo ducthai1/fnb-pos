@@ -22,7 +22,8 @@ export interface ChangeToAppend {
   entity: string;
   entityId: string;
   snapshot: unknown;
-  commandId: string;
+  /** Null for a change no till command made, such as a transfer the bank reported. */
+  commandId: string | null;
 }
 
 /** Appends one change; the caller holds lockTenantChangeFeed for this transaction. */

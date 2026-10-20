@@ -1,4 +1,4 @@
-import type { PosDeviceConfigWire } from "@fnb/contracts";
+import { type PosDeviceConfigWire, paymentAccountSettingSchema } from "@fnb/contracts";
 import { readConfigLayersForDevice } from "@fnb/db";
 import {
   CONFIG_SETTING_DEFAULTS,
@@ -11,6 +11,7 @@ import type { Unversioned } from "../catalog/pos-menu-snapshots";
 import { chargeProfileFromStored } from "../sync/charge-profile-snapshot";
 
 const CHARGE_PROFILE_KEY = "charge_profile";
+const PAYMENT_ACCOUNT_KEY = "payment_account";
 
 /**
  * A till's settings as it runs with them: every switch and setting resolved through device,
@@ -34,6 +35,11 @@ export async function readDeviceConfigSnapshot(
   const settings: Record<string, unknown> = {};
   for (const key of Object.keys(CONFIG_SETTING_DEFAULTS)) {
     if (key !== CHARGE_PROFILE_KEY) settings[key] = resolve(key);
+  }
+  // A till builds its QR from this account alone: one it could not build from is refused
+  // here, before any till is handed it.
+  if (!paymentAccountSettingSchema.safeParse(settings[PAYMENT_ACCOUNT_KEY]).success) {
+    throw new Error("stored payment_account is not a bank account a QR can name");
   }
   const profile = chargeProfileFromStored(resolve(CHARGE_PROFILE_KEY));
   const rule = profile.serviceCharge;

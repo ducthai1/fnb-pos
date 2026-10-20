@@ -1,6 +1,7 @@
 import { type CancelOrderPayload, cancelOrderPayloadSchema } from "@fnb/contracts";
 import { appendAudit } from "@fnb/db";
 import { reversedQuantityOf, transitionOrder } from "@fnb/domain";
+import { withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { orderOfBranch } from "./editable-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -21,6 +22,7 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
     return sent > reversedQuantityOf(lines, line.id);
   });
   if (stillAtTheKitchen) throw new CommandRejection(SYNC_ERROR_CODES.orderHasSentItems);
+  await withdrawPendingIntents(context, payload.orderId);
   await client.query(
     "UPDATE sales_order SET status = $2, reason_code = $3, version = $4, updated_at = now() " +
       "WHERE id = $1",

@@ -1,3 +1,4 @@
+import type { PaymentIntentSnapshot } from "@fnb/contracts";
 import type { ShiftSnapshot } from "./shift-wire-types";
 
 /**
@@ -23,8 +24,8 @@ export interface SyncCommandEnvelope {
 
 export type SyncCommandStatus = "accepted" | "rejected" | "retry";
 
-/** What a command was about: an order, or a cash shift for the shift.* commands. */
-export type CommandSnapshot = OrderSnapshot | ShiftSnapshot;
+/** What a command was about: an order, a cash shift, or a QR the till showed. */
+export type CommandSnapshot = OrderSnapshot | ShiftSnapshot | PaymentIntentSnapshot;
 
 export interface SyncCommandResult<Snapshot extends CommandSnapshot = CommandSnapshot> {
   readonly commandId: string;
@@ -107,6 +108,8 @@ export interface PaymentSnapshot {
   readonly method: string;
   readonly amount: number;
   readonly receivedByStaffId: string;
+  /** The QR intent a bank transfer paid with; null for any other money. */
+  readonly paymentIntentId: string | null;
 }
 
 /** A whole order as one change: a till replaces its copy with this, lines and payments included. */

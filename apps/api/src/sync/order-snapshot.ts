@@ -87,6 +87,7 @@ export function orderSnapshotOf(stored: StoredOrder): OrderSnapshot {
       method: payment.method,
       amount: moneyToWire(payment.amount),
       receivedByStaffId: payment.receivedByStaffId,
+      paymentIntentId: payment.paymentIntentId,
     })),
   };
 }

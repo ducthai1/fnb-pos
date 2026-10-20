@@ -75,12 +75,22 @@ export async function applySyncCommand(
 async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   const { client, command } = context;
   // A refund names its new order refundOrderId; every other order command names orderId.
-  const named = command.payload as { orderId?: unknown; refundOrderId?: unknown } | null;
-  const orderId = idSchema.safeParse(named?.orderId ?? named?.refundOrderId);
+  // A QR intent's commands name the intent, which is what the till files the answer under.
+  const named = command.payload as {
+    orderId?: unknown;
+    refundOrderId?: unknown;
+    intentId?: unknown;
+  } | null;
+  const aboutIntent = SYNC_COMMANDS.get(command.type)?.entity === "payment_intent";
+  const subjectId = idSchema.safeParse(
+    aboutIntent ? named?.intentId : (named?.orderId ?? named?.refundOrderId),
+  );
   const rejected = (code: string): Outcome => ({
     status: "rejected",
     code,
-    subject: orderId.success ? { entity: "order", id: orderId.data } : null,
+    subject: subjectId.success
+      ? { entity: aboutIntent ? "payment_intent" : "order", id: subjectId.data }
+      : null,
   });
   if (!isSupportedDomainVersion(command.domainVersion, MINIMUM_SUPPORTED_DOMAIN_VERSION)) {
     return rejected(SYNC_ERROR_CODES.domainVersionUnsupported);

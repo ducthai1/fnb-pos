@@ -1,6 +1,7 @@
 import { type PayOrderPayload, payOrderPayloadSchema } from "@fnb/contracts";
 import { newId } from "@fnb/db";
 import { addVnd, compareVnd, computeOrderTotals, transitionOrder, vnd } from "@fnb/domain";
+import { assertQrTransfersArePaid, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
@@ -28,12 +29,14 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
   if (compareVnd(tendered, amountDue) !== 0) {
     throw new CommandRejection(SYNC_ERROR_CODES.paymentsDoNotMatchAmountDue);
   }
+  await assertQrTransfersArePaid(context, payload.orderId, payload.payments);
   const shift = await shiftForPayment(context, payload.shiftId);
   // Payments go in while the order is still a draft: a closed order refuses new rows.
   for (const payment of payload.payments) {
     await client.query(
       "INSERT INTO payment (id, tenant_id, order_id, method, amount, received_by_staff_id, " +
-        "created_by, shift_id, recorded_after_shift_close) VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8)",
+        "created_by, shift_id, recorded_after_shift_close, payment_intent_id) " +
+        "VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9)",
       [
         newId(),
         device.tenantId,
@@ -43,6 +46,7 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
         staffId,
         shift.shiftId,
         shift.afterClose,
+        payment.paymentIntentId ?? null,
       ],
     );
   }
@@ -51,6 +55,7 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
       "WHERE id = $1",
     [payload.orderId, paid.status, paid.version, shift.shiftId],
   );
+  await withdrawPendingIntents(context, payload.orderId);
   await announceLatePayment(context, shift);
   return payload.orderId;
 }

@@ -40,6 +40,8 @@ export interface StoredPayment {
   readonly method: string;
   readonly amount: Vnd;
   readonly receivedByStaffId: string;
+  /** The QR intent a bank transfer paid with; null for any other money. */
+  readonly paymentIntentId: string | null;
 }
 
 interface OrderRow {
@@ -109,8 +111,10 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     method: string;
     amount: string;
     received_by_staff_id: string;
+    payment_intent_id: string | null;
   }>(
-    "SELECT id, method, amount, received_by_staff_id FROM payment WHERE order_id = $1 " +
+    "SELECT id, method, amount, received_by_staff_id, payment_intent_id FROM payment " +
+      "WHERE order_id = $1 " +
       "ORDER BY created_at, id",
     [row.id],
   );
@@ -147,6 +151,7 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
       method: payment.method,
       amount: vnd(BigInt(payment.amount)),
       receivedByStaffId: payment.received_by_staff_id,
+      paymentIntentId: payment.payment_intent_id,
     })),
     sentQuantityByLineId: lines.sentQuantityByLineId,
     sentNoteByLineId: lines.sentNoteByLineId,

@@ -6,6 +6,8 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 /** One command type the server applies: its name and what it does with a payload. */
 export interface SyncCommandDefinition {
   readonly type: string;
+  /** What the command is about, so a refusal can still answer with that row. */
+  readonly entity: CommandSubject["entity"];
   /**
    * Checks the payload against the command's contract and applies it inside the command's
    * transaction. Answers the row it changed, whose snapshot goes back to the till and into
@@ -27,6 +29,7 @@ export function defineSyncCommand<P>(
 ): SyncCommandDefinition {
   return {
     type,
+    entity,
     apply: async (context, payload) => {
       const parsed = payloadSchema.safeParse(payload);
       if (!parsed.success) throw new CommandRejection(SYNC_ERROR_CODES.invalidPayload);

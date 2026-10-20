@@ -90,6 +90,7 @@ export const payment = pgTable("payment", {
   receivedByStaffId: uuid("received_by_staff_id").notNull(),
   shiftId: uuid("shift_id"),
   recordedAfterShiftClose: boolean("recorded_after_shift_close").notNull().default(false),
+  paymentIntentId: uuid("payment_intent_id"),
 });
 
 export const lineVoidRecord = pgTable("line_void_record", {

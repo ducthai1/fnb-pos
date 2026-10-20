@@ -1,4 +1,5 @@
 import type pg from "pg";
+import { paymentIntentSnapshotOf, readPaymentIntent } from "../payments/payment-intent-store";
 import type { DeviceAuth } from "../devices/device-auth-hook";
 import { orderSnapshotOf } from "./order-snapshot";
 import { shiftSnapshotOf } from "./shift-snapshot";
@@ -11,7 +12,7 @@ import type { CommandSnapshot } from "./sync-wire-types";
  * print job's log is the backoffice's, never a till's, so it has no snapshot to send.
  */
 export interface CommandSubject {
-  readonly entity: "order" | "shift" | "print_job";
+  readonly entity: "order" | "shift" | "print_job" | "payment_intent";
   readonly id: string;
 }
 
@@ -25,6 +26,11 @@ export async function subjectSnapshotOf(
   subject: CommandSubject,
 ): Promise<CommandSnapshot | null> {
   if (subject.entity === "print_job") return null;
+  if (subject.entity === "payment_intent") {
+    const intent = await readPaymentIntent(client, subject.id, false);
+    if (intent === null || intent.branchId !== device.branchId) return null;
+    return paymentIntentSnapshotOf(intent);
+  }
   if (subject.entity === "shift") {
     const shift = await readShift(client, subject.id, false);
     if (shift === null || shift.branchId !== device.branchId) return null;

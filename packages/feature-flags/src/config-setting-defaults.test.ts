@@ -33,6 +33,18 @@ describe("configDefaults", () => {
     });
   });
 
+  it("has no bank account to show a QR for until the shop sets one, which tills then inherit", () => {
+    const system = configDefaults();
+    const account = { bankBin: "970436", accountNumber: "0011001234567", accountName: "PHO SANG" };
+    expect(resolveConfig("payment_account", { system }).value).toBeNull();
+    expect(
+      resolveConfig("payment_account", { system, brand: { payment_account: account } }),
+    ).toEqual({
+      value: account,
+      source: "brand",
+    });
+  });
+
   it("asks for an approver before cancelling what the kitchen has, unless a branch turns it off", () => {
     const system = configDefaults();
     const off = { void_after_sent_needs_approval: false };
