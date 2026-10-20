@@ -27,6 +27,7 @@ import {
   openShift,
   pairedTillWithCashier,
 } from "./support/till-in-browser";
+import { onceTheServerHasIt } from "./support/once-the-server-has-it";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 2 });
@@ -147,6 +148,9 @@ it("gives 20% off with a manager's PIN, voids a cup the bar has, refunds half a 
   await button(page, text.tables.order.backToFloor).click();
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
 
+  await onceTheServerHasIt(async () =>
+    (await salesOfTill(pool, stack.tenantId, till.deviceId)).map((order) => order.status),
+  ).toEqual(["paid", "paid"]);
   const [sale, tableOrder] = await salesOfTill(pool, stack.tenantId, till.deviceId);
   expect(sale).toMatchObject({ status: "paid", paid: 56_000n });
   expect(tableOrder).toMatchObject({ status: "paid", paid: 29_000n });
@@ -180,7 +184,7 @@ it("gives 20% off with a manager's PIN, voids a cup the bar has, refunds half a 
   await page.getByRole("heading", { name: text.refund.doneTitle }).waitFor();
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
 
-  expect(await refundsOfSale(pool, stack.tenantId, sale!.id)).toEqual([
+  await onceTheServerHasIt(() => refundsOfSale(pool, stack.tenantId, sale!.id)).toEqual([
     expect.objectContaining({ status: "paid", paid: -28_000n, shift_id: shiftId }),
   ]);
   expect((await cashPaymentsOfShift(pool, stack.tenantId, shiftId!)) - before).toBe(-28_000n);

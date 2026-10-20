@@ -14,6 +14,7 @@ import {
   openShift,
   pairedTillWithCashier,
 } from "./support/till-in-browser";
+import { onceTheServerHasIt } from "./support/once-the-server-has-it";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 2 });
@@ -151,6 +152,9 @@ it("sells two L milk teas with pearls and a coffee for cash with change, paid to
   ).toEqual(["printed", "printed", "printed"]);
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
 
+  await onceTheServerHasIt(async () =>
+    (await salesOfTill(pool, stack.tenantId, till.deviceId)).map((order) => order.status),
+  ).toEqual(["paid"]);
   const [sale, ...others] = await salesOfTill(pool, stack.tenantId, till.deviceId);
   expect(others).toEqual([]);
   expect(sale).toMatchObject({ status: "paid", deviceOrderNo: 1, payments: 1, paid: due });

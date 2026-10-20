@@ -14,6 +14,7 @@ import {
   openShift,
   pairedTillWithCashier,
 } from "./support/till-in-browser";
+import { onceTheServerHasIt } from "./support/once-the-server-has-it";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 2 });
@@ -101,6 +102,9 @@ it("moves cash in and out, closes a short drawer with a manager, the server keep
   await page.getByRole("heading", { name: text.checkout.openShift.title }).waitFor();
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
 
+  await onceTheServerHasIt(async () =>
+    (await shiftsOfTill(pool, stack.tenantId, till.deviceId)).map((shift) => shift.status),
+  ).toEqual(["closed"]);
   const [shift, ...others] = await shiftsOfTill(pool, stack.tenantId, till.deviceId);
   expect(others).toEqual([]);
   expect(shift).toMatchObject({

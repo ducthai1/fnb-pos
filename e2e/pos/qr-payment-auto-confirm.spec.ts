@@ -14,6 +14,7 @@ import {
   openShift,
   pairedTillWithCashier,
 } from "./support/till-in-browser";
+import { onceTheServerHasIt } from "./support/once-the-server-has-it";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 4 });
@@ -96,7 +97,7 @@ it("sells a drink by VietQR, which the till closes by itself once the bank's not
   expect(await bank!.notify(39_000, `MBVCB.4412.${code}.tra tien ca phe`)).toBe(200);
   await page.getByRole("heading", { name: text.checkout.done.title }).waitFor({ timeout: 60_000 });
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
-  expect(await qrPaidSalesOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
+  await onceTheServerHasIt(() => qrPaidSalesOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
     {
       status: "paid",
       method: "qr_transfer",

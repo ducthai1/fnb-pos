@@ -15,6 +15,7 @@ import {
   openShift,
   pairedTillWithCashier,
 } from "./support/till-in-browser";
+import { onceTheServerHasIt } from "./support/once-the-server-has-it";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 4 });
@@ -88,7 +89,7 @@ it("invoices a sale to a company's tax code, and the till shows its lookup code 
   await page.getByRole("button", { name: text.checkout.payment.finish }).click();
   await page.getByRole("heading", { name: text.checkout.done.title }).waitFor();
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
-  expect(await invoicesOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
+  await onceTheServerHasIt(() => invoicesOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
     { status: "pending", buyerTaxCode: BUYER.taxCode, lookupCode: null },
   ]);
 
@@ -110,7 +111,7 @@ it("invoices a sale to a company's tax code, and the till shows its lookup code 
   expect(await slips.last().textContent()).toContain(`Mã tra cứu: ${issued?.lookupCode}`);
   await expectNoOverflow(page, "sale done with its invoice");
   await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
-  expect(await billJobsOfTill(pool, stack.tenantId, till.deviceId)).toEqual(["printed", "printed"]);
+  await onceTheServerHasIt(() => billJobsOfTill(pool, stack.tenantId, till.deviceId)).toEqual(["printed", "printed"]);
   expect(till.problems).toEqual([]);
   await till.close();
 });
