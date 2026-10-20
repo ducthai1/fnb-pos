@@ -97,9 +97,10 @@ export const VI_MENU_IMPORT = {
   duplicateCode: (line: number) => `Trùng mã với dòng ${line}.`,
   duplicateName: (line: number) => `Trùng tên với dòng ${line}.`,
   notForSale: "Đang ghi “Không cho phép bán”.",
+  archivedMatch: "Trùng tên với món đã ngừng bán: bán lại món đó trong trang món.",
   notFixedPrice: "Món đang có cách tính giá khác giá cố định: sửa trong trang món.",
   matchHint:
-    "Món trùng tên (không phân biệt hoa thường) với món đã có thì cập nhật giá và danh mục; nhập lại cùng file không tạo món đôi.",
+    "Món trùng tên (không phân biệt hoa thường) với món đã có thì cập nhật giá, và đổi danh mục khi dòng có ghi Tên nhóm; nhập lại cùng file không tạo món đôi.",
   start: (count: number) => `Nhập ${count} món`,
   willWrite: (created: number, updated: number) =>
     `Sẽ tạo ${created} món mới và cập nhật ${updated} món. Dòng lỗi và dòng bỏ qua không được nhập.`,

@@ -47,8 +47,11 @@ function categoryOf(
  * What importing each line would do, judged before anything is written: the name and
  * price by the product editor's own check (the contract's shape, then the domain's rules),
  * then lines that repeat a code or a name, then a match with the menu by name, since a
- * product has no code here. A matched product is updated only when its price or its
- * category would change, so importing the same file twice writes nothing the second time.
+ * product has no code here, a product on sale winning over one taken off the menu. A
+ * matched product is updated only when its price or its category would change, so
+ * importing the same file twice writes nothing the second time; its category changes only
+ * by a "Tên nhóm" the line names, never because the line names none or a category was
+ * picked for new products.
  */
 export function planMenuImport(input: {
   readonly rows: readonly MenuSheetRow[];
@@ -58,7 +61,11 @@ export function planMenuImport(input: {
   readonly kind: ProductBody["kind"];
   readonly target: CategoryTarget;
 }): ImportRow[] {
-  const byName = new Map(input.products.map((product) => [nameKey(product.name), product]));
+  const byName = new Map<string, ProductSummary>();
+  for (const product of input.products) {
+    const key = nameKey(product.name);
+    if (!byName.has(key) || product.archivedAt === null) byName.set(key, product);
+  }
   const codeLine = new Map<string, number>();
   const nameLine = new Map<string, number>();
   return input.rows.map((row) => {
@@ -96,12 +103,16 @@ export function planMenuImport(input: {
       return { ...base, status: "skipped", problems: [T.notForSale], productId, body: null };
     if (match === null)
       return { ...base, status: "new", productId, body: check.ok ? check.body : null };
+    if (match.archivedAt !== null) {
+      return { ...base, status: "skipped", problems: [T.archivedMatch], productId, body: null };
+    }
     if (match.pricingMode !== "fixed") {
       return { ...base, status: "skipped", problems: [T.notFixedPrice], productId, body: null };
     }
-    const categoryId = "id" in category ? category.id : undefined;
-    const same = match.basePrice === price && match.categoryId === categoryId;
-    return { ...base, status: same ? "same" : "update", productId, body: null };
+    const keeps = input.target.by === "one" || row.group.trim() === "";
+    const moved: RowCategory = keeps ? { id: match.categoryId } : category;
+    const same = match.basePrice === price && "id" in moved && moved.id === match.categoryId;
+    return { ...base, category: moved, status: same ? "same" : "update", productId, body: null };
   });
 }
 

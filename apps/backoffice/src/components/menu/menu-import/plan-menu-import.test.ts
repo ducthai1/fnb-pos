@@ -141,4 +141,32 @@ describe("planning a menu import", () => {
     ]);
     expect(plan(rows).map((row) => row.category)).toEqual([{ create: "Trà" }, { id: null }]);
   });
+
+  it("keeps a matched product's category unless the line names a group", () => {
+    const products = [
+      summary({ id: "p1", name: "Bạc xỉu", basePrice: 30_000, categoryId: "cat-coffee" }),
+    ];
+    const [blank] = plan([line({ name: "Bạc xỉu", group: "", price: "32000" })], products);
+    expect(blank).toMatchObject({ status: "update", category: { id: "cat-coffee" } });
+    const [picked] = plan([line({ name: "Bạc xỉu", group: "Trà", price: "30000" })], products, {
+      by: "one",
+      id: null,
+    });
+    expect(picked).toMatchObject({ status: "same", category: { id: "cat-coffee" } });
+  });
+
+  it("prefers the product on sale, and skips a line matching only one taken off the menu", () => {
+    const gone = "2026-10-01T00:00:00.000Z";
+    const products = [
+      summary({ id: "old", name: "Trà đào", archivedAt: gone }),
+      summary({ id: "now", name: "Trà đào" }),
+      summary({ id: "off", name: "Trà vải", archivedAt: gone }),
+    ];
+    const rows = plan([line({ name: "Trà đào" }), line({ name: "Trà vải" })], products);
+    expect(rows.map((row) => [row.status, row.productId])).toEqual([
+      ["same", "now"],
+      ["skipped", "off"],
+    ]);
+    expect(rows[1]?.problems).toEqual([T.archivedMatch]);
+  });
 });
