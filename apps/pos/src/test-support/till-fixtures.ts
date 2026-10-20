@@ -1,6 +1,6 @@
 import { type PosBootstrapWire, type PosProductWire, posBootstrapSchema } from "@fnb/contracts";
 import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
-import { CREDENTIAL } from "./fake-pos-server";
+import { CREDENTIAL } from "./credential";
 
 export const tid = (n: number) => `0199f000-0000-7000-8000-${n.toString(16).padStart(12, "0")}`;
 

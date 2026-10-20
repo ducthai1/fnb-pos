@@ -71,7 +71,7 @@ export function PairedTill(props: {
     <StaffedTill
       snapshot={snapshot}
       till={till}
-      staffName={signedIn.staff.displayName}
+      staff={signedIn.staff}
       status={status}
       onOpenNeedsAttention={() => {
         void till?.client.rejectedCommands().then(setRejected);

@@ -11,16 +11,14 @@ import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
+import { CREDENTIAL } from "./credential";
+import { fakeServerRows } from "./fake-server-rows";
 import type {
   DeviceCredential,
   DeviceCredentialStore,
 } from "../shell-bridge/device-credential-store";
 
-export const CREDENTIAL: DeviceCredential = {
-  deviceId: "0199f000-0000-7000-8000-00000000d001",
-  branchId: "0199f000-0000-7000-8000-00000000b001",
-  deviceToken: "0199f000-0000-7000-8000-00000000a001.secret",
-};
+export { CREDENTIAL };
 
 export const refusal = (
   status: number | null,
@@ -92,6 +90,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
   const unreachable = () => refusal(null, null);
+  const rows = fakeServerRows(CREDENTIAL.deviceId);
 
   const api: PosApi = {
     async pairDevice(input) {
@@ -123,11 +122,14 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
       state.calls.pushedCommands += batch.length;
       state.pushed.push(...batch);
       const code = state.refuseCommandsWith;
-      return batch.map((command) =>
-        code === null
+      return batch.map((command) => {
+        if (code !== null)
+          return { commandId: command.commandId, status: "rejected" as const, code };
+        const snapshot = rows.answer(command);
+        return snapshot === undefined
           ? { commandId: command.commandId, status: "accepted" as const }
-          : { commandId: command.commandId, status: "rejected" as const, code },
-      );
+          : { commandId: command.commandId, status: "accepted" as const, snapshot };
+      });
     },
     async pullChanges(cursor) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
@@ -140,7 +142,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
 
-  return { state, api, bootstrap, transport };
+  return { state, api, bootstrap, transport, rows: rows.rows };
 }
 
 /** The POS wired to the fake server, an in-memory store and saved credentials. */

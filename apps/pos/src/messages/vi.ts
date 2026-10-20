@@ -1,5 +1,6 @@
 // Every string the POS shows. Screens read from here; none writes Vietnamese inline.
 
+import { VI_CHECKOUT } from "./vi-checkout";
 import { VI_SALE } from "./vi-sale";
 
 export const vi = {
@@ -42,6 +43,7 @@ export const vi = {
     submitting: "Đang kiểm tra…",
   },
   sale: VI_SALE,
+  checkout: VI_CHECKOUT,
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
