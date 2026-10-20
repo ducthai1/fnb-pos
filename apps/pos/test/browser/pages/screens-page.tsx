@@ -16,6 +16,7 @@ import "../../../src/styles/pos-order.css";
 import "../../../src/styles/pos-picker.css";
 import "../../../src/styles/pos-checkout.css";
 import "../../../src/styles/pos-floor.css";
+import "../../../src/styles/pos-operations.css";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
 import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
 import { SALE_SCREENS } from "./sale-screens";

@@ -15,6 +15,7 @@ import "./styles/pos-order.css";
 import "./styles/pos-picker.css";
 import "./styles/pos-checkout.css";
 import "./styles/pos-floor.css";
+import "./styles/pos-operations.css";
 
 /** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
 const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";

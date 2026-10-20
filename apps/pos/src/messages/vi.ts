@@ -1,5 +1,6 @@
 // Every string the POS shows. Screens read from here; none writes Vietnamese inline.
 
+import { VI_APPROVAL, VI_APPROVAL_ERRORS } from "./vi-approval";
 import { VI_CHECKOUT } from "./vi-checkout";
 import { VI_INVOICE } from "./vi-invoice";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
@@ -52,6 +53,7 @@ export const vi = {
   qr: VI_QR_PAYMENT,
   invoice: VI_INVOICE,
   tables: VI_TABLES,
+  approval: VI_APPROVAL,
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
@@ -84,6 +86,7 @@ export const vi = {
     API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ.",
     ...VI_SYNC_ERRORS,
     ...VI_TABLE_ERRORS,
+    ...VI_APPROVAL_ERRORS,
     pinLockedUntil: (time: string) => `Nhập sai PIN quá nhiều lần. Thử lại lúc ${time}.`,
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     unknown: "Có lỗi xảy ra. Thử lại sau ít phút.",
