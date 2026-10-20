@@ -13,6 +13,7 @@ import "./backoffice-sidenav.css";
 import "./backoffice-controls.css";
 import "./backoffice-page.css";
 import "./backoffice-stats.css";
+import "./backoffice-hours-chart.css";
 import "./backoffice-home.css";
 import "./backoffice-report.css";
 import "./backoffice-day-close.css";

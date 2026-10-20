@@ -30,8 +30,13 @@ export function HourChart({ bars, id }: { bars: readonly HourBar[]; id: string }
         aria-label={T.hoursChart(summary)}
         style={{ "--bars": bars.length } as CSSProperties}
       >
-        {bars.map((bar) => (
-          <div key={bar.hour} className="bo-hours__col" data-busiest={bar === busiest || undefined}>
+        {bars.map((bar, index) => (
+          <div
+            key={bar.hour}
+            className="bo-hours__col"
+            data-busiest={bar === busiest || undefined}
+            data-edge={index < 2 ? "start" : index > bars.length - 3 ? "end" : undefined}
+          >
             {bar === busiest && <span className="bo-hours__value">{vndText(bar.collected)}</span>}
             <span
               className="bo-hours__bar"
