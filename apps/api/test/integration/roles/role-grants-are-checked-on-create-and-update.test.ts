@@ -73,6 +73,7 @@ describe("POST /roles", () => {
       id: body.roleId,
       ...supervisor,
       isTemplate: false,
+      archivedAt: null,
       version: 1,
     });
     const audit = await withTenant(pool, shop.tenantId, async (client) => {
@@ -124,6 +125,7 @@ describe("PATCH /roles/:id", () => {
       ...supervisor,
       name: "Trưởng ca",
       isTemplate: false,
+      archivedAt: null,
       version: 2,
     });
   });

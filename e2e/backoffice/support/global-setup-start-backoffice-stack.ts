@@ -1,4 +1,6 @@
+import { randomBytes } from "node:crypto";
 import { buildApp } from "@fnb/api/build-app";
+import { PAYMENT_GATEWAYS } from "@fnb/api/payment-gateways";
 import { provisionOrganization } from "@fnb/db";
 import { startTestPostgres, testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
@@ -9,6 +11,7 @@ import {
   createAccount,
   uniqueEmail,
 } from "../../../apps/api/test/integration/support/backoffice-accounts";
+import { fakePaymentGateway } from "../../../apps/api/test/integration/support/fake-payment-gateway";
 import { staffedShop } from "../../../apps/api/test/integration/support/staffed-shop";
 import { serveBackofficeBuild } from "./serve-backoffice-build";
 
@@ -54,7 +57,12 @@ export default async function setup(project: TestProject): Promise<() => Promise
     // turn a green run into exit 1.
     pool.on("error", () => {});
     stops.push(() => pool.end());
-    const app = buildApp({ pool });
+    // The test gateway lets a spec bring money in as a bank's notice would.
+    const app = buildApp({
+      pool,
+      paymentSecretKey: randomBytes(32),
+      paymentGateways: [...PAYMENT_GATEWAYS, fakePaymentGateway()],
+    });
     stops.push(() => app.close());
     const apiOrigin = await app.listen({ host: "127.0.0.1", port: 0 });
 

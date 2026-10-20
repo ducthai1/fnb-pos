@@ -81,6 +81,20 @@ describe("closing a business day", () => {
     expect(await closesOf(s)).toHaveLength(1);
   });
 
+  it("is refused while the provider fails an invoice of the day for now, naming it", async () => {
+    const s = await invoicingShop(api, pool);
+    const orderId = await paidCoffee(api.app, s);
+    api.provider.failNext("issue", { failure: "temporary", code: "PROVIDER_BUSY" });
+    expect(await api.workFor(s.shop.tenantId)).toMatchObject({ retrying: 1 });
+    const refused = await closeDay(s);
+    expect(refused.statusCode).toBe(409);
+    expect(refused.json()).toMatchObject({
+      code: "API_DAY_CLOSE_INVOICES_UNISSUED",
+      invoices: [{ orderId, status: "failed_retryable", lastErrorCode: "PROVIDER_BUSY" }],
+    });
+    expect(await closesOf(s)).toEqual([]);
+  });
+
   it("happens once: a second close of the day is refused and changes nothing", async () => {
     const s = await invoicingShop(api, pool);
     expect((await closeDay(s)).statusCode).toBe(201);

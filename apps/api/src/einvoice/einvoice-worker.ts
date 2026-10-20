@@ -3,10 +3,19 @@ import type pg from "pg";
 import type { Clock } from "../clock";
 import { claimDueBatch, recordBatchOutcome } from "./einvoice-batch-work";
 import { claimDueInvoice } from "./einvoice-claims";
-import { EINVOICE_FAILURE_CODES } from "./einvoice-error-codes";
 import { type RecordedOutcome, recordIssueOutcome } from "./einvoice-outcomes";
-import type { EInvoiceProvider, ProviderFailure } from "./einvoice-provider";
-import { DEFAULT_EINVOICE_RETRY_POLICY, type EInvoiceRetryPolicy } from "./einvoice-retry-policy";
+import type { EInvoiceProvider } from "./einvoice-provider";
+import {
+  type CallDeadlines,
+  askProvider,
+  issueOrRecover,
+  systemDeadlines,
+} from "./einvoice-provider-call";
+import {
+  DEFAULT_EINVOICE_RETRY_POLICY,
+  type EInvoiceRetryPolicy,
+  providerCallTimeoutMs,
+} from "./einvoice-retry-policy";
 
 export interface EInvoiceWorkDependencies {
   /** Connects as the app role; tenants are found through fnb_jobs, then opened one by one. */
@@ -15,6 +24,8 @@ export interface EInvoiceWorkDependencies {
   /** The worker takes only work of these providers: others are left for a worker that has them. */
   readonly providers: ReadonlyMap<string, EInvoiceProvider>;
   readonly policy?: EInvoiceRetryPolicy;
+  /** What gives a provider call up before its lease ends; the system timer by default. */
+  readonly deadlines?: CallDeadlines;
 }
 
 /** What a round did, by outcome. */
@@ -88,6 +99,12 @@ const outcomeContext = (deps: EInvoiceWorkDependencies, tenantId: string) => ({
   policy: deps.policy ?? DEFAULT_EINVOICE_RETRY_POLICY,
 });
 
+/** The signal of one attempt's calls, fired before the claim's lease runs out. */
+const deadlineOf = (deps: EInvoiceWorkDependencies) =>
+  (deps.deadlines ?? systemDeadlines).signalAfter(
+    providerCallTimeoutMs(deps.policy ?? DEFAULT_EINVOICE_RETRY_POLICY),
+  );
+
 function providerOf(deps: EInvoiceWorkDependencies, key: string): EInvoiceProvider {
   const provider = deps.providers.get(key);
   if (provider === undefined) throw new Error(`claimed work of provider ${key}`);
@@ -118,7 +135,11 @@ async function submitNextBatch(
   );
   if (claimed === null) return null;
   const provider = providerOf(deps, claimed.provider);
-  const outcome = await askProvider(() => provider.submitDailyBatch(claimed.batch));
+  const signal = deadlineOf(deps);
+  const outcome = await askProvider(
+    () => provider.submitDailyBatch(claimed.batch, { signal }),
+    signal,
+  );
   return withTenant(deps.pool, tenantId, (client) =>
     recordBatchOutcome(client, outcomeContext(deps, tenantId), claimed, outcome),
   );
@@ -133,25 +154,10 @@ async function issueNextInvoice(
   );
   if (claimed === null) return null;
   const provider = providerOf(deps, claimed.provider);
-  const outcome = await askProvider(() => provider.issue(claimed.document));
+  const outcome = await issueOrRecover(provider, claimed, deadlineOf(deps));
   return withTenant(deps.pool, tenantId, (client) =>
     recordIssueOutcome(client, outcomeContext(deps, tenantId), claimed, outcome),
   );
-}
-
-/**
- * The provider's answer, a call that threw counted as a temporary failure: a dropped
- * connection may still have reached the provider, and its idempotency key makes the
- * retry safe.
- */
-export async function askProvider<T extends { readonly ok: boolean }>(
-  call: () => Promise<T>,
-): Promise<T | ProviderFailure> {
-  try {
-    return await call();
-  } catch {
-    return { ok: false, failure: "temporary", code: EINVOICE_FAILURE_CODES.providerUnreachable };
-  }
 }
 
 export interface RunningWorker {

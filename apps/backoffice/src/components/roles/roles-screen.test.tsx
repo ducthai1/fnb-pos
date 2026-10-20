@@ -13,6 +13,7 @@ const OWNER_ROLE: Role = {
   permissionKeys: ["manage_staff", "line_discount"],
   thresholds: {},
   isTemplate: true,
+  archivedAt: null,
   version: 1,
 };
 

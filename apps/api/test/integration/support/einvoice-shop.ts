@@ -39,6 +39,7 @@ export function invoicingApi(pool: pg.Pool, policy?: EInvoiceRetryPolicy): Invoi
   const deps = {
     pool,
     clock,
+    deadlines: clock,
     providers: providersByKey([provider]),
     ...(policy ? { policy } : {}),
   };

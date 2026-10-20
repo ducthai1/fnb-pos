@@ -8,9 +8,11 @@ import { useApi } from "../app/api-context";
 import { LoadStateView } from "../shell/load-state-view";
 import { useApiLoad } from "../shell/use-api-load";
 import { SuccessNotice } from "../ui/error-notice";
+import { RoleArchivePanel } from "./role-archive-panel";
 import { RoleEditor } from "./role-editor";
 
 const T = vi.roles;
+const K = vi.staffTools;
 
 type Editing = { role: Role | null } | null;
 
@@ -20,6 +22,7 @@ export function RolesScreen() {
   const [loaded, reload, refresh] = useApiLoad(load);
   const [editing, setEditing] = useState<Editing>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [archiving, setArchiving] = useState<string | null>(null);
 
   const open = (role: Role | null) => {
     setSaved(null);
@@ -54,13 +57,40 @@ export function RolesScreen() {
                   <span className="bo-wrap">
                     <strong>{role.name}</strong>
                     {role.isTemplate && <span className="bo-muted"> · {T.template}</span>}
+                    {role.archivedAt !== null && <span className="bo-muted"> · {K.archivedBadge}</span>}
                   </span>
                   <span className="bo-muted bo-wrap">
                     {role.permissionKeys.map(permissionLabel).join(", ")}
                   </span>
-                  <button type="button" className="bo-button" aria-label={T.editLabel(role.name)} onClick={() => open(role)}>
-                    {vi.common.edit}
-                  </button>
+                  {role.archivedAt === null && (
+                    <div className="bo-row">
+                      <button type="button" className="bo-button" aria-label={T.editLabel(role.name)} onClick={() => open(role)}>
+                        {vi.common.edit}
+                      </button>
+                      <button
+                        type="button"
+                        className="bo-button"
+                        aria-label={K.archiveLabel(role.name)}
+                        onClick={() => {
+                          setSaved(null);
+                          setArchiving(role.id);
+                        }}
+                      >
+                        {K.archive}
+                      </button>
+                    </div>
+                  )}
+                  {archiving === role.id && (
+                    <RoleArchivePanel
+                      role={role}
+                      onCancel={() => setArchiving(null)}
+                      onDone={(message) => {
+                        setArchiving(null);
+                        setSaved(message);
+                        refresh();
+                      }}
+                    />
+                  )}
                 </li>
               ))}
             </ul>

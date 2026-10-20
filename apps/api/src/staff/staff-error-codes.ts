@@ -8,4 +8,10 @@ export const STAFF_ERROR_CODES = {
   pinInvalid: "API_STAFF_PIN_INVALID",
   pinLocked: "API_STAFF_PIN_LOCKED",
   sessionInvalid: "API_STAFF_SESSION_INVALID",
+  /** Locking someone already locked, or letting back someone who was never locked. */
+  alreadyInactive: "API_STAFF_ALREADY_INACTIVE",
+  alreadyActive: "API_STAFF_ALREADY_ACTIVE",
+  /** No wrong PIN is counted against them: there is nothing to clear. */
+  pinNotLocked: "API_STAFF_PIN_NOT_LOCKED",
+  roleArchived: "API_ROLE_ARCHIVED",
 } as const;

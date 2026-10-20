@@ -96,6 +96,29 @@ describe("the transfer calls", () => {
     expect(await httpPaymentsApi("/api", match.fetchImpl).matchTransfer(fixtureId(8), intent.id)).toEqual({ ok: true, value: intent });
     expect(match.calls[0]).toEqual({ url: "/api/payments/match", method: "POST", body: { transactionId: fixtureId(8), intentId: intent.id } });
   });
+
+  it("mark a QR's money handed back, and read a refusal as its code", async () => {
+    const owed = unmatchedPayments().refundDue[0]!;
+    const refund = {
+      intentId: owed.id,
+      branchId: BRANCH,
+      amount: 70_000,
+      method: "cash",
+      note: "Trả lại chị Lan",
+      businessDate: "2026-10-20",
+      refundedAt: "2026-10-20T04:00:00.000Z",
+      refundedByAppUserId: fixtureId(9),
+    };
+    const body = { method: "cash" as const, note: "Trả lại chị Lan" };
+    const marked = answering(201, { refund });
+    expect(await httpPaymentsApi("/api", marked.fetchImpl).handBackQrMoney(owed.id, body)).toEqual({ ok: true, value: refund });
+    expect(marked.calls[0]).toEqual({ url: `/api/payments/refund-due/${owed.id}`, method: "POST", body });
+    const twice = answering(409, { code: "API_PAYMENT_ALREADY_HANDED_BACK" });
+    expect(await httpPaymentsApi("/api", twice.fetchImpl).handBackQrMoney(owed.id, body)).toMatchObject({
+      ok: false,
+      code: "API_PAYMENT_ALREADY_HANDED_BACK",
+    });
+  });
 });
 
 describe("the floor calls", () => {

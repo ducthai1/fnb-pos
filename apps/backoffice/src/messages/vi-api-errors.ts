@@ -3,6 +3,8 @@
 export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ. Kiểm tra lại các ô đã nhập.",
   API_INTERNAL: "Máy chủ đang gặp lỗi. Thử lại sau ít phút.",
+  API_ORIGIN_NOT_ALLOWED:
+    "Máy chủ không nhận yêu cầu từ địa chỉ trang này. Mở trang quản lý bằng đúng địa chỉ của cửa hàng; nếu vẫn lỗi, báo hỗ trợ.",
   API_AUTH_INVALID_CREDENTIALS:
     "Sai email/số điện thoại hoặc mật khẩu. Sai 5 lần liền thì tài khoản bị khóa 15 phút.",
   API_AUTH_NO_ACTIVE_MEMBERSHIP: "Tài khoản này chưa thuộc cửa hàng nào đang hoạt động.",
@@ -22,6 +24,10 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_STAFF_PIN_TOO_WEAK:
     "PIN quá dễ đoán (như 1234, 1111, 1212, 2580 hoặc một năm sinh). Chọn PIN khác.",
   API_STAFF_NOT_FOUND: "Không tìm thấy nhân viên này. Tải lại danh sách.",
+  API_STAFF_ALREADY_INACTIVE: "Nhân viên này đã bị khóa rồi. Tải lại danh sách.",
+  API_STAFF_ALREADY_ACTIVE: "Nhân viên này đang làm, không cần mở lại. Tải lại danh sách.",
+  API_STAFF_PIN_NOT_LOCKED: "PIN của nhân viên này không bị khóa, không có gì để mở. Tải lại danh sách.",
+  API_ROLE_ARCHIVED: "Vai trò này đã lưu trữ, không gán cho ai được nữa. Chọn vai trò khác.",
   API_ROLE_NOT_FOUND: "Không tìm thấy vai trò này. Tải lại trang.",
   API_ROLE_IN_USE: "Vai trò đang có người giữ. Chuyển họ sang vai trò khác trước.",
   API_ROLE_LAST_ADMINISTRATOR:

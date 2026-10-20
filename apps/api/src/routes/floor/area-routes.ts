@@ -5,6 +5,7 @@ import type pg from "pg";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { insertCatalogRow, updateCatalogRow } from "../../catalog/catalog-row-writes";
+import { announceFloorRow } from "../../floor/announce-floor-to-tills";
 import { FLOOR_API_ERROR_CODES } from "./floor-api-error-codes";
 import {
   FloorRequestError,
@@ -75,6 +76,7 @@ export function registerAreaRoutes(app: FastifyInstance, context: ApiContext): v
           }
           await updateCatalogRow(client, "area", writer, id, cells);
         }
+        await announceFloorRow(client, writer.tenantId, input.branchId, { kind: "area", id });
         return { created: stored === undefined, row: await readArea(client, id) };
       });
       return reply.code(saved.created ? 201 : 200).send(areaView(saved.row!));
@@ -100,12 +102,15 @@ export function registerAreaRoutes(app: FastifyInstance, context: ApiContext): v
         );
         const active = tables.rows[0]?.active ?? null;
         if (active === true) throw new FloorRequestError(409, FLOOR_API_ERROR_CODES.areaHasTables);
+        const off = { kind: "area" as const, id };
         if (active === null) {
           await client.query("DELETE FROM area WHERE id = $1", [id]);
+          await announceFloorRow(client, writer.tenantId, stored.branch_id, off);
           return { id, outcome: "deleted" as const };
         }
         if (stored.archived_at === null) {
           await updateCatalogRow(client, "area", writer, id, { archived_at: writer.now });
+          await announceFloorRow(client, writer.tenantId, stored.branch_id, off);
         }
         return { id, outcome: "archived" as const };
       });

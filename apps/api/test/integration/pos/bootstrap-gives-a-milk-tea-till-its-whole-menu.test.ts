@@ -66,7 +66,8 @@ describe("what a till starts with", () => {
       displayName: "Lan",
       active: true,
     });
-    expect(staff.get(leaverId)?.active).toBe(false);
+    // Someone locked out of the tills is not on the PIN screen at all.
+    expect(staff.has(leaverId)).toBe(false);
     expect(staff.has(m.s.otherBranchTill.staffId)).toBe(false);
   });
 

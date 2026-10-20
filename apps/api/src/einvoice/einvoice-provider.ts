@@ -114,13 +114,25 @@ export interface SubmittedBatch {
 
 export type LookupResult = { readonly found: false } | (IssuedInvoice & { readonly found: true });
 
+/**
+ * How a call is made. `signal` aborts when the worker gives the call up, a little before
+ * the row's lease ends: an adapter hands it to its HTTP client and settles soon after it
+ * fires (rejecting is fine), since past the lease another worker may send the same row.
+ */
+export interface ProviderCall {
+  readonly signal?: AbortSignal;
+}
+
 export interface EInvoiceProvider {
   /** The key a branch's profile names it by. */
   readonly key: string;
-  issue(document: EInvoiceDocument): Promise<IssuedInvoice | ProviderFailure>;
-  submitDailyBatch(batch: DailyBatch): Promise<SubmittedBatch | ProviderFailure>;
+  issue(document: EInvoiceDocument, call?: ProviderCall): Promise<IssuedInvoice | ProviderFailure>;
+  submitDailyBatch(
+    batch: DailyBatch,
+    call?: ProviderCall,
+  ): Promise<SubmittedBatch | ProviderFailure>;
   /** What the provider holds under our invoice id, to recover an answer that was lost. */
-  lookup(documentId: string): Promise<LookupResult | ProviderFailure>;
+  lookup(documentId: string, call?: ProviderCall): Promise<LookupResult | ProviderFailure>;
 }
 
 /** The providers by key; two of one key are a wiring bug, so they fail at startup. */

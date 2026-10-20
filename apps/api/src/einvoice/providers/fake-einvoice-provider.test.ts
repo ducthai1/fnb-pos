@@ -116,4 +116,28 @@ describe("FakeEInvoiceProvider", () => {
     provider.comeBack();
     expect((await provider.issue(document("a"))).ok).toBe(true);
   });
+
+  it("gives a held call up when its signal aborts, issuing nothing", async () => {
+    const provider = new FakeEInvoiceProvider();
+    const release = provider.holdNext("issue");
+    const controller = new AbortController();
+    const call = provider.issue(document("a"), { signal: controller.signal });
+    controller.abort(new Error("given up"));
+    await expect(call).rejects.toThrow("given up");
+    release();
+    expect(await provider.lookup("a")).toEqual({ found: false });
+    await expect(provider.issue(document("a"), { signal: controller.signal })).rejects.toThrow();
+  });
+
+  it("holds only the next call it was told to, and one that ignores aborts answers once released", async () => {
+    const provider = new FakeEInvoiceProvider();
+    const release = provider.holdNext("issue", { ignoresAbort: true });
+    const controller = new AbortController();
+    const slow = provider.issue(document("a"), { signal: controller.signal });
+    controller.abort();
+    expect((await provider.issue(document("b"))).ok).toBe(true);
+    release();
+    expect(await slow).toMatchObject({ ok: true });
+    expect(await provider.lookup("a")).toMatchObject({ found: true });
+  });
 });

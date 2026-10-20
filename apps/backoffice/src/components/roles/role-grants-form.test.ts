@@ -9,6 +9,7 @@ const SHIFT_LEAD: Role = {
   permissionKeys: ["line_discount", "cash_move", "refund"],
   thresholds: { line_discount: { maxRate: 1250 }, cash_move: { maxAmount: "500000" } },
   isTemplate: true,
+  archivedAt: null,
   version: 3,
 };
 

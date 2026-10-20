@@ -16,7 +16,15 @@ const device = {
   pairedAt: "2026-10-20T03:00:00.000Z",
   revokedAt: null,
 };
-const member = { id: id(3), displayName: "Lan", roleId: id(4), active: true, branchIds: [id(2)] };
+const member = {
+  id: id(3),
+  displayName: "Lan",
+  roleId: id(4),
+  active: true,
+  branchIds: [id(2)],
+  lockedOutUntil: null,
+  failedSignIns: 0,
+};
 
 describe("the backoffice lists", () => {
   it("take the shapes the API answers with", () => {
@@ -26,6 +34,10 @@ describe("the backoffice lists", () => {
     const revoked = { ...device, revokedAt: "2026-10-20T04:00:00.000Z" };
     expect(outcomeOf(deviceListSchema, { devices: [revoked] }).ok).toBe(true);
     expect(outcomeOf(staffListSchema, { staff: [member] }).ok).toBe(true);
+    const locked = { ...member, lockedOutUntil: "2026-10-20T05:00:00.000Z", failedSignIns: 5 };
+    expect(outcomeOf(staffListSchema, { staff: [locked] }).ok).toBe(true);
+    const unsaid = { ...member, failedSignIns: undefined };
+    expect(outcomeOf(staffListSchema, { staff: [unsaid] }).ok).toBe(false);
   });
 
   it("refuse a field the contract does not name, such as a secret", () => {

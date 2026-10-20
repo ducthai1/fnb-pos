@@ -2,8 +2,10 @@ import type { PosBootstrapWire } from "@fnb/contracts";
 import type pg from "pg";
 import { readDeviceConfigSnapshot } from "../../configuration/device-config-snapshot";
 import type { DeviceAuth } from "../../devices/device-auth-hook";
+import { readBranchFloor } from "../../floor/announce-floor-to-tills";
 import { feedVersionOf, readBranchCursor } from "../../sync/change-feed";
 import { readBootstrapMenu } from "./bootstrap-menu";
+import { readOpenOrders } from "./bootstrap-open-orders";
 
 interface PlaceRow {
   device_name: string;
@@ -59,17 +61,19 @@ export async function readPosBootstrap(
       now,
       version,
     ),
+    openOrders: await readOpenOrders(client, device.branchId),
+    floor: await readBranchFloor(client, device.branchId),
   };
 }
 
 /**
- * Who works at the branch, for the PIN screen: names and whether they may still sign in.
+ * Who may sign in at the branch, for the PIN screen: someone locked out is not listed.
  * Columns are named one by one, never `*`, so the PIN hash and lockout state of a staff row
  * cannot reach a till whatever is added to the table later.
  */
 async function readBranchStaff(client: pg.PoolClient, branchId: string) {
   const { rows } = await client.query<{ id: string; display_name: string; active: boolean }>(
-    "SELECT s.id, s.display_name, s.active FROM staff s WHERE EXISTS " +
+    "SELECT s.id, s.display_name, s.active FROM staff s WHERE s.active AND EXISTS " +
       "(SELECT 1 FROM staff_branch sb WHERE sb.staff_id = s.id AND sb.branch_id = $1) " +
       "ORDER BY s.display_name, s.id",
     [branchId],

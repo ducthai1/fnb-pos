@@ -56,4 +56,17 @@ export const VI_TRANSFERS = {
   matching: "Đang khớp…",
   matched: (code: string) => `Đã khớp với mã QR ${code}.`,
   needsKey: "Khớp tay cần quyền quản lý cài đặt.",
+  handBack: "Đã hoàn cho khách",
+  handBackTitle: (code: string, amount: string) => `Ghi đã hoàn ${amount} của mã QR ${code} cho khách?`,
+  handBackHint:
+    "Chỉ ghi khi tiền đã thật sự trả lại khách. Ghi rồi không sửa hay hủy được; số tiền vào báo cáo ngày hôm nay, không tính là doanh thu.",
+  handBackMethod: "Hoàn bằng",
+  handBackMethods: { cash: "Tiền mặt", bank_transfer: "Chuyển khoản lại" } as Readonly<Record<string, string>>,
+  handBackNote: "Ghi chú (hoàn cho ai, vì sao)",
+  handBackChooseMethod: "Chọn hoàn bằng tiền mặt hay chuyển khoản lại.",
+  handBackNeedsNote: "Ghi chú hoàn cho ai, vì sao.",
+  handBackConfirm: "Ghi đã hoàn",
+  handingBack: "Đang ghi…",
+  handedBack: (code: string, amount: string) => `Đã ghi: hoàn ${amount} của mã QR ${code} cho khách.`,
+  handBackNeedsKey: "Ghi đã hoàn tiền cần quyền quản lý cài đặt.",
 } as const;

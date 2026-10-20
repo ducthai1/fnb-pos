@@ -35,6 +35,8 @@ function SummaryTable({ report }: { report: DailySalesReport }) {
     line("cancelledOrders", T.rows.cancelledOrders, String(report.cancelledOrders)),
     line("voidCount", T.rows.voidCount, String(voids.count)),
     line("voidValue", T.rows.voidValue, vndText(voids.value)),
+    line("qrRefundCount", T.rows.qrRefundCount, String(report.qrRefunds.count)),
+    line("qrRefundAmount", T.rows.qrRefundAmount, vndText(report.qrRefunds.amount)),
   ];
   return (
     <SimpleTable

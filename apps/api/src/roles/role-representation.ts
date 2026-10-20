@@ -8,6 +8,8 @@ export interface RoleView {
   permissionKeys: string[];
   thresholds: unknown;
   isTemplate: boolean;
+  /** When it was put away; an archived role is given to no one. */
+  archivedAt: string | null;
   version: number;
 }
 
@@ -17,10 +19,12 @@ export interface RoleRow {
   permission_keys: string[];
   thresholds: unknown;
   is_template: boolean;
+  archived_at: Date | null;
   version: number;
 }
 
-export const ROLE_COLUMNS = "id, name, permission_keys, thresholds, is_template, version";
+export const ROLE_COLUMNS =
+  "id, name, permission_keys, thresholds, is_template, archived_at, version";
 
 export function roleView(row: RoleRow): RoleView {
   return {
@@ -29,6 +33,7 @@ export function roleView(row: RoleRow): RoleView {
     permissionKeys: row.permission_keys,
     thresholds: row.thresholds,
     isTemplate: row.is_template,
+    archivedAt: row.archived_at?.toISOString() ?? null,
     version: row.version,
   };
 }
