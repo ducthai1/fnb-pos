@@ -30,3 +30,19 @@ export function unitsByProduct(
     units.set(line.productId, (units.get(line.productId) ?? 0) + line.quantity);
   return units;
 }
+
+/**
+ * The products in the menu's category order, each category's own order kept (by name), so
+ * "all" reads in blocks of one colour; products without a category come last.
+ */
+export function inCategoryOrder<P extends { readonly categoryId: string | null }>(
+  products: readonly P[],
+  categories: readonly { readonly id: string }[],
+): P[] {
+  const place = new Map(categories.map((category, index) => [category.id, index]));
+  const rank = (product: P) =>
+    product.categoryId === null
+      ? categories.length
+      : (place.get(product.categoryId) ?? categories.length);
+  return [...products].sort((a, b) => rank(a) - rank(b));
+}

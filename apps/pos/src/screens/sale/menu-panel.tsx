@@ -8,7 +8,7 @@ import { Icon } from "../shared/icon";
 import { EmptyState } from "../shared/state-view";
 import { useTillKey } from "../shared/use-till-key";
 import { CategoryTabs } from "./category-tabs";
-import { categoryTones } from "./product-mark";
+import { categoryTones, inCategoryOrder } from "./product-mark";
 import { ProductTile } from "./product-tile";
 
 export interface MenuPanelProps {
@@ -27,7 +27,7 @@ export function MenuPanel({ menu, now, inCart = NOTHING, onPick }: MenuPanelProp
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
-  const shown = productsShown(menu.products, categoryId, query);
+  const shown = inCategoryOrder(productsShown(menu.products, categoryId, query), menu.categories);
   const search = useRef<HTMLInputElement>(null);
   useTillKey(vi.sale.keys.search, () => {
     search.current?.focus();
