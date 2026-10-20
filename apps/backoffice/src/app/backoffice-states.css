@@ -109,3 +109,34 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
+
+.bo-button--sm {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: var(--fs-sm);
+}
+
+/* Nothing listed yet: the icon in a soft circle, the sentence, what to do. */
+.bo-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: center;
+}
+
+.bo-empty-state p {
+  margin: 0;
+  max-width: 52ch;
+}
+
+.bo-empty-state__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text-3);
+  box-shadow: var(--shadow-card);
+}

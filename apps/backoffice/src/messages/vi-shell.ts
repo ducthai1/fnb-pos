@@ -80,3 +80,18 @@ export const VI_COMMON = {
   amountInvalid: "Nhập số tiền là số đồng nguyên, ví dụ 35000 hoặc 35.000.",
   countInvalid: "Nhập số nguyên từ 0.",
 } as const;
+
+export const VI_TABLE = {
+  search: "Tìm",
+  clearSearch: "Xóa chữ tìm",
+  filter: "Lọc",
+  all: "Tất cả",
+  count: (label: string, count: number) => `${label} (${count})`,
+  sortBy: "Sắp xếp theo",
+  sortNone: "Thứ tự gốc",
+  sortOption: (label: string, ascending: boolean) => `${label} ${ascending ? "↑" : "↓"}`,
+  sortColumn: (label: string) => `Sắp xếp theo ${label}`,
+  shown: (shown: number, total: number) => (shown === total ? `${total} dòng` : `Đang hiện ${shown} / ${total} dòng`),
+  noMatch: "Không có dòng nào khớp. Thử bỏ bớt chữ tìm hoặc chọn bộ lọc khác.",
+  actions: "Thao tác",
+} as const;

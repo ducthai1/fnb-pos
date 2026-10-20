@@ -17,6 +17,7 @@ import "./backoffice-home.css";
 import "./backoffice-notices.css";
 import "./backoffice-states.css";
 import "./backoffice-table.css";
+import "./backoffice-data-table.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
 import "./backoffice-settings.css";
