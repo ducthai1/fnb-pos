@@ -25,10 +25,6 @@ export const VI_CHECKOUT = {
     cashTyped: "Số tiền khách đưa",
     addCash: "Thêm tiền mặt",
     quickCash: (amount: string) => `Khách đưa ${amount}`,
-    qr: "Chuyển khoản (QR)",
-    qrHint: (amount: string) =>
-      `Khách chuyển ${amount}. Kiểm tra tiền đã vào tài khoản của quán rồi xác nhận.`,
-    qrConfirm: (amount: string) => `Đã nhận chuyển khoản ${amount}`,
     removeTender: (method: string, amount: string) => `Bỏ ${method} ${amount}`,
     back: "Quay lại đơn",
     finish: "Hoàn tất thanh toán",
@@ -37,6 +33,7 @@ export const VI_CHECKOUT = {
       not_positive: "Nhập số tiền lớn hơn 0.",
       nothing_left: "Đơn đã đủ tiền, không cần nhận thêm.",
       transfer_over_remaining: "Chuyển khoản không được nhiều hơn số còn lại: không thối lại được.",
+      transfer_without_qr: "Chuyển khoản chỉ được ghi khi ngân hàng báo tiền về qua mã QR của đơn.",
       too_many: "Một đơn nhận tối đa 10 lần trả.",
       unreadable: "Số tiền chỉ gồm chữ số, ví dụ 200000.",
     },

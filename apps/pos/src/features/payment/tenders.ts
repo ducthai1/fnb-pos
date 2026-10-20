@@ -8,12 +8,18 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHOD
 export interface Tender {
   readonly method: PaymentMethod;
   readonly amount: Vnd;
+  /**
+   * The QR whose transfer the bank confirmed: a transfer is only ever money the server
+   * matched to a QR the till showed, never a cashier's word that it arrived.
+   */
+  readonly paymentIntentId?: string;
 }
 
 /** The part of a tender that pays the order; the rest of a cash tender is change. */
 export interface AppliedPayment {
   readonly method: PaymentMethod;
   readonly amount: Vnd;
+  readonly paymentIntentId?: string;
 }
 
 export interface Settlement {
@@ -25,7 +31,7 @@ export interface Settlement {
 }
 
 export type TenderRefusal =
-  "not_positive" | "nothing_left" | "transfer_over_remaining" | "too_many";
+  "not_positive" | "nothing_left" | "transfer_over_remaining" | "transfer_without_qr" | "too_many";
 
 /** order.pay carries at most this many payments. */
 export const MAX_TENDERS = 10;
@@ -41,7 +47,12 @@ export function settleTenders(amountDue: Vnd, tenders: readonly Tender[]): Settl
   const payments: AppliedPayment[] = [];
   for (const tender of tenders) {
     const applied = compareVnd(tender.amount, remaining) > 0 ? remaining : tender.amount;
-    payments.push({ method: tender.method, amount: applied });
+    const intent = tender.paymentIntentId;
+    payments.push({
+      method: tender.method,
+      amount: applied,
+      ...(intent === undefined ? {} : { paymentIntentId: intent }),
+    });
     change = addVnd(change, subtractVnd(tender.amount, applied));
     remaining = subtractVnd(remaining, applied);
   }
@@ -51,6 +62,7 @@ export function settleTenders(amountDue: Vnd, tenders: readonly Tender[]): Settl
 /**
  * Why a tender cannot be taken, or null. Only cash gives change: a transfer for more than
  * is owed would leave the shop owing the customer money it cannot hand back from a bank.
+ * A transfer names the QR the bank paid; without one the server refuses the whole payment.
  */
 export function refuseTender(
   amountDue: Vnd,
@@ -58,6 +70,9 @@ export function refuseTender(
   next: Tender,
 ): TenderRefusal | null {
   if (tenders.length >= MAX_TENDERS) return "too_many";
+  if (next.method === PAYMENT_METHODS.qrTransfer && next.paymentIntentId === undefined) {
+    return "transfer_without_qr";
+  }
   if (compareVnd(next.amount, ZERO_VND) <= 0) return "not_positive";
   const { remaining } = settleTenders(amountDue, tenders);
   if (compareVnd(remaining, ZERO_VND) === 0) return "nothing_left";

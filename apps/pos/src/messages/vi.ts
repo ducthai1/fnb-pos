@@ -1,7 +1,9 @@
 // Every string the POS shows. Screens read from here; none writes Vietnamese inline.
 
 import { VI_CHECKOUT } from "./vi-checkout";
+import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
+import { VI_SYNC_ERRORS } from "./vi-sync-errors";
 
 export const vi = {
   boot: {
@@ -44,6 +46,7 @@ export const vi = {
   },
   sale: VI_SALE,
   checkout: VI_CHECKOUT,
+  qr: VI_QR_PAYMENT,
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
@@ -74,6 +77,7 @@ export const vi = {
     API_STAFF_NOT_FOUND: "Không tìm thấy nhân viên này. Tải lại danh sách.",
     API_STAFF_NOT_IN_BRANCH: "Nhân viên này không làm ở chi nhánh của máy.",
     API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ.",
+    ...VI_SYNC_ERRORS,
     pinLockedUntil: (time: string) => `Nhập sai PIN quá nhiều lần. Thử lại lúc ${time}.`,
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     unknown: "Có lỗi xảy ra. Thử lại sau ít phút.",

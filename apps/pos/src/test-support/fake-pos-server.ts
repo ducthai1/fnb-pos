@@ -79,6 +79,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     pins: new Map<string, string>(),
     bootstrapFailure: null as ApiFailure | null,
     refuseCommandsWith: null as string | null,
+    /** Commands of a type refused for good with a code, the others answered as usual. */
+    refuseTypes: new Map<string, string>(),
     /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
     feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
     pushed: [] as SyncCommandEnvelope[],
@@ -91,7 +93,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
   const unreachable = () => refusal(null, null);
-  const rows = fakeServerRows(CREDENTIAL.deviceId);
+  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId);
 
   const api: PosApi = {
     async pairDevice(input) {
@@ -122,8 +124,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pushedCommands += batch.length;
       state.pushed.push(...batch);
-      const code = state.refuseCommandsWith;
       return batch.map((command) => {
+        const code = state.refuseCommandsWith ?? state.refuseTypes.get(command.type) ?? null;
         if (code !== null)
           return { commandId: command.commandId, status: "rejected" as const, code };
         const snapshot = rows.answer(command);
@@ -143,7 +145,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
 
-  return { state, api, bootstrap, transport, rows: rows.rows };
+  return { state, api, bootstrap, transport, rows: rows.rows, qr: rows.qr };
 }
 
 /** The POS wired to the fake server, an in-memory store and saved credentials. */

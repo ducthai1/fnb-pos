@@ -18,7 +18,11 @@ export interface TillOrderState {
   readonly version: number;
   readonly businessDate: string;
   readonly chargeProfile: OrderChargeProfile;
-  readonly payments: readonly { readonly method: string; readonly amount: Vnd }[];
+  readonly payments: readonly {
+    readonly method: string;
+    readonly amount: Vnd;
+    readonly paymentIntentId?: string;
+  }[];
   readonly sent: readonly SentLineState[];
 }
 
@@ -77,6 +81,7 @@ export function tillOrderSnapshot(
     payments: state.payments.map((payment) => ({
       method: payment.method,
       amount: moneyToWire(payment.amount),
+      paymentIntentId: payment.paymentIntentId ?? null,
     })),
   };
 }

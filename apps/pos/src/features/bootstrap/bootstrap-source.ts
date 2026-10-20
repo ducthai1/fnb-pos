@@ -2,6 +2,7 @@ import { type PosBootstrap, posBootstrapSchema } from "@fnb/contracts";
 import type { DeviceCredential } from "../../shell-bridge/device-credential-store";
 import { type ApiResult, type FetchLike, requestJson, resultOf } from "../api/api-result";
 import { deviceAuthorization } from "../api/pos-api";
+import type { TillPlace } from "../order/till-command";
 
 /**
  * Everything the till starts selling from (GET /pos/bootstrap), parsed by the contract the
@@ -42,5 +43,15 @@ export function httpBootstrapSource(
       });
       return resultOf(answer, parseBootstrap);
     },
+  };
+}
+
+/** Where the till sells, as every command it records is stamped. */
+export function tillPlaceOf(snapshot: BootstrapSnapshot): TillPlace {
+  return {
+    deviceId: snapshot.device.id,
+    branchId: snapshot.branch.id,
+    utcOffsetMinutes: snapshot.branch.utcOffsetMinutes,
+    businessDayStartMinute: snapshot.branch.businessDayStartMinute,
   };
 }

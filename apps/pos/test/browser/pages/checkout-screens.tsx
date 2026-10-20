@@ -46,7 +46,14 @@ const jobs = [
 
 export const CHECKOUT_SCREENS = {
   payment: () => (
-    <PaymentScreen header={null} amountDue={vnd(99_999_999_000)} onBack={() => {}} onPaid={never} />
+    <PaymentScreen
+      header={null}
+      amountDue={vnd(99_999_999_000)}
+      qrAccountSet
+      onBack={() => {}}
+      onQr={() => {}}
+      onPaid={never}
+    />
   ),
   "sale-done": () => (
     <SaleDoneScreen

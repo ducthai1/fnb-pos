@@ -67,3 +67,61 @@
   font-size: 12px;
   line-height: 1.35;
 }
+
+/* The VietQR: as large as a phone camera needs, never wider than the screen. */
+.pos-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.pos-qr-image {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.pos-qr__facts {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 4px 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.pos-qr__facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-qr__code {
+  font-family: ui-monospace, "Cascadia Mono", "Roboto Mono", monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.pos-qr-status {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.pos-qr-status--info {
+  background: var(--pos-surface);
+  border: 1px solid var(--pos-border);
+}
+
+.pos-qr-status--ok {
+  background: var(--pos-ok-bg);
+  color: var(--pos-ok-text);
+}
+
+.pos-qr-status--warn {
+  background: var(--pos-warn-bg);
+  color: var(--pos-warn-text);
+}
