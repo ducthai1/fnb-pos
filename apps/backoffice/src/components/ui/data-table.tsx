@@ -128,6 +128,12 @@ export function DataTable<R>(props: {
         onSort={setSort}
         shown={shown.length}
       />
+      {selection !== undefined && shown.length > 0 && (
+        <label className="bo-field--inline bo-data__pick-all">
+          <input type="checkbox" checked={allPicked} onChange={() => pickAll(!allPicked)} />
+          {selection.allLabel}
+        </label>
+      )}
       {shown.length === 0 ? (
         <p className="bo-empty">{T.noMatch}</p>
       ) : (
@@ -138,17 +144,6 @@ export function DataTable<R>(props: {
             onSort={toggleSort}
             actionsWidth={actionsWidth}
             hasActions={actions !== undefined}
-            lead={
-              selection === undefined ? undefined : (
-                <input
-                  type="checkbox"
-                  className="bo-data__pick-all"
-                  aria-label={selection.allLabel}
-                  checked={allPicked}
-                  onChange={() => pickAll(!allPicked)}
-                />
-              )
-            }
           />
           <tbody>
             {shown.map((row) => {

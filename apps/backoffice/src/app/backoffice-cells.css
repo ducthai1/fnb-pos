@@ -166,7 +166,7 @@
   text-align: center;
 }
 
-/* A row's tick box before its first cell, and the head's box that ticks every row shown. */
+/* A row's tick box before its first cell, and the box over the table that ticks every row shown. */
 .bo-data__pick {
   display: flex;
   align-items: flex-start;
@@ -175,7 +175,7 @@
 }
 
 .bo-data__pick > input,
-.bo-data__pick-all {
+.bo-data__pick-all > input {
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
@@ -184,6 +184,10 @@
 }
 
 .bo-data__pick-all {
-  margin-right: var(--sp-3);
-  vertical-align: -3px;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  align-self: flex-start;
+  padding-inline: var(--sp-3);
+  font-weight: var(--fw-medium);
 }
