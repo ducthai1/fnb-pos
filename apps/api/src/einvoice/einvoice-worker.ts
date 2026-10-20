@@ -1,6 +1,7 @@
 import { withTenant } from "@fnb/db";
 import type pg from "pg";
 import type { Clock } from "../clock";
+import { claimDueBatch, recordBatchOutcome } from "./einvoice-batch-work";
 import { claimDueInvoice } from "./einvoice-claims";
 import { EINVOICE_FAILURE_CODES } from "./einvoice-error-codes";
 import { type RecordedOutcome, recordIssueOutcome } from "./einvoice-outcomes";
@@ -19,7 +20,13 @@ export interface EInvoiceWorkDependencies {
 /** What a round did, by outcome. */
 export type WorkerRound = Record<RecordedOutcome, number>;
 
-const emptyRound = (): WorkerRound => ({ issued: 0, retrying: 0, failed: 0, stale: 0 });
+const emptyRound = (): WorkerRound => ({
+  issued: 0,
+  submitted: 0,
+  retrying: 0,
+  failed: 0,
+  stale: 0,
+});
 
 /** Up to this many tenants per round, and items per tenant, so no shop starves the others. */
 const TENANTS_PER_ROUND = 50;
@@ -54,29 +61,78 @@ export async function runEInvoiceWorkForTenant(
   tenantId: string,
 ): Promise<WorkerRound> {
   const round = emptyRound();
-  for (let item = 0; item < ITEMS_PER_TENANT; item++) {
-    const outcome = await issueNextInvoice(deps, tenantId);
-    if (outcome === null) break;
-    round[outcome] += 1;
+  // Invoices first: a day's batch is only built once its invoices are out.
+  const steps = [issueNextInvoice, (d: EInvoiceWorkDependencies, t: string) => submitNextBatch(d, t)];
+  for (const next of steps) {
+    for (let item = 0; item < ITEMS_PER_TENANT; item++) {
+      const outcome = await next(deps, tenantId);
+      if (outcome === null) break;
+      round[outcome] += 1;
+    }
   }
   return round;
+}
+
+const claimOptions = (deps: EInvoiceWorkDependencies) => ({
+  now: deps.clock.now(),
+  leaseMs: (deps.policy ?? DEFAULT_EINVOICE_RETRY_POLICY).leaseMs,
+  providers: [...deps.providers.keys()],
+});
+
+const outcomeContext = (deps: EInvoiceWorkDependencies, tenantId: string) => ({
+  tenantId,
+  now: deps.clock.now(),
+  policy: deps.policy ?? DEFAULT_EINVOICE_RETRY_POLICY,
+});
+
+function providerOf(deps: EInvoiceWorkDependencies, key: string): EInvoiceProvider {
+  const provider = deps.providers.get(key);
+  if (provider === undefined) throw new Error(`claimed work of provider ${key}`);
+  return provider;
+}
+
+/**
+ * Sends the named batches now, for a request whose user waits to see whether the day's
+ * data went through; whatever fails stays queued for the worker. Answers their outcomes.
+ */
+export async function submitBatchesNow(
+  deps: EInvoiceWorkDependencies,
+  tenantId: string,
+  batchIds: readonly string[],
+): Promise<(RecordedOutcome | null)[]> {
+  const outcomes: (RecordedOutcome | null)[] = [];
+  for (const batchId of batchIds) outcomes.push(await submitNextBatch(deps, tenantId, batchId));
+  return outcomes;
+}
+
+async function submitNextBatch(
+  deps: EInvoiceWorkDependencies,
+  tenantId: string,
+  batchId?: string,
+): Promise<RecordedOutcome | null> {
+  const claimed = await withTenant(deps.pool, tenantId, (client) =>
+    claimDueBatch(client, { ...claimOptions(deps), ...(batchId === undefined ? {} : { batchId }) }),
+  );
+  if (claimed === null) return null;
+  const provider = providerOf(deps, claimed.provider);
+  const outcome = await askProvider(() => provider.submitDailyBatch(claimed.batch));
+  return withTenant(deps.pool, tenantId, (client) =>
+    recordBatchOutcome(client, outcomeContext(deps, tenantId), claimed, outcome),
+  );
 }
 
 async function issueNextInvoice(
   deps: EInvoiceWorkDependencies,
   tenantId: string,
 ): Promise<RecordedOutcome | null> {
-  const policy = deps.policy ?? DEFAULT_EINVOICE_RETRY_POLICY;
-  const providers = [...deps.providers.keys()];
   const claimed = await withTenant(deps.pool, tenantId, (client) =>
-    claimDueInvoice(client, { now: deps.clock.now(), leaseMs: policy.leaseMs, providers }),
+    claimDueInvoice(client, claimOptions(deps)),
   );
   if (claimed === null) return null;
-  const provider = deps.providers.get(claimed.provider);
-  if (provider === undefined) throw new Error(`claimed an invoice of ${claimed.provider}`);
+  const provider = providerOf(deps, claimed.provider);
   const outcome = await askProvider(() => provider.issue(claimed.document));
   return withTenant(deps.pool, tenantId, (client) =>
-    recordIssueOutcome(client, { tenantId, now: deps.clock.now(), policy }, claimed, outcome),
+    recordIssueOutcome(client, outcomeContext(deps, tenantId), claimed, outcome),
   );
 }
 

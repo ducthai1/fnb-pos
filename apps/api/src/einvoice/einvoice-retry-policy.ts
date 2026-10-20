@@ -28,3 +28,26 @@ export function retryDelayMs(policy: EInvoiceRetryPolicy, attempts: number): num
   if (doublings >= 31) return policy.maxDelayMs;
   return Math.min(policy.firstDelayMs * 2 ** doublings, policy.maxDelayMs);
 }
+
+/** What a failed call leads to: another try at `due`, or a failure for a person to handle. */
+export type AfterFailure =
+  | { readonly status: "failed_retryable"; readonly due: Date; readonly code: string }
+  | { readonly status: "failed_permanent"; readonly code: string };
+
+/**
+ * The step after the `attempts`-th call failed: a temporary failure is tried again after
+ * the policy's wait, unless it was the last attempt allowed, which turns it permanent under
+ * `exhaustedCode` (the provider's own code is still kept by the caller for the person).
+ */
+export function afterFailure(
+  policy: EInvoiceRetryPolicy,
+  failure: { readonly failure: "temporary" | "permanent"; readonly code: string },
+  attempts: number,
+  now: Date,
+  exhaustedCode: string,
+): AfterFailure {
+  if (failure.failure === "permanent") return { status: "failed_permanent", code: failure.code };
+  if (attempts >= policy.maxAttempts) return { status: "failed_permanent", code: exhaustedCode };
+  const due = new Date(now.getTime() + retryDelayMs(policy, attempts));
+  return { status: "failed_retryable", due, code: failure.code };
+}

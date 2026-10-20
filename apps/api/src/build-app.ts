@@ -24,6 +24,7 @@ import { registerPaymentBackofficeRoutes } from "./routes/payments/payment-backo
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
 import { registerPosBootstrapRoute } from "./routes/pos/bootstrap-route";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
+import { registerDayCloseRoutes } from "./routes/reports/day-close-routes";
 import { registerPrintFailureRoutes } from "./routes/reports/print-failure-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
@@ -131,6 +132,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerPaymentBackofficeRoutes(app, context, payments);
   const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
   registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
+  registerDayCloseRoutes(app, context, einvoiceProviders);
   const workerOptions = dependencies.einvoiceWorker;
   if (workerOptions !== undefined) {
     const deps = { pool, clock: resolvedClock, providers: einvoiceProviders, ...workerOptions };

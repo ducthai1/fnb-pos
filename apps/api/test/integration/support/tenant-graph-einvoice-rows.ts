@@ -1,4 +1,11 @@
-import type { RowSpec } from "./tenant-graph-rows";
+import type { RowSpec, Sql } from "./tenant-graph-rows";
+
+const anAppUser: Sql = { sql: "(SELECT id FROM app_user ORDER BY id LIMIT 1)" };
+
+// A branch closes a day once, so each call closes the day after the latest closed one.
+const nextOpenDay: Sql = {
+  sql: "(SELECT coalesce(max(business_date), DATE '2026-01-01') + 1 FROM day_close)",
+};
 
 // An order has one invoice, so each call invoices a draft order of its own.
 const FRESH_ORDER =
@@ -24,5 +31,25 @@ export const EINVOICE_ROWS = {
       amounts: "{}",
     }),
     with: FRESH_ORDER,
+  },
+  einvoice_daily_batch: {
+    parent: { column: "branch_id", table: "branch" },
+    values: () => ({
+      business_date: "2026-10-20",
+      provider: "fake",
+      regime_version: "nd254-tt91",
+      seller: "{}",
+      invoice_count: 0,
+      next_attempt_at: new Date(),
+    }),
+  },
+  day_close: {
+    parent: { column: "branch_id", table: "branch" },
+    values: () => ({
+      business_date: nextOpenDay,
+      closed_by_app_user_id: anAppUser,
+      closed_at: new Date(),
+      summary: "{}",
+    }),
   },
 } satisfies Record<string, RowSpec>;

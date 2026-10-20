@@ -6,12 +6,15 @@ import { readStoredOrder } from "../sync/stored-order";
 import type { ClaimedInvoice } from "./einvoice-claims";
 import { EINVOICE_FAILURE_CODES } from "./einvoice-error-codes";
 import type { IssuedInvoice, ProviderFailure } from "./einvoice-provider";
-import { type EInvoiceRetryPolicy, retryDelayMs } from "./einvoice-retry-policy";
+import { type EInvoiceRetryPolicy, afterFailure } from "./einvoice-retry-policy";
 
 export type IssueOutcome = IssuedInvoice | ProviderFailure;
 
-/** What became of one claimed invoice; "stale" when another worker had claimed it since. */
-export type RecordedOutcome = "issued" | "retrying" | "failed" | "stale";
+/**
+ * What became of one claimed invoice or batch; "stale" when another worker had claimed it
+ * since (its lease ran out), so this answer is not the one recorded.
+ */
+export type RecordedOutcome = "issued" | "submitted" | "retrying" | "failed" | "stale";
 
 export interface OutcomeContext {
   readonly tenantId: string;
@@ -57,17 +60,22 @@ export async function recordIssueOutcome(
     await announceToTills(client, context.tenantId, claimed.orderId);
     return "issued";
   }
-  const exhausted = outcome.failure === "temporary" && claimed.attempts >= context.policy.maxAttempts;
-  if (outcome.failure === "temporary" && !exhausted) {
-    const due = new Date(context.now.getTime() + retryDelayMs(context.policy, claimed.attempts));
+  const next = afterFailure(
+    context.policy,
+    outcome,
+    claimed.attempts,
+    context.now,
+    EINVOICE_FAILURE_CODES.attemptsExhausted,
+  );
+  if (next.status === "failed_retryable") {
     await client.query(
       "UPDATE einvoice SET status = 'failed_retryable', next_attempt_at = $2, " +
         "last_error_code = $3, updated_at = $4, version = version + 1 WHERE id = $1",
-      [claimed.id, due, outcome.code, context.now],
+      [claimed.id, next.due, next.code, context.now],
     );
     return "retrying";
   }
-  const code = exhausted ? EINVOICE_FAILURE_CODES.attemptsExhausted : outcome.code;
+  const { code } = next;
   await client.query(
     "UPDATE einvoice SET status = 'failed_permanent', next_attempt_at = NULL, " +
       "last_error_code = $2, updated_at = $3, version = version + 1 WHERE id = $1",
