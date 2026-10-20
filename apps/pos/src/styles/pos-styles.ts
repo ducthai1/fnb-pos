@@ -15,6 +15,7 @@ import "./pos-category-tones.css";
 import "./pos-sale.css";
 import "./pos-product-tiles.css";
 import "./pos-order.css";
+import "./pos-cart-controls.css";
 import "./pos-picker.css";
 import "./pos-note-counter.css";
 import "./pos-payment.css";

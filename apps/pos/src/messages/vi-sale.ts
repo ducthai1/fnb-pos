@@ -19,6 +19,7 @@ export const VI_SALE = {
   tableTag: "Số bàn",
   tableTagHint: "Ví dụ 5 hoặc A2",
   cartLabel: "Đơn đang bán",
+  peek: (count: number, amount: string) => `Xem đơn · ${count} món · ${amount}`,
   cartEmpty: "Chưa có món nào. Chạm vào món để thêm.",
   less: (name: string) => `Bớt một ${name}`,
   more: (name: string) => `Thêm một ${name}`,

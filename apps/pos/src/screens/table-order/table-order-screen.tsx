@@ -2,6 +2,7 @@ import type { PosProduct } from "@fnb/contracts";
 import type { ReactNode } from "react";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
+import { CartPeek } from "../sale/cart-peek";
 import { MenuPanel } from "../sale/menu-panel";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { TableCart, type TableCartProps } from "./table-cart";
@@ -32,7 +33,10 @@ export function TableOrderScreen({
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
       {notices}
       <div className="pos-sale">
-        <MenuPanel menu={menu} now={now} onPick={onPick} />
+        <div className="pos-sale__menu">
+          <MenuPanel menu={menu} now={now} onPick={onPick} />
+          <CartPeek lines={cart.order.lines} view={cart.view} />
+        </div>
         <TableCart {...cart} />
       </div>
     </ScreenFrame>
