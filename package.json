@@ -15,6 +15,7 @@
     "test:browser": "turbo run test:browser",
     "e2e": "turbo run test:browser",
     "verify": "turbo run typecheck && eslint . --max-warnings=0 && turbo run test:unit",
+    "build": "turbo run build",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

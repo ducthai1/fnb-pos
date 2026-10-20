@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./node-sqlite": "./src/local-store/node-sqlite-driver.ts",
-    "./browser": "./src/browser/index.ts"
+    "./browser": "./src/browser/index.ts",
+    "./test-support/system-chrome": "./test/browser/support/system-chrome.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",

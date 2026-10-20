@@ -1,0 +1,157 @@
+/* Touch first: every control is at least 48px tall and spaced for a thumb. Names come from
+   the shop and can be anything (80 characters without a space, emoji, stacked marks), so
+   text that shows a name wraps anywhere instead of pushing the screen wider. */
+
+:root {
+  --pos-bg: #f4f6f5;
+  --pos-surface: #ffffff;
+  --pos-text: #17211e;
+  --pos-muted: #52605b;
+  --pos-primary: #1f6f5c;
+  --pos-primary-text: #ffffff;
+  --pos-border: #c9d3cf;
+  --pos-danger-bg: #fdecea;
+  --pos-danger-text: #8a1c12;
+  --pos-ok-bg: #e3f4ec;
+  --pos-ok-text: #1b5e3f;
+  --pos-warn-bg: #fff4dc;
+  --pos-warn-text: #6d4a00;
+  color-scheme: light;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--pos-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--pos-bg);
+}
+
+/* The page never scrolls, this does; contain stops pull-to-refresh reloading a till mid-sale. */
+.pos-screen {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pos-screen__inner {
+  box-sizing: border-box;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pos-title {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.pos-hint {
+  margin: 0;
+  color: var(--pos-muted);
+}
+
+.pos-wrap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pos-field__label {
+  font-weight: 600;
+}
+
+.pos-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 1px solid var(--pos-border);
+  border-radius: 12px;
+  background: var(--pos-surface);
+  color: var(--pos-text);
+  font: inherit;
+  font-size: 1.25rem;
+}
+
+.pos-input--code {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.pos-input--pin {
+  max-width: 360px;
+  text-align: center;
+  letter-spacing: 0.4em;
+}
+
+.pos-button {
+  box-sizing: border-box;
+  min-height: 56px;
+  min-width: 56px;
+  padding: 12px 16px;
+  border: 1px solid var(--pos-border);
+  border-radius: 12px;
+  background: var(--pos-surface);
+  color: var(--pos-text);
+  font: inherit;
+  font-size: 1.125rem;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.pos-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pos-button--primary {
+  border-color: var(--pos-primary);
+  background: var(--pos-primary);
+  color: var(--pos-primary-text);
+  font-weight: 600;
+}
+
+.pos-button--quiet {
+  align-self: flex-start;
+  border-color: transparent;
+  background: transparent;
+  color: var(--pos-primary);
+}
+
+.pos-alert {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--pos-danger-bg);
+  color: var(--pos-danger-text);
+  overflow-wrap: anywhere;
+}
