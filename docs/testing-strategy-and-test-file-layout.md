@@ -50,6 +50,7 @@
 32. Mọi snapshot feed khác null PHẢI có `version`, nếu không sync-client ngừng kéo (`SYNC_CLIENT_SNAPSHOT_WITHOUT_VERSION`) — chỉ `test:sync` bắt được, `test:api` không. Entity mới ⇒ chạy `test:sync`.
 33. Tiền in bằng `formatVnd` có NBSP: `getByText("39.000 đ")` không bao giờ khớp ⇒ đọc thuộc tính `data-*` hoặc `textContent`. Test của apps/pos chỉ được typecheck qua `tsconfig.node.json` ⇒ dùng `pnpm --filter @fnb/pos typecheck`, đừng `tsc -p tsconfig.json`.
 34. ManualClock của test tích hợp cũng là `CallDeadlines` (`signalAfter`): tiến đồng hồ là bắn hạn; `FakeEInvoiceProvider.holdNext(op, {ignoresAbort})` giữ đúng một lời gọi. `support/secret-keys.ts` coi khóa chứa pin/hash/token… là bí mật ⇒ đặt tên trường không bí mật tránh các chữ đó.
+35. `justNow()` của test approval là hằng số: test nào tiến ManualClock thì approval của các test sau trong cùng file hết hạn ⇒ đặt test dùng approval trước hoặc trả đồng hồ về. Fastify mặc định lặng lẽ bỏ field lạ trong body ⇒ server cũ không đỏ vì field mới — test field mới phải kiểm server DÙNG nó. Fake POS: `state.pushesHeld`, `state.pushedWith` (token từng lô), `fakeServerRows({announce})` gửi ca vào feed như server thật.
 23. zod 3: refine vẫn chạy sau khi check trước đã lỗi ⇒ refine gọi BigInt/parse phải tự chặn đầu vào xấu trước.
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
