@@ -3,6 +3,9 @@ import { databaseUrlFor, provisionDatabase } from "@fnb/db";
 import { type TestPostgresInfo, asSuperuser, testConnectionString } from "@fnb/db/test-support";
 
 export interface ProvisionedScratchDatabase {
+  readonly database: string;
+  /** The role owning the database and its tables. */
+  readonly owner: string;
   /** The app role's connection string. */
   readonly appUrl: string;
   /** The bootstrap superuser on this database, for reading what the app role cannot. */
@@ -28,6 +31,8 @@ export async function provisionScratchDatabase(
   };
   await provisionDatabase(target);
   return {
+    database: target.database,
+    owner: target.owner.user,
     appUrl: databaseUrlFor(target.adminUrl, { database: target.database, credentials: target.app }),
     superuserUrl: databaseUrlFor(target.adminUrl, { database: target.database }),
     drop: () =>
