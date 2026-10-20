@@ -44,6 +44,14 @@
   box-shadow: var(--shadow-card);
 }
 
+/* A sign-in card inside a wider screen, e.g. a manager's PIN under what they approve. */
+.pos-screen__inner > .pos-signin--center {
+  justify-self: center;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+}
+
 .pos-signin__who {
   display: flex;
   flex-direction: column;

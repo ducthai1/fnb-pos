@@ -5,6 +5,7 @@ import type { BootstrapStaff } from "../../features/bootstrap/bootstrap-source";
 import { vi } from "../../messages/vi";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
 import { ScreenFrame } from "../shared/screen-frame";
+import { StaffAvatar } from "../shared/staff-avatar";
 
 const A = vi.approval;
 const SESSION_INVALID = "API_STAFF_SESSION_INVALID";
@@ -61,8 +62,15 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
       {chosen === null ? (
         <ApproverList approvers={props.approvers} onChoose={choose} />
       ) : (
-        <form className="pos-form pos-pin" onSubmit={submit} noValidate>
-          <p className="pos-hint pos-wrap">{A.pinFor(chosen.displayName)}</p>
+        <form
+          className="pos-form pos-pin pos-signin pos-signin--center"
+          onSubmit={submit}
+          noValidate
+        >
+          <div className="pos-signin__who">
+            <StaffAvatar id={chosen.id} name={chosen.displayName} size="lg" />
+            <p className="pos-hint pos-wrap">{A.pinFor(chosen.displayName)}</p>
+          </div>
           <PinPad
             pin={pin}
             onPin={setPin}
@@ -103,7 +111,8 @@ function ApproverList(props: {
               className="pos-button pos-staff-button pos-wrap"
               onClick={() => props.onChoose(member)}
             >
-              {member.displayName}
+              <StaffAvatar id={member.id} name={member.displayName} />
+              <span className="pos-staff-button__name">{member.displayName}</span>
             </button>
           </li>
         ))}
