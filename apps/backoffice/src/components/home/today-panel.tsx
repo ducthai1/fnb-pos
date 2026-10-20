@@ -22,7 +22,10 @@ const C = T.cards;
 /** Today at the branch: four figures, the day by hour, what sold most, what needs doing. */
 export function TodayPanel({ branchId }: { branchId: string }) {
   const api = useApi();
-  const load = useMemo(() => () => api.getDailySales(branchId, todaysBusinessDate()), [api, branchId]);
+  const load = useMemo(
+    () => () => api.getDailySales(branchId, todaysBusinessDate()),
+    [api, branchId],
+  );
   const [loaded, reload] = useApiLoad(load);
   return (
     <div className="bo-home-grid">
@@ -32,7 +35,13 @@ export function TodayPanel({ branchId }: { branchId: string }) {
           return (
             <>
               <section className="bo-stats" aria-label={T.figuresTitle}>
-                <StatCard icon={Wallet} label={C.collected} value={vndText(report.sales.collected)} note={C.collectedNote} figure="collected" />
+                <StatCard
+                  icon={Wallet}
+                  label={C.collected}
+                  value={vndText(report.sales.collected)}
+                  note={C.collectedNote}
+                  figure="collected"
+                />
                 <StatCard
                   icon={ReceiptText}
                   tone="info"

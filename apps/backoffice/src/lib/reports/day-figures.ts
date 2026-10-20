@@ -24,7 +24,10 @@ export function topItems(report: DailySalesReport, count: number): DayItem[] {
   return report.items
     .filter((item) => item.lineType === "item")
     .map((item, index) => ({ item, index, units: Number(item.quantity) }))
-    .sort((a, b) => b.units - a.units || a.item.name.localeCompare(b.item.name, "vi") || a.index - b.index)
+    .sort(
+      (a, b) =>
+        b.units - a.units || a.item.name.localeCompare(b.item.name, "vi") || a.index - b.index,
+    )
     .slice(0, count)
     .map(({ item }) => item);
 }

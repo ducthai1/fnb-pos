@@ -1,10 +1,22 @@
 "use client";
 
-import { CalendarCheck, CircleCheck, type LucideIcon, PrinterX, QrCode, TriangleAlert } from "lucide-react";
+import {
+  CalendarCheck,
+  CircleCheck,
+  type LucideIcon,
+  PrinterX,
+  QrCode,
+  TriangleAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { ApiResult } from "../../lib/api/api-result";
-import { dayBefore, formatBusinessDate, shopDaysWindow, todaysBusinessDate } from "../../lib/format/business-day";
+import {
+  dayBefore,
+  formatBusinessDate,
+  shopDaysWindow,
+  todaysBusinessDate,
+} from "../../lib/format/business-day";
 import { isPermissionDenied } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
@@ -46,24 +58,59 @@ export function TodoList({ branchId }: { branchId: string }) {
         if (!result.ok) return [failedOr(result, () => "clear")];
         const { refundDue, transfers } = result.value;
         return [
-          refundDue.length === 0 ? "clear" : { key: "refund", text: T.todo.refundDue(refundDue.length), href: "/payments", icon: QrCode, tone: "danger" },
-          transfers.length === 0 ? "clear" : { key: "match", text: T.todo.unmatched(transfers.length), href: "/payments", icon: TriangleAlert, tone: "warn" },
+          refundDue.length === 0
+            ? "clear"
+            : {
+                key: "refund",
+                text: T.todo.refundDue(refundDue.length),
+                href: "/payments",
+                icon: QrCode,
+                tone: "danger",
+              },
+          transfers.length === 0
+            ? "clear"
+            : {
+                key: "match",
+                text: T.todo.unmatched(transfers.length),
+                href: "/payments",
+                icon: TriangleAlert,
+                tone: "warn",
+              },
         ];
       }),
       window === null
         ? Promise.resolve<Check[]>(["clear"])
-        : api.getPrintFailures(branchId, window.from, window.to).then((result) => [
-            failedOr(result, ({ failures, truncated }) =>
-              failures.length === 0
-                ? "clear"
-                : { key: "print", text: T.todo.printFailures(failures.length, truncated), href: "/reports/print-failures", icon: PrinterX, tone: "danger" },
-            ),
-          ]),
-      Promise.all([api.getDayStatus(branchId, yesterday), api.getDailySales(branchId, yesterday)]).then(([status, sales]) => {
+        : api
+            .getPrintFailures(branchId, window.from, window.to)
+            .then((result) => [
+              failedOr(result, ({ failures, truncated }) =>
+                failures.length === 0
+                  ? "clear"
+                  : {
+                      key: "print",
+                      text: T.todo.printFailures(failures.length, truncated),
+                      href: "/reports/print-failures",
+                      icon: PrinterX,
+                      tone: "danger",
+                    },
+              ),
+            ]),
+      Promise.all([
+        api.getDayStatus(branchId, yesterday),
+        api.getDailySales(branchId, yesterday),
+      ]).then(([status, sales]) => {
         if (!status.ok) return [failedOr(status, () => "clear")];
         const sold = sales.ok && sales.value.sales.orderCount + sales.value.refunds.orderCount > 0;
         if (status.value.dayClose !== null || !sold) return ["clear"] as Check[];
-        return [{ key: "day", text: T.todo.dayOpen(formatBusinessDate(yesterday)), href: "/day-close", icon: CalendarCheck, tone: "warn" }] as Check[];
+        return [
+          {
+            key: "day",
+            text: T.todo.dayOpen(formatBusinessDate(yesterday)),
+            href: "/day-close",
+            icon: CalendarCheck,
+            tone: "warn",
+          },
+        ] as Check[];
       }),
     ]).then((groups) => {
       if (current) setChecks(groups.flat());
@@ -79,10 +126,12 @@ export function TodoList({ branchId }: { branchId: string }) {
   return (
     <div className="bo-stack">
       {todos.length === 0 ? (
-        !failed && <p className="bo-todo-clear">
-          <Icon of={CircleCheck} />
-          {T.todoClear}
-        </p>
+        !failed && (
+          <p className="bo-todo-clear">
+            <Icon of={CircleCheck} />
+            {T.todoClear}
+          </p>
+        )
       ) : (
         <ul className="bo-todos">
           {todos.map((todo) => (
