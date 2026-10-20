@@ -54,6 +54,13 @@ export function dayAfter(text: string): string {
   return new Date(Date.parse(`${text}T00:00:00Z`) + DAY_MS).toISOString().slice(0, 10);
 }
 
+/** The first day of the `days` days that end on `last` (that day itself for 1). */
+export function firstOfLastDays(last: string, days: number): string {
+  let first = last;
+  for (let step = 1; step < days; step += 1) first = dayBefore(first);
+  return first;
+}
+
 /** "20/10/2026" for "2026-10-20"; the text itself when it is not a day. */
 export function formatBusinessDate(text: string): string {
   if (!isCalendarDate(text)) return text;

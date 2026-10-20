@@ -3,7 +3,7 @@
 import { PrinterCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { PrintFailures } from "../../lib/api/reports-api";
-import { shopDaysWindow, todaysBusinessDate } from "../../lib/format/business-day";
+import { firstOfLastDays, shopDaysWindow, todaysBusinessDate } from "../../lib/format/business-day";
 import { formatDateTime } from "../../lib/format/format-time";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
@@ -19,6 +19,13 @@ const T = vi.printFailures;
 const C = T.columns;
 
 type Failure = PrintFailures["failures"][number];
+
+/** The ranges a tap picks, each ending today. */
+const RANGES = [
+  { key: "today", days: 1 },
+  { key: "week", days: 7 },
+  { key: "month", days: 30 },
+] as const;
 
 const kindName = (failure: Failure) => T.kinds[failure.kind] ?? failure.kind;
 
@@ -133,6 +140,26 @@ export function PrintFailuresScreen() {
       <div className="bo-row">
         <TextField label={T.fromLabel} type="date" value={fromDate} onChange={setFromDate} />
         <TextField label={T.toLabel} type="date" value={toDate} onChange={setToDate} />
+        <div className="bo-tabs" role="group" aria-label={T.rangesLabel}>
+          {RANGES.map(({ key, days }) => {
+            const today = todaysBusinessDate();
+            const first = firstOfLastDays(today, days);
+            return (
+              <button
+                key={key}
+                type="button"
+                className="bo-tab"
+                aria-pressed={fromDate === first && toDate === today}
+                onClick={() => {
+                  setFromDate(first);
+                  setToDate(today);
+                }}
+              >
+                {T.ranges[key]}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {range === null && (
         <p className="bo-notice bo-notice--error bo-wrap" role="alert">

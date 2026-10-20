@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayAfter, dayBefore, shopDaysWindow, todaysBusinessDate } from "./business-day";
+import { dayAfter, dayBefore, firstOfLastDays, shopDaysWindow, todaysBusinessDate } from "./business-day";
 
 const at = (text: string) => Date.parse(text);
 const inside = (window: { from: string; to: string }, instant: number) =>
@@ -60,5 +60,13 @@ describe("dayAfter", () => {
 
   it("leaves text that is not a day as it is", () => {
     expect(dayAfter("")).toBe("");
+  });
+});
+
+describe("firstOfLastDays", () => {
+  it("counts the last day in, across a month", () => {
+    expect(firstOfLastDays("2026-10-20", 1)).toBe("2026-10-20");
+    expect(firstOfLastDays("2026-10-20", 7)).toBe("2026-10-14");
+    expect(firstOfLastDays("2026-03-02", 30)).toBe("2026-02-01");
   });
 });

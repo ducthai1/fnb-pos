@@ -63,6 +63,8 @@ export const VI_PRINT_FAILURES = {
   fromLabel: "Từ ngày",
   toLabel: "Đến ngày",
   rangeInvalid: "Chọn ngày bắt đầu không sau ngày kết thúc.",
+  rangesLabel: "Khoảng ngày nhanh",
+  ranges: { today: "Hôm nay", week: "7 ngày qua", month: "30 ngày qua" },
   show: "Xem",
   search: "Tìm máy in, đơn, mã lỗi",
   columns: {
