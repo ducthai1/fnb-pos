@@ -16,6 +16,17 @@
 .bo-login {
   width: 100%;
   max-width: 420px;
+  padding: var(--sp-8) var(--sp-6);
+  gap: var(--sp-4);
+}
+
+/* The same plain brand square as the bar, above the sign-in title. */
+.bo-login::before {
+  content: "";
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--c-brand-tint), var(--c-brand));
 }
 
 .bo-stack {
