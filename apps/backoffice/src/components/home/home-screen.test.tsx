@@ -46,6 +46,29 @@ describe("the home page of a member who may read reports", () => {
     expect(api.getDailySales).toHaveBeenCalledWith(BRANCHES[0]!.id, todaysBusinessDate());
   });
 
+  it("puts yesterday's takings and orders under today's, and leaves them out when unread", async () => {
+    const yesterday = dayBefore(todaysBusinessDate());
+    const report = dailySalesReport();
+    const getDailySales = mock.fn(async (_branch: string, date: string) =>
+      date === yesterday ? ok({ ...report, sales: { ...report.sales, collected: 990_000, orderCount: 33 } }) : ok(report),
+    );
+    await renderSignedIn(<HomeScreen />, reportsApi({ getDailySales }));
+    await mock.waitFor(() => expect(figure("collected")).toContain(T.cards.yesterday("990.000 ₫").replace(" ₫", "")));
+    expect(figure("orderCount")).toContain(T.cards.yesterdayOrders(33));
+    expect(getDailySales).toHaveBeenCalledWith(BRANCHES[0]!.id, yesterday);
+  });
+
+  it("keeps the plain note under the figures when yesterday cannot be read", async () => {
+    const yesterday = dayBefore(todaysBusinessDate());
+    const getDailySales = mock.fn(async (_branch: string, date: string) =>
+      date === yesterday ? refused(500, "API_INTERNAL") : ok(dailySalesReport()),
+    );
+    await renderSignedIn(<HomeScreen />, reportsApi({ getDailySales }));
+    await screen.findByRole("heading", { name: T.hoursTitle });
+    expect(figure("collected")).toContain(T.cards.collectedNote);
+    expect(figure("orderCount")).not.toContain("Hôm qua");
+  });
+
   it("names the busiest hour in words and lists what sold most, toppings left out", async () => {
     await renderSignedIn(<HomeScreen />, reportsApi());
     const chart = await screen.findByRole("img");

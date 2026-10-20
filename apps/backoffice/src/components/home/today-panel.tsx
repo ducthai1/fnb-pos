@@ -3,7 +3,7 @@
 import { Banknote, ChartColumn, QrCode, ReceiptText, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { todaysBusinessDate, vndText } from "../../lib/format/business-day";
+import { dayBefore, todaysBusinessDate, vndText } from "../../lib/format/business-day";
 import { averageOrder, hourBars, methodNet, topItems } from "../../lib/reports/day-figures";
 import { formatVnd } from "@fnb/domain";
 import { vi } from "../../messages/vi";
@@ -27,6 +27,13 @@ export function TodayPanel({ branchId }: { branchId: string }) {
     [api, branchId],
   );
   const [loaded, reload] = useApiLoad(load);
+  // Yesterday only adds a line under two figures: when it cannot be read, the line is left out.
+  const loadYesterday = useMemo(
+    () => () => api.getDailySales(branchId, dayBefore(todaysBusinessDate())),
+    [api, branchId],
+  );
+  const [yesterday] = useApiLoad(loadYesterday);
+  const before = yesterday.state === "ready" ? yesterday.value.sales : null;
   return (
     <div className="bo-home-grid">
       <LoadStateView loaded={loaded} retry={reload}>
@@ -39,7 +46,7 @@ export function TodayPanel({ branchId }: { branchId: string }) {
                   icon={Wallet}
                   label={C.collected}
                   value={vndText(report.sales.collected)}
-                  note={C.collectedNote}
+                  note={before === null ? C.collectedNote : C.yesterday(vndText(before.collected))}
                   figure="collected"
                 />
                 <StatCard
@@ -47,7 +54,11 @@ export function TodayPanel({ branchId }: { branchId: string }) {
                   tone="info"
                   label={C.orders}
                   value={String(report.sales.orderCount)}
-                  note={C.ordersNote(report.cancelledOrders)}
+                  note={
+                    before === null
+                      ? C.ordersNote(report.cancelledOrders)
+                      : `${C.ordersNote(report.cancelledOrders)} · ${C.yesterdayOrders(before.orderCount)}`
+                  }
                   figure="orderCount"
                 />
                 <StatCard

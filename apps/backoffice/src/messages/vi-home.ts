@@ -7,6 +7,8 @@ export const VI_HOME = {
   cards: {
     collected: "Doanh thu",
     collectedNote: "Khách đã trả",
+    yesterday: (value: string) => `Hôm qua ${value}`,
+    yesterdayOrders: (count: number) => `Hôm qua ${count} đơn`,
     orders: "Số đơn",
     ordersNote: (cancelled: number) => (cancelled === 0 ? "Không có đơn hủy" : `${cancelled} đơn hủy`),
     average: "Trung bình mỗi đơn",
