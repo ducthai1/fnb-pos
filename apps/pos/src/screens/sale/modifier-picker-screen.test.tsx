@@ -17,7 +17,7 @@ const menu = hostileTillMenu();
 const tap = (name: string | RegExp) => fireEvent.click(screen.getByRole("button", { name }));
 const alertText = () => screen.queryByRole("alert")?.textContent ?? null;
 
-function openPicker(product = RULES_TEA) {
+function openPicker(product = RULES_TEA, onCancel = () => {}) {
   const added: CartLine[] = [];
   render(
     <ModifierPickerScreen
@@ -26,7 +26,7 @@ function openPicker(product = RULES_TEA) {
       product={product}
       now={Date.now()}
       onAdd={(line) => added.push(line)}
-      onCancel={() => {}}
+      onCancel={onCancel}
     />,
   );
   return added;
@@ -121,5 +121,15 @@ describe("the option picker", () => {
     expect(alertText()).toBeNull();
     tap(/^Thêm vào đơn/);
     expect(added[0]?.modifiers).toHaveLength(31);
+  });
+
+  it("goes back on Esc like the button, whose name stays without the key", () => {
+    let cancelled = 0;
+    openPicker(RULES_TEA, () => (cancelled += 1));
+    fireEvent.keyDown(window, { key: "Escape", isComposing: true });
+    expect(cancelled).toBe(0);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(cancelled).toBe(1);
+    expect(screen.getByRole("button", { name: text.sale.picker.cancel })).toBeTruthy();
   });
 });

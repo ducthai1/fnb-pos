@@ -6,7 +6,9 @@ export const VI_SALE = {
   searchPlaceholder: "Gõ tên món, không dấu cũng được",
   clearSearch: "Xóa chữ đang tìm",
   /** The keys of a till's keyboard, printed on the controls they press. */
-  keys: { search: "F2", preBill: "F8", pay: "F9", send: "F10" },
+  keys: { search: "F2", preBill: "F8", pay: "F9", send: "F10", back: "Escape" },
+  /** Esc as its key cap reads; the key's own name is "Escape". */
+  backKeyCap: "Esc",
   categoriesLabel: "Danh mục",
   allCategories: "Tất cả",
   emptyMenu: "Chưa có món nào để bán. Thêm món ở trang quản lý.",

@@ -15,6 +15,7 @@ import {
 import { linePreviewTotal } from "../../features/order/line-preview-total";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
+import { useTillKey } from "../shared/use-till-key";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { ModifierGroupField } from "./modifier-group-field";
@@ -56,6 +57,7 @@ export function ModifierPickerScreen({
     note: null,
   };
   const total = linePreviewTotal(menu, draft, now);
+  useTillKey(vi.sale.keys.back, onCancel);
 
   function tap(groupId: string, optionId: string) {
     const group = product.modifierGroups.find((candidate) => candidate.id === groupId);
@@ -94,6 +96,9 @@ export function ModifierPickerScreen({
           <div className="pos-actions pos-actions--split">
             <button type="button" className="pos-button" onClick={onCancel}>
               {P.cancel}
+              <kbd className="pos-kbd" aria-hidden>
+                {vi.sale.backKeyCap}
+              </kbd>
             </button>
             <button
               type="button"

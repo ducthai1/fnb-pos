@@ -44,6 +44,7 @@ export function PaymentScreen(props: PaymentScreenProps) {
   const payable = paymentsToSend(amountDue, settlement) !== null;
   const owed = compareVnd(settlement.remaining, ZERO_VND) > 0;
   useTillKey(vi.sale.keys.pay, () => void finish(), payable && !busy);
+  useTillKey(vi.sale.keys.back, onBack, !busy);
 
   function take(tender: Tender) {
     const refusal = refuseTender(amountDue, tenders, tender);
@@ -73,6 +74,9 @@ export function PaymentScreen(props: PaymentScreenProps) {
           <div className="pos-actions pos-actions--split">
             <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
               {T.back}
+              <kbd className="pos-kbd" aria-hidden>
+                {vi.sale.backKeyCap}
+              </kbd>
             </button>
             <button
               type="button"
