@@ -49,8 +49,9 @@ function NewTableForm({ area, tables, onChanged }: { area: Area; tables: readonl
         error={invalid.seats === undefined ? undefined : T.seatsInvalid}
         onChange={setSeats}
       />
-      <button type="submit" className="bo-button" disabled={write.busy}>
-        {T.addTable(area.name)}
+      {/* The area's name is the shop's and may not wrap: it is in the accessible name only. */}
+      <button type="submit" className="bo-button" disabled={write.busy} aria-label={T.addTable(area.name)}>
+        {T.addTableShort}
       </button>
       <ErrorNotice message={write.error} />
     </form>

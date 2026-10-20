@@ -22,6 +22,7 @@ export const VI_FLOOR = {
   seats: "Số ghế",
   newTableName: "Tên bàn mới",
   addTable: (area: string) => `Thêm bàn vào ${area}`,
+  addTableShort: "Thêm bàn",
   saveTable: (name: string) => `Lưu bàn ${name}`,
   removeTable: (name: string) => `Xóa bàn ${name}`,
   removeTableTitle: (name: string) => `Xóa bàn ${name}?`,
