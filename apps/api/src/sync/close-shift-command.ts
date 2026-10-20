@@ -1,17 +1,13 @@
+import { type CloseShiftPayload, closeShiftPayloadSchema } from "@fnb/contracts";
 import { ACCEPT_CLOSE_DIFFERENCE, assessClosingCount, transitionShift } from "@fnb/domain/shift";
-import type pg from "pg";
 import { readCloseDifferenceTolerance } from "./close-difference-tolerance";
-import { approvalIdOf, authorizeShiftAction } from "./shift-command-approval";
 import { confirmedCount, insertShiftCount } from "./shift-counts";
-import type { CloseShiftPayload } from "./shift-request-schemas";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
 import { readShiftCashBook, readUnclosedShiftOfDevice } from "./stored-shift";
+import { requirePermission } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
+import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection } from "./sync-error-codes";
-
-const usedByClose = async (client: pg.ClientBase, approvalId: string) =>
-  (await client.query("SELECT 1 FROM shift WHERE close_approval_id = $1", [approvalId]))
-    .rowCount !== 0;
 
 /**
  * shift.close: settles the till's shift on the cashier's count. The expected cash comes
@@ -20,7 +16,7 @@ const usedByClose = async (client: pg.ClientBase, approvalId: string) =>
  * Drafts still open do not block the close (a late table would keep the shift open all
  * night): they stay drafts and land in whichever shift takes their payment.
  */
-export async function closeShift(context: SyncCommandContext, payload: CloseShiftPayload) {
+async function closeShift(context: SyncCommandContext, payload: CloseShiftPayload) {
   const { client, device, staffId } = context;
   const shift = await readUnclosedShiftOfDevice(client, device.deviceId, true);
   if (shift === null) throw new CommandRejection(C.noOpenShift);
@@ -30,13 +26,8 @@ export async function closeShift(context: SyncCommandContext, payload: CloseShif
   const { ledger } = await readShiftCashBook(client, shift);
   const tolerance = await readCloseDifferenceTolerance(client, device.deviceId);
   const assessment = assessClosingCount(ledger, count.total, tolerance);
-  const approvalId = assessment.needsAcceptance
-    ? await authorizeShiftAction(
-        context,
-        ACCEPT_CLOSE_DIFFERENCE,
-        approvalIdOf(context, payload.approvalId),
-        usedByClose,
-      )
+  const spent = assessment.needsAcceptance
+    ? await requirePermission(context, ACCEPT_CLOSE_DIFFERENCE, payload.approvalId)
     : null;
   const carried = await client.query<{ n: number }>(
     "SELECT count(*)::int AS n FROM sales_order WHERE device_id = $1 AND status = 'draft'",
@@ -55,9 +46,16 @@ export async function closeShift(context: SyncCommandContext, payload: CloseShif
       assessment.countedCash,
       assessment.expectedCash,
       assessment.difference,
-      approvalId,
+      spent?.approvalId ?? null,
       carried.rows[0]?.n ?? 0,
     ],
   );
   return shift.id;
 }
+
+export const closeShiftCommand = defineSyncCommand(
+  "shift.close",
+  closeShiftPayloadSchema,
+  closeShift,
+  "shift",
+);

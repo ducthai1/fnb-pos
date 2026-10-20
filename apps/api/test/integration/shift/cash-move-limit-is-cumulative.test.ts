@@ -92,19 +92,37 @@ describe("shift.cash_move", () => {
     expect(stored).toEqual([{ approval_id: approvalId }]);
   });
 
-  it("refuses an approval for less than the new total", async () => {
+  // The manager agreed to one figure: an approval covers that total, not one below or above.
+  it.each([
+    ["less", 100_000],
+    ["more", 2_000_000],
+  ])("refuses an approval for %s than the new total", async (_label, approved) => {
     const { till } = await openTill();
     await move(till, "out", 450_000);
-    const tooSmall = await approvedFor(till, 100_000);
-    expect((await move(till, "out", 100_000, tooSmall)).code).toBe("SYNC_APPROVAL_INVALID");
+    const other = await approvedFor(till, approved);
+    expect((await move(till, "out", 100_000, other)).code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
   });
 
-  it("refuses an approval already spent on an earlier move", async () => {
+  it("refuses an approval already spent, even on the same total in a later shift", async () => {
     const { till } = await openTill();
     await move(till, "out", 450_000);
-    const approvalId = await approvedFor(till, 2_000_000);
+    const approvalId = await approvedFor(till, 550_000);
     expect((await move(till, "out", 100_000, approvalId)).status).toBe("accepted");
+    expect((await pushShift(app, till, closeShift(till, 1_450_000))).status).toBe("accepted");
+    await openedShift(app, till, 2_000_000);
+    await move(till, "out", 450_000);
     expect((await move(till, "out", 100_000, approvalId)).code).toBe("SYNC_APPROVAL_ALREADY_USED");
+  });
+
+  it("refuses an approval the till recorded the move more than ten minutes away from", async () => {
+    const { till } = await openTill();
+    await move(till, "out", 450_000);
+    const approvalId = await approvedFor(till, 550_000);
+    const late = new Date(Date.now() + 11 * 60_000).toISOString();
+    const sent = { ...cashMove(till, "out", 100_000, { approvalId }), createdAt: late };
+    expect((await pushShift(app, till, sent)).code).toBe("SYNC_APPROVAL_EXPIRED");
+    // The refusal did not spend it: the same move recorded in time takes it.
+    expect((await move(till, "out", 100_000, approvalId)).status).toBe("accepted");
   });
 
   it("keeps each staff member's total apart, on the same till and shift", async () => {

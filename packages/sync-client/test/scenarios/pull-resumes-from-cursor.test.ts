@@ -5,7 +5,7 @@ import { scratchDirectory } from "../../src/local-store/local-store-test-support
 import { pick, saveDraft } from "../support/order-commands";
 import { ScenarioServer } from "../support/scenario-server";
 import { ScenarioTill, shownOrders } from "../support/scenario-till";
-import { feedOrders } from "../support/server-truth";
+import { feedChanges, feedOrders } from "../support/server-truth";
 import { virtualClock } from "../support/virtual-clock";
 
 const dir = scratchDirectory("pull-resumes");
@@ -51,7 +51,9 @@ describe("a till restarted halfway through pulling", () => {
     const reports = await after.syncUntilIdle();
     expect(pulledCursors(after)[0]).toBe(stopped);
     expect(pulledCursors(after)).not.toContain("0");
-    expect(reports.reduce((sum, report) => sum + report.pulled, 0)).toBe(7);
+    // The feed holds the menu set up with the shop as well as the 12 orders.
+    const feedLength = (await feedChanges(server, shop.tillB)).length;
+    expect(reports.reduce((sum, report) => sum + report.pulled, 0)).toBe(feedLength - 5);
     expect(await shownOrders(after)).toEqual(await feedOrders(server, shop.tillB));
     expect((await shownOrders(after)).size).toBe(12);
     await after.close();

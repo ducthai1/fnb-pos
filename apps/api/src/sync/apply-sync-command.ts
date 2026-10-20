@@ -4,7 +4,6 @@ import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { nextExpectedSeq, recordOutcome, storedResultOf } from "./command-ledger";
 import { type CommandSubject, subjectSnapshotOf } from "./command-subject-snapshot";
-import { applyShiftCommand, isShiftCommand } from "./shift-commands";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
 import { SYNC_COMMANDS } from "./sync-command-registry";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
@@ -55,7 +54,8 @@ export async function applySyncCommand(
     ...(outcome.status === "rejected" ? { code: outcome.code } : {}),
     ...(snapshot === null ? {} : { snapshot }),
   };
-  await recordOutcome(client, device.tenantId, device.deviceId, command, result);
+  const { tenantId, deviceId } = device;
+  await recordOutcome(client, { tenantId, deviceId, staffId: sender.staffId }, command, result);
   if (outcome.status === "accepted" && snapshot !== null) {
     await appendChange(client, device.tenantId, {
       branchId: device.branchId,
@@ -87,10 +87,7 @@ async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   }
   await client.query("SAVEPOINT sync_command");
   try {
-    // Shift commands answer with the shift; every other command is about an order.
-    const subject: CommandSubject = isShiftCommand(command.type)
-      ? { entity: "shift", id: await applyShiftCommand(context) }
-      : { entity: "order", id: await dispatch(context) };
+    const subject = await dispatch(context);
     await client.query("RELEASE SAVEPOINT sync_command");
     return { status: "accepted", subject };
   } catch (error) {
@@ -102,7 +99,8 @@ async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   }
 }
 
-function dispatch(context: SyncCommandContext): Promise<string> {
+/** The command's definition applies it and names the row it changed (an order, a shift). */
+function dispatch(context: SyncCommandContext): Promise<CommandSubject> {
   const definition = SYNC_COMMANDS.get(context.command.type);
   if (definition === undefined) throw new CommandRejection(SYNC_ERROR_CODES.unknownCommandType);
   return definition.apply(context, context.command.payload);

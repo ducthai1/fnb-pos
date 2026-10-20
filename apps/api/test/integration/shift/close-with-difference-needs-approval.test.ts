@@ -141,7 +141,7 @@ describe("shift.close refusals", () => {
       MANAGER_PIN,
     );
     const refused = await pushShift(app, till, closeShift(till, 509_000, { approvalId: forCash }));
-    expect(refused.code).toBe("SYNC_APPROVAL_INVALID");
+    expect(refused.code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
   });
 
   it("refuses an approval granted on another till", async () => {
@@ -152,7 +152,7 @@ describe("shift.close refusals", () => {
       till,
       closeShift(till, 509_000, { approvalId: elsewhere }),
     );
-    expect(refused.code).toBe("SYNC_APPROVAL_INVALID");
+    expect(refused.code).toBe("SYNC_APPROVAL_NOT_FOR_THIS_STAFF");
   });
 
   it("refuses an approval already spent on an earlier close", async () => {

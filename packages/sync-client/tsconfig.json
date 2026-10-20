@@ -3,5 +3,12 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["src", "test", "vitest.config.ts", "vitest.scenarios.config.ts"]
+  "include": [
+    "src",
+    "test",
+    "vitest.config.ts",
+    "vitest.scenarios.config.ts",
+    "vitest.browser.config.ts"
+  ],
+  "exclude": ["src/browser", "test/browser/pages"]
 }

@@ -19,7 +19,7 @@ const money = (name: string) => bigint(name, { mode: "bigint" });
  * A custom type because Drizzle's numeric prints its SQL type as "numeric(12, 3)", which
  * would never match what Postgres reports for the column.
  */
-const quantity = customType<{ data: string; driverData: string }>({
+export const quantity = customType<{ data: string; driverData: string }>({
   dataType: () => "numeric(12,3)",
 });
 
@@ -65,6 +65,7 @@ export const salesOrderLine = pgTable("sales_order_line", {
   priceSource: text("price_source").notNull(),
   reversesLineId: uuid("reverses_line_id"),
   sentQuantity: quantity("sent_quantity").notNull().default("0"),
+  sentNote: text("sent_note"),
   wholeParentLine: boolean("whole_parent_line").notNull().default(false),
   restock: boolean("restock"),
 });

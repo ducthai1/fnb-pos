@@ -1,4 +1,5 @@
 import type { ZodType, ZodTypeDef } from "zod";
+import type { CommandSubject } from "./command-subject-snapshot";
 import type { SyncCommandContext } from "./sync-command-context";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 
@@ -7,27 +8,29 @@ export interface SyncCommandDefinition {
   readonly type: string;
   /**
    * Checks the payload against the command's contract and applies it inside the command's
-   * transaction. Answers the id of the order it changed, whose snapshot goes back to the
-   * till and into the change feed.
+   * transaction. Answers the row it changed, whose snapshot goes back to the till and into
+   * the change feed.
    */
-  readonly apply: (context: SyncCommandContext, payload: unknown) => Promise<string>;
+  readonly apply: (context: SyncCommandContext, payload: unknown) => Promise<CommandSubject>;
 }
 
 /**
- * A command type from its payload contract and its handler. A payload the contract refuses
- * is a stored rejection of that one command, never an error for the whole batch.
+ * A command type from its payload contract and its handler, which answers the id of the
+ * `entity` it changed (an order unless told otherwise). A payload the contract refuses is
+ * a stored rejection of that one command, never an error for the whole batch.
  */
 export function defineSyncCommand<P>(
   type: string,
   payloadSchema: ZodType<P, ZodTypeDef, unknown>,
   handler: (context: SyncCommandContext, payload: P) => Promise<string>,
+  entity: CommandSubject["entity"] = "order",
 ): SyncCommandDefinition {
   return {
     type,
     apply: async (context, payload) => {
       const parsed = payloadSchema.safeParse(payload);
       if (!parsed.success) throw new CommandRejection(SYNC_ERROR_CODES.invalidPayload);
-      return handler(context, parsed.data);
+      return { entity, id: await handler(context, parsed.data) };
     },
   };
 }

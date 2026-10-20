@@ -22,10 +22,27 @@ interface ApprovalRow {
 }
 
 /**
+ * The approval a command names, in its payload or on its envelope. Two different ones is
+ * a till bug, and picking either would apply an approval nobody chose for this.
+ */
+export function approvalIdOf(
+  context: SyncCommandContext,
+  inPayload: string | undefined,
+): string | undefined {
+  const onEnvelope = context.command.approvalId;
+  if (inPayload !== undefined && onEnvelope !== undefined && inPayload !== onEnvelope) {
+    throw new CommandRejection(SYNC_ERROR_CODES.invalidPayload);
+  }
+  return inPayload ?? onEnvelope;
+}
+
+/**
  * Uses on-the-spot approval `approvalId` for `action` and answers who approved it. It must
  * have been asked by this staff member on this till, for this action with this very rate
- * or amount, within APPROVAL_VALID_FOR_MS, and not be used yet. The use is recorded in the
- * command's transaction, so a command refused later gives the approval back.
+ * or amount (an approval for 600.000 đ covers neither 500.000 đ nor 800.000 đ: the manager
+ * agreed to one figure), within APPROVAL_VALID_FOR_MS, and not be used yet by any command
+ * of any kind. The use is recorded in the command's transaction, so a command refused
+ * later gives the approval back.
  */
 export async function redeemApproval(
   context: SyncCommandContext,

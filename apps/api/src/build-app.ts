@@ -14,7 +14,9 @@ import { registerDeviceRoutes } from "./routes/devices/device-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerFloorRoutes } from "./routes/floor/register-floor-routes";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
+import { registerPosBootstrapRoute } from "./routes/pos/bootstrap-route";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
+import { registerPrintFailureRoutes } from "./routes/reports/print-failure-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
 import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
@@ -86,9 +88,11 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerUpdateAndDeleteRoleRoutes(app, context);
   registerStaffSessionRoutes(app, context);
   registerApprovalRoutes(app, context);
+  registerPosBootstrapRoute(app, context);
   registerCatalogRoutes(app, context);
   registerFloorRoutes(app, context);
   registerSyncRoutes(app, context);
+  registerPrintFailureRoutes(app, context);
 
   return app;
 }

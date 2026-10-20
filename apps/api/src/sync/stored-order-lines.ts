@@ -14,6 +14,8 @@ export interface StoredOrderLines {
   readonly lines: OrderLine[];
   /** Units of each line the kitchen has had, cancelled ones included; 0 when none. */
   readonly sentQuantityByLineId: ReadonlyMap<string, Quantity>;
+  /** The note each line had when the stations last saw it printed; null when never sent. */
+  readonly sentNoteByLineId: ReadonlyMap<string, string | null>;
   /** On a refund's negative items: whether the goods go back into stock. */
   readonly restockByLineId: ReadonlyMap<string, boolean>;
 }
@@ -34,6 +36,7 @@ interface LineRow {
   reverses_line_id: string | null;
   whole_parent_line: boolean;
   sent_quantity: string;
+  sent_note: string | null;
   restock: boolean | null;
 }
 
@@ -51,6 +54,7 @@ export async function readStoredOrderLines(
   return {
     lines: rows.map(lineOf),
     sentQuantityByLineId: new Map(rows.map((row) => [row.id, quantity(row.sent_quantity)])),
+    sentNoteByLineId: new Map(rows.map((row) => [row.id, row.sent_note])),
     restockByLineId: restock,
   };
 }

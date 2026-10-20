@@ -1,6 +1,7 @@
 import { catalogIdParamsSchema, catalogIdSchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
+import type pg from "pg";
 import type { ZodType, ZodTypeDef } from "zod";
 import { z } from "zod";
 import type { ApiContext } from "../../api-context";
@@ -12,6 +13,7 @@ import {
   parseOrReject,
 } from "../../catalog/catalog-request-error";
 import { putVersionedRow } from "../../catalog/catalog-row-writes";
+import { lockTenantChangeFeed } from "../../sync/change-feed";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 /** A flat catalog row owned by a brand or a branch: categories and stations. */
@@ -28,6 +30,8 @@ export interface VersionedResource<Input extends { version: number | null }> {
   select: string;
   orderBy: string;
   show(row: Record<string, unknown>): Record<string, unknown>;
+  /** Tells the tills that sell from the owner, in the writer's transaction. */
+  recordChange(client: pg.PoolClient, tenantId: string, ownerId: string, id: string): Promise<void>;
 }
 
 /** GET list by owner, PUT create-or-replace with a version, DELETE when nothing uses it. */
@@ -73,6 +77,8 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
       const input = parseOrReject(resource.body, request.body);
       const writer = writeContextOf(request, context);
       const { created, row } = await withTenant(context.pool, writer.tenantId, async (client) => {
+        // First, as in a sync command: the feed lock is always taken before any row lock.
+        await lockTenantChangeFeed(client, writer.tenantId);
         const saved = await putVersionedRow(client, writer, {
           table: resource.table,
           id,
@@ -81,6 +87,7 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
           cells: resource.cellsOf(input),
           notFoundCode: resource.notFoundCode,
         });
+        await resource.recordChange(client, writer.tenantId, resource.ownerOf(input), id);
         return { created: saved.created, row: (await client.query(readOne, [id])).rows[0] };
       });
       return reply.code(created ? 201 : 200).send(resource.show(row));
@@ -93,9 +100,16 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const tenantId = backofficeAuth(request).tenantId;
-      const deleted = await withTenant(context.pool, tenantId, (client) =>
-        client.query(`DELETE FROM ${resource.table} WHERE id = $1`, [id]),
-      ).catch((error: unknown) => {
+      const deleted = await withTenant(context.pool, tenantId, async (client) => {
+        await lockTenantChangeFeed(client, tenantId);
+        const gone = await client.query<{ owner: string }>(
+          `DELETE FROM ${resource.table} WHERE id = $1 RETURNING ${resource.owner.column} AS owner`,
+          [id],
+        );
+        const owner = gone.rows[0]?.owner;
+        if (owner !== undefined) await resource.recordChange(client, tenantId, owner, id);
+        return gone;
+      }).catch((error: unknown) => {
         // Still named by a product or price list item: those must move first.
         if (isForeignKeyViolation(error)) {
           throw new CatalogRequestError(409, CATALOG_API_ERROR_CODES.inUse);

@@ -23,22 +23,30 @@ export async function nextExpectedSeq(client: pg.ClientBase, deviceId: string): 
   return rows[0] === undefined ? 1 : Number(rows[0].last_seq) + 1;
 }
 
+/** The till that sent a command and the staff member signed in on it. */
+export interface CommandSender {
+  readonly tenantId: string;
+  readonly deviceId: string;
+  readonly staffId: string;
+}
+
 /** Records the outcome and moves the till's sequence past this command, in one transaction. */
 export async function recordOutcome(
   client: pg.ClientBase,
-  tenantId: string,
-  deviceId: string,
+  sender: CommandSender,
   command: SyncCommandEnvelope,
   result: SyncCommandResult,
 ) {
   if (result.status === "retry") throw new Error("a retry is never stored");
+  const { tenantId, deviceId, staffId } = sender;
   await client.query(
-    "INSERT INTO applied_command (id, tenant_id, device_id, command_id, device_seq, type, status, " +
-      "code, payload, result) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+    "INSERT INTO applied_command (id, tenant_id, device_id, staff_id, command_id, device_seq, " +
+      "type, status, code, payload, result) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
     [
       newId(),
       tenantId,
       deviceId,
+      staffId,
       command.commandId,
       command.deviceSeq,
       command.type,

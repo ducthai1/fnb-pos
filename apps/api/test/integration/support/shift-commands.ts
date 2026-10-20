@@ -7,6 +7,7 @@ import type { SyncCommandResult } from "../../../src/sync/sync-wire-types";
 import { requestApproval } from "./approval-requests";
 import { pairDevice } from "./paired-devices";
 import { startShift } from "./staffed-shop";
+import { justNow } from "./sync-approvals";
 import { command, line, orderIdOf, push, pushOne, saveDraft } from "./sync-commands";
 import type { SyncShop, Till } from "./sync-shop";
 
@@ -44,8 +45,20 @@ export function notesFor(amount: number) {
 export const openShift = (till: Till, openingCash: number, shiftId = newId()) =>
   command(till, "shift.open", { shiftId, openingCash, denominations: notesFor(openingCash) });
 
+/**
+ * Approvals are timed by the database and honoured for ten minutes around when the till
+ * recorded the command, so a command relying on one is dated when it is made.
+ */
+const datedFor = (extra: { approvalId?: string }) =>
+  extra.approvalId === undefined ? {} : { createdAt: justNow() };
+
 export const closeShift = (till: Till, counted: number, extra: { approvalId?: string } = {}) =>
-  command(till, "shift.close", { counted, denominations: notesFor(counted), ...extra });
+  command(
+    till,
+    "shift.close",
+    { counted, denominations: notesFor(counted), ...extra },
+    datedFor(extra),
+  );
 
 export const cashMove = (
   till: Till,
@@ -53,13 +66,12 @@ export const cashMove = (
   amount: number,
   extra: { approvalId?: string } = {},
 ) =>
-  command(till, "shift.cash_move", {
-    cashMoveId: newId(),
-    kind,
-    amount,
-    reason: "Trả tiền đá",
-    ...extra,
-  });
+  command(
+    till,
+    "shift.cash_move",
+    { cashMoveId: newId(), kind, amount, reason: "Trả tiền đá", ...extra },
+    datedFor(extra),
+  );
 
 /** order.pay in cash, naming the shift the till was in when it took the money. */
 export const payInShift = (till: Till, orderId: string, amount: number, shiftId?: string) =>

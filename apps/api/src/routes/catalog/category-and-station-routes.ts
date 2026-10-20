@@ -2,6 +2,7 @@ import { categoryBodySchema, stationBodySchema } from "@fnb/contracts";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
+import { recordCategoryChange, recordStationChange } from "../../catalog/catalog-change-feed";
 import { registerVersionedResourceRoutes } from "./versioned-resource-routes";
 
 export function registerCategoryAndStationRoutes(app: FastifyInstance, context: ApiContext): void {
@@ -27,6 +28,7 @@ export function registerCategoryAndStationRoutes(app: FastifyInstance, context: 
       sortOrder: row.sort_order,
       version: row.version,
     }),
+    recordChange: recordCategoryChange,
   });
 
   registerVersionedResourceRoutes(app, context, {
@@ -45,5 +47,6 @@ export function registerCategoryAndStationRoutes(app: FastifyInstance, context: 
     select: "id, branch_id, name, version",
     orderBy: "name, id",
     show: (row) => ({ id: row.id, branchId: row.branch_id, name: row.name, version: row.version }),
+    recordChange: recordStationChange,
   });
 }

@@ -10,6 +10,8 @@ export const appliedCommand = pgTable("applied_command", {
   id: uuid("id").primaryKey().$defaultFn(newId),
   tenantId: uuid("tenant_id").notNull(),
   deviceId: uuid("device_id").notNull(),
+  /** Who was signed in on the till; null on commands recorded before it was kept. */
+  staffId: uuid("staff_id"),
   commandId: uuid("command_id").notNull(),
   deviceSeq: bigint("device_seq", { mode: "number" }).notNull(),
   type: text("type").notNull(),

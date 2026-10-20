@@ -9,7 +9,8 @@ import {
   versionSchema,
 } from "./catalog-schema-parts";
 
-const scopeSchema = z.discriminatedUnion("kind", [
+/** What a price list item applies to; the till reads it with the same shape. */
+export const priceListScopeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("variant"), variantId: idSchema }).strict(),
   z.object({ kind: z.literal("product"), productId: idSchema }).strict(),
   z.object({ kind: z.literal("category"), categoryId: idSchema }).strict(),
@@ -30,7 +31,7 @@ const effectSchema = z.discriminatedUnion("kind", [
 const itemSchema = z
   .object({
     id: idSchema,
-    scope: scopeSchema,
+    scope: priceListScopeSchema,
     branchId: idSchema.nullable().default(null),
     channelKey: channelKeySchema.nullable().default(null),
     validFrom: instantSchema.nullable().default(null),

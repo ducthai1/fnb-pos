@@ -35,6 +35,7 @@ function lineSnapshotOf(line: OrderLine, stored: StoredOrder): OrderLineSnapshot
     reversesLineId: line.reversesLineId,
     wholeParentLine: line.wholeParentLine === true,
     sentQuantity: quantityToDecimalString(stored.sentQuantityByLineId.get(line.id) ?? NOTHING_SENT),
+    sentNote: stored.sentNoteByLineId.get(line.id) ?? null,
     restock: stored.restockByLineId.get(line.id) ?? null,
   };
 }
