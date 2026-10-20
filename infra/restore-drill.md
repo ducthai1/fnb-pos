@@ -39,6 +39,7 @@ Role này đọc được mọi thứ ⇒ mật khẩu chỉ nằm trong `PGPASS
 4. Kiểm (tối thiểu):
    - Số dòng mọi bảng bằng server gốc lúc backup (`SELECT count(*)` từng bảng, hoặc so với số trong báo cáo ngày).
    - RLS: `psql` bằng `fnb_app` vào `fnb_drill`, `SELECT count(*) FROM product;` phải ra **0** (chưa chọn tenant).
+   - Thế hệ: `SELECT generation FROM fnb_server.generation;` (bằng `postgres`) ở `fnb_drill` khác server gốc và bằng mã `ops:restore` in ra. Đừng trỏ máy quầy thật vào database diễn tập: chúng sẽ gửi lại lệnh vào đó.
    - Chạy API trỏ `FNB_DATABASE_URL` vào `fnb_drill` (cổng khác), đăng nhập backoffice bằng tài khoản chủ quán, mở báo cáo ngày hôm qua: số khớp phiếu chốt ngày.
 5. Xóa database diễn tập: `DROP DATABASE fnb_drill;`. Ghi kết quả vào bảng dưới.
 
@@ -47,15 +48,28 @@ Role này đọc được mọi thứ ⇒ mật khẩu chỉ nằm trong `PGPASS
 1. Dựng server mới theo `README.md` tới hết bước `pnpm db:provision`. API chưa bật (hoặc `sudo systemctl stop fnb-api fnb-backoffice`).
 2. `FNB_RESTORE_ADMIN_URL=<FNB_ADMIN_DATABASE_URL trong /etc/fnb/admin.env> pnpm ops:restore <file> --database fnb --replace-existing` (database `fnb` lúc này là bản rỗng do provision tạo).
 3. Chép lại `/etc/fnb/fnb-api.env` từ bản giữ riêng (đặc biệt `FNB_PAYMENT_SECRET_KEY`), `pnpm ops:preflight`, rồi mới bật API.
-4. Mất dữ liệu = mọi thứ server nhận sau giờ của bản backup (cron mỗi đêm ⇒ tới 24 giờ).
+4. Mất dữ liệu ở server = mọi thứ server nhận sau giờ của bản backup (cron mỗi đêm ⇒ tới 24 giờ). Phần do máy quầy gửi thì máy tự gửi lại (mục dưới); phần làm ở backoffice thì không.
+5. Khôi phục bằng cách khác `ops:restore` (snapshot ổ đĩa, bản sao được nâng lên…) ⇒ trước khi bật API chạy thêm `FNB_RESTORE_ADMIN_URL=... pnpm ops:new-server-generation --database fnb`. Database chưa mất gì thì chạy cũng vô hại: máy quầy không có gì để gửi lại, chỉ kéo lại dữ liệu từ đầu.
+6. Sau khi bật API: mở lại (tải lại trang) POS trên từng máy khi tiện, để menu gốc của máy (bootstrap) lấy theo database vừa khôi phục.
 
-**Chưa xử lý — máy quầy sau khi khôi phục (phải quyết trước khi mở bán thật):** database quay về quá khứ nhưng máy quầy thì không.
+## Máy quầy sau khi khôi phục
 
-- Lệnh máy đã gửi và server đã nhận sau giờ backup: máy coi là xong, **không gửi lại** ⇒ mất khỏi server (đơn, tiền, ca).
-- Số thứ tự lệnh của máy đi trước sổ lệnh của server ⇒ lệnh mới của máy có thể bị từ chối "sai thứ tự" mãi, máy kẹt đồng bộ.
-- Con trỏ kéo thay đổi (`change_seq`) của máy lớn hơn số của server sau khi khôi phục ⇒ máy bỏ lỡ thay đổi menu/giá/bàn cho tới khi số của server vượt qua.
+Database quay về giờ backup, máy quầy thì không. Cơ chế "thế hệ server" xử lý phần của máy quầy:
 
-Cho tới khi có cơ chế (ví dụ "thế hệ server": khôi phục sinh mã mới, máy thấy mã đổi thì đẩy hết lệnh còn giữ rồi tải lại từ đầu), làm tay: ghi lại các đơn/phiếu ca in ra trong khoảng mất dữ liệu, xử lý lệnh còn chờ trên từng máy, rồi xóa dữ liệu cục bộ và ghép lại từng máy; nhập bù bằng tay những gì đã mất. (Cần đưa vào Backlog phát sinh.)
+- Database có một mã thế hệ (`fnb_server.generation`, một hàng; app role chỉ đọc qua hàm `fnb_server.current_generation()`). Mã sinh khi migrate lần đầu; `pnpm ops:restore` **sinh mã mới** ngay sau `pg_restore` (in ra dòng `new server generation …`); `ops:new-server-generation` đổi bằng tay. Mọi câu trả lời `/sync/commands`, `/sync/changes`, `/sync/device-state` và `/pos/bootstrap` mang header `x-fnb-server-generation`.
+- Máy giữ mã đã thấy và **nhật ký** các lệnh server đã trả lời (nhận hoặc từ chối) trong 7 ngày (`journalRetentionMs` của sync client), dọn mỗi giờ; lệnh chưa có câu trả lời không bao giờ bị dọn.
+- Máy thấy mã khác ⇒ bỏ trang vừa kéo, hỏi `GET /sync/device-state` (lệnh cuối server còn giữ của máy này), đưa lại vào hàng đợi **đúng thứ tự `device_seq`** mọi lệnh trong nhật ký sau số đó (trước các lệnh mới), kéo lại thay đổi từ con trỏ 0 (bản sao cũ vẫn hiện tới khi có bản mới; bản nào server mới không còn thì bỏ sau khi kéo hết), giữ nguyên bản sao lạc quan của lệnh còn chờ, rồi lưu mã mới. Máy đang mất mạng lúc khôi phục thì làm việc này khi có mạng lại.
+- POS hiện dòng "Máy chủ vừa được khôi phục — đang gửi lại N thao tác của máy này" tới khi gửi xong. Lệnh gửi lại bị từ chối (dữ liệu đã đổi, ví dụ giá đã sửa sau khôi phục nên tiền đã thu không khớp) vào danh sách **Cần xử lý** như mọi từ chối khác.
+- Server ghi audit `sync.command_resent_after_restore` cho mỗi lệnh gửi lại (máy, lệnh, `device_seq`, mã thế hệ cũ, nhận/từ chối). Kiểm sau khôi phục: `SELECT payload->>'status', count(*) FROM audit_log WHERE action = 'sync.command_resent_after_restore' GROUP BY 1;` (trong tenant).
+
+Còn phải làm tay:
+
+- Backup cũ hơn nhật ký (mặc định 7 ngày) ⇒ máy thiếu lệnh để lấp khoảng trống, POS báo "… thao tác không còn trên máy để gửi lại. Báo quản lý" và lệnh mới của máy đó bị trả "sai thứ tự" mãi. Làm như cách cũ cho máy đó: ghi lại đơn/phiếu ca in ra trong khoảng mất, xử lý lệnh còn chờ, xóa dữ liệu cục bộ, ghép lại máy, nhập bù bằng tay.
+- Việc làm ở backoffice sau giờ backup (menu, giá, nhân viên, sơ đồ bàn, máy ghép mới) mất và phải làm lại; phiên đăng nhập backoffice/nhân viên mở sau giờ backup hết hiệu lực (đăng nhập lại); máy ghép sau giờ backup phải ghép lại.
+- QR thanh toán tạo sau giờ backup (đi qua API, không phải lệnh đồng bộ) mất ⇒ lệnh trả tiền gửi lại dính QR đó bị từ chối, vào Cần xử lý.
+- Hóa đơn điện tử đã phát hành ở nhà cung cấp sau giờ backup: lệnh trả tiền gửi lại có thể xin phát hành lần nữa ⇒ đối chiếu với nhà cung cấp trước khi gửi lại (chưa có cơ chế chống trùng giữa hai thế hệ).
+- Máy chạy POS cũ hơn cơ chế này, hoặc chưa từng đồng bộ với server có mã thế hệ, coi mã đầu tiên nó thấy là mã gốc ⇒ khôi phục trước khi mọi máy đã đồng bộ ít nhất một lần với bản mới thì không phát hiện được: làm tay như trên.
+- Lệnh gửi lại được ghi tên người đang đăng nhập trên máy lúc gửi lại khi máy không còn giữ phiên của người đã tạo lệnh.
 
 ## Kết quả đo
 
