@@ -27,7 +27,7 @@ const failure = (n: number, change: Partial<PrintFailure> = {}): PrintFailure =>
 });
 
 describe("slips the tills could not print", () => {
-  it("asks for today's whole day on the shop's clock and lists what is still missing", async () => {
+  it("asks for today's whole business day on the shop's clock and lists what is still missing", async () => {
     const getPrintFailures = mock.fn(async () =>
       ok({ failures: [failure(1), failure(2, { kind: "kitchen", deviceOrderNo: null, callNumber: null })], truncated: false }),
     );
@@ -39,7 +39,7 @@ describe("slips the tills could not print", () => {
     const today = todaysBusinessDate();
     const [branchId, from, to] = getPrintFailures.mock.calls[0]! as unknown as [string, string, string];
     expect(branchId).toBe(BRANCHES[0]!.id);
-    expect(from).toBe(`${today}T00:00:00+07:00`);
+    expect(Date.parse(from)).toBe(Date.parse(`${today}T04:00:00+07:00`));
     expect(Date.parse(to) - Date.parse(from)).toBe(24 * 60 * 60_000);
     expect(screen.queryByText(T.truncated)).toBeNull();
   });
@@ -60,7 +60,7 @@ describe("slips the tills could not print", () => {
     expect(getPrintFailures.mock.calls.length).toBe(calls);
     fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "2026-10-22" } });
     await waitFor(() =>
-      expect(getPrintFailures).toHaveBeenLastCalledWith(BRANCHES[0]!.id, "2026-10-21T00:00:00+07:00", "2026-10-23T00:00:00+07:00"),
+      expect(getPrintFailures).toHaveBeenLastCalledWith(BRANCHES[0]!.id, "2026-10-20T21:00:00.000Z", "2026-10-22T21:00:00.000Z"),
     );
   });
 

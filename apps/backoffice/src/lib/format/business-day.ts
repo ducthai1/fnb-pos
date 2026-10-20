@@ -23,15 +23,23 @@ export function isCalendarDate(text: string): boolean {
 
 const DAY_MS = 24 * 60 * 60_000;
 
+/** The instant a business day opens on the default branch clock (04:00 that date, UTC+7). */
+const businessDayOpens = (date: string): number =>
+  Date.parse(`${date}T00:00:00Z`) +
+  (DEFAULT_BRANCH_CLOCK.dayStartMinute - DEFAULT_BRANCH_CLOCK.utcOffsetMinutes) * 60_000;
+
 /**
- * The instants from the start of `fromDate` to the end of `toDate` (both whole days, the
- * end one included) on the shop's clock, as the print failure report takes them; null when
- * either is not a day or the range runs backwards.
+ * The instants from the opening of business day `fromDate` to the closing of business day
+ * `toDate` (the end one included), as the print failure report takes them; null when either
+ * is not a day or the range runs backwards. Business days, not calendar days: a slip that
+ * jammed at 01:00 belongs to the day the pickers call "today" until 04:00.
  */
 export function shopDaysWindow(fromDate: string, toDate: string): { from: string; to: string } | null {
   if (!isCalendarDate(fromDate) || !isCalendarDate(toDate) || fromDate > toDate) return null;
-  const dayAfter = new Date(Date.parse(`${toDate}T00:00:00Z`) + DAY_MS).toISOString().slice(0, 10);
-  return { from: `${fromDate}T00:00:00+07:00`, to: `${dayAfter}T00:00:00+07:00` };
+  return {
+    from: new Date(businessDayOpens(fromDate)).toISOString(),
+    to: new Date(businessDayOpens(toDate) + DAY_MS).toISOString(),
+  };
 }
 
 /** "20/10/2026" for "2026-10-20"; the text itself when it is not a day. */
