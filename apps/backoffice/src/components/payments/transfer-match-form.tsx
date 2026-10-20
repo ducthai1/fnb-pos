@@ -71,6 +71,7 @@ export function TransferMatchForm({ payments, onMatched }: { payments: Unmatched
 
   return (
     <div className="bo-card bo-stack">
+      <div className="bo-match-grid">
       <Choices
         legend={T.transfersTitle}
         name="transfer"
@@ -91,6 +92,7 @@ export function TransferMatchForm({ payments, onMatched }: { payments: Unmatched
           label: `${T.intent(each.contentCode, vndText(each.amount), formatDateTime(each.expiresAt))} (${T.statuses[each.status] ?? each.status})`,
         }))}
       />
+      </div>
       <SuccessNotice message={done} />
       {!mayMatch && <p className="bo-muted bo-wrap">{T.needsKey}</p>}
       {mayMatch && confirming && transfer !== null && intent !== null && (

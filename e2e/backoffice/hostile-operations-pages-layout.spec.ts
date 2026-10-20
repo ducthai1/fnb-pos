@@ -92,6 +92,7 @@ it("keeps every new page inside a phone and a computer screen with hostile names
   const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 360, height: 900 });
 
   for (const [link, ready] of [
+    [N.home, PRODUCT_NAME],
     [N.dailySales, PRODUCT_NAME],
     [N.printFailures, PRINTER],
     [N.floor, text.floor.area(AREA_NAME)],
