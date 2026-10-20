@@ -22,6 +22,35 @@
   font-weight: var(--fw-regular);
 }
 
+/* The product being set up: its mark, category and starting price, under the title. */
+.pos-picker-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.pos-picker-head .pos-picker-head__mark {
+  flex: none;
+  width: 64px;
+  height: 56px;
+  font-size: var(--fs-xl);
+}
+
+.pos-picker-head__facts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  color: var(--c-text-2);
+}
+
+.pos-picker-head__facts strong {
+  color: var(--c-brand-strong);
+  font-size: var(--fs-lg);
+  font-variant-numeric: tabular-nums;
+}
+
 /* A group of chips in a card: its name and rule, how many are picked, the chips. */
 .pos-choice-group {
   position: relative;
@@ -53,100 +82,6 @@
 .pos-choice-group:has(> .pos-choice-group__count) > .pos-group__legend {
   box-sizing: border-box;
   padding-right: 128px;
-}
-
-.pos-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pos-chip-item {
-  display: flex;
-  gap: var(--sp-1);
-  max-width: 100%;
-  min-width: 0;
-}
-
-.pos-chip {
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  min-width: 0;
-  min-height: var(--tap);
-  padding: var(--sp-2) var(--sp-4);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-pill);
-  background: var(--c-surface);
-  color: var(--c-text);
-  font: inherit;
-  font-weight: var(--fw-medium);
-  text-align: left;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.pos-chip:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
-}
-
-.pos-chip:active {
-  transform: scale(0.98);
-}
-
-/* The tick shows only on a chosen chip; the pressed state is in aria-pressed too. */
-.pos-chip > .pos-icon {
-  display: none;
-}
-
-.pos-chip__name {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.pos-chip__price,
-.pos-chip__units {
-  flex: none;
-  color: var(--c-text-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.pos-chip[aria-pressed="true"] {
-  padding-left: var(--sp-3);
-  border-color: var(--c-brand);
-  background: var(--c-brand-soft);
-  color: var(--c-brand-strong);
-  font-weight: var(--fw-semibold);
-}
-
-.pos-chip[aria-pressed="true"] > .pos-icon {
-  display: block;
-}
-
-.pos-chip[aria-pressed="true"] .pos-chip__price,
-.pos-chip[aria-pressed="true"] .pos-chip__units {
-  color: var(--c-brand-strong);
-}
-
-.pos-chip--size {
-  min-width: 72px;
-  justify-content: center;
-}
-
-.pos-chip--fewer {
-  width: var(--tap);
-  padding: 0;
-  justify-content: center;
-}
-
-.pos-chip--fewer > .pos-icon {
-  display: block;
 }
 
 .pos-picker__more {

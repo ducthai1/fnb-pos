@@ -18,6 +18,7 @@ import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { ModifierGroupField } from "./modifier-group-field";
+import { PickerProductHead } from "./picker-product-head";
 import { QuantityStepper } from "./quantity-stepper";
 
 const P = vi.sale.picker;
@@ -105,6 +106,7 @@ export function ModifierPickerScreen({
       }
     >
       {header}
+      <PickerProductHead menu={menu} product={product} now={now} />
       {product.variants.length > 0 ? (
         <fieldset className="pos-group pos-choice-group">
           <legend className="pos-group__legend">{P.variant}</legend>

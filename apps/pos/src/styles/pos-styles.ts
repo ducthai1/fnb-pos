@@ -18,6 +18,7 @@ import "./pos-product-tiles.css";
 import "./pos-order.css";
 import "./pos-cart-controls.css";
 import "./pos-picker.css";
+import "./pos-chips.css";
 import "./pos-note-counter.css";
 import "./pos-payment.css";
 import "./pos-keypad.css";

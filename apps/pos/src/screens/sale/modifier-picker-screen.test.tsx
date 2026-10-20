@@ -33,6 +33,16 @@ function openPicker(product = RULES_TEA) {
 }
 
 describe("the option picker", () => {
+  it("shows the product's category and the price it starts from under its name", () => {
+    const hostile = posProductSchema.parse(HOSTILE_PRODUCT);
+    openPicker(hostile);
+    const head = document.querySelector(".pos-picker-head");
+    expect(head?.textContent).toContain(HOSTILE_MENU_NAMES.category);
+    expect(head?.textContent).toContain(formatVnd(vnd(0)));
+    // The name is the title; the head does not say it a second time.
+    expect(head?.textContent).not.toContain(HOSTILE_MENU_NAMES.product);
+  });
+
   it("explains in Vietnamese what is missing and adds nothing until the required pick is made", () => {
     const added = openPicker();
     tap(text.sale.picker.addNoPrice);
