@@ -176,6 +176,9 @@ importers:
       '@fnb/api':
         specifier: workspace:*
         version: link:../apps/api
+      '@fnb/backoffice':
+        specifier: workspace:*
+        version: link:../apps/backoffice
       '@fnb/db':
         specifier: workspace:*
         version: link:../packages/db

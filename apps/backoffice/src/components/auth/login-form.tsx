@@ -5,6 +5,7 @@ import type { Organization } from "../../lib/api/auth-api";
 import { failureMessage } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
+import { useHydrated } from "../app/use-hydrated";
 import { ErrorNotice } from "../ui/error-notice";
 
 const T = vi.login;
@@ -20,6 +21,7 @@ export function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
   const [organizations, setOrganizations] = useState<readonly Organization[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const hydrated = useHydrated();
 
   async function signIn(organizationId?: string) {
     setBusy(true);
@@ -81,7 +83,7 @@ export function LoginForm({ onSignedIn }: { onSignedIn: () => void }) {
   }
 
   return (
-    <form className="bo-card bo-login" onSubmit={submit} noValidate>
+    <form className="bo-card bo-login" onSubmit={submit} noValidate data-hydrated={hydrated || undefined}>
       <h1 className="bo-title">{T.title}</h1>
       <label className="bo-field">
         <span>{T.identifierLabel}</span>

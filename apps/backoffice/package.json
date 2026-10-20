@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./messages/vi": "./src/messages/vi.ts"
+    "./messages/vi": "./src/messages/vi.ts",
+    "./test-support/hostile-catalog": "./src/test-support/hostile-catalog.ts"
   },
   "scripts": {
     "dev": "next dev",
