@@ -24,6 +24,8 @@ export interface SyncReport {
   caughtUp: boolean;
   /** Commands still waiting after the pass. */
   pending: number;
+  /** Set when the pass met a server restored from a backup and caught up with it. */
+  restore: { readonly resent: number; readonly unrecoverable: number } | null;
   failure: SyncFailure | null;
 }
 
@@ -34,6 +36,7 @@ export const emptyReport = (): SyncReport => ({
   pulled: 0,
   caughtUp: false,
   pending: 0,
+  restore: null,
   failure: null,
 });
 

@@ -15,7 +15,15 @@ import {
   UPSERT_OPTIMISTIC_SQL,
   WRITE_META_SQL,
 } from "./local-store-schema-sql";
+import { ensureJournalColumns, pruneJournal } from "./command-journal";
 import { recordCommandResults } from "./record-command-results";
+import {
+  adoptServerGeneration,
+  dropCopiesTheServerLost,
+  readRestoreState,
+  readServerGeneration,
+  rebaseOntoGeneration,
+} from "./server-restore";
 import { type SqlRow, type SqliteDriver, inTransaction } from "./sqlite-driver";
 import { validateLocalCommand } from "./validate-local-command";
 
@@ -36,6 +44,7 @@ const envelopeOf = (row: SqlRow): SyncCommandEnvelope => ({
 /** The LocalStore over a synchronous SQLite driver; every method is one transaction. */
 export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
   driver.exec(LOCAL_SCHEMA_SQL);
+  ensureJournalColumns(driver);
   const views = (entity: string): EntityView[] =>
     driver
       .all(READ_ENTITY_IDS_SQL, [entity])
@@ -83,7 +92,8 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
 
     pendingCount: async () => Number(driver.all(COUNT_PENDING_SQL)[0]?.n ?? 0),
 
-    recordResults: async (sent, results) => recordCommandResults(driver, sent, results),
+    recordResults: async (sent, results, settledAt = new Date().toISOString()) =>
+      recordCommandResults(driver, sent, results, settledAt),
 
     applyChanges: async (page) => applyPulledChanges(driver, page),
 
@@ -104,6 +114,19 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
             ? null
             : (JSON.parse(String(row.server_snapshot)) as EntitySnapshot),
       })),
+
+    serverGeneration: async () => readServerGeneration(driver),
+
+    adoptServerGeneration: async (generation) => adoptServerGeneration(driver, generation),
+
+    rebaseOntoGeneration: async (generation, serverLastSeq) =>
+      rebaseOntoGeneration(driver, generation, serverLastSeq),
+
+    dropCopiesTheServerLost: async () => dropCopiesTheServerLost(driver),
+
+    restoreState: async () => readRestoreState(driver),
+
+    pruneJournal: async (now, settledBefore) => pruneJournal(driver, { now, settledBefore }),
 
     close: async () => driver.close(),
   };

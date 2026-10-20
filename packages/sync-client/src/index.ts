@@ -6,6 +6,8 @@ export type {
   LocalCommand,
   LocalStore,
   RejectedCommand,
+  RestoreState,
+  ServerRebase,
   StoreWrite,
 } from "./local-store/local-store";
 export { createSqliteLocalStore } from "./local-store/sqlite-local-store";
@@ -20,6 +22,7 @@ export {
   type ChangeListener,
   type SyncClient,
   type SyncClientOptions,
+  DEFAULT_JOURNAL_RETENTION_MS,
   createSyncClient,
 } from "./sync/create-sync-client";
 export {
@@ -39,6 +42,7 @@ export {
 } from "./sync/sync-clock";
 export type { SyncFailure, SyncReport } from "./sync/sync-report";
 export {
+  type PulledChanges,
   type SyncTransport,
   SyncTransportError,
   type SyncTransportErrorKind,

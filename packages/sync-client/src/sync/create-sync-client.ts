@@ -5,6 +5,7 @@ import type {
   LocalCommand,
   LocalStore,
   RejectedCommand,
+  RestoreState,
 } from "../local-store/local-store";
 import {
   type BackoffPolicy,
@@ -31,7 +32,17 @@ export interface SyncClientOptions {
   /** Changes per pulled page; the server sends at most 1000. */
   pullLimit?: number;
   maxPullPages?: number;
+  /**
+   * How long the till keeps commands the server answered: what it can send again when the
+   * server is restored from a backup. It must cover the time between two backups.
+   */
+  journalRetentionMs?: number;
 }
+
+/** A week: backups run nightly, and a restore goes back to the last good one. */
+export const DEFAULT_JOURNAL_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+/** Pruning the journal is housekeeping: once an hour is plenty. */
+const JOURNAL_PRUNE_EVERY_MS = 60 * 60 * 1000;
 
 /** More than a till holds even after days offline; the outbox has no other bound. */
 const ALL_PENDING = 1_000_000;
@@ -49,6 +60,8 @@ export interface SyncClient {
   pendingCount(): Promise<number>;
   /** Every command still waiting for the server's answer, in deviceSeq order. */
   pendingCommands(): Promise<SyncCommandEnvelope[]>;
+  /** After the server was restored from a backup: what the till still has to send again. */
+  restoreState(): Promise<RestoreState>;
   /** Called after a write that changed what some rows show; returns the unsubscribe. */
   onChange(listener: ChangeListener): () => void;
 }
@@ -77,6 +90,18 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     pullLimit: options.pullLimit ?? 500,
     maxPullPages: options.maxPullPages ?? 10,
     emit,
+    now: () => new Date(clock.now()).toISOString(),
+  };
+  const retentionMs = options.journalRetentionMs ?? DEFAULT_JOURNAL_RETENTION_MS;
+  let prunedAt = Number.NEGATIVE_INFINITY;
+  const pruneJournal = async () => {
+    const now = clock.now();
+    if (now - prunedAt < JOURNAL_PRUNE_EVERY_MS) return;
+    prunedAt = now;
+    await store.pruneJournal(
+      new Date(now).toISOString(),
+      new Date(now - retentionMs).toISOString(),
+    );
   };
   let bound: Promise<void> | null = null;
   const bind = () => (bound ??= store.bindDevice(options.deviceId));
@@ -94,6 +119,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     const pullFailure = await pullToEnd(context, report);
     report.failure = pushFailure ?? pullFailure;
     report.pending = await store.pendingCount();
+    await pruneJournal();
     if (report.failure === null) {
       failures = 0;
     } else {
@@ -121,6 +147,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     rejectedCommands: () => store.rejectedCommands(),
     pendingCount: () => store.pendingCount(),
     pendingCommands: () => store.pendingCommands(ALL_PENDING),
+    restoreState: () => store.restoreState(),
     onChange(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

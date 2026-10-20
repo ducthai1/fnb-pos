@@ -1,5 +1,6 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
 import type { EntityRef, LocalStore } from "../local-store/local-store";
+import { rebasedOntoRestoredServer } from "./server-generation-check";
 import { type SyncFailure, type SyncReport, failureOf } from "./sync-report";
 import type { SyncTransport } from "./sync-transport";
 
@@ -10,6 +11,8 @@ export interface SyncPassContext {
   readonly pullLimit: number;
   readonly maxPullPages: number;
   readonly emit: (changed: readonly EntityRef[]) => void;
+  /** The till's clock as an ISO instant, stamped on the commands the server settles. */
+  readonly now: () => string;
 }
 
 /**
@@ -38,7 +41,7 @@ export async function pushOneBatch(
   if (batch.length === 0) return null;
   try {
     const results = await context.transport.pushCommands(batch);
-    const recorded = await context.store.recordResults(batch, results);
+    const recorded = await context.store.recordResults(batch, results, context.now());
     context.emit(recorded.changed);
     report.accepted.push(...recorded.accepted);
     report.rejected.push(...recorded.rejected);
@@ -55,7 +58,8 @@ export async function pushOneBatch(
 
 /**
  * Pulls page after page until the feed's end or maxPullPages, so a till far behind still
- * pushes between pages. It runs whether or not commands are pending.
+ * pushes between pages. It runs whether or not commands are pending. A page from a server
+ * restored since the last pass rebases the till first (rebasedOntoRestoredServer).
  */
 export async function pullToEnd(
   context: SyncPassContext,
@@ -65,11 +69,13 @@ export async function pullToEnd(
     try {
       const cursor = await context.store.cursor();
       const changes = await context.transport.pullChanges(cursor, context.pullLimit);
+      if (await rebasedOntoRestoredServer(context, report, changes.serverGeneration)) continue;
       const written = await context.store.applyChanges(changes);
       context.emit(written.changed);
       report.pulled += changes.changes.length;
       if (changes.changes.length < context.pullLimit) {
         report.caughtUp = true;
+        context.emit((await context.store.dropCopiesTheServerLost()).changed);
         return null;
       }
     } catch (error) {

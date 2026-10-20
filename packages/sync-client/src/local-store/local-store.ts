@@ -45,6 +45,21 @@ export interface RecordedResults extends StoreWrite {
   readonly rejected: readonly string[];
 }
 
+/** What a rebase onto a restored server's generation did. */
+export interface ServerRebase extends StoreWrite {
+  /** Commands the server had answered and lost, queued again in device_seq order. */
+  readonly resent: number;
+  /** device_seq numbers the server lacks and the journal no longer holds. */
+  readonly unrecoverable: number;
+}
+
+/** What is left to do after the server was restored from a backup. */
+export interface RestoreState {
+  /** Commands put back in the queue by the last rebase that are still waiting. */
+  readonly resending: number;
+  readonly unrecoverable: number;
+}
+
 export interface EnqueuedCommand extends StoreWrite {
   /** The command as it will be sent, numbered. */
   readonly command: SyncCommandEnvelope;
@@ -63,10 +78,14 @@ export interface LocalStore {
   /** The oldest commands still waiting, in deviceSeq order. */
   pendingCommands(limit: number): Promise<SyncCommandEnvelope[]>;
   pendingCount(): Promise<number>;
-  /** Settles answered commands and keeps the server rows they carry; retries stay pending. */
+  /**
+   * Settles answered commands and keeps the server rows they carry; retries stay pending.
+   * Settled commands stay in the journal, stamped `settledAt` (an ISO instant), until pruned.
+   */
   recordResults(
     sent: readonly SyncCommandEnvelope[],
     results: readonly SyncCommandResult[],
+    settledAt?: string,
   ): Promise<RecordedResults>;
   /** Keeps a pulled page and moves the cursor in the same transaction. */
   applyChanges(page: SyncChangesPage): Promise<StoreWrite>;
@@ -76,5 +95,16 @@ export interface LocalStore {
   /** Every row of `entity` the till shows, ordered by id. */
   snapshots(entity: string): Promise<EntityView[]>;
   rejectedCommands(): Promise<RejectedCommand[]>;
+  /** The server generation the till last saw, null before the first one. */
+  serverGeneration(): Promise<string | null>;
+  /** Remembers the first generation the till meets; a known one is never replaced here. */
+  adoptServerGeneration(generation: string): Promise<void>;
+  /** Catches up with a restored server that holds this till's commands up to serverLastSeq. */
+  rebaseOntoGeneration(generation: string, serverLastSeq: number): Promise<ServerRebase>;
+  /** After a rebase and a pull to the feed's end: drops copies the new server never sent. */
+  dropCopiesTheServerLost(): Promise<StoreWrite>;
+  restoreState(): Promise<RestoreState>;
+  /** Drops journal rows settled before `settledBefore`; answers how many went. */
+  pruneJournal(now: string, settledBefore: string): Promise<number>;
   close(): Promise<void>;
 }

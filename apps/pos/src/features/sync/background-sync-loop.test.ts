@@ -25,6 +25,8 @@ function serverLink() {
       state.pulls += 1;
       return { changes: [], nextCursor: cursor };
     },
+    // This server names no generation, so the till never asks for its device state.
+    deviceState: () => Promise.reject(new SyncTransportError("http", 404, "not served")),
   };
   return { state, transport };
 }

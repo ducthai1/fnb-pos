@@ -32,6 +32,7 @@ function pushingUnderEachSession(
   const transport = deps.transportFor(credential, () => pushing);
   return {
     pullChanges: (cursor, limit) => transport.pullChanges(cursor, limit),
+    deviceState: () => transport.deviceState(),
     async pushCommands(batch) {
       const token = tokenForBatch(sessions.current, batch);
       pushing = token;

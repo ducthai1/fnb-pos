@@ -127,6 +127,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
           : { commandId: command.commandId, status: "accepted" as const, snapshot };
       });
     },
+    // The fake names no generation, so a till never asks it for its device state.
+    deviceState: () => Promise.reject(new SyncTransportError("http", 404, "not served")),
     async pullChanges(cursor) {
       if (!state.online) throw new SyncTransportError("network", null, "offline");
       state.calls.pulls += 1;
@@ -169,6 +171,7 @@ export function fakeDependencies(
     // A push with a staff session the server no longer knows is refused 401, as the API does.
     transportFor: (_credential, staffToken) => ({
       pullChanges: (cursor, limit) => server.transport.pullChanges(cursor, limit),
+      deviceState: () => server.transport.deviceState(),
       async pushCommands(batch) {
         const token = staffToken();
         if (server.state.pushesHeld) throw new SyncTransportError("network", null, "held");

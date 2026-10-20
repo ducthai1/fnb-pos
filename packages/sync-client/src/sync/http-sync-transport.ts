@@ -1,4 +1,10 @@
-import { syncChangesPageSchema, syncCommandResultSchema } from "@fnb/contracts";
+import {
+  SERVER_GENERATION_HEADER,
+  serverGenerationSchema,
+  syncChangesPageSchema,
+  syncCommandResultSchema,
+  syncDeviceStateSchema,
+} from "@fnb/contracts";
 import type { SyncCommandResult } from "@fnb/contracts";
 import { SyncTransportError, type SyncTransport } from "./sync-transport";
 
@@ -13,6 +19,8 @@ export interface HttpRequest {
 export interface HttpResponse {
   readonly status: number;
   readonly body: string;
+  /** Response headers by lower-case name; only the ones the sync protocol reads are needed. */
+  readonly headers?: Readonly<Record<string, string>>;
 }
 
 /** Sends one request; throws only when no answer came back. */
@@ -40,6 +48,15 @@ function bodyOf(response: HttpResponse): unknown {
 }
 
 const protocolError = (what: string) => new SyncTransportError("protocol", 200, what);
+
+/** The generation the answer names; none from a server older than generations. */
+function generationOf(response: HttpResponse): { serverGeneration?: string } {
+  const named = response.headers?.[SERVER_GENERATION_HEADER];
+  if (named === undefined) return {};
+  const parsed = serverGenerationSchema.safeParse(named);
+  if (!parsed.success) throw protocolError("the server generation is not an id");
+  return { serverGeneration: parsed.data };
+}
 
 /** The sync endpoints over HTTP, every answer checked against the contracts before use. */
 export function createHttpSyncTransport(options: HttpSyncTransportOptions): SyncTransport {
@@ -81,6 +98,16 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       });
       const parsed = syncChangesPageSchema.safeParse(bodyOf(response));
       if (!parsed.success) throw protocolError("the page breaks the contract");
+      return { ...parsed.data, ...generationOf(response) };
+    },
+    async deviceState() {
+      const response = await send({
+        method: "GET",
+        path: "/sync/device-state",
+        headers: { authorization },
+      });
+      const parsed = syncDeviceStateSchema.safeParse(bodyOf(response));
+      if (!parsed.success) throw protocolError("the device state breaks the contract");
       return parsed.data;
     },
   };
@@ -100,6 +127,11 @@ export function fetchHttpSend(
       ...(request.body === undefined ? {} : { body: request.body }),
       signal: AbortSignal.timeout(options.timeoutMs ?? 10_000),
     });
-    return { status: response.status, body: await response.text() };
+    const generation = response.headers.get(SERVER_GENERATION_HEADER);
+    return {
+      status: response.status,
+      body: await response.text(),
+      headers: generation === null ? {} : { [SERVER_GENERATION_HEADER]: generation },
+    };
   };
 }
