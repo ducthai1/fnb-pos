@@ -1,6 +1,7 @@
 import pg from "pg";
 import { type AppDependencies, buildApp } from "../build-app";
 import { FakeEInvoiceProvider } from "../einvoice/providers/fake-einvoice-provider";
+import { maskSecrets, serverErrorLines } from "../http/server-error-report";
 import type { ServerConfig } from "./server-config";
 
 export interface RunningServer {
@@ -17,14 +18,22 @@ export type ServerLog = (line: string) => void;
  * database role that row level security does not bind, since every tenant's rows would
  * then be one forgotten filter away from each other.
  */
-export async function startServer(config: ServerConfig, log: ServerLog): Promise<RunningServer> {
+export async function startServer(
+  config: ServerConfig,
+  log: ServerLog,
+  logError: ServerLog = log,
+): Promise<RunningServer> {
   const pool = new pg.Pool({ connectionString: config.databaseUrl });
   // An idle client losing its connection (the database restarted) must not end the process;
   // the next query reconnects and /health answers 503 meanwhile.
-  pool.on("error", (error) => log(`database connection lost: ${error.message}`));
+  pool.on("error", (error) => logError(`database connection lost: ${maskSecrets(error.message)}`));
   try {
     await refusePrivilegedRole(pool);
-    const app = buildApp(dependenciesOf(config, pool, log));
+    const app = buildApp({
+      ...dependenciesOf(config, pool, log),
+      // Every 500, with its route and masked message, so a fault in production leaves a trace.
+      onServerError: (report) => serverErrorLines(report).forEach(logError),
+    });
     const url = await app.listen({ host: config.host, port: config.port });
     return {
       url,
@@ -47,7 +56,7 @@ function dependenciesOf(config: ServerConfig, pool: pg.Pool, log: ServerLog): Ap
     dependencies.einvoiceProviders = [new FakeEInvoiceProvider()];
     dependencies.einvoiceWorker = {
       intervalMs: config.einvoiceWorkerIntervalMs,
-      onError: (error) => log(`invoice worker round failed: ${String(error)}`),
+      onError: (error) => log(`invoice worker round failed: ${maskSecrets(String(error))}`),
     };
   }
   return dependencies;
