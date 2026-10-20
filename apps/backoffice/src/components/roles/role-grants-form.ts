@@ -1,10 +1,10 @@
-import { PERMISSION_DEFINITIONS, PERMISSION_KEYS, type PermissionKey, percentRate } from "@fnb/domain";
+import { PERMISSION_DEFINITIONS, PERMISSION_KEYS, type PermissionKey } from "@fnb/domain";
 import type { Role, RoleGrantsBody, StoredThreshold } from "../../lib/api/roles-api";
 import { amountInputText, parseAmountText } from "../../lib/format/amount-text";
+import { parsePercentText } from "../../lib/format/percent-text";
 import { vi } from "../../messages/vi";
 
 const NAME_MAX = 80;
-const PERCENT = /^\d{1,3}(?:[.,]\d{1,2})?$/;
 
 /** What the role editor holds: the keys ticked, and the limit typed next to each capped key. */
 export interface RoleGrantsForm {
@@ -39,15 +39,6 @@ export function roleGrantsFormOf(role: Role | null): RoleGrantsForm {
   return { name: role.name, keys, limits };
 }
 
-function parseRate(text: string): number | null {
-  if (!PERCENT.test(text)) return null;
-  try {
-    return percentRate(Number(text.replace(",", ".")));
-  } catch {
-    return null;
-  }
-}
-
 /**
  * The body PATCH/POST /roles takes, or what to fix. A limit applies only to a ticked key
  * (the API refuses a limit on a key the role does not hold); a blank limit means none.
@@ -66,7 +57,7 @@ export function roleGrantsBody(
     const kind = kindOf(key);
     if (text === "" || kind === undefined) continue;
     if (kind === "max_rate") {
-      const maxRate = parseRate(text);
+      const maxRate = parsePercentText(text);
       if (maxRate === null) errors[key] = vi.roles.rateInvalid;
       else thresholds[key] = { maxRate };
     } else {

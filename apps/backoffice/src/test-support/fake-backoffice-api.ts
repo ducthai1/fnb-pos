@@ -45,6 +45,16 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     listRoles: unexpected("listRoles"),
     createRole: unexpected("createRole"),
     updateRole: unexpected("updateRole"),
+    listCategories: unexpected("listCategories"),
+    putCategory: unexpected("putCategory"),
+    deleteCategory: unexpected("deleteCategory"),
+    listStations: unexpected("listStations"),
+    listProducts: unexpected("listProducts"),
+    getProduct: unexpected("getProduct"),
+    putProduct: unexpected("putProduct"),
+    archiveProduct: unexpected("archiveProduct"),
+    listSoldOut: unexpected("listSoldOut"),
+    setAvailable: unexpected("setAvailable"),
   };
   return { ...base, ...overrides };
 }

@@ -5,6 +5,7 @@ import { vi } from "../messages/vi";
 import "./backoffice-base.css";
 import "./backoffice-controls.css";
 import "./backoffice-people.css";
+import "./backoffice-menu.css";
 
 export const metadata: Metadata = { title: vi.shell.appName };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
