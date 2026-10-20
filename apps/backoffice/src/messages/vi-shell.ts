@@ -81,6 +81,12 @@ export const VI_COMMON = {
   countInvalid: "Nhập số nguyên từ 0.",
 } as const;
 
+export const VI_DAY_PICKER = {
+  previous: "Ngày trước",
+  next: "Ngày sau",
+  today: "Hôm nay",
+} as const;
+
 export const VI_TABLE = {
   search: "Tìm",
   clearSearch: "Xóa chữ tìm",

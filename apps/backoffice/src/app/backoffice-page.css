@@ -96,3 +96,21 @@
     width: 100%;
   }
 }
+
+/* A day to look at: back, the date, on, today — the field's label over the date only. */
+.bo-day-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.bo-day-picker > .bo-field {
+  flex: 0 1 180px;
+}
+
+.bo-icon-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

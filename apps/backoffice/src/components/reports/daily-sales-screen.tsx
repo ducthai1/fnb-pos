@@ -8,7 +8,7 @@ import { LoadStateView } from "../shell/load-state-view";
 import { PageHeader } from "../shell/page-header";
 import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
-import { TextField } from "../ui/text-field";
+import { DayPicker } from "../ui/day-picker";
 import { DailySalesOverview } from "./daily-sales-overview";
 import { DailySalesTables } from "./daily-sales-tables";
 
@@ -35,9 +35,8 @@ export function DailySalesScreen() {
         titleId="daily-sales-title"
         hint={T.hint}
         actions={
-          <TextField
+          <DayPicker
             label={T.dateLabel}
-            type="date"
             value={date}
             error={valid ? undefined : T.dateInvalid}
             onChange={setDate}

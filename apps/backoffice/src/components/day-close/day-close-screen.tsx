@@ -12,7 +12,7 @@ import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
 import { SuccessNotice } from "../ui/error-notice";
 import { Icon } from "../ui/icon";
-import { TextField } from "../ui/text-field";
+import { DayPicker } from "../ui/day-picker";
 import { CloseDayPanel } from "./close-day-panel";
 import { DayStatusLists } from "./day-status-lists";
 
@@ -40,9 +40,8 @@ export function DayCloseScreen() {
         titleId="day-close-title"
         hint={T.hint}
         actions={
-          <TextField
+          <DayPicker
             label={T.dateLabel}
-            type="date"
             value={date}
             error={valid ? undefined : vi.dailySales.dateInvalid}
             onChange={(next) => {

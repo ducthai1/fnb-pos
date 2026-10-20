@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayBefore, shopDaysWindow, todaysBusinessDate } from "./business-day";
+import { dayAfter, dayBefore, shopDaysWindow, todaysBusinessDate } from "./business-day";
 
 const at = (text: string) => Date.parse(text);
 const inside = (window: { from: string; to: string }, instant: number) =>
@@ -47,5 +47,18 @@ describe("dayBefore", () => {
 
   it("leaves text that is not a day as it is", () => {
     expect(dayBefore("2026-02-30")).toBe("2026-02-30");
+  });
+});
+
+describe("dayAfter", () => {
+  it("steps forward over a month end, a leap day and a year", () => {
+    expect(dayAfter("2026-10-20")).toBe("2026-10-21");
+    expect(dayAfter("2028-02-28")).toBe("2028-02-29");
+    expect(dayAfter("2026-12-31")).toBe("2027-01-01");
+    expect(dayAfter(dayBefore("2026-03-01"))).toBe("2026-03-01");
+  });
+
+  it("leaves text that is not a day as it is", () => {
+    expect(dayAfter("")).toBe("");
   });
 });
