@@ -114,3 +114,20 @@
   opacity: 0.45;
   cursor: default;
 }
+
+/* A long page's parts as segments that stay over it while it scrolls (editor, settings). */
+.bo-section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  box-shadow: var(--shadow-card);
+}
+
+.bo-section-nav .bo-tab {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
