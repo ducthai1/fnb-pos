@@ -80,7 +80,17 @@ Trạng thái thực tế (2026-10-20, sau đợt 1):
 - Lệnh sync: `{command_id, type, payload, device_id, device_seq, staff_id, approval?, business_date, domain_version, created_at}`; server trả `accepted | rejected{code, message}`; áp dụng lại cùng `command_id` = không làm gì.
 - Không bao giờ tin tiền client gửi: server tính lại bằng `domain` và so.
 
-## 7. Git
+## 7. Giao diện (POS + backoffice)
+
+- **Token trước, màu sau**: màu/chữ/khoảng cách/bo/bóng chỉ lấy từ `apps/pos/src/styles/pos-tokens.css` và `apps/backoffice/src/app/backoffice-tokens.css` (cùng tên vai trò `--c-*`, `--fs-*`, `--sp-*`, `--r-*`, `--shadow-*`, cùng giá trị). Viết mã màu tay trong CSS của một màn là lỗi. Biến cũ `--pos-*`/`--bo-*` còn là bí danh của token.
+- Màu có chữ trắng trên nền phải ≥ 4,5:1 (`--c-brand` `#0b7d5c`, `--c-danger`, `--c-info`); tông nhạt (`*-soft`) chỉ làm nền cho chữ đậm.
+- Font: Be Vietnam Pro tự host qua `@fontsource/be-vietnam-pro` (ghim); icon POS: `lucide-react` (ghim), luôn qua `screens/shared/icon.tsx` (aria-hidden; nút chỉ có icon phải có `aria-label`).
+- POS: mọi CSS nhập qua MỘT file `apps/pos/src/styles/pos-styles.ts` (app và trang test bố cục dùng chung); file CSS mới thêm vào đó. Nút chạm ≥ 48px (`--tap`), nút chính ≥ 56px; trạng thái nhấn bằng `:active`, hover chỉ thêm, không bao giờ là cách duy nhất thấy thông tin.
+- `ScreenFrame` là lưới 3 cột; `width="narrow|normal|wide"`. `TillHeader` (`.pos-topbar`) chạy hết bề ngang, dính trên từ 1024px; chữ trong thanh một dòng "…" bằng `.pos-clip` đặt trên CHÍNH khối bị cắt (span inline bên trong vẫn có hộp dài hết chữ, bài test bố cục bắt).
+- Chữ cái avatar vẽ bằng CSS `attr(data-initial)` để `textContent` của nút vẫn chỉ là tên. Chữ cần cho trình đọc màn hình mà không hiện: `.pos-sr-only`, không `display:none` (mất khỏi `innerText`, bài test bố cục đỏ).
+- Chưa có chế độ tối: `color-scheme: light` cố định (Chrome headless máy dev báo dark). Thêm chế độ tối = một khối biến trong file token, và phải chụp/kiểm cả hai.
+
+## 8. Git
 
 - Nhánh: `feat/<slug>`, `bugfix/<slug>`, `chore/<slug>` (theo luật đặt tên của workspace; ticket nếu có).
 - Commit conventional, tiếng Anh, ≤ 72 ký tự, mỗi commit một việc; commit **kèm test** của chính thay đổi đó.
