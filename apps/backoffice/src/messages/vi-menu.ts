@@ -11,6 +11,7 @@ export const VI_MENU = {
     empty: "Chưa có món nào.",
     noMatch: "Không có món nào khớp.",
     archived: "Đã ngừng bán",
+    selling: "Đang bán",
     openPrice: "Giá nhập tay",
     edit: (name: string) => `Sửa ${name}`,
     columns: { name: "Món", category: "Danh mục", price: "Giá", status: "Trạng thái" },

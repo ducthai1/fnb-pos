@@ -1,0 +1,62 @@
+/* What goes inside a cell of a list: a name with badges or a mark, a code, two lists side by side. */
+
+/* A name with its badges in one cell; the badges wrap under a long name. */
+.bo-cell-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  min-width: 0;
+}
+
+.bo-code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--c-surface-3);
+  font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Matching a transfer: the transfers and the waiting QRs side by side on a computer. */
+.bo-match-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: var(--sp-4);
+  align-items: start;
+  min-width: 0;
+}
+
+/* A record's name with its letter mark, as a link to its page. */
+.bo-product-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  max-width: 100%;
+  color: var(--c-text);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.bo-product-cell:hover {
+  color: var(--c-brand-strong);
+  text-decoration: underline;
+}
+
+.bo-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.bo-mark::before {
+  content: attr(data-initial);
+}
