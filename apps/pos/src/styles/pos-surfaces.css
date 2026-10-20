@@ -136,7 +136,4 @@
   .pos-spinner {
     animation-duration: 3s;
   }
-  .pos-button {
-    transition: none;
-  }
 }
