@@ -2,7 +2,12 @@ import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { signedInMember } from "../support/backoffice-accounts";
-import { type InvoicingApi, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import { createRole } from "../support/roles";
 import { closeShift, openedShift, pushShift, rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE } from "../support/sync-commands";
@@ -104,7 +109,7 @@ describe("closing a business day", () => {
     expect(closed.statusCode).toBe(201);
     // Still listed for a person: the sale has no invoice.
     expect(closed.json().failedInvoices).toMatchObject([{ orderId, status: "failed_permanent" }]);
-    expect(closed.json().dayClose.summary).toEqual({ einvoices: { issued: 0, failedPermanent: 1 } });
+    expect(closed.json().dayClose.summary.einvoices).toEqual({ issued: 0, failedPermanent: 1 });
   });
 
   it("shows where an open day stands, to someone allowed to read reports", async () => {

@@ -2,9 +2,16 @@ import { withTenant } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from "vitest";
-import { EINVOICE_PROFILE, saveEInvoiceProfile } from "../support/einvoice-profiles";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import { EINVOICE_PROFILE, saveEInvoiceProfile, saveSetting } from "../support/einvoice-profiles";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import { postgresErrorCode } from "../support/postgres-error-code";
+import { signInAs } from "../support/sync-approvals";
 import {
   RECORDED_AT,
   latestOrders,
@@ -16,6 +23,7 @@ import {
   pushOne,
   saveDraft,
 } from "../support/sync-commands";
+import { markSent, voidUnits } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -123,6 +131,25 @@ describe("a paid sale of a branch that invoices", () => {
     const done = await rounds;
     expect(done.reduce((sum, round) => sum + round.issued, 0)).toBe(4);
     expect(sentIds().sort()).toEqual([...ids].sort());
+  });
+
+  it("lists the units sold, not those voided after the bar had them", async () => {
+    await signInAs(api.app, s, s.tillB, "manager");
+    const scope = { scopeKind: "branch" as const, scopeId: s.shop.branchId };
+    await saveSetting(pool, s.shop.tenantId, scope, "void_after_sent_needs_approval", false);
+    const teas = line(s.menu.peachTea.id, { variantId: s.menu.peachTea.sizeM, quantity: "3" });
+    const draft = saveDraft(s.tillB, [teas]);
+    await pushOne(api.app, s.tillB, draft);
+    await markSent(pool, s.shop.tenantId, teas.lineId, "3");
+    expect(
+      (await pushOne(api.app, s.tillB, voidUnits(s.tillB, orderIdOf(draft), teas.lineId, "1")))
+        .status,
+    ).toBe("accepted");
+    await pushOne(api.app, s.tillB, pay(s.tillB, orderIdOf(draft), 70_000));
+    const [row] = await invoicesOfOrder(orderIdOf(draft));
+    expect(row?.amounts["lines"]).toEqual([
+      expect.objectContaining({ quantity: "2", unitPrice: 35_000, gross: 70_000 }),
+    ]);
   });
 
   it("can never be rewritten or deleted once issued", async () => {

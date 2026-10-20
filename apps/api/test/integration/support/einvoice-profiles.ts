@@ -14,20 +14,25 @@ export const EINVOICE_PROFILE = {
   refundInvoicing: "none",
 } as const;
 
-/** Stores `value` as the branch's (or brand's) einvoice_profile, as the backoffice would. */
-export function saveEInvoiceProfile(
+type Scope = { scopeKind: "branch" | "brand" | "device"; scopeId: string };
+
+/** Stores one setting at `scope`, as the backoffice would. */
+export function saveSetting(
   pool: pg.Pool,
   tenantId: string,
-  scope: { scopeKind: "branch" | "brand" | "device"; scopeId: string },
-  value: unknown = EINVOICE_PROFILE,
+  scope: Scope,
+  key: string,
+  value: unknown,
 ) {
   return withTenant(pool, tenantId, (client) =>
-    saveConfigValue(
-      client,
-      { tenantId, appUserId: newId(), now: new Date() },
-      scope,
-      "einvoice_profile",
-      value,
-    ),
+    saveConfigValue(client, { tenantId, appUserId: newId(), now: new Date() }, scope, key, value),
   );
 }
+
+/** Stores `value` as the branch's (or brand's) einvoice_profile. */
+export const saveEInvoiceProfile = (
+  pool: pg.Pool,
+  tenantId: string,
+  scope: Scope,
+  value: unknown = EINVOICE_PROFILE,
+) => saveSetting(pool, tenantId, scope, "einvoice_profile", value);

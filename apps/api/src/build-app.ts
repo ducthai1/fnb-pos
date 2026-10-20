@@ -24,6 +24,7 @@ import { registerPaymentBackofficeRoutes } from "./routes/payments/payment-backo
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
 import { registerPosBootstrapRoute } from "./routes/pos/bootstrap-route";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
+import { registerDailySalesRoutes } from "./routes/reports/daily-sales-routes";
 import { registerDayCloseRoutes } from "./routes/reports/day-close-routes";
 import { registerPrintFailureRoutes } from "./routes/reports/print-failure-routes";
 import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-role-routes";
@@ -121,6 +122,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerFloorRoutes(app, context);
   registerSyncRoutes(app, context);
   registerPrintFailureRoutes(app, context);
+  registerDailySalesRoutes(app, context);
   const payments = {
     gateways: gatewaysByKey(dependencies.paymentGateways ?? PAYMENT_GATEWAYS),
     secretBox:
