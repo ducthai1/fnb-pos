@@ -6,6 +6,9 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-20 12:30 — **Dừng giữa đợt 8 vì hết hạn mức sử dụng.** Cặp 8a đã xong nhưng CHƯA merge: nhánh `feat/backoffice-read-routes-and-config-writes` (4 commit, đã push lên origin; worktree `~/FileMySelf/FNB-POS/worktrees/server-gaps`) có `GET /branches|/devices|/staff`, `/auth/me` kèm permissionKeys, lỗi domain kèm ids, một bộ chuyển ProductDocument → domain, `GET/PUT/DELETE /settings` (validateFlags trên mọi tầng). Agent báo verify/test:api xanh; chưa chạy lại test:browser sau task 3. **Việc đầu phiên sau:** merge main vào nhánh đó, chạy đủ 4 cổng theo luật 27 (tuần tự, ít worker), rồi fast-forward main + push.
+- Review sâu đợt 3–7: `research/review-wave-3-7-findings.md` — đọc rồi chia việc sửa (đợt 9). Cặp 8b (POS màn bàn + QR tự xác nhận + người mua HĐĐT; backoffice cài đặt + báo cáo + chốt ngày + khớp tay) CHƯA chạy.
+
 - 2026-10-20 11:55 — Đợt 7 cặp 2 (2 agent, 1,06M token, 74 phút) đã merge + push (`a601e37`): **backoffice web** (`apps/backoffice`, Next.js 15.5.28: đăng nhập + chọn tổ chức, chọn chi nhánh, thiết bị + mã ghép + thu hồi, nhân viên + PIN, vai trò + ngưỡng, danh mục, trình sửa món với xem trước lựa chọn của khách bằng domain, hết món) + e2e dựng menu trà sữa / ghép thiết bị / dữ liệu xấu; **hóa đơn điện tử** (hồ sơ theo chi nhánh, interface nhà cung cấp + bản giả, 1 hóa đơn mỗi lần thanh toán qua hàng đợi SKIP LOCKED + backoff, thông tin người mua, gửi cuối ngày), **chốt ngày** (chặn khi còn ca mở / hóa đơn chưa phát), **báo cáo doanh thu ngày** theo định nghĩa cố định.
 - **Lỗ hổng tích hợp:** backoffice gọi `GET /branches`, `GET /devices?branchId=`, `GET /staff` mà API CHƯA có (e2e dùng bản giả lập trong `e2e/backoffice/support/pending-backoffice-read-routes.ts`) ⇒ bản thật báo lỗi ở chọn chi nhánh/danh sách thiết bị/nhân viên. Việc đầu của đợt 8.
 - Cổng: unit ~1.700 · `test:api` 1.459 · `test:sync` 14 · `test:browser`/e2e 46 — xanh.
