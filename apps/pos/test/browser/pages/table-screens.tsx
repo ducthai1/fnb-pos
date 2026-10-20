@@ -30,6 +30,7 @@ const header = (
       status={{ connection: "offline", pending: 123_456, needsAttention: 9_999 }}
       onOpenNeedsAttention={() => {}}
       onSwitchStaff={() => {}}
+      onSignOut={() => {}}
     />
     <SellingModeSwitch mode="tables" onChange={() => {}} />
   </>
@@ -69,6 +70,7 @@ export const TABLE_SCREENS = {
       order={order}
       view={cartView(menu, order, profile, now, kept)}
       kept={kept}
+      sentIds={new Set(kept.keys())}
       owed={new Set(order.lines.slice(1).map((line) => line.lineId))}
       saveFailed
       notices={

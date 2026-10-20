@@ -9,30 +9,19 @@ import {
 import { openNodeSqliteDriver } from "@fnb/sync-client/node-sqlite";
 import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
-import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
 import { NO_MENU_COPIES, buildTillMenu } from "../features/menu/till-menu";
 import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
 import { CREDENTIAL } from "./credential";
 import { type FakeFloorPlan, fakeFloorSource } from "./fake-floor";
+import { fakeApiState, fakePosApi, refusal } from "./fake-pos-api";
 import { fakeServerRows } from "./fake-server-rows";
 import type {
   DeviceCredential,
   DeviceCredentialStore,
 } from "../shell-bridge/device-credential-store";
 
-export { CREDENTIAL };
-
-export const refusal = (
-  status: number | null,
-  code: string | null,
-  body?: unknown,
-): ApiFailure => ({
-  ok: false,
-  status,
-  code,
-  body: body ?? (code === null ? null : { code }),
-});
+export { CREDENTIAL, refusal };
 
 /** The till's real store, in memory: the screens are tested, not the database. */
 export const memoryStore = (): LocalStore =>
@@ -75,10 +64,9 @@ export function draftCommand(): LocalCommand {
  * pushed command is refused for good with that code.
  */
 export function fakeServer(snapshot: BootstrapSnapshot) {
+  const apiState = fakeApiState();
   const state = {
-    online: true,
-    pairingCode: "ABCDEFGH",
-    pins: new Map<string, string>(),
+    ...apiState,
     bootstrapFailure: null as ApiFailure | null,
     floorPlan: { areas: [], tables: [] } as FakeFloorPlan,
     floorFailure: null as ApiFailure | null,
@@ -89,8 +77,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
     pushed: [] as SyncCommandEnvelope[],
     calls: {
-      pair: [] as { code: string; deviceName: string }[],
-      signIn: [] as { staffId: string; pin: string; deviceToken: string }[],
+      ...apiState.calls,
       bootstrap: 0,
       floor: 0,
       pulls: 0,
@@ -103,21 +90,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
   const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId, menu, tableName);
   const floor = fakeFloorSource(state, rows.rows, state.calls);
 
-  const api: PosApi = {
-    async pairDevice(input) {
-      state.calls.pair.push(input);
-      if (!state.online) return unreachable();
-      if (input.code !== state.pairingCode) return refusal(401, "API_DEVICE_PAIRING_CODE_INVALID");
-      return { ok: true, value: CREDENTIAL };
-    },
-    async startStaffSession(credential, input) {
-      state.calls.signIn.push({ ...input, deviceToken: credential.deviceToken });
-      if (!state.online) return unreachable();
-      if (state.pins.get(input.staffId) !== input.pin) return refusal(401, "API_STAFF_PIN_INVALID");
-      const session = { staffId: input.staffId, token: `staff-${input.staffId}` };
-      return { ok: true, value: { ...session, expiresAt: "2026-10-20T15:00:00.000Z" } };
-    },
-  };
+  // The calls outside sync read the same state the tests script.
+  const api = fakePosApi(state);
 
   const bootstrap: BootstrapSource = {
     async load() {
@@ -185,7 +159,17 @@ export function fakeDependencies(
     api: server.api,
     bootstrap: server.bootstrap,
     floor: server.floor,
-    transportFor: () => server.transport,
+    // A push with a staff session the server no longer knows is refused 401, as the API does.
+    transportFor: (_credential, staffToken) => ({
+      pullChanges: (cursor, limit) => server.transport.pullChanges(cursor, limit),
+      async pushCommands(batch) {
+        const token = staffToken();
+        if (server.state.online && token !== null && server.state.expiredTokens.has(token)) {
+          throw new SyncTransportError("http", 401, "answered 401");
+        }
+        return server.transport.pushCommands(batch);
+      },
+    }),
     syncIdleMs: 20,
     printer: options.printer ?? previewOnlyPrinter,
     reload: () => {},

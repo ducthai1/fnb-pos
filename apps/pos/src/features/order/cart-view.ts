@@ -1,4 +1,4 @@
-import { type Vnd, addVnd, isDomainError } from "@fnb/domain";
+import { type OrderLine, type Vnd, addVnd, isDomainError } from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 import { vi } from "../../messages/vi";
 import type { CartLine, CounterOrder } from "./counter-order";
@@ -25,6 +25,7 @@ export function cartView(
   chargeProfile: Parameters<typeof priceCounterOrder>[2],
   at: number,
   kept?: KeptLines,
+  commandLines?: readonly OrderLine[],
 ): CartView {
   const common = {
     pricesIncludeTax: chargeProfile.pricesIncludeTax,
@@ -34,7 +35,7 @@ export function cartView(
     return {
       ...common,
       kind: "priced",
-      priced: priceCounterOrder(menu, order, chargeProfile, at, kept),
+      priced: priceCounterOrder(menu, order, chargeProfile, at, kept, commandLines),
     };
   } catch (error) {
     // The menu changed under the open order: a product gone, an option the shop removed.

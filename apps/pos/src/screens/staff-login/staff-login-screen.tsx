@@ -8,15 +8,25 @@ import { StaffPicker } from "./staff-picker";
 export interface StaffLoginScreenProps {
   branchName: string;
   staff: readonly BootstrapStaff[];
+  /** Why the till asks again, e.g. the staff session ran out; null when someone chose to. */
+  notice?: string | null;
   signIn(staffId: string, pin: string): Promise<ApiResult<StaffSession>>;
   onSignedIn(staff: BootstrapStaff, session: StaffSession): void;
 }
 
 /** Who is at the till: pick a name, then that person's PIN. */
-export function StaffLoginScreen({ branchName, staff, signIn, onSignedIn }: StaffLoginScreenProps) {
+export function StaffLoginScreen(props: StaffLoginScreenProps) {
+  const { branchName, staff, signIn, onSignedIn } = props;
   const [chosen, setChosen] = useState<BootstrapStaff | null>(null);
   if (chosen === null) {
-    return <StaffPicker branchName={branchName} staff={staff} onChoose={setChosen} />;
+    return (
+      <StaffPicker
+        branchName={branchName}
+        staff={staff}
+        notice={props.notice ?? null}
+        onChoose={setChosen}
+      />
+    );
   }
   return (
     <PinEntry

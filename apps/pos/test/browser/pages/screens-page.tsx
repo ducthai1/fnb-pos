@@ -16,7 +16,10 @@ import "../../../src/styles/pos-order.css";
 import "../../../src/styles/pos-picker.css";
 import "../../../src/styles/pos-checkout.css";
 import "../../../src/styles/pos-floor.css";
+import "../../../src/styles/pos-operations.css";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
+import { HISTORY_REFUND_SCREENS } from "./history-refund-screens";
+import { OPERATIONS_SCREENS } from "./operations-screens";
 import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
 import { SALE_SCREENS } from "./sale-screens";
 import { TABLE_SCREENS } from "./table-screens";
@@ -85,6 +88,8 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ...CHECKOUT_SCREENS,
   ...QR_AND_INVOICE_SCREENS,
   ...TABLE_SCREENS,
+  ...OPERATIONS_SCREENS,
+  ...HISTORY_REFUND_SCREENS,
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */

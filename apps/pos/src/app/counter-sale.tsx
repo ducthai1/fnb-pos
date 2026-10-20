@@ -19,6 +19,7 @@ import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../screens/sale/sale-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
 import { CounterCheckout } from "./counter-checkout";
+import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 
 export interface CounterSaleProps {
   client: SyncClient;
@@ -38,6 +39,7 @@ export interface CounterSaleProps {
 type Phase =
   | { readonly kind: "selling" }
   | { readonly kind: "picking"; readonly product: PosProduct }
+  | { readonly kind: "adjusting"; readonly step: AdjustStep }
   | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
 
 /** One customer after another at the counter: ring up, take the money, print, start again. */
@@ -69,6 +71,22 @@ export function CounterSale(props: CounterSaleProps) {
       />
     );
   }
+  if (phase.kind === "adjusting") {
+    return (
+      <OrderAdjustmentFlow
+        step={phase.step}
+        session={session}
+        client={props.client}
+        menu={menu}
+        place={props.place}
+        header={header}
+        onDone={(outcome) => {
+          if (outcome.kind === "cancelled") session.startNew();
+          setPhase({ kind: "selling" });
+        }}
+      />
+    );
+  }
   if (phase.kind === "picking") {
     return (
       <ModifierPickerScreen
@@ -95,7 +113,10 @@ export function CounterSale(props: CounterSaleProps) {
       menu={menu}
       now={now}
       order={order}
-      view={cartView(menu, order, chargeProfile, now)}
+      view={cartView(menu, order, chargeProfile, now, session.kept, session.commandLines)}
+      kept={session.kept}
+      commandLines={session.commandLines}
+      adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
       saveFailed={session.saveFailed}
       onPick={(product) => {
         if (needsNoChoice(product)) {

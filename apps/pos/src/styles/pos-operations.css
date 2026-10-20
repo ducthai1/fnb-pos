@@ -1,0 +1,72 @@
+/* Approvals, voids, discounts, refunds, the drawer, the close and the order history. */
+
+.pos-approval {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pos-approval__what {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pos-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pos-choices .pos-button[aria-pressed="true"] {
+  outline: 3px solid currentColor;
+  font-weight: 700;
+}
+
+.pos-line-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pos-till-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+
+.pos-figures {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.pos-figures dd {
+  margin: 0;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-figures__strong {
+  font-weight: 700;
+}
+
+.pos-history-row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pos-history-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.pos-refund-line {
+  display: grid;
+  gap: 0.25rem;
+}

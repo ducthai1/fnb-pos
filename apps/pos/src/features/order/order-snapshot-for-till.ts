@@ -1,6 +1,7 @@
 import type { EntitySnapshot } from "@fnb/contracts";
 import {
   type OrderChargeProfile,
+  type OrderLine,
   type OrderStatus,
   type Quantity,
   type SentLineState,
@@ -26,9 +27,35 @@ export interface TillOrderState {
   readonly sent: readonly SentLineState[];
   /** Whether the pre-bill printed for the order still shows it as it is; false by default. */
   readonly preBillPrinted?: boolean;
+  /** Why the order was cancelled; none while it is not. */
+  readonly reasonCode?: string | null;
 }
 
 const NOTHING_SENT: Quantity = quantity(0);
+
+/** Lines as the server's order row carries them, with what the stations have of each. */
+export function lineRowsOf(lines: readonly OrderLine[], sentState: readonly SentLineState[]) {
+  const sent = new Map(sentState.map((line) => [line.lineId, line]));
+  return lines.map((line) => ({
+    id: line.id,
+    parentLineId: line.parentLineId,
+    lineType: line.lineType,
+    productId: line.productId,
+    variantId: line.variantId,
+    modifierOptionId: line.modifierOptionId,
+    nameSnapshot: line.nameSnapshot,
+    unitPrice: moneyToWire(line.unitPrice),
+    quantity: quantityToDecimalString(line.quantity),
+    taxRate: line.taxRate,
+    note: line.note,
+    priceSource: line.priceSource,
+    reversesLineId: line.reversesLineId,
+    wholeParentLine: line.wholeParentLine === true,
+    sentQuantity: quantityToDecimalString(sent.get(line.id)?.sentQuantity ?? NOTHING_SENT),
+    sentNote: sent.get(line.id)?.sentNote ?? null,
+    restock: null,
+  }));
+}
 
 /**
  * What the till expects the server's copy of the order to look like after its command, in
@@ -40,7 +67,6 @@ export function tillOrderSnapshot(
   priced: PricedCounterOrder,
   state: TillOrderState,
 ): EntitySnapshot {
-  const sent = new Map(state.sent.map((line) => [line.lineId, line]));
   return {
     id: order.orderId,
     branchId: place.branchId,
@@ -58,28 +84,10 @@ export function tillOrderSnapshot(
     tableName: order.table?.name ?? null,
     tableTag: order.tableTag,
     preBillPrinted: state.preBillPrinted ?? false,
-    reasonCode: null,
+    reasonCode: state.reasonCode ?? null,
     chargeProfile: state.chargeProfile,
     refundAmounts: null,
-    lines: priced.lines.map((line) => ({
-      id: line.id,
-      parentLineId: line.parentLineId,
-      lineType: line.lineType,
-      productId: line.productId,
-      variantId: line.variantId,
-      modifierOptionId: line.modifierOptionId,
-      nameSnapshot: line.nameSnapshot,
-      unitPrice: moneyToWire(line.unitPrice),
-      quantity: quantityToDecimalString(line.quantity),
-      taxRate: line.taxRate,
-      note: line.note,
-      priceSource: line.priceSource,
-      reversesLineId: null,
-      wholeParentLine: false,
-      sentQuantity: quantityToDecimalString(sent.get(line.id)?.sentQuantity ?? NOTHING_SENT),
-      sentNote: sent.get(line.id)?.sentNote ?? null,
-      restock: null,
-    })),
+    lines: lineRowsOf(priced.lines, state.sent),
     payments: state.payments.map((payment) => ({
       method: payment.method,
       amount: moneyToWire(payment.amount),

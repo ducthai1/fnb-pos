@@ -15,13 +15,8 @@ export const VI_TABLE_ERRORS = {
   SYNC_TABLE_CHANGE_NEEDS_TRANSFER:
     "Đơn này vừa được chuyển sang bàn khác ở máy khác. Về sơ đồ bàn rồi mở đơn ở bàn mới.",
   SYNC_ORDER_NOT_AT_TABLE: "Đơn này không ngồi ở bàn nào nên không chuyển bàn được.",
-  SYNC_LINE_LOCKED:
-    "Món đã gửi bếp không bớt, đổi hay xóa được. Về sơ đồ bàn rồi mở lại bàn để thấy đơn như máy chủ đang giữ.",
   SYNC_DEVICE_ORDER_NO_TAKEN:
     "Số đơn của máy trùng với một đơn khác. Về sơ đồ bàn rồi mở lại bàn để máy cấp số mới.",
-  SYNC_APPROVAL_REQUIRED:
-    "Bạn chưa được tự làm thao tác này: cần quản lý duyệt. Nhờ quản lý làm giúp.",
-  SYNC_PERMISSION_DENIED: "Vai trò của bạn không được làm thao tác này. Nhờ quản lý làm giúp.",
   DOMAIN_ORDER_ALREADY_PAID:
     "Đơn này đã được thanh toán (có thể ở máy khác) nên không sửa được nữa. Về sơ đồ bàn: bàn đã trống.",
   DOMAIN_ORDER_ALREADY_CANCELLED:

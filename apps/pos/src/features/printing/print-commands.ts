@@ -57,21 +57,25 @@ export function markSentCommand(
   );
 }
 
-/** print.job_reported: how a slip came out on a real printer, for the backoffice's log. */
+/**
+ * print.job_reported: how a slip came out on a real printer, for the backoffice's log. A
+ * refund's slip is the refund order's bill; a shift report names its shift instead.
+ */
 export function jobReportedCommand(
   place: TillPlace,
   orderId: string,
   job: PrintJob,
   outcome: Exclude<PrintOutcome, { status: "preview_only" }>,
   at: number,
+  shiftId?: string,
 ): LocalCommand {
   const payload = {
     jobId: job.jobId,
-    kind: job.kind,
+    kind: job.kind === "refund" ? "bill" : job.kind,
     status: outcome.status,
     attempts: outcome.attempts,
     printerKey: job.printerKey,
-    orderId,
+    ...(shiftId === undefined ? { orderId } : { shiftId }),
     ...(outcome.status === "failed" ? { errorCode: outcome.errorCode } : {}),
     occurredAt: new Date(at).toISOString(),
   };

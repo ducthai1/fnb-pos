@@ -1,30 +1,41 @@
-import { type OrderLine, QUANTITY_SCALE, formatVnd, quantityToDecimalString } from "@fnb/domain";
-import type { ReactNode } from "react";
-import {
-  type CartLine,
-  type CounterOrder,
-  MAX_LINE_QUANTITY,
-} from "../../features/order/counter-order";
-import { type CartView, lineAmountOf } from "../../features/order/cart-view";
+import type { OrderLine } from "@fnb/domain";
+import { lineHeld } from "../../features/order/cart-change-guard";
+import type { CounterOrder } from "../../features/order/counter-order";
+import type { CartView } from "../../features/order/cart-view";
 import { callNumberOf } from "../../features/order/device-order-number";
+import type { KeptLines } from "../../features/order/price-counter-order";
 import { vi } from "../../messages/vi";
-import { Alert } from "../shared/screen-frame";
-import { QuantityStepper } from "./quantity-stepper";
+import { CartRow, type CartRowActions, type LineAdjustments } from "./cart-row";
+import { CartTotals } from "./cart-totals";
 import { ServiceTypePicker } from "./service-type-picker";
+
+export { CartRow } from "./cart-row";
+export { CartTotals } from "./cart-totals";
 
 const S = vi.sale;
 
-export interface CartPanelProps {
+/** What can be done to the saved order beyond its items: a discount on all of it, cancelling it. */
+export interface OrderAdjustments extends LineAdjustments {
+  onDiscountOrder(): void;
+  onCancelOrder(): void;
+}
+
+export interface CartPanelProps extends CartRowActions {
   order: CounterOrder;
   view: CartView;
-  onQuantity(lineId: string, quantity: number): void;
-  onRemove(lineId: string): void;
+  /** Items held as stored, and the lines commands made (discounts, cancel lines). */
+  kept?: KeptLines;
+  commandLines?: readonly OrderLine[];
+  /** Offered once the order is saved on the till. */
+  adjust?: OrderAdjustments | undefined;
   onServiceType(serviceType: CounterOrder["serviceType"], tableTag: string): void;
   onCheckout(): void;
 }
 
+const NONE: KeptLines = new Map();
+
 /** The order as a tree (options indented under their item), with the domain's totals. */
-export function CartPanel({ order, view, ...on }: CartPanelProps) {
+export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }: CartPanelProps) {
   const priced = view.kind === "priced" ? view.priced : null;
   return (
     <section className="pos-cart" aria-label={S.cartLabel}>
@@ -36,10 +47,22 @@ export function CartPanel({ order, view, ...on }: CartPanelProps) {
       {order.lines.length === 0 ? <p className="pos-hint">{S.cartEmpty}</p> : null}
       <ul className="pos-list">
         {order.lines.map((line) => (
-          <CartRow key={line.lineId} line={line} priced={priced?.lines ?? []} view={view} {...on} />
+          <CartRow
+            key={line.lineId}
+            line={line}
+            priced={priced?.lines ?? []}
+            view={view}
+            locked={lineHeld(line.lineId, kept, commandLines)}
+            adjust={on.adjust}
+            onQuantity={on.onQuantity}
+            onRemove={on.onRemove}
+          />
         ))}
       </ul>
       <CartTotals view={view} />
+      {on.adjust === undefined || order.lines.length === 0 ? null : (
+        <OrderTools adjust={on.adjust} />
+      )}
       <button
         type="button"
         className="pos-button pos-button--primary pos-cart__checkout"
@@ -52,91 +75,17 @@ export function CartPanel({ order, view, ...on }: CartPanelProps) {
   );
 }
 
-/** The domain's totals of the cart, or nothing while it cannot be priced. */
-export function CartTotals({ view }: { view: CartView }) {
-  if (view.kind === "unpriceable") return <Alert message={view.message} />;
-  const { totals } = view.priced;
+/** The order's own tools: a discount on all of it, cancelling it. */
+export function OrderTools({ adjust }: { adjust: OrderAdjustments }) {
+  const T = vi.adjust.tools;
   return (
-    <dl className="pos-totals">
-      <dt>{S.subtotal}</dt>
-      <dd>{formatVnd(totals.grossTotal)}</dd>
-      {totals.serviceCharge === 0n ? null : (
-        <>
-          <dt>{S.serviceCharge}</dt>
-          <dd>{formatVnd(totals.serviceCharge)}</dd>
-        </>
-      )}
-      <dt>{view.pricesIncludeTax ? S.taxIncluded : S.taxAdded}</dt>
-      <dd>{formatVnd(totals.taxTotal)}</dd>
-      <dt className="pos-totals__due">{S.amountDue}</dt>
-      <dd className="pos-totals__due" data-amount-due={String(totals.amountDue)}>
-        {formatVnd(totals.amountDue)}
-      </dd>
-    </dl>
-  );
-}
-
-/**
- * One item with its options and note. `badge` says where it stands with the kitchen; a
- * `locked` one (the kitchen has it) offers no stepper and no remove: that is a void.
- */
-export function CartRow(
-  props: {
-    line: CartLine;
-    priced: readonly OrderLine[];
-    view: CartView;
-    badge?: ReactNode;
-    locked?: boolean;
-  } & Pick<CartPanelProps, "onQuantity" | "onRemove">,
-) {
-  const { line, priced } = props;
-  const item = priced.find((candidate) => candidate.id === line.lineId);
-  const children = priced.filter((candidate) => candidate.parentLineId === line.lineId);
-  const name = item?.nameSnapshot ?? props.view.nameOf(line);
-  const amount = props.view.kind === "priced" ? lineAmountOf(props.view.priced, line.lineId) : null;
-  return (
-    <li className="pos-cart-line">
-      <div className="pos-cart-line__head">
-        <span className="pos-cart-line__name pos-wrap">{name}</span>
-        <span className="pos-cart-line__amount">{amount === null ? "" : formatVnd(amount)}</span>
-      </div>
-      {children.length === 0 ? null : (
-        <ul className="pos-cart-line__children">
-          {children.map((child) => (
-            <li key={child.id} className="pos-wrap">
-              + {child.nameSnapshot}
-              {child.quantity === QUANTITY_SCALE
-                ? ""
-                : ` ×${quantityToDecimalString(child.quantity)}`}
-            </li>
-          ))}
-        </ul>
-      )}
-      {line.note === null ? null : (
-        <p className="pos-cart-line__note pos-wrap">
-          {S.note}: {line.note}
-        </p>
-      )}
-      {props.badge}
-      {props.locked === true ? null : (
-        <div className="pos-cart-line__actions">
-          <QuantityStepper
-            label={S.lineQuantity(name)}
-            name={name}
-            value={line.quantity}
-            max={MAX_LINE_QUANTITY}
-            onChange={(next) => props.onQuantity(line.lineId, next)}
-          />
-          <button
-            type="button"
-            className="pos-button pos-button--quiet"
-            aria-label={S.remove(name)}
-            onClick={() => props.onRemove(line.lineId)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </li>
+    <div className="pos-line-tools">
+      <button type="button" className="pos-button" onClick={adjust.onDiscountOrder}>
+        {T.orderDiscount}
+      </button>
+      <button type="button" className="pos-button" onClick={adjust.onCancelOrder}>
+        {T.cancelOrder}
+      </button>
+    </div>
   );
 }

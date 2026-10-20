@@ -14,7 +14,7 @@ export const VI_CHECKOUT = {
     checking: "Đang kiểm tra ca…",
   },
   /** How each payment method reads on screen and on the bill. */
-  methods: { cash: "Tiền mặt", qr_transfer: "Chuyển khoản" },
+  methods: { cash: "Tiền mặt", qr_transfer: "Chuyển khoản", bank_transfer: "Chuyển khoản tay" },
   payment: {
     title: "Thanh toán",
     amountDue: "Cần thu",
@@ -51,6 +51,8 @@ export const VI_CHECKOUT = {
       cup_label: "Tem dán ly",
       kitchen: "Phiếu pha chế",
       pre_bill: "Phiếu tạm tính",
+      refund: "Phiếu hoàn tiền",
+      shift_report: "Phiếu chốt ca",
     },
     previewOnly: "Bản xem trước — máy này chưa nối máy in, phiếu chưa được in.",
     printed: "Đã in",

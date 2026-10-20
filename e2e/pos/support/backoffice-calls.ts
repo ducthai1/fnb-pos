@@ -19,22 +19,21 @@ export async function backoffice(
   return JSON.parse(text) as Record<string, unknown>;
 }
 
-/** A cashier of the stack's branch and a fresh pairing code for a new till there. */
-export async function cashierAndPairingCode(stack: PosStack, displayName: string, pin: string) {
+/** A cashier of a branch (the stack's unless told) and a fresh pairing code for a new till there. */
+export async function cashierAndPairingCode(
+  stack: PosStack,
+  displayName: string,
+  pin: string,
+  branchId = stack.branchId,
+) {
   await backoffice(
     stack,
     "POST",
     "/staff",
-    { displayName, pin, roleId: stack.roleId, branchIds: [stack.branchId] },
+    { displayName, pin, roleId: stack.roleId, branchIds: [branchId] },
     201,
   );
-  const { code } = await backoffice(
-    stack,
-    "POST",
-    "/devices/pairing-codes",
-    { branchId: stack.branchId },
-    201,
-  );
+  const { code } = await backoffice(stack, "POST", "/devices/pairing-codes", { branchId }, 201);
   if (typeof code !== "string") throw new Error("no pairing code in the answer");
   return code;
 }

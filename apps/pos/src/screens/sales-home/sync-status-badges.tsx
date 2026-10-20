@@ -6,6 +6,7 @@ const CONNECTION_TEXT: Record<TillConnection, string> = {
   online: vi.sync.online,
   offline: vi.sync.offline,
   server_error: vi.sync.serverError,
+  origin_refused: vi.errors.API_ORIGIN_NOT_ALLOWED,
 };
 
 /** The till's sync state at a glance: link, unsent commands, refused commands. */

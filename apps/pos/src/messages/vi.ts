@@ -1,9 +1,13 @@
 // Every string the POS shows. Screens read from here; none writes Vietnamese inline.
 
+import { VI_APPROVAL, VI_APPROVAL_ERRORS } from "./vi-approval";
 import { VI_CHECKOUT } from "./vi-checkout";
+import { VI_HISTORY, VI_REFUND } from "./vi-history-refund";
 import { VI_INVOICE } from "./vi-invoice";
+import { VI_ORDER_ADJUST, VI_ORDER_ADJUST_ERRORS, VI_REASONS } from "./vi-order-adjust";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
+import { VI_CASH, VI_CLOSE_SHIFT, VI_SESSION, VI_SESSION_ERRORS } from "./vi-shift-tools";
 import { VI_SYNC_ERRORS } from "./vi-sync-errors";
 import { VI_TABLE_ERRORS, commandSpecificSentence } from "./vi-table-errors";
 import { VI_TABLES } from "./vi-tables";
@@ -52,6 +56,15 @@ export const vi = {
   qr: VI_QR_PAYMENT,
   invoice: VI_INVOICE,
   tables: VI_TABLES,
+  approval: VI_APPROVAL,
+  adjust: VI_ORDER_ADJUST,
+  reasons: VI_REASONS,
+  history: VI_HISTORY,
+  refund: VI_REFUND,
+  cash: VI_CASH,
+  closeShift: VI_CLOSE_SHIFT,
+  session: VI_SESSION,
+  tools: { label: "Công cụ của máy" },
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
@@ -84,6 +97,9 @@ export const vi = {
     API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ.",
     ...VI_SYNC_ERRORS,
     ...VI_TABLE_ERRORS,
+    ...VI_APPROVAL_ERRORS,
+    ...VI_ORDER_ADJUST_ERRORS,
+    ...VI_SESSION_ERRORS,
     pinLockedUntil: (time: string) => `Nhập sai PIN quá nhiều lần. Thử lại lúc ${time}.`,
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     unknown: "Có lỗi xảy ra. Thử lại sau ít phút.",

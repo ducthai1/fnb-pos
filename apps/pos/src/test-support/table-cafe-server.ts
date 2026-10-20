@@ -27,12 +27,14 @@ export type TableServer = ReturnType<typeof fakeServer>;
  * The pilot café serving at tables (its `tables` switch as given), the branch's other
  * settings being `settings`, Lan's PIN being 4826.
  */
-export function tableCafeServer(tablesOn = true, settings: Record<string, unknown> = {}) {
+export function tableCafeServer(
+  tablesOn = true,
+  settings: Record<string, unknown> = {},
+  staff: { id: string; displayName: string; active: boolean }[] = [LAN],
+) {
   const { config } = tillBootstrapWire();
   const flags = { ...config.flags, tables: tablesOn };
-  const server = fakeServer(
-    tillBootstrap({ staff: [LAN], config: { ...config, flags, settings } }),
-  );
+  const server = fakeServer(tillBootstrap({ staff, config: { ...config, flags, settings } }));
   server.state.pins.set(LAN.id, "4826");
   server.state.floorPlan = {
     areas: [

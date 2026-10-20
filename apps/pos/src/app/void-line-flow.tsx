@@ -1,0 +1,72 @@
+import { type VoidRecord, reversedQuantityOf } from "@fnb/domain";
+import {
+  type Approval,
+  planVoid,
+  voidAdjustment,
+} from "../features/order-adjust/void-line-adjustment";
+import { useTillPermissions } from "../features/permissions/till-permissions-context";
+import { useApprovalGate } from "../features/permissions/use-approval-gate";
+import type { TillMenu } from "../features/menu/till-menu";
+import { vi } from "../messages/vi";
+import { VoidLineScreen } from "../screens/order-adjust/void-line-screen";
+import { type AdjustContext, approvalOf, attempt, nameOn, units } from "./adjust-flow-parts";
+
+const voidNeedsApproval = (menu: TillMenu) =>
+  menu.config.settings.void_after_sent_needs_approval !== false;
+
+/**
+ * Cancelling units of an item: the domain takes those the kitchen never saw first; the rest
+ * need a manager where the branch asks for one, and leave a cancel line (and a ticket).
+ */
+export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
+  const { settled, lineId } = props;
+  const gate = useApprovalGate();
+  const { authority } = useTillPermissions();
+  if (gate.sheet !== null) return gate.sheet;
+  const lines = settled.priced.lines;
+  const item = lines.find((line) => line.id === lineId);
+  const reversed = reversedQuantityOf(lines, lineId);
+  const sent = settled.sent.find((line) => line.lineId === lineId)?.sentQuantity ?? 0n;
+  const name = nameOn(settled, lineId);
+
+  const confirm = (count: number, reasonCode: string) =>
+    attempt(async () => {
+      const request = { lineId, units: count, reasonCode, staffId: authority.staffId };
+      const plan = planVoid(settled, request);
+      const raised = plan.raisedOrderDiscountRate;
+      if (
+        raised !== null &&
+        authority.decide({ key: "order_discount", discountRate: raised }) !== "allowed"
+      ) {
+        return vi.adjust.void.orderDiscountWouldRise;
+      }
+      let approval: Approval | null = null;
+      if (plan.record.fromSent > 0n && voidNeedsApproval(props.menu)) {
+        const said = vi.approval.actions.voidAfterSent(units(plan.record.fromSent), name);
+        const outcome = await gate.require({ key: "void_after_sent" }, said);
+        if (outcome.kind === "denied") return vi.approval.denied;
+        const given = approvalOf(outcome);
+        if (given === undefined) return null;
+        approval = given;
+      }
+      let record: VoidRecord | null = null;
+      await props.session.adjust((now) => {
+        const adjusted = voidAdjustment(props.place, now, request, approval, Date.now());
+        record = adjusted.record;
+        return adjusted;
+      });
+      props.onDone(record === null ? { kind: "adjusted" } : { kind: "voided", record });
+      return null;
+    });
+
+  return (
+    <VoidLineScreen
+      header={props.header}
+      itemName={name}
+      remaining={item === undefined ? 0 : units(item.quantity - reversed)}
+      sentUnits={units(sent - reversed)}
+      onBack={() => props.onDone({ kind: "back" })}
+      onConfirm={confirm}
+    />
+  );
+}

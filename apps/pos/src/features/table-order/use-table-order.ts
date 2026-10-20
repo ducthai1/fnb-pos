@@ -1,19 +1,17 @@
-import type { SentLineState } from "@fnb/domain";
+import { type SentLineState, computeOrderTotals } from "@fnb/domain";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { useCallback, useRef, useState } from "react";
 import type { TillMenu } from "../menu/till-menu";
-import type { CounterOrder } from "../order/counter-order";
-import {
-  type KeptLines,
-  type PricedCounterOrder,
-  priceCounterOrder,
-} from "../order/price-counter-order";
-import { saveDraftCommand } from "../order/save-draft-command";
-import { type TillPlace, businessDateAt } from "../order/till-command";
+import { commandMadeLines } from "../order/command-made-lines";
+import type { KeptLines } from "../order/price-counter-order";
+import type { StoredOrder } from "../order/stored-order";
+import type { TillPlace } from "../order/till-command";
+import { useDraftQueue } from "../order/use-draft-queue";
 import type { TableOrderOpening } from "./table-order-opening";
-import { keptUntouched, settledOrder } from "./table-order-state";
-import type { PreBillState, TableOrderSession } from "./table-order-session";
+import type { TableOrderSession } from "./table-order-session";
+import { settledOrder } from "./table-order-state";
 import { useOrderRefusal } from "./use-order-refusal";
+import { usePreBillState } from "./use-pre-bill-state";
 
 /**
  * The order at a table while its screen is open: saved after every change (order.save_draft
@@ -30,27 +28,13 @@ export function useTableOrder(
   /** Told of every command recorded for the order, so the floor can report a refusal. */
   onRecorded: (commandId: string) => void,
 ): TableOrderSession {
-  const [order, setOrder] = useState(opening.order);
-  const [kept, setKept] = useState(opening.kept);
   const [sent, setSent] = useState(opening.recorded.sent ?? []);
-  const [preBill, setPreBill] = useState<PreBillState>(
-    opening.recorded.preBillPrinted ? "current" : "none",
-  );
-  const [saveFailed, setSaveFailed] = useState(false);
-  const current = useRef(opening.order);
-  const recorded = useRef(opening.recorded);
-  const keptNow = useRef(opening.kept);
-  const preBillNow = useRef(preBill);
-  const lastPriced = useRef<PricedCounterOrder | null>(opening.priced);
-  const dirty = useRef(false);
-  const saving = useRef<Promise<unknown>>(Promise.resolve());
+  const preBill = usePreBillState(opening.recorded.preBillPrinted);
   const ours = useRef(new Set<string>());
-  const menuNow = useRef(menu);
-  menuNow.current = menu;
   const refusal = useOrderRefusal(client, opening.order.orderId, ours.current);
-  const blocked = refusal !== null;
-  const blockedNow = useRef(blocked);
-  blockedNow.current = blocked;
+  const unconfirmed = useRef(new Set(opening.unconfirmedCancels));
+  const blockedNow = useRef(false);
+  blockedNow.current = refusal !== null;
 
   const enqueue = useCallback(
     async (command: LocalCommand) => {
@@ -60,134 +44,82 @@ export function useTableOrder(
     },
     [client, onRecorded],
   );
-
-  const save = useCallback(
-    async (draft: CounterOrder, at: number): Promise<PricedCounterOrder | null> => {
-      const state = recorded.current;
-      try {
-        const priced = priceCounterOrder(
-          menuNow.current,
-          draft,
-          state.chargeProfile,
-          at,
-          keptNow.current,
-        );
-        const businessDate = state.businessDate ?? businessDateAt(place, at);
-        const version = state.version + 1;
-        const expected = { ...state, status: "draft" as const, businessDate, version };
-        await enqueue(
-          saveDraftCommand(
-            place,
-            draft,
-            priced,
-            { ...expected, payments: [], sent: state.sent ?? [], preBillPrinted: false },
-            at,
-          ),
-        );
-        recorded.current = { ...state, businessDate, version, preBillPrinted: false };
-        lastPriced.current = priced;
-        if (current.current === draft) dirty.current = false;
-        setSaveFailed(false);
-        return priced;
-      } catch (error) {
-        console.error(error);
-        setSaveFailed(true);
-        return null;
-      }
-    },
-    [enqueue, place],
-  );
-
-  const queue = useCallback(
-    (draft: CounterOrder, at: number) => {
-      const next = saving.current.then(() => save(draft, at));
-      saving.current = next;
-      return next;
-    },
-    [save],
-  );
-
-  const update = useCallback(
-    (change: (order: CounterOrder) => CounterOrder) => {
-      const before = current.current;
-      const after = change(before);
-      if (
-        blockedNow.current ||
-        after === before ||
-        !keptUntouched(before, after, keptNow.current)
-      ) {
-        return;
-      }
-      current.current = after;
-      dirty.current = true;
-      setOrder(after);
-      if (preBillNow.current === "current") {
-        preBillNow.current = "changed";
-        setPreBill("changed");
-      }
-      if (after.lines.length > 0 || recorded.current.version > 0) void queue(after, Date.now());
-    },
-    [queue],
-  );
-
-  const record = useCallback(
-    (command: LocalCommand, options?: { readonly keepsVersion?: boolean }) => {
-      const next = saving.current.then(async () => {
-        await enqueue(command);
-        if (command.target.entity === "order" && options?.keepsVersion !== true) {
-          recorded.current = { ...recorded.current, version: recorded.current.version + 1 };
-        }
-      });
-      saving.current = next.catch(() => {});
-      return next;
-    },
-    [enqueue],
-  );
-
-  const saveAt = useCallback(
-    async (at: number) => {
-      await saving.current;
-      if (dirty.current || lastPriced.current === null) return queue(current.current, at);
-      return lastPriced.current;
-    },
-    [queue],
-  );
+  const draft = useDraftQueue({
+    enqueue,
+    place,
+    menu,
+    opening,
+    blocked: () => blockedNow.current,
+    onChanged: preBill.outOfDate,
+  });
+  const { recorded, locks } = draft;
 
   const settled = useCallback(async () => {
-    await saving.current;
-    if (dirty.current) return null;
-    return settledOrder(current.current, lastPriced.current, recorded.current);
-  }, []);
+    if (!(await draft.settledNow()) || draft.current.current === null) return null;
+    const state = { ...recorded.current, preBillPrinted: recorded.current.preBillPrinted === true };
+    return settledOrder(draft.current.current, draft.lastPriced.current, state);
+  }, [draft, recorded]);
 
-  const noteSent = useCallback((next: readonly SentLineState[], locked: KeptLines) => {
-    recorded.current = { ...recorded.current, sent: next };
-    keptNow.current = new Map([...keptNow.current, ...locked]);
-    setSent(next);
-    setKept(keptNow.current);
-  }, []);
+  const noteSent = useCallback(
+    (next: readonly SentLineState[], locked: KeptLines) => {
+      recorded.current = { ...recorded.current, sent: next };
+      const held = locks.now.current;
+      locks.set({ ...held, kept: new Map([...held.kept, ...locked]) });
+      setSent(next);
+    },
+    [recorded, locks],
+  );
+
+  // The server made its own cancel lines: take its command-made lines and what it says the
+  // stations have, so tickets go out under the ids it knows. Only once nothing waits.
+  const rebase = useCallback(
+    (stored: StoredOrder) => {
+      const order = draft.current.current;
+      const priced = draft.lastPriced.current;
+      if (order === null || priced === null || draft.dirty.current) return;
+      const commandLines = commandMadeLines(stored.lines);
+      const own = new Set(locks.now.current.commandLines.map((line) => line.id));
+      const lines = [...priced.lines.filter((line) => !own.has(line.id)), ...commandLines];
+      const totals = computeOrderTotals(
+        { lines, serviceType: order.serviceType },
+        recorded.current.chargeProfile,
+      );
+      draft.lastPriced.current = { lines, totals };
+      recorded.current = { ...recorded.current, sent: stored.sent, version: stored.version };
+      locks.set({ ...locks.now.current, commandLines });
+      unconfirmed.current.clear();
+      setSent(stored.sent);
+    },
+    [draft, locks, recorded],
+  );
 
   const notePreBill = useCallback(() => {
     recorded.current = { ...recorded.current, preBillPrinted: true };
-    preBillNow.current = "current";
-    setPreBill("current");
-  }, []);
+    preBill.printedNow();
+  }, [recorded, preBill]);
 
   return {
-    order,
+    order: draft.order ?? opening.order,
     chargeProfile: recorded.current.chargeProfile,
-    saveFailed,
-    update,
-    saveAt,
+    saveFailed: draft.saveFailed,
+    kept: locks.state.kept,
+    commandLines: locks.state.commandLines,
+    update: draft.update,
+    saveAt: draft.saveAt,
     recorded: () => recorded.current,
-    record,
+    record: draft.record,
+    adjustable: draft.adjustable,
+    adjust: draft.adjust,
     // The floor, not this session, starts what comes after a paid table.
     startNew: () => {},
-    kept,
     sent,
-    preBill,
+    preBill: preBill.state,
     refusal,
     settled,
     noteSent,
     notePreBill,
+    unconfirmedCancels: unconfirmed.current,
+    noteLocalCancel: (lineId) => void unconfirmed.current.add(lineId),
+    rebase,
   };
 }
