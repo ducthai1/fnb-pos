@@ -53,4 +53,11 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
    * the money: the transfer is not this order's to take, it is for a person to refund.
    */
   orderNotPayable: "API_PAYMENT_ORDER_NOT_PAYABLE",
+  /**
+   * Handing back QR money that is not the customer's: nothing came for the QR, a sale uses
+   * the money, or the till may still close the QR's open order with it.
+   */
+  notOwedToCustomer: "API_PAYMENT_NOT_OWED_TO_CUSTOMER",
+  /** The QR's money was marked handed back already: once is all it can be. */
+  alreadyHandedBack: "API_PAYMENT_ALREADY_HANDED_BACK",
 } as const;

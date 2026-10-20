@@ -24,6 +24,7 @@ const EMPTY_DAY = {
   items: [],
   voids: { count: 0, value: 0, items: [] },
   cancelledOrders: 0,
+  qrRefunds: { count: 0, amount: 0, byMethod: [] },
 };
 
 describe("dailySalesReportSchema", () => {
@@ -35,6 +36,7 @@ describe("dailySalesReportSchema", () => {
     ["an amount in fractions of a đồng", { sales: { ...EMPTY_DAY.sales, gross: 0.5 } }],
     ["an hour past 23", { byHour: [{ hour: 24, orderCount: 1, collected: 1 }] }],
     ["a figure nobody defined", { tips: 0 }],
+    ["QR money handed back without saying how", { qrRefunds: { count: 1, amount: 5_000 } }],
   ])("refuses %s", (_case, change) => {
     expect(outcomeOf(dailySalesReportSchema, { ...EMPTY_DAY, ...change }).ok).toBe(false);
   });

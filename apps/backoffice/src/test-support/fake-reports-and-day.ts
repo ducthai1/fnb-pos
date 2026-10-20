@@ -56,6 +56,7 @@ export function dailySalesReport(itemName = "Trà sữa trân châu"): DailySale
     ],
     voids: { count: 2, value: 58_000, items: [] },
     cancelledOrders: 3,
+    qrRefunds: { count: 1, amount: 20_000, byMethod: [{ method: "cash", count: 1, amount: 20_000 }] },
   };
 }
 

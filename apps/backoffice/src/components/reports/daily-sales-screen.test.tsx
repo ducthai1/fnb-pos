@@ -24,6 +24,11 @@ describe("the daily sales report", () => {
     expect(within(figure("orderCount") as HTMLElement).getByText("42")).toBeTruthy();
     expect(within(figure("refundCollected") as HTMLElement).getByText(money(-29_000))).toBeTruthy();
     expect(screen.getByText(`${T.taxRate("8")} ${T.taxRow(money(1_166_667))}`)).toBeTruthy();
+    // QR money handed back is its own line, said not to be revenue.
+    const handedBack = figure("qrRefundAmount") as HTMLElement;
+    expect(within(handedBack).getByText(money(20_000))).toBeTruthy();
+    expect(handedBack.textContent).toContain("không phải doanh thu");
+    expect(within(figure("qrRefundCount") as HTMLElement).getByText("1")).toBeTruthy();
   });
 
   it("lists sales by payment method, by hour and by item", async () => {

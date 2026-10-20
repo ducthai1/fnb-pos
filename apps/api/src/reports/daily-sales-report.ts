@@ -13,6 +13,7 @@ import type pg from "pg";
 import { soldOrderOf } from "../einvoice/sold-lines-of-order";
 import { type StoredOrder, readStoredOrder } from "../sync/stored-order";
 import { ItemTally, PaymentTally, TotalsTally } from "./daily-sales-tallies";
+import { qrRefundsOfTheDay } from "./qr-refunds-of-the-day";
 import { voidedUnitsValue } from "./voided-units-value";
 
 interface ClosedOrderRow {
@@ -104,6 +105,7 @@ export async function readDailySalesReport(
     items: items.rows(),
     voids: await voidsOfTheDay(client, branchId, businessDate, loaded),
     cancelledOrders: await cancelledOrderCount(client, branchId, businessDate),
+    qrRefunds: await qrRefundsOfTheDay(client, branchId, businessDate),
   };
 }
 

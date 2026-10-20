@@ -1,4 +1,4 @@
-import { bigint, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, date, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { newId } from "../ids/new-id";
 import { tenantRowColumns } from "./tenant-row-columns";
 
@@ -18,6 +18,12 @@ export const paymentIntent = pgTable("payment_intent", {
   matchedTransactionId: uuid("matched_transaction_id"),
   receivedAmount: money("received_amount"),
   matchedAt: at("matched_at"),
+  /** Money no sale counts, handed back to the customer once; see 0025. */
+  refundedAt: at("refunded_at"),
+  refundedByAppUserId: uuid("refunded_by_app_user_id"),
+  refundMethod: text("refund_method"),
+  refundNote: text("refund_note"),
+  refundBusinessDate: date("refund_business_date"),
 });
 
 /** A transfer a payment gateway reported; append-only, one row per gateway reference. */

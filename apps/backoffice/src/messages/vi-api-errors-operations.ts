@@ -20,6 +20,9 @@ export const VI_API_ERRORS_OPERATIONS: Readonly<Record<string, string>> = {
   API_PAYMENT_BRANCH_MISMATCH: "Giao dịch vào tài khoản của chi nhánh khác với mã QR này.",
   API_PAYMENT_ORDER_NOT_PAYABLE:
     "Đơn của mã QR này đã trả bằng cách khác, đã hủy, hoặc đã có QR khác nhận đủ tiền. Không khớp được: tiền này cần hoàn lại cho khách.",
+  API_PAYMENT_NOT_OWED_TO_CUSTOMER:
+    "Tiền của mã QR này không phải tiền cần hoàn: đơn đã dùng nó, máy quầy còn có thể dùng nó, hoặc ngân hàng chưa báo nhận. Làm mới danh sách.",
+  API_PAYMENT_ALREADY_HANDED_BACK: "Tiền của mã QR này đã được ghi là đã hoàn cho khách. Làm mới danh sách.",
   API_DAY_ALREADY_CLOSED: "Ngày này đã chốt rồi. Chốt ngày không làm lại hay hủy được.",
   API_DAY_CLOSE_SHIFTS_OPEN: "Còn ca chưa đóng trong ngày. Đóng các ca dưới đây rồi chốt lại.",
   API_DAY_CLOSE_DRAFTS_OPEN:

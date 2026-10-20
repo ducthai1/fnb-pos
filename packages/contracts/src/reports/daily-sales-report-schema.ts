@@ -27,6 +27,9 @@ const id = uuidSchema.nullable();
  * - byHour: sales by the branch's local hour at which the till took the money.
  * - items: goods sold, toppings and combo parts on their own rows, voided units left out.
  * - voids: units cancelled from orders of the day, valued at their price before discount.
+ * - qrRefunds: money the bank brought for a QR that no sale counts (paid short or over, or
+ *   for an order that closed another way), handed back to the customer on the day. It was
+ *   never a sale, so it is not revenue, not a refund of a sale, and in no other figure.
  *
  * Every amount is the domain's computeOrderTotals of each order as stored, added up.
  */
@@ -93,6 +96,13 @@ export const dailySalesReportSchema = z
       })
       .strict(),
     cancelledOrders: count,
+    qrRefunds: z
+      .object({
+        count,
+        amount: money,
+        byMethod: z.array(z.object({ method: z.string(), count, amount: money }).strict()),
+      })
+      .strict(),
   })
   .strict();
 

@@ -1,5 +1,6 @@
 import {
   matchPaymentBodySchema,
+  qrRefundBodySchema,
   unmatchedPaymentsQuerySchema,
   uuidSchema,
   webhookSecretBodySchema,
@@ -10,6 +11,7 @@ import type pg from "pg";
 import type { ApiContext } from "../../api-context";
 import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
+import { handBackQrMoney } from "../../payments/hand-back-qr-money";
 import { PAYMENT_ROUTE_ERROR_CODES as CODES } from "../../payments/payment-error-codes";
 import { paymentIntentSnapshotOf } from "../../payments/payment-intent-store";
 import type { PaymentRouteDependencies } from "../../payments/payment-route-dependencies";
@@ -26,7 +28,9 @@ const branchExists = async (client: pg.ClientBase, id: string) =>
  * it takes view_reports. Matching by hand decides which order a customer's money paid, and
  * setting a gateway secret decides whose notices count as money: both are a manager's call
  * and take manage_settings (matching also view_reports, as it acts on what the list shows).
- * Neither key can be lent on the spot.
+ * Marking QR money as handed back to the customer is the same manager's call on the same
+ * list: money leaves the shop with no sale behind it, so it takes those two keys, not the
+ * till's refund key, which a cashier may be lent on the spot. No key here can be lent.
  */
 export function registerPaymentBackofficeRoutes(
   app: FastifyInstance,
@@ -70,6 +74,31 @@ export function registerPaymentBackofficeRoutes(
       );
       if (!outcome.ok) return reply.code(outcome.status).send({ code: outcome.code });
       return reply.send({ intent: paymentIntentSnapshotOf(outcome.intent) });
+    },
+  );
+
+  app.post<{ Params: { intentId: string } }>(
+    "/payments/refund-due/:intentId",
+    {
+      onRequest: [
+        requireSession,
+        requirePermission("view_reports"),
+        requirePermission("manage_settings"),
+      ],
+    },
+    async (request, reply) => {
+      const body = qrRefundBodySchema.safeParse(request.body);
+      const { intentId } = request.params;
+      if (!body.success || !uuidSchema.safeParse(intentId).success) {
+        return reply.code(400).send(invalid);
+      }
+      const { tenantId, appUserId } = backofficeAuth(request);
+      const handBack = { appUserId, intentId, ...body.data, now: context.clock.now() };
+      const outcome = await withTenant(context.pool, tenantId, (client) =>
+        handBackQrMoney(client, handBack),
+      );
+      if (!outcome.ok) return reply.code(outcome.status).send({ code: outcome.code });
+      return reply.code(201).send({ refund: outcome.refund });
     },
   );
 
