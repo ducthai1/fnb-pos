@@ -1,4 +1,4 @@
-/** The screens the layout test opens, each at phone and tablet width. */
+/** The screens the layout test opens, each at phone, tablet and landscape till width. */
 export const SCREEN_NAMES = [
   "blocked",
   "pairing",

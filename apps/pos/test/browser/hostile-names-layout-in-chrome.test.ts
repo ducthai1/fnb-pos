@@ -19,7 +19,7 @@ afterAll(async () => {
   await browser?.close();
 });
 
-describe.each([360, 800])("the POS screens at %ipx wide with hostile names", (width) => {
+describe.each([360, 800, 1280])("the POS screens at %ipx wide with hostile names", (width) => {
   it.each(SCREEN_NAMES)("%s stays within the screen", async (name) => {
     const page = await browser!.newPage({ viewport: { width, height: 640 } });
     const errors: string[] = [];
