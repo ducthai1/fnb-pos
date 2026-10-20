@@ -4,6 +4,7 @@ import { ApiProvider } from "../components/app/api-context";
 import { vi } from "../messages/vi";
 import "./backoffice-base.css";
 import "./backoffice-controls.css";
+import "./backoffice-table.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
 

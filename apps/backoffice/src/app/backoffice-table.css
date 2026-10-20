@@ -1,0 +1,44 @@
+/* A table on a computer, one block per row on a phone, each cell labelled by its column. */
+.bo-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.bo-table th,
+.bo-table td {
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--bo-border);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .bo-table thead {
+    display: none;
+  }
+
+  .bo-table,
+  .bo-table tbody,
+  .bo-table tr,
+  .bo-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .bo-table tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bo-border);
+  }
+
+  .bo-table td {
+    padding: 4px 0;
+    border: 0;
+  }
+
+  .bo-table td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--bo-muted);
+  }
+}
