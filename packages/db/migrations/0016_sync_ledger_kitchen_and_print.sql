@@ -1,5 +1,5 @@
 -- What till sync records beyond the orders and shifts themselves: who sent each command,
--- and which kitchen tickets the stations were given.
+-- which kitchen tickets the stations were given, and how each print job came out.
 
 -- The staff member signed in on the till when it sent the command, so "who did this?" is
 -- answered from the ledger itself, rejections included (a refused void is evidence too).
@@ -159,3 +159,72 @@ BEGIN
   RAISE EXCEPTION 'sales_order % is closed (%): % is not allowed', OLD.id, OLD.status, TG_OP;
 END;
 $$;
+
+-- How each print job a till ran came out, as the till reported it: a failure kept until a
+-- later report of the same job says it printed, so a manager sees the bills, labels and
+-- tickets that never came out. A job keeps its id across retries (the till made it), so
+-- one job has a row per report. occurred_at is the till's clock: when it happened there.
+-- A failure says why; a printed job has nothing to say. `payload` keeps the report as sent.
+CREATE TABLE print_job_log (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL,
+  branch_id uuid NOT NULL,
+  device_id uuid NOT NULL,
+  staff_id uuid NOT NULL,
+  command_id uuid NOT NULL,
+  job_id uuid NOT NULL,
+  kind text NOT NULL,
+  status text NOT NULL,
+  attempts integer NOT NULL,
+  printer_key text NOT NULL,
+  order_id uuid,
+  shift_id uuid,
+  error_code text,
+  occurred_at timestamptz NOT NULL,
+  payload jsonb NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT print_job_log_tenant_id_id_key UNIQUE (tenant_id, id),
+  CONSTRAINT print_job_log_branch_fkey FOREIGN KEY (tenant_id, branch_id) REFERENCES branch (tenant_id, id),
+  CONSTRAINT print_job_log_device_fkey FOREIGN KEY (tenant_id, device_id) REFERENCES device (tenant_id, id),
+  CONSTRAINT print_job_log_staff_fkey FOREIGN KEY (tenant_id, staff_id) REFERENCES staff (tenant_id, id),
+  CONSTRAINT print_job_log_order_fkey FOREIGN KEY (tenant_id, order_id) REFERENCES sales_order (tenant_id, id),
+  CONSTRAINT print_job_log_shift_fkey FOREIGN KEY (tenant_id, shift_id) REFERENCES shift (tenant_id, id),
+  CONSTRAINT print_job_log_kind_known
+    CHECK (kind IN ('bill', 'cup_label', 'kitchen', 'shift_report', 'pre_bill')),
+  CONSTRAINT print_job_log_status_known CHECK (status IN ('printed', 'failed')),
+  CONSTRAINT print_job_log_attempts_positive CHECK (attempts >= 1),
+  CONSTRAINT print_job_log_failure_says_why CHECK ((status = 'failed') = (error_code IS NOT NULL))
+);
+
+CREATE INDEX print_job_log_tenant_id_branch_id_occurred_at_idx
+  ON print_job_log (tenant_id, branch_id, occurred_at);
+CREATE INDEX print_job_log_tenant_id_job_id_idx ON print_job_log (tenant_id, job_id);
+
+ALTER TABLE print_job_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE print_job_log FORCE ROW LEVEL SECURITY;
+CREATE POLICY print_job_log_tenant_isolation ON print_job_log
+  USING (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid)
+  WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+
+REVOKE UPDATE, DELETE, TRUNCATE ON print_job_log FROM PUBLIC;
+DO $$
+DECLARE
+  grantee_name text;
+BEGIN
+  FOR grantee_name IN
+    SELECT DISTINCT r.rolname
+    FROM pg_class c
+    CROSS JOIN LATERAL aclexplode(c.relacl) acl
+    JOIN pg_roles r ON r.oid = acl.grantee
+    WHERE c.oid = 'print_job_log'::regclass
+      AND acl.privilege_type IN ('UPDATE', 'DELETE', 'TRUNCATE')
+      AND acl.grantee <> c.relowner
+  LOOP
+    EXECUTE format('REVOKE UPDATE, DELETE, TRUNCATE ON print_job_log FROM %I', grantee_name);
+  END LOOP;
+END
+$$;
+
+CREATE TRIGGER print_job_log_append_only
+  BEFORE UPDATE OR DELETE OR TRUNCATE ON print_job_log
+  FOR EACH STATEMENT EXECUTE FUNCTION refuse_append_only_change();

@@ -49,6 +49,7 @@ describe("sync command definitions", () => {
       "order.remove_discount",
       "order.save_draft",
       "order.void_line",
+      "print.job_reported",
       "shift.cash_move",
       "shift.close",
       "shift.open",

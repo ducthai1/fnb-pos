@@ -10,6 +10,12 @@ export {
   markSentToKitchenPayloadSchema,
 } from "./mark-sent-to-kitchen-payload-schema";
 export { type PayOrderPayload, payOrderPayloadSchema } from "./pay-order-payload-schema";
+export {
+  type PrintJobKind,
+  type PrintJobReportedPayload,
+  printJobKindSchema,
+  printJobReportedPayloadSchema,
+} from "./print-job-reported-payload-schema";
 export { type RefundOrderPayload, refundOrderPayloadSchema } from "./refund-order-payload-schema";
 export {
   type RemoveDiscountPayload,

@@ -17,4 +17,18 @@ export const KITCHEN_AND_PRINT_ROWS = {
     values: () => ({ ...freshLine, ticket_id: newId(), kind: "new", quantity: "1" }),
     with: FRESH_LINE,
   },
+  print_job_log: {
+    parent: { column: "branch_id", table: "branch" },
+    values: () => ({
+      device_id: aDevice,
+      staff_id: aStaff,
+      command_id: newId(),
+      job_id: newId(),
+      kind: "bill",
+      status: "printed",
+      attempts: 1,
+      printer_key: "counter",
+      occurred_at: { sql: "now()" },
+    }),
+  },
 } satisfies Record<string, RowSpec>;

@@ -6,9 +6,12 @@ import { readStoredOrder } from "./stored-order";
 import { readShift } from "./stored-shift";
 import type { CommandSnapshot } from "./sync-wire-types";
 
-/** The row a command was about: its snapshot answers the command and goes into the feed. */
+/**
+ * The row a command was about: its snapshot answers the command and goes into the feed. A
+ * print job's log is the backoffice's, never a till's, so it has no snapshot to send.
+ */
 export interface CommandSubject {
-  readonly entity: "order" | "shift";
+  readonly entity: "order" | "shift" | "print_job";
   readonly id: string;
 }
 
@@ -21,6 +24,7 @@ export async function subjectSnapshotOf(
   device: DeviceAuth,
   subject: CommandSubject,
 ): Promise<CommandSnapshot | null> {
+  if (subject.entity === "print_job") return null;
   if (subject.entity === "shift") {
     const shift = await readShift(client, subject.id, false);
     if (shift === null || shift.branchId !== device.branchId) return null;

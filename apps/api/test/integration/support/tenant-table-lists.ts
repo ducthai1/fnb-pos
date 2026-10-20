@@ -33,6 +33,7 @@ export const TENANT_TABLES = [
   "payment",
   "price_list",
   "price_list_item",
+  "print_job_log",
   "product",
   "product_availability",
   "product_modifier_group",
@@ -63,6 +64,7 @@ export const APPEND_ONLY_JSON_COLUMN = {
   change_log: "snapshot",
   kitchen_ticket: "payload",
   kitchen_ticket_line: "detail",
+  print_job_log: "payload",
 } as const satisfies Partial<Record<TenantTable, string>>;
 
 export const APPEND_ONLY_TABLES = Object.keys(

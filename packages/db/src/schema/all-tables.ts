@@ -5,6 +5,7 @@ import { configurationTables } from "./configuration-tables";
 import { kitchenTables } from "./kitchen-tables";
 import { orderTables } from "./order-tables";
 import { priceListTables } from "./price-list-tables";
+import { printTables } from "./print-tables";
 import { shiftTables } from "./shift-tables";
 import { staffTables } from "./staff-tables";
 import { syncTables } from "./sync-tables";
@@ -23,4 +24,5 @@ export const allTables = {
   ...shiftTables,
   ...syncTables,
   ...kitchenTables,
+  ...printTables,
 };
