@@ -4,11 +4,13 @@ import type { ApiContext } from "./api-context";
 import { AUTH_ERROR_CODES } from "./auth/auth-error-codes";
 import { type AuthPolicy, DEFAULT_AUTH_POLICY } from "./auth/auth-policy";
 import { backofficeSessionHook } from "./auth/backoffice-session-hook";
+import { sessionCookieJar } from "./auth/session-cookie";
 import { type Clock, systemClock } from "./clock";
 import { deviceAuthHook } from "./devices/device-auth-hook";
 import { type EInvoiceProvider, providersByKey } from "./einvoice/einvoice-provider";
 import type { EInvoiceRetryPolicy } from "./einvoice/einvoice-retry-policy";
 import { startEInvoiceWorker } from "./einvoice/einvoice-worker";
+import { allowedOriginsHook } from "./http/allowed-origins-hook";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
 import { webhookSecretBox } from "./payments/webhook-secret-box";
@@ -63,6 +65,16 @@ export interface AppDependencies {
     policy?: EInvoiceRetryPolicy;
     onError?: (error: unknown) => void;
   };
+  /**
+   * Whether the session cookie is Secure (and `__Host-` prefixed). On unless a deployment
+   * serves the backoffice over plain HTTP on purpose; production refuses to turn it off.
+   */
+  secureCookies?: boolean;
+  /**
+   * The browser origins (scheme://host:port) whose pages may send writes. Without a list
+   * no Origin is checked, as when tests call the app directly.
+   */
+  allowedOrigins?: readonly string[];
 }
 
 /**
@@ -76,18 +88,23 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   const { pool, clock, policy } = dependencies;
   const app = Fastify({ logger: false });
   const resolvedClock = clock ?? systemClock;
+  const sessionCookies = sessionCookieJar({ secure: dependencies.secureCookies ?? true });
   const context: ApiContext = {
     pool,
     clock: resolvedClock,
     policy: policy ?? DEFAULT_AUTH_POLICY,
+    sessionCookies,
     verifySecret: dependencies.verifySecret ?? verifySecret,
-    requireSession: backofficeSessionHook(pool, resolvedClock),
+    requireSession: backofficeSessionHook(pool, resolvedClock, sessionCookies),
     requireDevice: deviceAuthHook(pool),
     requirePermission: requirePermissionHook(pool),
   };
 
   app.decorateRequest("auth", null);
   app.decorateRequest("device", null);
+  if (dependencies.allowedOrigins !== undefined) {
+    app.addHook("onRequest", allowedOriginsHook(dependencies.allowedOrigins));
+  }
 
   // Error bodies carry a stable code only: no stack, SQL or library message reaches a
   // client, and a malformed request is told apart from a server fault by status alone.

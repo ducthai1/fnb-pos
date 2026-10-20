@@ -5,7 +5,6 @@ import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { revokeSession } from "../../auth/account-store";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
-import { clearedSessionCookie, readSessionToken } from "../../auth/session-cookie";
 import { loadRoleGrants } from "../../permissions/role-grants-store";
 import { hashToken } from "../../security/opaque-token";
 
@@ -13,9 +12,9 @@ export function registerSessionRoutes(app: FastifyInstance, context: ApiContext)
   // Revokes server-side, not just in the browser: a copied cookie dies with the logout.
   // Answers 204 even without a live session, so logging out twice is not an error.
   app.post("/auth/logout", async (request, reply) => {
-    const token = readSessionToken(request.headers.cookie);
+    const token = context.sessionCookies.read(request.headers.cookie);
     if (token !== null) await revokeSession(context.pool, hashToken(token), context.clock.now());
-    reply.header("set-cookie", clearedSessionCookie());
+    reply.header("set-cookie", context.sessionCookies.cleared());
     return reply.code(204).send();
   });
 

@@ -8,7 +8,7 @@ import { requestApproval } from "../support/approval-requests";
 import { expectStatus } from "../support/catalog-shop";
 import { startShift } from "../support/staffed-shop";
 import { approve, approvedAt, hireManager, justNow, signInAs } from "../support/sync-approvals";
-import { line, pushOne, saveDraft } from "../support/sync-commands";
+import { line, pushOnTime, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -18,6 +18,7 @@ const TWO_MINUTES = 2 * 60_000;
 
 let pool: pg.Pool;
 let app: FastifyInstance;
+const clock = tillsClock();
 let s: SyncShop;
 let managerId: string;
 let cashierOnB: { staffId: string; staffToken: string };
@@ -25,7 +26,7 @@ const cake = newId();
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock });
   s = await syncShop(app, pool);
   managerId = await hireManager(app, s);
   cashierOnB = { staffId: s.tillB.staffId, staffToken: s.tillB.staffToken };
@@ -124,7 +125,7 @@ describe("an on-the-spot approval relied on by a command", () => {
     for (const offset of [TEN_MINUTES, TEN_MINUTES + 1, -TWO_MINUTES, -TWO_MINUTES - 1]) {
       const { approvalId, when } = await at();
       const sent = typedPrice(approvalId, new Date(when + offset).toISOString());
-      outcomes.push((await pushOne(app, s.tillB, sent)).code ?? "accepted");
+      outcomes.push((await pushOnTime(app, s.tillB, clock, sent)).code ?? "accepted");
     }
     expect(outcomes).toEqual([
       "accepted",

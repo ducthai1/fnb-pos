@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { kitchenStation, sentToKitchen, ticketLine } from "../support/kitchen-commands";
 import { approve, hireManager } from "../support/sync-approvals";
-import { line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
+import { line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { cancel, voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -20,7 +20,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   bar = await kitchenStation(app, s);
   managerId = await hireManager(app, s);

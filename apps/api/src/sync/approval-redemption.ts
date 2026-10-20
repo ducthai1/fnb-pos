@@ -35,9 +35,8 @@ interface ApprovalRow {
   approved_by_staff_id: string;
   device_id: string;
   payload: { discountRate?: unknown; amount?: unknown };
+  /** When it was given, by the API's clock, which also times the command relying on it. */
   created_at: Date;
-  /** The database's clock now; approvals are timed by it too, so the two compare. */
-  checked_at: Date;
 }
 
 /**
@@ -71,7 +70,7 @@ export async function redeemApproval(
   const { client, device, staffId, command } = context;
   const { rows } = await client.query<ApprovalRow>(
     "SELECT action_key, requested_by_staff_id, approved_by_staff_id, device_id, payload, " +
-      "created_at, now() AS checked_at FROM approval_log WHERE id = $1",
+      "created_at FROM approval_log WHERE id = $1",
     [approvalId],
   );
   const approval = rows[0];
@@ -82,7 +81,7 @@ export async function redeemApproval(
   if (!approves(approval, action)) {
     throw new CommandRejection(SYNC_ERROR_CODES.approvalForAnotherAction);
   }
-  if (!timely(approval, Date.parse(command.createdAt))) {
+  if (!timely(approval, context.time.effectiveAt.getTime(), context.receivedAt.getTime())) {
     throw new CommandRejection(SYNC_ERROR_CODES.approvalExpired);
   }
   const used = await client.query(
@@ -105,12 +104,12 @@ export async function redeemApproval(
  * within APPROVAL_VALID_FOR_MS after it was given (allowing for a till clock a little
  * slow), and reaching the server within APPROVAL_SYNC_DELAY_MS of it.
  */
-function timely(approval: ApprovalRow, recordedAt: number): boolean {
+function timely(approval: ApprovalRow, recordedAt: number, receivedAt: number): boolean {
   const givenAt = approval.created_at.getTime();
   return (
     recordedAt >= givenAt - APPROVAL_TILL_CLOCK_SLACK_MS &&
     recordedAt <= givenAt + APPROVAL_VALID_FOR_MS &&
-    approval.checked_at.getTime() - givenAt <= APPROVAL_SYNC_DELAY_MS
+    receivedAt - givenAt <= APPROVAL_SYNC_DELAY_MS
   );
 }
 

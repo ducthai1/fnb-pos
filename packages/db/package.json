@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./embedded-postgres": "./src/embedded-postgres/index.ts",
     "./test-support": "./src/test-support/index.ts"
   },
   "scripts": {

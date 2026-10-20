@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { line, pushOne } from "../support/sync-commands";
+import { line, pushOne, tillsClock } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 import {
   type ShopFloor,
@@ -22,7 +22,7 @@ let floor: ShopFloor;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   floor = await shopFloor(app, s);
 });

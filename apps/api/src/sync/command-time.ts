@@ -1,0 +1,68 @@
+import { SYNC_CLOCK_ERROR_CODES } from "@fnb/contracts";
+import { businessDate } from "@fnb/domain";
+
+const MINUTE = 60_000;
+
+/**
+ * How far a till's clock may disagree with the server's. A command cannot have been made
+ * after the server received it, so one dated more than two minutes ahead is refused (two
+ * minutes covers a clock that drifts a little). One dated earlier is believed for up to 12
+ * hours, enough for a till that sold offline through a shift; an older date is held at 12
+ * hours, so moving a till's clock back cannot reach yesterday's prices or closed days.
+ */
+export const DEVICE_CLOCK_LIMITS = { aheadMs: 2 * MINUTE, behindMs: 12 * 60 * MINUTE } as const;
+
+export interface BranchDayClock {
+  readonly utcOffsetMinutes: number;
+  readonly businessDayStartMinute: number;
+}
+
+export interface CommandTime {
+  /** What the till wrote in createdAt: stored for the record, never decided on. */
+  readonly deviceAt: Date;
+  /** When the server received the command, by the API's clock. */
+  readonly receivedAt: Date;
+  /** The moment every business rule uses: deviceAt held within the limits around receivedAt. */
+  readonly effectiveAt: Date;
+  /** The branch's business day of effectiveAt. */
+  readonly businessDate: string;
+  /** deviceAt − effectiveAt: above 0 for a till ahead, below 0 for one held back, else 0. */
+  readonly clampedByMs: number;
+}
+
+export type CommandTimeReading =
+  | { readonly ok: true; readonly time: CommandTime }
+  | {
+      readonly ok: false;
+      readonly code: typeof SYNC_CLOCK_ERROR_CODES.deviceClockAhead;
+      readonly aheadMs: number;
+    };
+
+/** The one place a command's time is decided: refused, or the moment to act on. */
+export function readCommandTime(
+  createdAt: string,
+  receivedAt: Date,
+  branch: BranchDayClock,
+  limits: { aheadMs: number; behindMs: number } = DEVICE_CLOCK_LIMITS,
+): CommandTimeReading {
+  const device = Date.parse(createdAt);
+  const received = receivedAt.getTime();
+  if (Number.isNaN(device)) throw new Error("createdAt must be checked before its time is read");
+  if (device - received > limits.aheadMs) {
+    return { ok: false, code: SYNC_CLOCK_ERROR_CODES.deviceClockAhead, aheadMs: device - received };
+  }
+  const effective = Math.min(Math.max(device, received - limits.behindMs), received);
+  return {
+    ok: true,
+    time: {
+      deviceAt: new Date(device),
+      receivedAt: new Date(received),
+      effectiveAt: new Date(effective),
+      businessDate: businessDate(effective, {
+        utcOffsetMinutes: branch.utcOffsetMinutes,
+        dayStartMinute: branch.businessDayStartMinute,
+      }),
+      clampedByMs: device - effective,
+    },
+  };
+}

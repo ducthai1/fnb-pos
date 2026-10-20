@@ -12,7 +12,7 @@ import type { SyncCommandContext } from "./sync-command-context";
  */
 export async function insertRefundHeader(
   client: pg.ClientBase,
-  { device, staffId, command }: SyncCommandContext,
+  { device, staffId, time }: SyncCommandContext,
   sale: StoredOrder,
   { refund, amounts }: { refund: Order; amounts: RefundAmounts },
   payload: RefundOrderPayload,
@@ -30,7 +30,7 @@ export async function insertRefundHeader(
       device.deviceId,
       refund.serviceType,
       refund.channelKey,
-      command.businessDate,
+      time.businessDate,
       sale.order.id,
       payload.deviceOrderNo,
       JSON.stringify(chargeProfileToSnapshot(sale.chargeProfile)),

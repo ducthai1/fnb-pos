@@ -5,7 +5,6 @@ import { claimLoginAttempt, createSession, recordLoginSuccess } from "../../auth
 import { auditLoginLock } from "../../auth/audit-login-lock";
 import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { type LoginIdentifier, loginIdentifier } from "../../auth/login-identifier";
-import { sessionCookie } from "../../auth/session-cookie";
 import { hashToken, newOpaqueToken } from "../../security/opaque-token";
 import { hashSecret } from "../../security/secret-hash";
 import { chooseMembership } from "./choose-membership";
@@ -104,7 +103,7 @@ export function registerLoginRoute(app: FastifyInstance, context: ApiContext): v
         },
         now,
       );
-      reply.header("set-cookie", sessionCookie(token, Math.floor(ttl / 1000)));
+      reply.header("set-cookie", context.sessionCookies.set(token, Math.floor(ttl / 1000)));
       return { accountId, organizationId: choice.tenantId, appUserId: choice.appUserId };
     },
   );

@@ -24,6 +24,13 @@ export {
   listMigrationFiles,
 } from "./migrations/list-migration-files";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
+export { databaseUrlFor } from "./provisioning/database-url";
+export {
+  type DatabaseRoleCredentials,
+  type DatabaseToProvision,
+  type ProvisionReport,
+  provisionDatabase,
+} from "./provisioning/provision-database";
 export {
   accessTables,
   deviceCredential,

@@ -5,11 +5,19 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { applySyncCommand } from "../../../src/sync/apply-sync-command";
+import { readCommandTime } from "../../../src/sync/command-time";
 import { SYNC_COMMANDS } from "../../../src/sync/sync-command-registry";
 import { CommandRejection } from "../../../src/sync/sync-error-codes";
 import type { SyncCommandEnvelope } from "../../../src/sync/sync-wire-types";
 import { areaWithTables } from "../support/floor-plan";
-import { latestOrders, line, orderIdOf, pullAll, pushOne } from "../support/sync-commands";
+import {
+  latestOrders,
+  line,
+  orderIdOf,
+  pullAll,
+  pushOne,
+  tillsClock,
+} from "../support/sync-commands";
 import { senderOf, untilSettledOrWaitingOnLock } from "../support/sync-feed-probes";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 import { dineIn, seatingOf } from "../support/table-commands";
@@ -22,7 +30,7 @@ let s: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app"), max: 12 });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
 });
 
@@ -79,7 +87,10 @@ async function untilWaitingOnAnotherTransaction(pending: Promise<unknown>) {
  */
 async function handlerOnly(client: pg.PoolClient, till: Till, sent: SyncCommandEnvelope) {
   till.nextSeq -= 1;
-  const context = { ...(await senderOf(pool, s, till)), client, command: sent };
+  const sender = await senderOf(pool, s, till);
+  const reading = readCommandTime(sent.createdAt, sender.receivedAt, sender.branch);
+  if (!reading.ok) throw new Error("the till's clock is ahead of the server's");
+  const context = { ...sender, client, command: sent, time: reading.time };
   return SYNC_COMMANDS.get(sent.type)!.apply(context, sent.payload);
 }
 

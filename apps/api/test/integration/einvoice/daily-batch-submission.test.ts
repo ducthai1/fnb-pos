@@ -44,13 +44,19 @@ const dayOf = async (s: SyncShop, businessDate = BUSINESS_DATE) =>
     })
   ).json();
 
-/** A coffee rung up and paid on `businessDate`, as a till that was offline that day sends it. */
-async function paidOn(s: SyncShop, till: Till, businessDate: string) {
-  const draft = { ...saveDraft(till, [line(s.menu.coffee.id)]), businessDate };
+/**
+ * 03:30 on the 20th in Vietnam: before the branch's day starts at 04:00, so a sale then
+ * belongs to the night of the 19th. Within 12 hours of the API's clock, which believes it.
+ */
+const NIGHT_OF_THE_19TH = "2026-10-19T20:30:00.000Z";
+
+/** A coffee rung up and paid in the night of the 19th, as a till offline then sends it later. */
+async function paidInTheNightOfThe19th(s: SyncShop, till: Till) {
+  const draft = { ...saveDraft(till, [line(s.menu.coffee.id)]), createdAt: NIGHT_OF_THE_19TH };
   await pushOne(api.app, till, draft);
   const paid = await pushOne(api.app, till, {
     ...pay(till, orderIdOf(draft), 29_000),
-    businessDate,
+    createdAt: NIGHT_OF_THE_19TH,
   });
   expect(paid.status).toBe("accepted");
   return orderIdOf(draft);
@@ -65,7 +71,7 @@ describe("the end-of-day batch", () => {
   it("sends the day's issued invoices of the branch once, and no other day's or branch's", async () => {
     const s = await invoicingShop(api, pool);
     const today = [await paidCoffee(api.app, s), await paidCoffee(api.app, s)];
-    await paidOn(s, s.tillA, "2026-10-19");
+    await paidInTheNightOfThe19th(s, s.tillA);
     await paidCoffee(api.app, s, s.otherBranchTill);
     await api.workFor(s.shop.tenantId);
     const closed = await closeDay(s);
@@ -134,7 +140,7 @@ describe("the end-of-day batch", () => {
   it("reports an invoice of a closed day that synced after the close as not sent", async () => {
     const s = await invoicingShop(api, pool);
     expect((await closeDay(s, "2026-10-19")).statusCode).toBe(201);
-    const late = await paidOn(s, s.tillB, "2026-10-19");
+    const late = await paidInTheNightOfThe19th(s, s.tillB);
     await api.workFor(s.shop.tenantId);
     const day = await dayOf(s, "2026-10-19");
     expect(day.dayClose).not.toBeNull();

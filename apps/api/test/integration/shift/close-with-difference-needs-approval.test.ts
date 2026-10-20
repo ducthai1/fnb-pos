@@ -15,7 +15,7 @@ import {
   rowsOf,
 } from "../support/shift-commands";
 import { hire } from "../support/staffed-shop";
-import { pushOne } from "../support/sync-commands";
+import { pushOne, tillsClock } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -28,7 +28,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   managerId = await hire(app, s.shop, MANAGER_PIN, s.shop.roleIds.manager);
 });

@@ -21,3 +21,4 @@ export {
   syncCommandResultSchema,
 } from "./sync-command-result-schema";
 export * from "./commands";
+export { SYNC_CLOCK_ERROR_CODES } from "./sync-clock-error-codes";

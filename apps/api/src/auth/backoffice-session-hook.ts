@@ -5,7 +5,7 @@ import type { Clock } from "../clock";
 import { hashToken } from "../security/opaque-token";
 import { findSession } from "./account-store";
 import { AUTH_ERROR_CODES } from "./auth-error-codes";
-import { readSessionToken } from "./session-cookie";
+import type { SessionCookieJar } from "./session-cookie";
 
 /** Who is calling, from the session cookie. Tenant routes run in withTenant(tenantId). */
 export interface BackofficeAuth {
@@ -28,9 +28,9 @@ declare module "fastify" {
  * or 401. The membership is re-read on every request, so suspending a member locks them
  * out at once instead of when their session happens to expire.
  */
-export function backofficeSessionHook(pool: pg.Pool, clock: Clock) {
+export function backofficeSessionHook(pool: pg.Pool, clock: Clock, cookies: SessionCookieJar) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
-    const token = readSessionToken(request.headers.cookie);
+    const token = cookies.read(request.headers.cookie);
     const session = token === null ? null : await findSession(pool, hashToken(token), clock.now());
     if (session === null) {
       return reply.code(401).send({ code: AUTH_ERROR_CODES.unauthenticated });

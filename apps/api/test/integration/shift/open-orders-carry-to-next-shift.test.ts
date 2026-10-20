@@ -13,7 +13,7 @@ import {
   pushShift,
   rowsOf,
 } from "../support/shift-commands";
-import { pushOne } from "../support/sync-commands";
+import { pushOne, tillsClock } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -24,7 +24,7 @@ let s: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
 });
 

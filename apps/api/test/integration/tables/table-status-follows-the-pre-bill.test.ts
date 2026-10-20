@@ -4,7 +4,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { areaWithTables } from "../support/floor-plan";
-import { line, orderIdOf, pushOne } from "../support/sync-commands";
+import { line, orderIdOf, pushOne, tillsClock } from "../support/sync-commands";
 import { cancel, voidUnits } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 import {
@@ -23,7 +23,7 @@ let s: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
 });
 

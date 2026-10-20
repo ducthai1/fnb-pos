@@ -14,8 +14,10 @@ import {
 } from "../support/shift-commands";
 import { hire, startShift } from "../support/staffed-shop";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
+import { tillsClock } from "../support/sync-commands";
 
 const info = inject("testPostgres");
+const clock = tillsClock();
 const MANAGER_PIN = "7391";
 const SECOND_CASHIER_PIN = "5162";
 
@@ -26,7 +28,7 @@ let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock });
   s = await syncShop(app, pool);
   managerId = await hire(app, s.shop, MANAGER_PIN, s.shop.roleIds.manager);
 });
@@ -118,7 +120,9 @@ describe("shift.cash_move", () => {
     const { till } = await openTill();
     await move(till, "out", 450_000);
     const approvalId = await approvedFor(till, 550_000);
-    const late = new Date(Date.now() + 11 * 60_000).toISOString();
+    // The till recorded the move eleven minutes after the approval and synced right after.
+    const late = new Date(clock.now().getTime() + 11 * 60_000).toISOString();
+    clock.advance(12 * 60_000);
     const sent = { ...cashMove(till, "out", 100_000, { approvalId }), createdAt: late };
     expect((await pushShift(app, till, sent)).code).toBe("SYNC_APPROVAL_EXPIRED");
     // The refusal did not spend it: the same move recorded in time takes it.

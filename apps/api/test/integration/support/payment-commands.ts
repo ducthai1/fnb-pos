@@ -5,14 +5,21 @@ import { contentCodeFromRandom } from "@fnb/domain/payment";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 import type { SyncChange, SyncCommandResult } from "../../../src/sync/sync-wire-types";
-import { RECORDED_AT, command, line, orderIdOf, pushOne, saveDraft } from "./sync-commands";
+import {
+  RECORDED_AT,
+  SERVER_STARTS_AT,
+  command,
+  line,
+  orderIdOf,
+  pushOne,
+  saveDraft,
+} from "./sync-commands";
 import type { SyncShop, Till } from "./sync-shop";
 
 /** A code drawn the way a till draws one. */
 export const freshCode = () => contentCodeFromRandom(randomBytes(8));
 
-/** The API's clock as a payment test starts: a minute after the tills record commands. */
-export const SERVER_STARTS_AT = new Date(Date.parse(RECORDED_AT) + 60_000);
+export { SERVER_STARTS_AT };
 
 /** When a QR the server hears of at SERVER_STARTS_AT stops being payable. */
 export const EXPIRES_AT = new Date(SERVER_STARTS_AT.getTime() + 15 * 60_000);

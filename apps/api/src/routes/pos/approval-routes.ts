@@ -116,6 +116,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
           deviceId: device.deviceId,
           branchId: device.branchId,
           payload: { discountRate: action.discountRate, amount: action.amount },
+          createdAt: now,
         });
         await appendAudit(client, {
           actor: { kind: "staff", id: approverStaffId },

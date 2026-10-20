@@ -1,5 +1,6 @@
 import type pg from "pg";
 import type { DeviceAuth } from "../devices/device-auth-hook";
+import type { CommandTime } from "./command-time";
 import type { BranchPricing } from "./sellable-catalog";
 import type { SyncCommandEnvelope } from "./sync-wire-types";
 
@@ -17,4 +18,10 @@ export interface SyncSender {
 export interface SyncCommandContext extends SyncSender {
   readonly client: pg.PoolClient;
   readonly command: SyncCommandEnvelope;
+  /**
+   * When the command counts as having happened, decided by the server (readCommandTime):
+   * handlers act on time.effectiveAt and time.businessDate, never on command.createdAt or
+   * command.businessDate, which only say what the till's clock showed.
+   */
+  readonly time: CommandTime;
 }

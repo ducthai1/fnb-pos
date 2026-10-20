@@ -13,7 +13,7 @@ import {
   reported,
 } from "../support/print-commands";
 import { coffeeDraft } from "../support/shift-commands";
-import { pushOne } from "../support/sync-commands";
+import { pushOne, tillsClock } from "../support/sync-commands";
 import type { Till } from "../support/sync-shop";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -26,7 +26,7 @@ let orderId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
   orderId = await coffeeDraft(app, s, s.tillA);
 });

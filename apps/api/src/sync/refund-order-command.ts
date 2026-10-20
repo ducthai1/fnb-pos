@@ -11,6 +11,7 @@ import {
 import { queueRefundInvoice } from "../einvoice/queue-einvoice";
 import { orderOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
+import { paidTimesOf } from "./paid-times";
 import { announceLatePayment, shiftForPayment } from "./payment-shift";
 import { insertRefundAmounts } from "./refund-amounts-store";
 import { insertRefundHeader } from "./refund-order-writes";
@@ -30,7 +31,7 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * Returns the refund's order id.
  */
 async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayload) {
-  const { client, device, staffId, command } = context;
+  const { client, device, staffId, time } = context;
   const sale = await orderOfBranch(context, payload.saleOrderId);
   if ((await readStoredOrder(client, payload.refundOrderId, false)) !== null) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
@@ -41,7 +42,7 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
     payload.lines,
     await readRefundsOf(client, sale.order.id),
     { orderId: payload.refundOrderId, newLineId: newId },
-    command.businessDate,
+    time.businessDate,
     sale.chargeProfile,
   );
   const refund = built.order;
@@ -83,8 +84,9 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
   }
   const paid = transitionOrder(refund, "paid");
   await client.query(
-    "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, paid_at = $5 WHERE id = $1",
-    [refund.id, paid.status, paid.version, shift.shiftId, command.createdAt],
+    "UPDATE sales_order SET status = $2, version = $3, shift_id = $4, paid_at = $5, " +
+      "paid_at_device = $6, paid_received_at = $7 WHERE id = $1",
+    [refund.id, paid.status, paid.version, shift.shiftId, ...paidTimesOf(time)],
   );
   await queueRefundInvoice(context, sale.order.id, {
     order: paid,

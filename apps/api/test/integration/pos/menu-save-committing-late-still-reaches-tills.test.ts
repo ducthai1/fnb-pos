@@ -9,7 +9,7 @@ import { checkProductDocument } from "../../../src/catalog/product-document-to-d
 import { writeProductDocument } from "../../../src/catalog/write-product-document";
 import { changesOf, feedAfter } from "../support/menu-feed-probes";
 import { type MilkTeaTillShop, milkTeaTillShop } from "../support/milk-tea-till-shop";
-import { line, pull, push, saveDraft } from "../support/sync-commands";
+import { line, pull, push, saveDraft, tillsClock } from "../support/sync-commands";
 import { untilSettledOrWaitingOnLock } from "../support/sync-feed-probes";
 
 const info = inject("testPostgres");
@@ -20,7 +20,7 @@ let m: MilkTeaTillShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   m = await milkTeaTillShop(app, pool);
 });
 

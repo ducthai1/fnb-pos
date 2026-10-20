@@ -12,6 +12,7 @@ import {
   pullAll,
   pushOne,
   saveDraft,
+  tillsClock,
 } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -23,7 +24,7 @@ let s: SyncShop;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
-  app = buildApp({ pool });
+  app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
 });
 

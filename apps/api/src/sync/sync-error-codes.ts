@@ -1,5 +1,9 @@
+import { SYNC_CLOCK_ERROR_CODES } from "@fnb/contracts";
+
 /** Codes in sync results beside the domain's own; the till maps them to Vietnamese messages. */
 export const SYNC_ERROR_CODES = {
+  /** The till's clock runs more than two minutes ahead of the server's. */
+  deviceClockAhead: SYNC_CLOCK_ERROR_CODES.deviceClockAhead,
   /** Not stored: an earlier command of this till is missing, resend from the gap. */
   outOfOrder: "SYNC_OUT_OF_ORDER",
   /** A device_seq already used by a different command of this till. Not stored. */

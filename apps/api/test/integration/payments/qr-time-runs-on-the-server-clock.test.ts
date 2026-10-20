@@ -82,16 +82,21 @@ describe("a QR's fifteen minutes run from when the server heard of it", () => {
     expect(await statusOf(intentIdOf(sent))).toBe("paid");
   });
 
-  it("so a till a day fast does not leave a QR payable for a day", async () => {
-    const { sent, made } = await qrFromTillOff(24 * 60 * MINUTE);
+  it("so a till a minute fast gets fifteen minutes from when the server heard of it", async () => {
+    const { made } = await qrFromTillOff(MINUTE);
     expect(intentOf(made)?.expiresAt).toBe(EXPIRES_AT.toISOString());
-    clock.advance(15 * MINUTE);
-    try {
-      await customerPays(contentCodeOf(sent));
-    } finally {
-      clock.advance(-15 * MINUTE);
-    }
-    expect(await statusOf(intentIdOf(sent))).toBe("expired");
+  });
+
+  it("while a till a day fast is refused before its QR exists, so it is never payable", async () => {
+    const orderId = await draftOf39k(app, s);
+    const createdAt = new Date(Date.parse(RECORDED_AT) + 24 * 60 * MINUTE).toISOString();
+    const sent = createIntent(s.tillA, orderId, 39_000, { createdAt });
+    expect(await pushOne(app, s.tillA, sent)).toMatchObject({
+      status: "rejected",
+      code: "SYNC_DEVICE_CLOCK_AHEAD",
+    });
+    await customerPays(contentCodeOf(sent));
+    expect(await statusOf(intentIdOf(sent))).toBeUndefined();
   });
 
   it("while a transfer that came before a till synced its QR, slow clock or not, still pays it", async () => {

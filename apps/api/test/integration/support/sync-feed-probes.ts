@@ -2,6 +2,7 @@ import { withTenant } from "@fnb/db";
 import type pg from "pg";
 import { readBranchPricing } from "../../../src/sync/sellable-catalog";
 import type { SyncSender } from "../../../src/sync/sync-command-context";
+import { SERVER_STARTS_AT } from "./sync-commands";
 import type { SyncShop, Till } from "./sync-shop";
 
 /** What the API would build for `till`, for a test that applies a command in its own transaction. */
@@ -13,7 +14,7 @@ export async function senderOf(pool: pg.Pool, s: SyncShop, till: Till): Promise<
     device: { deviceId: till.deviceId, tenantId: s.shop.tenantId, branchId: s.shop.branchId },
     staffId: till.staffId,
     branch,
-    receivedAt: new Date(),
+    receivedAt: SERVER_STARTS_AT,
   };
 }
 

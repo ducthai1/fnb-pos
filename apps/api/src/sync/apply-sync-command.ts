@@ -4,6 +4,8 @@ import { uuidSchema as idSchema } from "@fnb/contracts";
 import { appendChange, lockTenantChangeFeed } from "./change-feed";
 import { commandIdUseOf, nextExpectedSeq, recordOutcome } from "./command-ledger";
 import { type CommandSubject, subjectSnapshotOf } from "./command-subject-snapshot";
+import { readCommandTime } from "./command-time";
+import { auditClampedClock } from "./device-clock-audit";
 import type { SyncCommandContext, SyncSender } from "./sync-command-context";
 import { SYNC_COMMANDS } from "./sync-command-registry";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
@@ -73,11 +75,12 @@ export async function applySyncCommand(
 }
 
 /**
- * Runs the handler behind a savepoint, so a refusal halfway through leaves none of its
- * writes behind while the rejection itself is still stored in this transaction.
+ * Decides the command's time, then runs the handler behind a savepoint, so a refusal
+ * halfway through leaves none of its writes behind while the rejection itself (and the
+ * audit of a clock the server had to correct) is still stored in this transaction.
  */
-async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
-  const { client, command } = context;
+async function outcomeOf(base: Omit<SyncCommandContext, "time">): Promise<Outcome> {
+  const { client, command } = base;
   // A refund names its new order refundOrderId; every other order command names orderId.
   // A QR intent's commands name the intent, which is what the till files the answer under.
   const named = command.payload as {
@@ -99,6 +102,10 @@ async function outcomeOf(context: SyncCommandContext): Promise<Outcome> {
   if (!isSupportedDomainVersion(command.domainVersion, MINIMUM_SUPPORTED_DOMAIN_VERSION)) {
     return rejected(SYNC_ERROR_CODES.domainVersionUnsupported);
   }
+  const reading = readCommandTime(command.createdAt, base.receivedAt, base.branch);
+  if (!reading.ok) return rejected(reading.code);
+  if (reading.time.clampedByMs !== 0) await auditClampedClock(base, reading.time);
+  const context: SyncCommandContext = { ...base, time: reading.time };
   await client.query("SAVEPOINT sync_command");
   try {
     const subject = await dispatch(context);
