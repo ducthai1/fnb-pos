@@ -6,10 +6,11 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 04:25 — Đợt 5 (4 agent, 1,40M token, 43 phút) đã merge + push: `@fnb/sync-client` (LocalStore node:sqlite, outbox, đẩy 1 lô/lượt, kéo KỂ CẢ khi còn lệnh chờ, không bao giờ lùi version — bẫy 12 đã sửa cả hai phía: 2 máy giờ cao điểm 0 lùi version / 0 lệnh bị từ chối) + cổng `pnpm test:sync`; lệnh server `order.void_line`, `order.apply_discount`/`remove_discount` (ngưỡng tích lũy + duyệt dùng một lần, khớp đúng giá trị), `order.cancel`, `order.refund` (đơn hoàn + payout âm), charge profile theo cấu hình chi nhánh, chặn món đang hết, giá mở cần quyền; ca & két (`shift.open`/`cash_move`/`close`, 1 ca chưa đóng mỗi thiết bị, tiền dự kiến theo mệnh giá, đơn offline muộn giữ ca lúc bán + cờ `recorded_after_shift_close`); `@fnb/printing` (ESC/POS, TSPL, Windows-1258, mẫu bill/tem ly/phiếu bếp/chốt ca 58/80mm, golden) + `diffKitchenTicket`.
-- Cổng trên `main`: `pnpm verify` ~1.170 unit · `pnpm test:api` 1.095 · `pnpm test:sync` 12 — xanh.
-- Tiếp theo (đợt 6): app POS (React + Vite) đầu tiên dùng sync-client; lệnh gửi bếp + print job; bàn cơ bản phía server (04b); hợp nhất 2 bản kiểm approval.
-- Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log.
+- 2026-10-20 08:50 — Đợt 6 xong (bị ngắt lúc ~05:00 do máy hết RAM, chạy lại 08:04 theo cặp 2 agent; tổng 861k token lần chạy lại) đã merge + push (`51b247f`): `GET /pos/bootstrap` (chi nhánh, cấu hình đã resolve, charge profile, nhân viên không kèm bí mật, menu đầy đủ, cursor) + menu/cấu hình đi qua change_log (một dòng mỗi chi nhánh của thương hiệu); LocalStore trên SQLite WASM opfs-sahpool trong Worker + khóa 1 tab; **app POS đầu tiên** (`apps/pos`: ghép máy, chọn nhân viên + PIN, huy hiệu online/offline/server_error, "chưa đồng bộ N", "Cần xử lý"); cổng `pnpm e2e` (Chrome hệ thống, API thật) với spec ghép máy + đăng nhập PIN; hợp nhất kiểm approval + lệnh ca vào registry + staff_id trong applied_command; `order.mark_sent_to_kitchen` (máy in xong mới báo, server chỉ nhận phần còn nợ) + `print.job_reported` + `GET /reports/print-failures`; sơ đồ bàn (`/floor/*`), đơn gắn bàn (mỗi bàn tối đa một đơn draft — unique index), `table.transfer` sang bàn trống, đơn quầy kèm số bàn, `order.mark_pre_bill_printed`, `GET /floor/occupancy`.
+- Cổng (chạy tuần tự vì thiếu RAM): unit 1.435 · `test:api` 1.263 · `test:sync` 12 · `test:browser`/e2e 33 — xanh.
+- **Máy đang thiếu RAM** (swap 8/8 GB do ứng dụng khác): chạy cổng bằng `VITEST_MAX_FORKS=2 VITEST_MAX_THREADS=2 pnpm exec turbo run <task> --concurrency=1 --env-mode=loose`, tối đa 2 agent cùng lúc.
+- Tiếp theo: màn bán hàng POS (lưới món, tùy chọn, giỏ, thanh toán tiền mặt/QR xác nhận tay, in) nối sync-client + bootstrap; backoffice web (đăng nhập, menu, nhân viên, thiết bị); thanh toán QR tự xác nhận (T05-01…04); hóa đơn điện tử (adapter + fake) + chốt ngày + báo cáo.
+- Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log; có chạy tiếp các đợt sau không.
 
 ---
 
@@ -228,9 +229,11 @@
 
 ### T04-04 Màn "cần xử lý"
 - **Test:** `apps/pos/src/features/sync/rejected-commands-panel.test.tsx`.
+- **Trạng thái:** một phần (2026-10-20) — màn "Cần xử lý" + đếm trong app POS; chưa có thao tác xử lý từng lệnh.
 
 ### T04-05 POS: ghép máy, đăng nhập PIN, đổi người
 - **Test:** `e2e/pos/pair-and-pin-login.spec.ts`.
+- **Trạng thái:** done bản web (2026-10-20) — ghép máy bằng mã 8 ký tự, chọn nhân viên + PIN, token thiết bị trong IndexedDB (vỏ native phải dùng keychain); e2e `e2e/pos/pair-and-pin-login.spec.ts`. Đổi người chưa gọi logout server (chưa có endpoint).
 
 ### T04-06 Màn bán
 - **Làm:** lưới món, tìm nhanh, chọn biến thể/tùy chọn, ghi chú, số lượng, giữ đơn, nhiều đơn song song.
@@ -249,7 +252,7 @@
 ### T04-10 Phiếu pha chế theo trạm
 - **Làm:** domain `diffKitchenTicket(order, sent)` → dòng mới/sửa ghi chú/hủy theo trạm; bảng `kitchen_ticket(_line)`.
 - **Test:** `packages/domain/src/kitchen/kitchen-ticket-diff.test.ts` — gửi lượt 2 chỉ in món mới; hủy in phiếu hủy đúng trạm.
-- **Trạng thái:** một phần (2026-10-20) — domain `diffKitchenTicket` (theo trạm, HỦY → ĐỔI GHI CHÚ → MÓN MỚI, chỉ ghi nhận đã gửi sau khi in thành công); bảng kitchen_ticket + lệnh gửi bếp chưa có.
+- **Trạng thái:** done phía server (2026-10-20) — `order.mark_sent_to_kitchen`, kitchen_ticket(_line) chỉ-thêm, sent_quantity/sent_note; UI POS + in thật chưa.
 
 ### T04-11 `packages/printing`
 - **Làm:** mẫu bill, tem ly (1 tem/ly, có topping), phiếu pha chế, chốt ca → ESC/POS + TSPL; xem trước dạng chữ.
@@ -265,6 +268,7 @@
 
 ### T04-15 Hàng đợi in + in lại + báo lỗi
 - **Test:** `apps/pos/src/features/printing/print-queue-retries-and-surfaces-failures.test.ts` — máy in tắt: job `failed`, hiện cảnh báo, bật lại in được, không mất phiếu.
+- **Trạng thái:** một phần (2026-10-20) — `print.job_reported`, print_job_log chỉ-thêm, `GET /reports/print-failures`; hàng đợi in phía máy chưa.
 
 ### T04-16 Ca & két
 - **Test:** `packages/domain/src/shift/expected-cash.test.ts`; `apps/api/test/integration/shift/{close-with-difference-needs-approval,open-orders-carry-to-next-shift,late-offline-order-keeps-its-shift}.test.ts`.
@@ -284,17 +288,27 @@
 
 ### T4B-01 Schema + backoffice sơ đồ bàn
 - **Test:** `e2e/backoffice/edit-floor-plan.spec.ts`.
+- **Trạng thái:** done phía API (2026-10-20) — `/floor/areas`, `/floor/tables` (x/y/w/h/shape, số ghế, archive khi đã dùng); UI backoffice chưa.
+
 ### T4B-02 POS: màn sơ đồ bàn (trạng thái, thời gian ngồi)
 ### T4B-03 Mở bàn, nhiều lượt, gửi pha chế
+- **Trạng thái:** done phía server (2026-10-20) — `order.save_draft` nhận tableId (dine_in), đơn giữ bàn suốt đời, đổi bàn chỉ qua transfer.
+
 ### T4B-04 Tạm tính, in lại
 ### T4B-05 Trả sau tại bàn, đóng bàn
 - **Test chung T4B-02…05:** `e2e/pos/table-two-rounds-pay-later.spec.ts` — lượt 2 chỉ in món mới; tạm tính = thanh toán.
 ### T4B-06 Chuyển sang bàn trống
 - **Test:** `packages/domain/src/table/transfer-to-empty-table.test.ts` — chuyển sang bàn có khách bị chặn (gộp để R2).
+- **Trạng thái:** done phía server (2026-10-20) — `table.transfer` sang bàn trống (quyền transfer_table).
+
 ### T4B-07 Đơn quầy kèm số bàn
 - **Test:** `e2e/pos/counter-order-with-table-tag.spec.ts`.
+- **Trạng thái:** done phía server (2026-10-20) — `tableTag` cho đơn quầy (không chiếm bàn).
+
 ### T4B-08 Một đơn mở/bàn + khóa phiên bản + báo xung đột
 - **Test:** `packages/sync-client/test/scenarios/two-devices-edit-same-table.test.ts` — máy lưu sau bị báo, không đè.
+- **Trạng thái:** done phía server (2026-10-20) — unique partial index một đơn draft mỗi bàn; 2 máy mở cùng bàn đồng thời: một được, một bị từ chối.
+
 ### T4B-09 Offline với bàn
 - **Luật:** máy mở bàn khi offline giữ bàn đó; máy khác chỉ xem tới khi đồng bộ.
 - **Test:** `packages/sync-client/test/scenarios/table-opened-offline-is-owned-by-device.test.ts`.
@@ -387,4 +401,10 @@
 - 2026-10-20 · Hoàn 1/3 ly có giảm toàn đơn hiện in gross −28.999 / giảm −3.333 (net đúng −25.666) — bill hoàn nên hiện giá bán gốc + dòng giảm? (chờ user)
 - 2026-10-20 · In: CP1258 trên máy thật có in dấu thanh thành ô riêng không (lệch cột)? — kiểm ở T00-08; combo có thành phần khác trạm; thay topping sau khi đã gửi bếp chưa được phát hiện là thay đổi; bill chưa có dòng "Làm tròn".
 - 2026-10-20 · `applied_command` chưa lưu staff_id của người gửi lệnh.
+- 2026-10-20 · POS: parse `/pos/bootstrap` bằng schema của `@fnb/contracts` thay cho parser tối thiểu; ẩn/khóa nhân viên `active=false`; staff session hết hạn ⇒ về màn PIN (đang chỉ hiện server_error); thiết bị bị thu hồi ⇒ xóa credential + ghép lại; endpoint logout staff session. → đợt sau.
+- 2026-10-20 · Lưu số khách (guest_count); `openedAt` của bàn lấy createdAt của lệnh mở (bàn mở offline đang hiện giờ đồng bộ); `save_draft` không đổi gì vẫn tăng version ⇒ mất trạng thái "chờ thanh toán"; hủy đơn đang gắn bàn có cần `close_unpaid_table`? (chờ quyết)
+- 2026-10-20 · In: in lại bằng job id MỚI có xóa lỗi cũ của cùng chứng từ không? Đơn đã trả giờ tăng version khi gửi bếp — kiểm khi làm hóa đơn/báo cáo.
+- 2026-10-20 · Chưa có route backoffice ghi cấu hình (charge profile, công tắc) — phải đi qua saveConfigValue/clearConfigValue + validateFlags. Hết món có hạn (`unavailableUntil`) tự hết không sinh thay đổi ⇒ máy tự so giờ.
+- 2026-10-20 · change_log phình theo (món đổi × số chi nhánh) — cần chính sách giữ/gom. → T11.
+- 2026-10-20 · Lưu trữ bản web POS: reverse proxy `/api` cùng origin (đang dùng) hay `VITE_FNB_API_BASE` + CORS? → T11-05.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.

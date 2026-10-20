@@ -42,6 +42,9 @@
 24. File SQLite của kịch bản đồng bộ đặt trên ổ thật (`packages/sync-client/tmp/`, gitignored), không trong `/tmp` (tmpfs).
 25. Khi ghi file qua công cụ của agent, chuỗi `\uXXXX` trong nội dung bị giải mã thành ký tự thật (NBSP…) ⇒ kiểm byte sau khi ghi các file có ký tự đặc biệt.
 26. Golden file của gói in: test thường KHÔNG bao giờ ghi golden; thiếu golden là đỏ; cập nhật có chủ đích bằng `pnpm --filter @fnb/printing golden:update`.
+27. Máy thiếu RAM: turbo ở strict env mode bỏ biến VITEST_* ⇒ dùng `VITEST_MAX_FORKS=2 VITEST_MAX_THREADS=2 pnpm exec turbo run <task> --concurrency=1 --env-mode=loose`; `pnpm verify` thường chạy ~10 tiến trình tsc/vitest song song.
+28. `pnpm e2e` = turbo `test:browser` (hợp đồng LocalStore trong Chrome, bố cục POS với tên xấu ở 360/800, e2e `@fnb/e2e`); dùng Chrome hệ thống qua playwright-core, API thật + Postgres nhúng. Màn POS mới phải thêm vào `apps/pos/test/browser/pages/screen-names.ts`.
+29. Component test POS chạy trong jsdom (không có IndexedDB/OPFS/Worker) với LocalStore node:sqlite `:memory:` + server giả; phần IndexedDB/OPFS qua reload do e2e bảo vệ.
 23. zod 3: refine vẫn chạy sau khi check trước đã lỗi ⇒ refine gọi BigInt/parse phải tự chặn đầu vào xấu trước.
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
