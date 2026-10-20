@@ -24,6 +24,8 @@ body,
 
 /* The page never scrolls, this does; contain stops pull-to-refresh reloading a till mid-sale. */
 .pos-screen {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -40,9 +42,9 @@ body,
     minmax(var(--sp-4), 1fr)
     minmax(0, var(--frame-max))
     minmax(var(--sp-4), 1fr);
+  flex: 1 0 auto;
   align-content: start;
   row-gap: var(--sp-4);
-  min-height: 100%;
   padding-block: var(--sp-5) var(--sp-8);
 }
 

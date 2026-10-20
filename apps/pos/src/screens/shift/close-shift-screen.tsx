@@ -55,7 +55,36 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
     [F.difference, assessment.difference, "difference"],
   ];
   return (
-    <ScreenFrame title={T.title}>
+    <ScreenFrame
+      title={T.title}
+      dock={
+        <>
+          <p className="pos-total pos-wrap" aria-live="polite">
+            {differenceSentence(assessment.difference)}
+          </p>
+          <Alert message={error} />
+          <div className="pos-actions">
+            <button type="button" className="pos-button" onClick={props.onBack}>
+              {T.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true);
+                void props.onConfirm(notes.counts, assessment).then((refused) => {
+                  setBusy(false);
+                  setError(refused);
+                });
+              }}
+            >
+              {T.confirm}
+            </button>
+          </div>
+        </>
+      }
+    >
       {props.header}
       <Alert message={props.notice} />
       <p className="pos-hint">{T.hint}</p>
@@ -75,31 +104,6 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
       </dl>
       {assessment.needsAcceptance ? <p className="pos-hint">{T.needsApproval}</p> : null}
       <p className="pos-hint">{T.estimateNote}</p>
-      <div className="pos-dock">
-        <p className="pos-total pos-wrap" aria-live="polite">
-          {differenceSentence(assessment.difference)}
-        </p>
-        <Alert message={error} />
-        <div className="pos-actions">
-          <button type="button" className="pos-button" onClick={props.onBack}>
-            {T.back}
-          </button>
-          <button
-            type="button"
-            className="pos-button pos-button--primary"
-            disabled={busy}
-            onClick={() => {
-              setBusy(true);
-              void props.onConfirm(notes.counts, assessment).then((refused) => {
-                setBusy(false);
-                setError(refused);
-              });
-            }}
-          >
-            {T.confirm}
-          </button>
-        </div>
-      </div>
     </ScreenFrame>
   );
 }

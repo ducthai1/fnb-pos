@@ -62,7 +62,28 @@ export function PaymentScreen(props: PaymentScreenProps) {
   }
 
   return (
-    <ScreenFrame title={T.title} wide>
+    <ScreenFrame
+      title={T.title}
+      wide
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
+              {T.back}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary pos-button--lg"
+              disabled={!payable || busy}
+              onClick={finish}
+            >
+              {busy ? T.finishing : T.finish}
+            </button>
+          </div>
+        </>
+      }
+    >
       {header}
       <div className="pos-pay">
         <section className="pos-card pos-pay__summary" aria-label={T.summary}>
@@ -125,22 +146,6 @@ export function PaymentScreen(props: PaymentScreenProps) {
             />
           </div>
         ) : null}
-      </div>
-      <div className="pos-dock">
-        <Alert message={error} />
-        <div className="pos-actions pos-actions--split">
-          <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
-            {T.back}
-          </button>
-          <button
-            type="button"
-            className="pos-button pos-button--primary pos-button--lg"
-            disabled={!payable || busy}
-            onClick={finish}
-          >
-            {busy ? T.finishing : T.finish}
-          </button>
-        </div>
       </div>
     </ScreenFrame>
   );

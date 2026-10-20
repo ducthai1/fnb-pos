@@ -35,31 +35,35 @@ export function OpenShiftScreen({ header, onOpen }: OpenShiftScreenProps) {
   }
 
   return (
-    <ScreenFrame title={T.title}>
+    <ScreenFrame
+      title={T.title}
+      dock={
+        <>
+          <p className="pos-total" aria-live="polite">
+            {T.total(formatVnd(total))}
+          </p>
+          <Alert message={error} />
+          <div className="pos-actions">
+            <button type="button" className="pos-button" onClick={notes.clear}>
+              <Icon of={RotateCcw} />
+              {T.clear}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary"
+              disabled={busy}
+              onClick={open}
+            >
+              <Icon of={Banknote} />
+              {T.open}
+            </button>
+          </div>
+        </>
+      }
+    >
       {header}
       <p className="pos-hint">{T.hint}</p>
       <NoteCounter counts={notes.counts} onChange={notes.change} />
-      <div className="pos-dock">
-        <p className="pos-total" aria-live="polite">
-          {T.total(formatVnd(total))}
-        </p>
-        <Alert message={error} />
-        <div className="pos-actions">
-          <button type="button" className="pos-button" onClick={notes.clear}>
-            <Icon of={RotateCcw} />
-            {T.clear}
-          </button>
-          <button
-            type="button"
-            className="pos-button pos-button--primary"
-            disabled={busy}
-            onClick={open}
-          >
-            <Icon of={Banknote} />
-            {T.open}
-          </button>
-        </div>
-      </div>
     </ScreenFrame>
   );
 }

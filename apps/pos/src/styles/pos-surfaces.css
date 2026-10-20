@@ -19,20 +19,29 @@
   list-style: none;
 }
 
-/* The screen's last row kept in view at the bottom: a total and the buttons that act on it. */
-.pos-screen__inner > .pos-dock {
-  grid-column: 1 / -1;
+/* The total and the buttons that act on the screen, under its content: at the foot of a
+   short screen (the content grows to fill), kept in view at the bottom of a long one. Its
+   padding lines its content up with the screen's width. */
+.pos-dock {
+  --frame-max: 720px;
   position: sticky;
   bottom: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  margin-bottom: calc(-1 * var(--sp-8));
   padding: var(--sp-3) max(var(--sp-4), calc((100% - var(--frame-max)) / 2));
   border-top: 1px solid var(--c-border-soft);
   background: var(--c-surface);
   box-shadow: var(--shadow-dock);
+}
+
+.pos-dock--narrow {
+  --frame-max: 440px;
+}
+
+.pos-dock--wide {
+  --frame-max: 1240px;
 }
 
 /* A sheet over the screen: from the bottom on a phone, centred on a till. */

@@ -19,6 +19,7 @@ import "./pos-picker.css";
 import "./pos-note-counter.css";
 import "./pos-payment.css";
 import "./pos-keypad.css";
+import "./pos-qr.css";
 import "./pos-checkout.css";
 import "./pos-floor.css";
 import "./pos-operations.css";

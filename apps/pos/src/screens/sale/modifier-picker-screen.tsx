@@ -84,7 +84,26 @@ export function ModifierPickerScreen({
   }
 
   return (
-    <ScreenFrame title={product.name}>
+    <ScreenFrame
+      title={product.name}
+      dock={
+        <>
+          <Alert message={error} />
+          <div className="pos-actions pos-actions--split">
+            <button type="button" className="pos-button" onClick={onCancel}>
+              {P.cancel}
+            </button>
+            <button
+              type="button"
+              className="pos-button pos-button--primary pos-button--lg pos-wrap"
+              onClick={add}
+            >
+              {total === null ? P.addNoPrice : P.add(formatVnd(total))}
+            </button>
+          </div>
+        </>
+      }
+    >
       {header}
       {product.variants.length > 0 ? (
         <fieldset className="pos-group pos-choice-group">
@@ -144,21 +163,6 @@ export function ModifierPickerScreen({
           />
         </label>
       </section>
-      <div className="pos-dock">
-        <Alert message={error} />
-        <div className="pos-actions pos-actions--split">
-          <button type="button" className="pos-button" onClick={onCancel}>
-            {P.cancel}
-          </button>
-          <button
-            type="button"
-            className="pos-button pos-button--primary pos-button--lg pos-wrap"
-            onClick={add}
-          >
-            {total === null ? P.addNoPrice : P.add(formatVnd(total))}
-          </button>
-        </div>
-      </div>
     </ScreenFrame>
   );
 }

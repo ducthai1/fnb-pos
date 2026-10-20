@@ -18,11 +18,17 @@ export function ScreenFrame({
   wide = false,
   width,
   titleHidden = false,
+  dock,
   children,
 }: {
   title: string;
   /** Kept for screen readers only, where the screen's bar already says where the cashier is. */
   titleHidden?: boolean;
+  /**
+   * The total and the buttons that act on the screen: at the foot of a short screen, kept in
+   * view at the bottom of a long one.
+   */
+  dock?: ReactNode;
   /** The selling screen uses a tablet's whole width for the menu and the order side by side. */
   wide?: boolean;
   /** A sign-in or a single form reads best as a narrow column in the middle. */
@@ -35,6 +41,9 @@ export function ScreenFrame({
         <h1 className={titleHidden ? "pos-title pos-title--hidden" : "pos-title"}>{title}</h1>
         {children}
       </div>
+      {dock === undefined ? null : (
+        <div className={`pos-dock pos-dock--${width ?? (wide ? "wide" : "normal")}`}>{dock}</div>
+      )}
     </main>
   );
 }
