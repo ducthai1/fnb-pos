@@ -50,9 +50,12 @@ export function useFloor(input: FloorInput): FloorState {
   useEffect(() => {
     let live = true;
     let loading = false;
+    let loadedAt = Number.NEGATIVE_INFINITY;
     const load = () => {
-      if (loading) return;
+      // Passes and count changes come in bursts while orders are taken: one read a second.
+      if (loading || Date.now() - loadedAt < 1_000) return;
       loading = true;
+      loadedAt = Date.now();
       loadFloor()
         .then((result) => {
           if (!live) return;

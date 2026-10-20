@@ -29,6 +29,7 @@ const occupancy = (orderAtT1: string | null): FloorOccupancy => ({
 /** A draft with one 29.000 coffee, prices including VAT. */
 const order = (fields: Partial<StoredTableOrder> = {}): StoredTableOrder => ({
   orderId: tid(500),
+  deviceId: tid(0xd1),
   deviceOrderNo: 7,
   status: "draft",
   businessDate: "2026-10-20",

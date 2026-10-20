@@ -25,6 +25,11 @@ export interface CounterOrder {
   /** The table the order is seated at, which it holds until paid; null at the counter. */
   readonly table: SeatedTable | null;
   readonly lines: readonly CartLine[];
+  /**
+   * The till that opened the order, when another one did (a table's order follows the
+   * table, not the till): its number is that till's, never one of this till's own.
+   */
+  readonly openedOn?: string;
 }
 
 export interface SeatedTable {

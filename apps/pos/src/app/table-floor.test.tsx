@@ -77,12 +77,15 @@ describe("the floor of a branch that serves at tables", () => {
     await signedInTill(server);
     await openFloor();
     const seated = anotherTillSeats(server, FLOOR.t2, { coffees: 2 });
-    await waitFor(() => expect(tileStatus(FLOOR.t2)).toBe("occupied"));
+    // The time since opening comes with the next read of the floor, a second at most.
+    await waitFor(() => expect(tile(FLOOR.t2)?.textContent).toContain(F.seatedFor(F.minutes(25))), {
+      timeout: 3_000,
+    });
+    expect(tileStatus(FLOOR.t2)).toBe("occupied");
     const shown = tile(FLOOR.t2)?.textContent ?? "";
     expect(shown).toContain(F.status.occupied);
-    // Two milk coffees at 29.000, as the domain totals them, and the time since opening.
+    // Two milk coffees at 29.000, as the domain totals them.
     expect(shown).toContain(money(58_000));
-    expect(shown).toContain(F.seatedFor(F.minutes(25)));
     anotherTillPays(server, seated.orderId);
     await waitFor(() => expect(tileStatus(FLOOR.t2)).toBe("free"));
     expect(tile(FLOOR.t2)?.textContent).not.toContain(money(58_000));
@@ -117,7 +120,8 @@ describe("the floor of a branch that serves at tables", () => {
     await signedInTill(server);
     await openFloor();
     const seated = anotherTillSeats(server, FLOOR.t3, { coffees: 2 });
-    await waitFor(() => expect(tileStatus(FLOOR.t3)).toBe("occupied"));
+    // The amount shows once the till holds the order, which it then can open.
+    await waitFor(() => expect(tile(FLOOR.t3)?.textContent).toContain(money(58_000)));
     fireEvent.click(tile(FLOOR.t3)!);
     await screen.findByRole("heading", { name: text.tables.order.title("3") });
     const cart = within(screen.getByRole("region", { name: text.sale.cartLabel }));
@@ -140,6 +144,27 @@ describe("the floor of a branch that serves at tables", () => {
         expect.objectContaining({ productId: MENU.milkTea, quantity: "1" }),
       ],
     });
+  });
+
+  it("numbers its own next order after its own, not after the other till's it added to", async () => {
+    const server = tableCafeServer();
+    await signedInTill(server);
+    await openFloor();
+    anotherTillSeats(server, FLOOR.t3, { coffees: 1 });
+    await waitFor(() => expect(tile(FLOOR.t3)?.textContent).toContain(money(29_000)));
+    fireEvent.click(tile(FLOOR.t3)!);
+    await screen.findByRole("heading", { name: text.tables.order.title("3") });
+    // Offline: the till's own copy of the other till's order is all it has for a while.
+    server.state.online = false;
+    addCoffee();
+    tap(text.tables.order.backToFloor);
+    tap(text.tables.order.leaveAnyway);
+    await waitFor(() => expect(tile(FLOOR.t1)).not.toBeNull());
+    fireEvent.click(tile(FLOOR.t1)!);
+    await screen.findByRole("heading", { name: text.tables.order.title("1") });
+    // The counter's open order has number 1; this table's is the till's next, 2.
+    const number = document.querySelector(".pos-cart__number")?.textContent;
+    expect(number).toContain(text.sale.orderNumber(2));
   });
 
   it("says so, and opens nothing, for guests whose order has not reached the till yet", async () => {

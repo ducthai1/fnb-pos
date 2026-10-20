@@ -44,7 +44,7 @@ export function tillOrderSnapshot(
   return {
     id: order.orderId,
     branchId: place.branchId,
-    deviceId: place.deviceId,
+    deviceId: order.openedOn ?? place.deviceId,
     deviceOrderNo: order.deviceOrderNo,
     status: state.status,
     serviceType: order.serviceType,

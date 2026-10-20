@@ -12,6 +12,8 @@ import {
 /** An order row the till holds (its own expectation or the server's), as tables read it. */
 export interface StoredTableOrder {
   readonly orderId: string;
+  /** The till that opened the order, whose number it carries. */
+  readonly deviceId: string;
   readonly deviceOrderNo: number;
   readonly status: OrderStatus;
   readonly businessDate: string;
@@ -89,6 +91,7 @@ export function readStoredTableOrder(snapshot: EntitySnapshot): StoredTableOrder
     const lines = snapshot.lines.map((row) => lineOf(row as Row));
     return {
       orderId: str(snapshot, "id"),
+      deviceId: str(snapshot, "deviceId"),
       deviceOrderNo: num(snapshot, "deviceOrderNo"),
       status: oneOf(snapshot, "status", STATUSES),
       businessDate: str(snapshot, "businessDate"),

@@ -33,7 +33,8 @@ describe("opening the order seated at a table from the till's copy", () => {
     const stored = readStoredTableOrder(storedRow().row);
     expect(stored).not.toBeNull();
     const opening = openingFromStored(SALE_MENU, stored!);
-    expect(opening.order).toEqual({ ...AT_TABLE, tableTag: null });
+    // It stays the order of the till that opened it, under that till's number.
+    expect(opening.order).toEqual({ ...AT_TABLE, tableTag: null, openedOn: PLACE.deviceId });
     expect(opening.recorded).toMatchObject({ version: 4, preBillPrinted: true });
   });
 

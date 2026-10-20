@@ -92,6 +92,7 @@ export function openingFromStored(menu: TillMenu, stored: StoredTableOrder): Tab
       tableTag: null,
       table,
       lines,
+      openedOn: stored.deviceId,
     },
     recorded: {
       chargeProfile: stored.chargeProfile,
