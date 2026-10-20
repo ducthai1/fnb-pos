@@ -50,7 +50,8 @@ export function registerDeviceListRoute(app: FastifyInstance, context: ApiContex
         name: row.name,
         branchId: row.branch_id,
         pairedAt: row.created_at.toISOString(),
-        revokedAt: row.live || row.last_revoked_at === null ? null : row.last_revoked_at.toISOString(),
+        revokedAt:
+          row.live || row.last_revoked_at === null ? null : row.last_revoked_at.toISOString(),
       }));
       return { devices };
     },

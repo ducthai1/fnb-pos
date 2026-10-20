@@ -63,7 +63,9 @@ export function replyWithCatalogError(error: unknown, reply: FastifyReply): Fast
   }
   if (isDomainError(error)) {
     const details = safeDomainDetails(error.details);
-    return reply.code(400).send(details === null ? { code: error.code } : { code: error.code, details });
+    return reply
+      .code(400)
+      .send(details === null ? { code: error.code } : { code: error.code, details });
   }
   const sqlState = (error as { code?: unknown }).code;
   if (sqlState === FOREIGN_KEY_VIOLATION) {

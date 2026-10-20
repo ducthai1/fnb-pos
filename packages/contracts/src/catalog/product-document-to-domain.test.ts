@@ -53,7 +53,10 @@ describe("productDocumentToDomain", () => {
     const [group] = milkTea.modifierGroups;
     if (group === undefined) throw new Error("fixture lost its group");
     const unset = { minSelect: undefined, maxSelect: 4, hidden: undefined };
-    const spelled = { ...milkTea, modifierGroups: [{ ...group, variantRules: { [id(4)]: unset } }] };
+    const spelled = {
+      ...milkTea,
+      modifierGroups: [{ ...group, variantRules: { [id(4)]: unset } }],
+    };
     const rule = productDocumentToDomain(id(9), spelled).modifierGroups[0]?.variantRules[id(4)];
     expect(Object.keys(rule ?? {})).toEqual(["maxSelect"]);
   });

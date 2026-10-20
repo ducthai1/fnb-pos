@@ -31,7 +31,11 @@ beforeAll(async () => {
   shop = await staffedShop(app, pool);
   other = await staffedShop(app, pool);
   const memberHolding = async (keys: ("manage_devices" | "manage_staff")[]) => {
-    const roleId = await createRole(pool, shop.tenantId, keys.map((key) => ({ key })));
+    const roleId = await createRole(
+      pool,
+      shop.tenantId,
+      keys.map((key) => ({ key })),
+    );
     return (await signedInMember(app, pool, shop.tenantId, { roleId })).cookie;
   };
   keyless = await memberHolding([]);

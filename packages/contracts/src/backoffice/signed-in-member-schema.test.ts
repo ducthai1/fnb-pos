@@ -21,6 +21,8 @@ describe("signedInMemberSchema", () => {
   it("refuses a key the permission catalog does not have, and a missing list", () => {
     const invented = { ...member, permissionKeys: ["manage_everything"] };
     expect(outcomeOf(signedInMemberSchema, invented).ok).toBe(false);
-    expect(outcomeOf(signedInMemberSchema, { ...member, permissionKeys: undefined }).ok).toBe(false);
+    expect(outcomeOf(signedInMemberSchema, { ...member, permissionKeys: undefined }).ok).toBe(
+      false,
+    );
   });
 });
