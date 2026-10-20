@@ -113,7 +113,7 @@ export function AvailabilityScreen() {
               <div>
                 <input
                   type="checkbox"
-                  className="bo-switch"
+                  className="bo-toggle"
                   checked={!soldOut.has(product.id)}
                   disabled={pending === product.id}
                   aria-label={T.toggleLabel(product.name)}

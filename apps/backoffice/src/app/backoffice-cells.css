@@ -85,7 +85,7 @@
 }
 
 /* An on/off switch drawn over a real checkbox: green and to the right when on. */
-.bo-switch {
+.bo-toggle {
   appearance: none;
   position: relative;
   flex: none;
@@ -98,7 +98,7 @@
   transition: background-color 120ms ease;
 }
 
-.bo-switch::before {
+.bo-toggle::before {
   content: "";
   position: absolute;
   top: 3px;
@@ -111,20 +111,20 @@
   transition: transform 120ms ease;
 }
 
-.bo-switch:checked {
+.bo-toggle:checked {
   background: var(--c-brand);
 }
 
-.bo-switch:checked::before {
+.bo-toggle:checked::before {
   transform: translateX(20px);
 }
 
-.bo-switch:focus-visible {
+.bo-toggle:focus-visible {
   outline: none;
   box-shadow: var(--ring);
 }
 
-.bo-switch:disabled {
+.bo-toggle:disabled {
   opacity: 0.6;
   cursor: default;
 }
