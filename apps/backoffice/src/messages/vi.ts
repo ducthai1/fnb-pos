@@ -7,6 +7,7 @@ import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
 import { VI_FLOOR } from "./vi-floor";
 import { VI_HOME } from "./vi-home";
 import { VI_MENU } from "./vi-menu";
+import { VI_MENU_IMPORT } from "./vi-menu-sheet";
 import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
 import { VI_SETTINGS } from "./vi-settings";
@@ -25,6 +26,7 @@ export const vi = {
   roles: VI_ROLES,
   staffTools: VI_STAFF_TOOLS,
   menu: VI_MENU,
+  menuImport: VI_MENU_IMPORT,
   settings: VI_SETTINGS,
   dailySales: VI_DAILY_SALES,
   printFailures: VI_PRINT_FAILURES,
