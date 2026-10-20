@@ -27,6 +27,7 @@
 
 /* Paid in full: nothing to choose, the summary alone in the middle. */
 .pos-pay > .pos-pay__summary:only-child {
+  box-sizing: border-box;
   grid-column: 1 / -1;
   justify-self: center;
   width: min(100%, 560px);
