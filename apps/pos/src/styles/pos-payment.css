@@ -1,0 +1,170 @@
+/* Taking the money: what the order comes to and what is still owed on the left, the ways
+   to pay on the right (one column on a phone or a tablet held upright); the finish button
+   stays in the dock at the foot. Every amount is the domain's, the screen only shows it. */
+
+.pos-pay {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 900px) {
+  .pos-pay {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+  .pos-pay__summary {
+    position: sticky;
+    top: var(--sp-3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .pos-pay__summary {
+    top: calc(var(--bar-h) + var(--sp-3));
+  }
+}
+
+/* Paid in full: nothing to choose, the summary alone in the middle. */
+.pos-pay > .pos-pay__summary:only-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 560px);
+}
+
+.pos-pay__summary,
+.pos-pay__methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.pos-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-card__title > .pos-icon {
+  color: var(--c-brand);
+}
+
+.pos-due {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+}
+
+.pos-due__label {
+  color: var(--c-text-2);
+  font-weight: var(--fw-medium);
+}
+
+.pos-due strong {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-tender {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-1) 0;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-tender > .pos-icon {
+  color: var(--c-text-2);
+}
+
+.pos-tender__text {
+  flex: 1 1 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-balance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+}
+
+.pos-balance__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+}
+
+.pos-balance__row dt {
+  color: var(--c-text-2);
+  font-weight: var(--fw-medium);
+}
+
+.pos-balance__row dd {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-balance__row[data-owed="true"] {
+  background: var(--c-amber-soft);
+}
+
+.pos-balance__row[data-owed="true"] dd {
+  color: var(--c-amber);
+}
+
+/* What to hand back, read across the counter once there is some. */
+.pos-balance__row--change[data-has-change="true"] {
+  background: var(--c-success-soft);
+}
+
+.pos-balance__row--change[data-has-change="true"] dt,
+.pos-balance__row--change[data-has-change="true"] dd {
+  color: var(--c-success);
+}
+
+.pos-balance__row--change[data-has-change="true"] dd {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+}
+
+.pos-cash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.pos-cash__typed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+}
+
+.pos-cash__input {
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-cash__preview {
+  min-height: 1.45em;
+  margin: 0;
+  color: var(--c-text-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

@@ -1,41 +1,5 @@
-/* Taking the money and the slips after it. */
-
-.pos-due {
-  margin: 0;
-  font-size: 1.375rem;
-}
-
-.pos-due strong {
-  font-variant-numeric: tabular-nums;
-}
-
-.pos-tender {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--pos-border);
-}
-
-.pos-cash {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pos-quick-cash {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
-  gap: 8px;
-}
-
-.pos-cash__typed {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-}
+/* After the money: the call number, the slips, the VietQR and the e-invoice. The payment
+   screen itself is in pos-payment.css. */
 
 .pos-call-number {
   margin: 0;

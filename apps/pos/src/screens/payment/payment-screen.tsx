@@ -1,4 +1,5 @@
 import { type Vnd, ZERO_VND, compareVnd, formatVnd } from "@fnb/domain";
+import { Banknote, QrCode, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import {
   PAYMENT_METHODS,
@@ -8,6 +9,7 @@ import {
   settleTenders,
 } from "../../features/payment/tenders";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { CashEntry } from "./cash-entry";
 import { QrOffer } from "./qr-offer";
@@ -60,70 +62,85 @@ export function PaymentScreen(props: PaymentScreenProps) {
   }
 
   return (
-    <ScreenFrame title={T.title}>
+    <ScreenFrame title={T.title} wide>
       {header}
-      <p className="pos-due">
-        {T.amountDue}: <strong data-amount-due={String(amountDue)}>{formatVnd(amountDue)}</strong>
-      </p>
-      {tenders.length === 0 ? null : (
-        <ul className="pos-list">
-          {tenders.map((tender, index) => {
-            const method = vi.checkout.methods[tender.method];
-            return (
-              <li key={index} className="pos-tender">
-                <span className="pos-wrap">
-                  {method} {formatVnd(tender.amount)}
-                </span>
-                <button
-                  type="button"
-                  className="pos-button pos-button--quiet"
-                  aria-label={T.removeTender(method, formatVnd(tender.amount))}
-                  onClick={() => setTenders(tenders.filter((_, at) => at !== index))}
-                >
-                  ✕
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      <dl className="pos-totals">
-        <dt>{T.remaining}</dt>
-        <dd data-remaining={String(settlement.remaining)}>{formatVnd(settlement.remaining)}</dd>
-        <dt className="pos-totals__due">{T.change}</dt>
-        <dd className="pos-totals__due" data-change={String(settlement.change)}>
-          {formatVnd(settlement.change)}
-        </dd>
-      </dl>
-      {owed ? (
-        <>
-          <CashEntry
-            remaining={settlement.remaining}
-            onTake={(amount) => take({ method: PAYMENT_METHODS.cash, amount })}
-            onUnreadable={() => setError(T.refusals.unreadable)}
-          />
-          <QrOffer
-            amountDue={amountDue}
-            accountSet={props.qrAccountSet}
-            cashTaken={tenders.length > 0}
-            onShow={props.onQr}
-          />
-        </>
-      ) : null}
-      {props.invoice}
-      <Alert message={error} />
-      <div className="pos-actions">
-        <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
-          {T.back}
-        </button>
-        <button
-          type="button"
-          className="pos-button pos-button--primary"
-          disabled={!payable || busy}
-          onClick={finish}
-        >
-          {busy ? T.finishing : T.finish}
-        </button>
+      <div className="pos-pay">
+        <section className="pos-card pos-pay__summary" aria-label={T.summary}>
+          <p className="pos-due">
+            <span className="pos-due__label">{T.amountDue}</span>
+            <strong data-amount-due={String(amountDue)}>{formatVnd(amountDue)}</strong>
+          </p>
+          {tenders.length === 0 ? null : (
+            <ul className="pos-list pos-tenders">
+              {tenders.map((tender, index) => {
+                const method = vi.checkout.methods[tender.method];
+                return (
+                  <li key={index} className="pos-tender">
+                    <Icon of={tender.method === PAYMENT_METHODS.cash ? Banknote : QrCode} />
+                    <span className="pos-tender__text pos-wrap">
+                      {method} {formatVnd(tender.amount)}
+                    </span>
+                    <button
+                      type="button"
+                      className="pos-button pos-button--quiet pos-button--sm"
+                      aria-label={T.removeTender(method, formatVnd(tender.amount))}
+                      onClick={() => setTenders(tenders.filter((_, at) => at !== index))}
+                    >
+                      <Icon of={X} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <dl className="pos-balance">
+            <div className="pos-balance__row" data-owed={owed}>
+              <dt>{T.remaining}</dt>
+              <dd data-remaining={String(settlement.remaining)}>
+                {formatVnd(settlement.remaining)}
+              </dd>
+            </div>
+            <div
+              className="pos-balance__row pos-balance__row--change"
+              data-has-change={compareVnd(settlement.change, ZERO_VND) > 0}
+            >
+              <dt>{T.change}</dt>
+              <dd data-change={String(settlement.change)}>{formatVnd(settlement.change)}</dd>
+            </div>
+          </dl>
+          {props.invoice}
+        </section>
+        {owed ? (
+          <div className="pos-pay__methods">
+            <CashEntry
+              remaining={settlement.remaining}
+              onTake={(amount) => take({ method: PAYMENT_METHODS.cash, amount })}
+              onUnreadable={() => setError(T.refusals.unreadable)}
+            />
+            <QrOffer
+              amountDue={amountDue}
+              accountSet={props.qrAccountSet}
+              cashTaken={tenders.length > 0}
+              onShow={props.onQr}
+            />
+          </div>
+        ) : null}
+      </div>
+      <div className="pos-dock">
+        <Alert message={error} />
+        <div className="pos-actions pos-actions--split">
+          <button type="button" className="pos-button" onClick={onBack} disabled={busy}>
+            {T.back}
+          </button>
+          <button
+            type="button"
+            className="pos-button pos-button--primary pos-button--lg"
+            disabled={!payable || busy}
+            onClick={finish}
+          >
+            {busy ? T.finishing : T.finish}
+          </button>
+        </div>
       </div>
     </ScreenFrame>
   );

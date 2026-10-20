@@ -69,6 +69,14 @@
   background: var(--c-brand-soft-pressed);
 }
 
+/* The bank's way: a VietQR transfer. */
+.pos-button--info {
+  border-color: var(--c-info);
+  background: var(--c-info);
+  color: var(--c-on-info);
+  font-weight: var(--fw-semibold);
+}
+
 .pos-button--danger {
   border-color: var(--c-danger);
   background: var(--c-surface);
