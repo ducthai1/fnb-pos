@@ -171,3 +171,8 @@
 .bo-group-card__remove {
   align-self: flex-end;
 }
+
+.bo-preview[id],
+.bo-editor > .bo-card[id] {
+  scroll-margin-top: 72px;
+}

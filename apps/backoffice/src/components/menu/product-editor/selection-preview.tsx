@@ -5,6 +5,7 @@ import { useState } from "react";
 import { nameMark } from "../../../lib/format/name-mark";
 import { vi } from "../../../messages/vi";
 import { CheckField } from "../../ui/select-field";
+import { EDITOR_SECTIONS } from "./editor-sections";
 import { type PreviewCounts, countKey, previewMessage, previewOutcome } from "./preview-outcome";
 
 const T = vi.menu.preview;
@@ -19,7 +20,7 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
 
   if (product === null) {
     return (
-      <section className="bo-card" aria-label={T.title}>
+      <section className="bo-card" aria-label={T.title} id={EDITOR_SECTIONS.preview}>
         <h2 className="bo-subtitle">{T.title}</h2>
         <p className="bo-muted">{T.notReady}</p>
       </section>
@@ -36,7 +37,7 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
 
   return (
     // Polite, not an alert: a customer's half-made choice is not an error of the page.
-    <section className="bo-card bo-preview" aria-label={T.title} aria-live="polite">
+    <section className="bo-card bo-preview" aria-label={T.title} aria-live="polite" id={EDITOR_SECTIONS.preview}>
       <h2 className="bo-subtitle">{T.title}</h2>
       <p className="bo-muted">{T.hint}</p>
       <div className="bo-preview__head" aria-hidden="true">

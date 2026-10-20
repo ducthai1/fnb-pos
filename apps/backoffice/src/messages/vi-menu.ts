@@ -50,7 +50,7 @@ export const VI_MENU = {
     general: "Thông tin chung",
     priceTitle: "Giá & thuế",
     sectionsLabel: "Các phần của món",
-    sections: { info: "Thông tin", price: "Giá & thuế", variants: "Size", groups: "Tùy chọn" },
+    sections: { info: "Thông tin", price: "Giá & thuế", variants: "Size", groups: "Tùy chọn", preview: "Xem trước" },
     name: "Tên món",
     kind: "Loại",
     kinds: {
