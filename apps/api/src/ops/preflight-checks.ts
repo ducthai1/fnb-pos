@@ -41,11 +41,21 @@ function configChecks(result: ServerConfigResult): CheckResult[] {
   }
   const { config } = result;
   const behindProxy = LOOPBACK_HOSTS.has(config.host);
+  const plainOrigins = (config.allowedOrigins ?? []).filter((o) => !o.startsWith("https://"));
   return [
     { status: "pass", name: "cấu hình API", detail: "mọi biến bắt buộc có và hợp lệ" },
     config.environment === "production"
       ? { status: "pass", name: "FNB_ENV", detail: "production" }
       : { status: "fail", name: "FNB_ENV", detail: "phải là production trên server thật" },
+    plainOrigins.length === 0
+      ? { status: "pass", name: "FNB_ALLOWED_ORIGINS", detail: "chỉ https" }
+      : {
+          status: "fail",
+          name: "FNB_ALLOWED_ORIGINS",
+          detail:
+            `${plainOrigins.join(", ")} không phải https: trình duyệt không gửi cookie ` +
+            "Secure qua http, backoffice sẽ không đăng nhập được",
+        },
     config.paymentSecretKey !== null
       ? { status: "pass", name: "FNB_PAYMENT_SECRET_KEY", detail: "có" }
       : {

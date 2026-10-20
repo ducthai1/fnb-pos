@@ -167,7 +167,7 @@ cd /srv/fnb/current
 sudo bash -c 'set -a; . /etc/fnb/fnb-api.env; . /etc/fnb/admin.env; set +a; pnpm -s ops:preflight'
 ```
 
-In từng dòng ĐẠT / CẢNH BÁO / KHÔNG ĐẠT, exit 1 nếu có mục không đạt: cấu hình API hợp lệ (cùng luật API dùng lúc khởi động), `FNB_ENV=production`, có `FNB_PAYMENT_SECRET_KEY` (thiếu = cảnh báo), API sau proxy đã tin proxy (`FNB_TRUSTED_PROXIES`), job dọn dẹp bật, role của API không SUPERUSER/BYPASSRLS, mọi migration đã chạy (và database không mới hơn code), `/health` trả 200.
+In từng dòng ĐẠT / CẢNH BÁO / KHÔNG ĐẠT, exit 1 nếu có mục không đạt: cấu hình API hợp lệ (cùng luật API dùng lúc khởi động), `FNB_ENV=production`, `FNB_ALLOWED_ORIGINS` chỉ https, có `FNB_PAYMENT_SECRET_KEY` (thiếu = cảnh báo), API sau proxy đã tin proxy (`FNB_TRUSTED_PROXIES`), job dọn dẹp bật, role của API không SUPERUSER/BYPASSRLS, mọi migration đã chạy (và database không mới hơn code), `/health` trả 200.
 
 ## 12. Cập nhật phiên bản
 

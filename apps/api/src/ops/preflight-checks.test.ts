@@ -32,7 +32,7 @@ const failures = (facts: PreflightFacts) =>
 
 describe("preflight checks", () => {
   it("pass a production deployment that is ready to open", () => {
-    expect(preflightChecks(READY).map((check) => check.status)).toEqual(Array(8).fill("pass"));
+    expect(preflightChecks(READY).map((check) => check.status)).toEqual(Array(9).fill("pass"));
   });
 
   it("fail a configuration the API would refuse, naming the problems", () => {
@@ -56,6 +56,14 @@ describe("preflight checks", () => {
     ]);
     const open = readServerConfig({ ...withoutProxies, HOST: "0.0.0.0" });
     expect(statusOf({ ...READY, config: open }, "FNB_TRUSTED_PROXIES")).toBe("pass");
+  });
+
+  it("fail an origin served over plain http, where the Secure session cookie never travels", () => {
+    const config = readServerConfig({
+      ...PRODUCTION,
+      FNB_ALLOWED_ORIGINS: "https://quan.example.vn,http://quan.example.vn",
+    });
+    expect(failures({ ...READY, config })).toEqual(["FNB_ALLOWED_ORIGINS"]);
   });
 
   it("warn, without failing, when bank notices or the cleanup job are off", () => {
