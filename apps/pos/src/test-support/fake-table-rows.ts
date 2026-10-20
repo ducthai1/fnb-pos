@@ -41,13 +41,14 @@ export function fakeTableRows(
 
   function saveDraft(command: SyncCommandEnvelope, payload: Payload): Row {
     const before = rows.get(String(payload.orderId));
-    const tableId = (before?.tableId as string | undefined) ?? String(payload.tableId);
+    const tableId =
+      (before?.tableId as string | null | undefined) ?? (payload.tableId as string | null);
     const order: CounterOrder = {
       orderId: String(payload.orderId),
       deviceOrderNo: (before?.deviceOrderNo as number | undefined) ?? Number(payload.deviceOrderNo),
-      serviceType: "dine_in",
-      tableTag: null,
-      table: { id: tableId, name: tableNameOf(tableId) },
+      serviceType: payload.serviceType === "dine_in" ? "dine_in" : "takeaway",
+      tableTag: (payload.tableTag as string | null | undefined) ?? null,
+      table: tableId === null ? null : { id: tableId, name: tableNameOf(tableId) },
       lines: cartLinesOf(payload),
     };
     const priced = priceCounterOrder(menu, order, PROFILE, at(command));
@@ -65,7 +66,18 @@ export function fakeTableRows(
       },
     );
     const sentBefore = new Map(((before?.lines ?? []) as LineRow[]).map((line) => [line.id, line]));
-    const lines = (shaped.lines as LineRow[]).map((line) => ({
+    const fresh = new Set((shaped.lines as LineRow[]).map((line) => line.id));
+    // Lines only commands make stay whatever a save sends, as the server keeps them.
+    const commandMade = ((before?.lines ?? []) as LineRow[]).filter(
+      (line) =>
+        !fresh.has(line.id) &&
+        (line.lineType === "discount" || line.reversesLineId !== null || isUnderCancel(line)),
+    );
+    function isUnderCancel(line: LineRow) {
+      const parent = ((before?.lines ?? []) as LineRow[]).find((p) => p.id === line.parentLineId);
+      return parent !== undefined && parent.reversesLineId !== null;
+    }
+    const lines = [...(shaped.lines as LineRow[]), ...commandMade].map((line) => ({
       ...line,
       sentQuantity: sentBefore.get(line.id)?.sentQuantity ?? "0",
       sentNote: sentBefore.get(line.id)?.sentNote ?? null,
@@ -118,7 +130,7 @@ export function fakeTableRows(
     answer(command: SyncCommandEnvelope): Row | undefined {
       const payload = command.payload as Payload;
       const before = rows.get(String(payload.orderId));
-      if (command.type === "order.save_draft" && (payload.tableId || before?.tableId)) {
+      if (command.type === "order.save_draft" && Array.isArray(payload.lines)) {
         return saveDraft(command, payload);
       }
       if (before === undefined || !before.tableId) return undefined;

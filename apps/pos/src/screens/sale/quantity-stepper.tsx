@@ -6,18 +6,27 @@ export interface QuantityStepperProps {
   name: string;
   value: number;
   max: number;
+  /** 1 unless nothing is a choice too (how many of an item to refund). */
+  min?: number;
   onChange(value: number): void;
 }
 
-/** − n +, from 1 to max: big targets, no typing needed for the usual one or two. */
-export function QuantityStepper({ label, name, value, max, onChange }: QuantityStepperProps) {
+/** − n +, from min to max: big targets, no typing needed for the usual one or two. */
+export function QuantityStepper({
+  label,
+  name,
+  value,
+  max,
+  min = 1,
+  onChange,
+}: QuantityStepperProps) {
   return (
     <div className="pos-stepper" role="group" aria-label={label}>
       <button
         type="button"
         className="pos-button"
         aria-label={vi.sale.less(name)}
-        disabled={value <= 1}
+        disabled={value <= min}
         onClick={() => onChange(value - 1)}
       >
         −

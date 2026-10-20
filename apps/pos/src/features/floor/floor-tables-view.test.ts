@@ -32,11 +32,17 @@ const order = (fields: Partial<StoredTableOrder> = {}): StoredTableOrder => ({
   deviceId: tid(0xd1),
   deviceOrderNo: 7,
   status: "draft",
+  serviceType: "dine_in",
+  tableTag: null,
   businessDate: "2026-10-20",
   version: 2,
   tableId: T1,
   tableName: "1",
   preBillPrinted: false,
+  reasonCode: null,
+  refundOfOrderId: null,
+  refundAmounts: null,
+  payments: [],
   chargeProfile: { pricesIncludeTax: true, serviceCharge: null },
   lines: [
     {

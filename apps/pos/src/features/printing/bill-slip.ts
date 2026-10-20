@@ -31,14 +31,16 @@ export function billLinesOf(priced: PricedCounterOrder): BillLine[] {
     quantity: item.quantity,
     unitPrice: item.unitPrice,
     amount: lineAmountOf(priced, item.id),
-    children: childrenOf(priced.lines, item.id).map((child) => {
-      const gross = grossOf.get(child.id) ?? ZERO_VND;
-      return {
-        name: child.nameSnapshot,
-        quantity: child.quantity,
-        amount: compareVnd(gross, ZERO_VND) === 0 ? null : gross,
-      };
-    }),
+    children: childrenOf(priced.lines, item.id)
+      .filter((child) => child.lineType !== "discount")
+      .map((child) => {
+        const gross = grossOf.get(child.id) ?? ZERO_VND;
+        return {
+          name: child.nameSnapshot,
+          quantity: child.quantity,
+          amount: compareVnd(gross, ZERO_VND) === 0 ? null : gross,
+        };
+      }),
     note: item.note,
   }));
 }
@@ -62,7 +64,11 @@ export function billBody(
     printedAt: head.printedAt,
     lines: billLinesOf(sale.priced),
     subtotal: totals.grossTotal,
-    discounts: [],
+    // Every discount of the order as one line: the item each came off is not the bill's concern.
+    discounts:
+      compareVnd(totals.discountTotal, ZERO_VND) > 0
+        ? [{ label: vi.adjust.cart.orderDiscount, amount: totals.discountTotal }]
+        : [],
     serviceCharge: compareVnd(totals.serviceCharge, ZERO_VND) === 0 ? null : totals.serviceCharge,
     pricesIncludeTax,
     taxes: totals.taxBreakdown.map((group) => ({ rate: group.rate, amount: group.tax })),

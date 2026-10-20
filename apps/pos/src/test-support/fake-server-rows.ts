@@ -1,5 +1,7 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
 import type { TillMenu } from "../features/menu/till-menu";
+import { fakeOrderCommandAnswer } from "./fake-order-commands";
+import { fakeRefundAnswer } from "./fake-refund-answer";
 import { type Row, fakeTableRows } from "./fake-table-rows";
 
 /**
@@ -32,6 +34,8 @@ export function fakeServerRows(
       const payload = command.payload as Record<string, unknown>;
       const atTable = tables.answer(command);
       if (atTable !== undefined) return atTable;
+      const adjusted = fakeOrderCommandAnswer(rows, command) ?? fakeRefundAnswer(rows, command);
+      if (adjusted !== undefined) return adjusted;
       switch (command.type) {
         case "shift.open":
           return bump(String(payload.shiftId), {
@@ -40,12 +44,8 @@ export function fakeServerRows(
             businessDate: command.businessDate,
           });
         case "order.save_draft":
-          return bump(String(payload.orderId), {
-            deviceId,
-            deviceOrderNo: payload.deviceOrderNo,
-            status: "draft",
-            lines: payload.lines,
-          });
+          // A bare draft a test recorded itself, with no cart to price.
+          return bump(String(payload.orderId), { deviceId, status: "draft" });
         case "order.pay":
           return bump(String(payload.orderId), { status: "paid", payments: payload.payments });
         case "order.mark_sent_to_kitchen":

@@ -22,7 +22,9 @@ import { TableOrderActions } from "../screens/table-order/table-order-actions";
 import { TableOrderNotices } from "../screens/table-order/table-order-notices";
 import { TableOrderScreen } from "../screens/table-order/table-order-screen";
 import { TransferTableScreen } from "../screens/table-order/transfer-table-screen";
+import { cancelTicketsScreen } from "../features/table-order/void-cancel-tickets";
 import { CounterCheckout } from "./counter-checkout";
+import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 import type { CounterSaleProps } from "./counter-sale";
 
 export interface TableOrderingProps extends Omit<CounterSaleProps, "session" | "modeSwitch"> {
@@ -40,10 +42,12 @@ export interface TableOrderingProps extends Omit<CounterSaleProps, "session" | "
 type Phase =
   | { readonly kind: "order" | "transfer" | "leaving" }
   | { readonly kind: "picking"; readonly product: PosProduct }
+  | { readonly kind: "adjusting"; readonly step: AdjustStep }
   | {
       readonly kind: "slips";
       readonly title: string;
       readonly slips: readonly PrintedSlip[] | null;
+      readonly notice?: string;
     }
   | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
 
@@ -52,26 +56,30 @@ export function TableOrdering(props: TableOrderingProps) {
   const { client, place, menu, now, header, opening, onLeave } = props;
   const session = useTableOrder(client, place, menu, opening, props.onRecorded);
   const [phase, setPhase] = useState<Phase>({ kind: "order" });
-  const { order, kept, sent } = session;
-  const view = cartView(menu, order, session.recorded().chargeProfile, now, kept);
+  const { order, kept, sent, commandLines } = session;
+  const view = cartView(menu, order, session.recorded().chargeProfile, now, kept, commandLines);
   const lines = view.kind === "priced" ? view.priced.lines : [];
   const owed = owedToKitchen(menu, order, lines, sent);
   const table = order.table ?? { id: "", name: "" };
   const rounds = { ...props, session, now: Date.now };
   const back = () => setPhase({ kind: "order" });
 
-  async function showSlips(title: string, print: () => Promise<readonly PrintedSlip[] | null>) {
+  async function showSlips(
+    title: string,
+    print: () => Promise<{ slips: readonly PrintedSlip[] | null; notice?: string }>,
+  ) {
     setPhase({ kind: "slips", title, slips: null });
-    const slips = await print().catch((error: unknown) => {
+    const done = await print().catch((error: unknown) => {
       console.error(error);
-      return [];
+      return { slips: [] };
     });
-    setPhase({ kind: "slips", title, slips: slips ?? [] });
+    setPhase({ ...done, kind: "slips", title, slips: done.slips ?? [] });
   }
+  const sendRound = async () => ({ slips: await sendRoundToKitchen(rounds) });
   const preBill = async () => {
     const slip = await printPreBill(rounds);
     if (slip !== null && slip.outcome.status !== "failed") props.preBilled.add(order.orderId);
-    return slip === null ? null : [slip];
+    return { slips: slip === null ? null : [slip] };
   };
 
   switch (phase.kind) {
@@ -103,6 +111,23 @@ export function TableOrdering(props: TableOrderingProps) {
       );
     case "slips":
       return <RoundSlipsScreen header={header} {...phase} onBack={back} />;
+    case "adjusting":
+      return (
+        <OrderAdjustmentFlow
+          {...rounds}
+          step={phase.step}
+          header={header}
+          onDone={(outcome) => {
+            if (outcome.kind === "cancelled")
+              return onLeave(vi.adjust.cancel.done(order.deviceOrderNo));
+            if (outcome.kind !== "voided" || outcome.record.fromSent === 0n) return back();
+            const record = outcome.record;
+            void showSlips(vi.adjust.void.cancelTicketTitle, () =>
+              cancelTicketsScreen({ ...rounds, record }),
+            );
+          }}
+        />
+      );
     case "transfer":
       return (
         <TransferTableScreen
@@ -126,6 +151,9 @@ export function TableOrdering(props: TableOrderingProps) {
       order={order}
       view={view}
       kept={kept}
+      commandLines={commandLines}
+      sentIds={new Set(sent.map((line) => line.lineId))}
+      adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
       owed={owed.lineIds}
       saveFailed={session.saveFailed}
       notices={
@@ -152,9 +180,7 @@ export function TableOrdering(props: TableOrderingProps) {
           billable={view.kind === "priced" && order.lines.length > 0}
           saved={session.recorded().version > 0}
           blocked={blocked}
-          onSend={() =>
-            void showSlips(vi.tables.slips.kitchenTitle, () => sendRoundToKitchen(rounds))
-          }
+          onSend={() => void showSlips(vi.tables.slips.kitchenTitle, sendRound)}
           onPreBill={() => void showSlips(vi.tables.slips.preBillTitle, preBill)}
           onPay={() => {
             void session.saveAt(Date.now()).then((priced) => {

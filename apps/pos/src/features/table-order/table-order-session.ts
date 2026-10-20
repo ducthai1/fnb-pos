@@ -1,6 +1,7 @@
 import type { SentLineState } from "@fnb/domain";
 import type { CounterOrder } from "../order/counter-order";
 import type { KeptLines } from "../order/price-counter-order";
+import type { StoredOrder } from "../order/stored-order";
 import type { CounterOrderSession } from "../order/use-counter-order";
 import type { SettledTableOrder } from "./table-order-state";
 
@@ -18,4 +19,9 @@ export interface TableOrderSession extends CounterOrderSession {
   /** After tickets printed: what the stations have now, and the items that locks. */
   noteSent(sent: readonly SentLineState[], kept: KeptLines): void;
   notePreBill(): void;
+  /** Cancel lines made on the till whose server ids are not known yet. */
+  readonly unconfirmedCancels: ReadonlySet<string>;
+  noteLocalCancel(lineId: string): void;
+  /** Takes the server's lines and sent state once its copy has every command of the till. */
+  rebase(stored: StoredOrder): void;
 }

@@ -69,6 +69,7 @@ export const TABLE_SCREENS = {
       order={order}
       view={cartView(menu, order, profile, now, kept)}
       kept={kept}
+      sentIds={new Set(kept.keys())}
       owed={new Set(order.lines.slice(1).map((line) => line.lineId))}
       saveFailed
       notices={

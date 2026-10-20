@@ -1,5 +1,6 @@
 import type { SentTicketLine } from "@fnb/contracts";
 import {
+  type KitchenTicketLine,
   type SentLineState,
   type StationRouting,
   diffKitchenTicket,
@@ -46,10 +47,19 @@ export function stationRoutingOf(menu: TillMenu): StationRouting {
  * were already sent: nothing for a counter order (it goes to the bar once paid), the earlier
  * rounds for a table's order, so a ticket only ever carries what is new.
  */
-export function kitchenSlips(menu: TillMenu, sale: SlipOrder, at: number): KitchenTicketJob[] {
+export function kitchenSlips(
+  menu: TillMenu,
+  sale: SlipOrder,
+  at: number,
+  /** Only these lines of what is owed: a void prints its cancel and nothing else. */
+  only: (line: KitchenTicketLine) => boolean = () => true,
+): KitchenTicketJob[] {
   const diff = diffKitchenTicket(domainOrderOf(sale), sale.sent ?? [], stationRoutingOf(menu));
   const head = slipHead(menu, sale, at);
-  return diff.tickets.map((ticket) => {
+  const tickets = diff.tickets
+    .map((ticket) => ({ ...ticket, lines: ticket.lines.filter(only) }))
+    .filter((ticket) => ticket.lines.length > 0);
+  return tickets.map((ticket) => {
     const document = buildKitchenTicket({
       stationName: menu.stations.get(ticket.stationId)?.name ?? "",
       orderNumber: head.orderNumber,

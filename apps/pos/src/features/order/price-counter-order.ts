@@ -87,6 +87,7 @@ const NOTHING_KEPT: KeptLines = new Map();
 /**
  * The whole cart with the domain's totals: the screen shows these and adds nothing up. A
  * kept item is not priced again: the server keeps the price it had when it went to the bar.
+ * Lines commands made (discounts, cancel lines) follow the cart's, as the server stores them.
  */
 export function priceCounterOrder(
   menu: TillMenu,
@@ -94,8 +95,10 @@ export function priceCounterOrder(
   chargeProfile: OrderChargeProfile,
   at: number,
   kept: KeptLines = NOTHING_KEPT,
+  commandLines: readonly OrderLine[] = [],
 ): PricedCounterOrder {
-  const lines = order.lines.flatMap((line) => kept.get(line.lineId) ?? pricedLines(menu, line, at));
+  const cart = order.lines.flatMap((line) => kept.get(line.lineId) ?? pricedLines(menu, line, at));
+  const lines = [...cart, ...commandLines];
   return {
     lines,
     totals: computeOrderTotals({ lines, serviceType: order.serviceType }, chargeProfile),

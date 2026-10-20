@@ -30,7 +30,10 @@ async function heldOrders(client: FloorInput["client"], preBilled: Set<string>) 
   for (const view of await client.snapshots("order")) {
     const order = readStoredTableOrder(view.snapshot);
     if (order === null) continue;
-    orders.set(order.orderId, order);
+    orders.set(
+      order.orderId,
+      view.source === "optimistic" ? { ...order, heldOnTill: true } : order,
+    );
     if (order.status === "draft" && order.preBillPrinted) preBilled.add(order.orderId);
   }
   return orders;

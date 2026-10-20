@@ -1,5 +1,6 @@
-/** What the till prints for a sale; the shift report is printed elsewhere. */
-export type SaleSlipKind = "bill" | "cup_label" | "kitchen" | "pre_bill";
+/** What the till prints: a sale's slips, a refund's slip, the shift's closing report. */
+export type SaleSlipKind =
+  "bill" | "cup_label" | "kitchen" | "pre_bill" | "refund" | "shift_report";
 
 /** One slip ready for a printer: its bytes for the hardware, its text for a person. */
 export interface PrintJob {

@@ -1,8 +1,15 @@
-import { type OrderLine, QUANTITY_SCALE, type SentLineState, diffKitchenTicket } from "@fnb/domain";
-import type { LocalCommand } from "@fnb/sync-client";
+import {
+  type KitchenTicketLine,
+  type OrderLine,
+  QUANTITY_SCALE,
+  type SentLineState,
+  diffKitchenTicket,
+} from "@fnb/domain";
+import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import type { TillMenu } from "../menu/till-menu";
 import type { CounterOrder, SeatedTable } from "../order/counter-order";
 import type { PricedCounterOrder } from "../order/price-counter-order";
+import { serverCopyNow } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
 import { kitchenSlips, stationRoutingOf } from "../printing/kitchen-slips";
 import { preBillSlip } from "../printing/pre-bill-slip";
@@ -18,7 +25,20 @@ export interface RoundInput {
   readonly printer: PrinterPort;
   readonly session: TableOrderSession;
   readonly cashierName: string;
+  readonly client: Pick<SyncClient, "snapshot" | "onChange">;
   now(): number;
+}
+
+/**
+ * Before a round: the server's copy, when it already has every command of the till, so a
+ * cancel the till made goes out under the server's id. One the server does not know yet
+ * waits for a later round: recorded under the till's id, the server would refuse it.
+ */
+async function knownToServer(input: RoundInput): Promise<(line: KitchenTicketLine) => boolean> {
+  const stored = await serverCopyNow(input.client, input.session.order.orderId);
+  if (stored !== null) input.session.rebase(stored);
+  const waiting = input.session.unconfirmedCancels;
+  return (line) => !(line.kind === "cancel" && waiting.has(line.lineId));
 }
 
 /** What the stations do not have yet of the order as shown: its item ids and its units. */
@@ -54,7 +74,7 @@ const treeOf = (priced: PricedCounterOrder, itemId: string): readonly OrderLine[
   priced.lines.filter((line) => line.id === itemId || line.parentLineId === itemId);
 
 /** A job's outcome, reported for the backoffice's log when a real printer answered. */
-async function report(
+export async function report(
   input: RoundInput,
   orderId: string,
   slip: PrintedSlip,
@@ -72,9 +92,11 @@ async function report(
  */
 export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip[] | null> {
   const { session, place } = input;
+  if ((await session.settled()) === null) return null;
+  const only = await knownToServer(input);
   const settled = await session.settled();
   if (settled === null) return null;
-  const tickets = kitchenSlips(input.menu, settled, input.now());
+  const tickets = kitchenSlips(input.menu, settled, input.now(), only);
   const printed: PrintedSlip[] = [];
   let sent = settled.sent ?? [];
   let version = settled.state.version;
