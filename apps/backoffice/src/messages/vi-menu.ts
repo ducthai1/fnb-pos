@@ -37,6 +37,9 @@ export const VI_MENU = {
     available: "Còn bán",
     soldOut: "Hết",
     empty: "Thương hiệu chưa có món nào đang bán.",
+    search: "Tìm món",
+    columns: { name: "Món", status: "Trạng thái", toggle: "Còn bán" },
+    filters: { available: "Còn bán", soldOut: "Đang hết" },
   },
   editor: {
     newTitle: "Món mới",

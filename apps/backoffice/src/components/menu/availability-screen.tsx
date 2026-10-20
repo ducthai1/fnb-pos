@@ -1,15 +1,19 @@
 "use client";
 
+import { CircleOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ApiResult } from "../../lib/api/api-result";
 import type { ProductSummary } from "../../lib/api/catalog-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
+import { nameMark } from "../../lib/format/name-mark";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { LoadStateView } from "../shell/load-state-view";
 import { PageHeader } from "../shell/page-header";
 import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
+import { DataTable } from "../ui/data-table";
+import { EmptyState } from "../ui/empty-state";
 import { ErrorNotice } from "../ui/error-notice";
 
 const T = vi.menu.availability;
@@ -66,34 +70,60 @@ export function AvailabilityScreen() {
       />
       <ErrorNotice message={failure} />
       <LoadStateView loaded={loaded} retry={reload}>
-        {({ products, soldOut }) =>
-          products.length === 0 ? (
-            <p className="bo-muted">{T.empty}</p>
-          ) : (
-            <ul className="bo-choice-list" aria-label={T.title}>
-              {products.map((product) => {
-                const available = !soldOut.has(product.id);
-                return (
-                  <li key={product.id} className="bo-card bo-row">
-                    <label className="bo-field--inline bo-wrap bo-grow">
-                      <input
-                        type="checkbox"
-                        checked={available}
-                        disabled={pending === product.id}
-                        aria-label={T.toggleLabel(product.name)}
-                        onChange={(event) => void toggle(product.id, event.target.checked)}
-                      />
-                      {product.name}
-                    </label>
-                    <span className={available ? "bo-muted" : "bo-notice bo-notice--warn"}>
-                      {available ? T.available : T.soldOut}
+        {({ products, soldOut }) => (
+          <DataTable
+            label={T.title}
+            rows={products}
+            rowKey={(product) => product.id}
+            rowData={(product) => ({ "data-sold-out": String(soldOut.has(product.id)) })}
+            columns={[
+              {
+                key: "name",
+                label: T.columns.name,
+                cell: (product) => (
+                  <span className="bo-product-cell">
+                    <span className="bo-mark" data-initial={nameMark(product.name)} aria-hidden="true" />
+                    <span className="bo-wrap">{product.name}</span>
+                  </span>
+                ),
+                sortValue: (product) => product.name,
+              },
+              {
+                key: "status",
+                label: T.columns.status,
+                cell: (product) =>
+                  soldOut.has(product.id) ? (
+                    <span className="bo-badge" data-tone="danger">
+                      {T.soldOut}
                     </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )
-        }
+                  ) : (
+                    <span className="bo-badge" data-tone="ok">
+                      {T.available}
+                    </span>
+                  ),
+                sortValue: (product) => (soldOut.has(product.id) ? 0 : 1),
+              },
+            ]}
+            search={{ label: T.search, text: (product) => product.name }}
+            filters={[
+              { key: "available", label: T.filters.available, test: (product) => !soldOut.has(product.id) },
+              { key: "soldOut", label: T.filters.soldOut, test: (product) => soldOut.has(product.id) },
+            ]}
+            actions={(product) => (
+              <div>
+                <input
+                  type="checkbox"
+                  className="bo-switch"
+                  checked={!soldOut.has(product.id)}
+                  disabled={pending === product.id}
+                  aria-label={T.toggleLabel(product.name)}
+                  onChange={(event) => void toggle(product.id, event.target.checked)}
+                />
+              </div>
+            )}
+            empty={<EmptyState icon={CircleOff}>{T.empty}</EmptyState>}
+          />
+        )}
       </LoadStateView>
     </section>
   );
