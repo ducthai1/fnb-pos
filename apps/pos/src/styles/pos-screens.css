@@ -112,6 +112,7 @@
 
 .pos-pin-pad .pos-button {
   min-height: 68px;
+  padding: var(--sp-2);
   border-color: transparent;
   border-radius: var(--r-lg);
   background: var(--c-surface-3);

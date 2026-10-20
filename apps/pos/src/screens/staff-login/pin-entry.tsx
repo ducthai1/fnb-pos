@@ -40,8 +40,7 @@ export function PinEntry({ staff, signIn, onSignedIn, onBack }: PinEntryProps) {
       <form className="pos-form pos-pin pos-signin" onSubmit={submit} noValidate>
         <div className="pos-signin__who">
           <StaffAvatar id={staff.id} name={staff.displayName} size="lg" />
-          <p className="pos-signin__name">{staff.displayName}</p>
-          <p className="pos-hint pos-wrap">{vi.staff.pinFor(staff.displayName)}</p>
+          <p className="pos-signin__name">{vi.staff.pinFor(staff.displayName)}</p>
         </div>
         <PinPad
           pin={pin}

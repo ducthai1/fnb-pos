@@ -11,5 +11,4 @@ export const VI_SHELL = {
   noShift: "Chưa mở ca",
   placeLine: (branch: string, device: string) => `${branch} · ${device}`,
   pickStaffHint: "Chạm vào tên của bạn để vào ca.",
-  pinPlaceholder: "••••",
 } as const;

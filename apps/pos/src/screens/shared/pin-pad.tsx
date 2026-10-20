@@ -31,7 +31,6 @@ export function PinPad({ pin, onPin, error, busy, submitLabel, busyLabel }: PinP
         inputMode="numeric"
         autoComplete="off"
         aria-label={vi.staff.pinLabel}
-        placeholder={vi.shell.pinPlaceholder}
         value={pin}
         onChange={(event) => onPin(cleanPin(event.target.value))}
       />
