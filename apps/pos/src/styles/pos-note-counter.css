@@ -16,6 +16,8 @@
   gap: var(--sp-2);
   padding: 6px;
   border: 1px solid var(--c-border-soft);
+  /* The note's own colour as a stripe at the start of its row (data-tone). */
+  border-left: 6px solid var(--cat, var(--c-border-soft));
   border-radius: var(--r-lg);
   background: var(--c-surface);
 }
@@ -23,8 +25,8 @@
 .pos-note-row .pos-note-row__add {
   justify-content: flex-start;
   border-color: transparent;
-  background: var(--c-brand-soft);
-  color: var(--c-brand-strong);
+  background: var(--cat-soft, var(--c-brand-soft));
+  color: var(--cat, var(--c-brand-strong));
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
 }
