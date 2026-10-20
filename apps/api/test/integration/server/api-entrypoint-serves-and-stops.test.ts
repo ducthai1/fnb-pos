@@ -90,4 +90,25 @@ describe("the API entrypoint", () => {
     expect(api.output.stderr).toContain("bypasses row level security");
     expect(api.output.stderr).not.toContain(info.superuser.password);
   });
+
+  // Not a superuser, which is what a hosting admin may grant by mistake: every policy is off.
+  it("refuses a role that is no superuser but bypasses row level security", async () => {
+    const name = `fnb_bypass_${randomBytes(4).toString("hex")}`;
+    const password = randomBytes(12).toString("hex");
+    const admin = new pg.Pool({ connectionString: testConnectionString(info, "superuser") });
+    try {
+      await admin.query(`CREATE ROLE ${name} NOSUPERUSER BYPASSRLS LOGIN PASSWORD '${password}'`);
+      const api = spawnApi({
+        FNB_ENV: "development",
+        FNB_DATABASE_URL: `postgresql://${name}:${password}@${info.host}:${info.port}/${info.database}`,
+        PORT: "0",
+      });
+      expect(await api.exited).toBe(1);
+      expect(api.output.stderr).toContain("bypasses row level security");
+      expect(api.output.stdout).not.toContain("listening");
+    } finally {
+      await admin.query(`DROP ROLE IF EXISTS ${name}`);
+      await admin.end();
+    }
+  });
 });

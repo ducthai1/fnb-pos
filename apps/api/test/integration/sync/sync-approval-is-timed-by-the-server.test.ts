@@ -94,6 +94,20 @@ describe("an approval relied on by a till that synced late", () => {
     expect(result.status).toBe("accepted");
   });
 
+  // A till clock up to two minutes slow is forgiven; earlier is a command recorded before
+  // anyone approved it (or a hand-edited one), which no approval may cover.
+  it("is honoured for a command a till a little slow dated just before the approval", async () => {
+    const { approvalId, givenAt } = await approvalGiven(10 * MINUTE);
+    const result = await discountRecordedAt(approvalId, givenAt - 2 * MINUTE);
+    expect(result.status).toBe("accepted");
+  });
+
+  it("is refused for a command dated more than two minutes before it was given", async () => {
+    const { approvalId, givenAt } = await approvalGiven(10 * MINUTE);
+    const result = await discountRecordedAt(approvalId, givenAt - 2 * MINUTE - 1_000);
+    expect(result).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_EXPIRED" });
+  });
+
   it("is refused once the till syncs more than two hours after it was given", async () => {
     const { approvalId, givenAt } = await approvalGiven(2 * HOUR + MINUTE);
     const result = await discountRecordedAt(approvalId, givenAt + MINUTE);

@@ -65,6 +65,20 @@ describe("archiving a role", () => {
     expect((await roleOf(roleId))?.archivedAt).toBeNull();
   });
 
+  it("is refused while only a backoffice member holds it, no staff at all", async () => {
+    const roleId = await freshRole();
+    const account = await createAccount(pool, { email: uniqueEmail("member") });
+    const { membershipId } = await addMember(pool, shop.tenantId, account, { roleId });
+    const refused = await tools.archiveRole(roleId);
+    expect(refused.status).toBe(409);
+    expect(refused.body).toMatchObject({
+      code: "API_ROLE_IN_USE",
+      staff: [],
+      members: [{ id: membershipId }],
+    });
+    expect((await roleOf(roleId))?.archivedAt).toBeNull();
+  });
+
   it("archives a role nobody holds, after which it is given to no one", async () => {
     const roleId = await freshRole();
     const moved = await hire(app, shop, PIN, roleId);
