@@ -44,6 +44,7 @@ export const VI_SALE = {
     pickUpTo: (max: number) => `Chọn tối đa ${max}`,
     pickBetween: (min: number, max: number) => `Chọn ${min}–${max}`,
     required: "Bắt buộc",
+    picked: (count: number, max: number) => `Đã chọn ${count}/${max}`,
     fewer: (name: string) => `Bớt ${name}`,
   },
   modifierErrors: {

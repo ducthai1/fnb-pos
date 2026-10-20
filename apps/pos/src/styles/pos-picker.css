@@ -1,9 +1,9 @@
-/* Option groups and their buttons, the shift's note counter, the action row. */
+/* Option groups as chips, the line's quantity and note, the action row. */
 
 .pos-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -11,44 +11,163 @@
 }
 
 .pos-group__legend {
-  margin-bottom: 8px;
+  margin-bottom: var(--sp-2);
   padding: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 .pos-group__rule {
-  margin-left: 8px;
-  color: var(--pos-muted);
-  font-weight: 400;
+  margin-left: var(--sp-2);
+  color: var(--c-text-2);
+  font-weight: var(--fw-regular);
 }
 
-.pos-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
-  gap: 8px;
+/* A group of chips in a card: its name and rule, how many are picked, the chips. */
+.pos-choice-group {
+  position: relative;
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+}
+
+.pos-choice-group > .pos-group__legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0;
+  font-size: var(--fs-lg);
+}
+
+.pos-choice-group > .pos-group__legend + * {
+  clear: both;
+}
+
+/* How many are picked, top right of the card; the name keeps clear of it. */
+.pos-choice-group__count {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  margin: 0;
+}
+
+.pos-choice-group:has(> .pos-choice-group__count) > .pos-group__legend {
+  box-sizing: border-box;
+  padding-right: 128px;
+}
+
+.pos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.pos-option {
+.pos-chip-item {
   display: flex;
-  gap: 8px;
+  gap: var(--sp-1);
+  max-width: 100%;
   min-width: 0;
 }
 
-.pos-option__pick {
-  flex: 1 1 auto;
+.pos-chip {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
   min-width: 0;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-weight: var(--fw-medium);
   text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
-.pos-option__pick[aria-pressed="true"],
+.pos-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.pos-chip:active {
+  transform: scale(0.98);
+}
+
+/* The tick shows only on a chosen chip; the pressed state is in aria-pressed too. */
+.pos-chip > .pos-icon {
+  display: none;
+}
+
+.pos-chip__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pos-chip__price,
+.pos-chip__units {
+  flex: none;
+  color: var(--c-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-chip[aria-pressed="true"] {
+  padding-left: var(--sp-3);
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-chip[aria-pressed="true"] > .pos-icon {
+  display: block;
+}
+
+.pos-chip[aria-pressed="true"] .pos-chip__price,
+.pos-chip[aria-pressed="true"] .pos-chip__units {
+  color: var(--c-brand-strong);
+}
+
+.pos-chip--size {
+  min-width: 72px;
+  justify-content: center;
+}
+
+.pos-chip--fewer {
+  width: var(--tap);
+  padding: 0;
+  justify-content: center;
+}
+
+.pos-chip--fewer > .pos-icon {
+  display: block;
+}
+
+.pos-picker__more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.pos-picker__quantity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
 .pos-tab[aria-pressed="true"] {
-  border-color: var(--pos-primary);
-  background: var(--pos-ok-bg);
-  color: var(--pos-ok-text);
-  font-weight: 600;
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
 }
 
 .pos-note {
@@ -68,45 +187,15 @@
   min-width: 0;
 }
 
-.pos-notes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Back and the main action side by side even on a phone, the main one taking the room. */
+.pos-actions--split {
+  flex-wrap: nowrap;
 }
 
-.pos-note-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 4ch auto;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 6px;
-  border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-lg);
-  background: var(--c-surface);
+.pos-actions--split > .pos-button {
+  flex: 0 1 auto;
 }
 
-.pos-note-row .pos-note-row__add {
-  justify-content: flex-start;
-  border-color: transparent;
-  background: var(--c-brand-soft);
-  color: var(--c-brand-strong);
-  font-weight: var(--fw-semibold);
-  font-variant-numeric: tabular-nums;
-}
-
-.pos-note-row__count {
-  text-align: center;
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
-}
-
-.pos-total {
-  margin: 0;
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
+.pos-actions--split > .pos-button--primary {
+  flex: 1 1 auto;
 }

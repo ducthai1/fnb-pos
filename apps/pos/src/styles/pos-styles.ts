@@ -16,6 +16,7 @@ import "./pos-sale.css";
 import "./pos-product-tiles.css";
 import "./pos-order.css";
 import "./pos-picker.css";
+import "./pos-note-counter.css";
 import "./pos-checkout.css";
 import "./pos-floor.css";
 import "./pos-operations.css";
