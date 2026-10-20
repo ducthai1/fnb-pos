@@ -90,7 +90,10 @@ describe("a branch's einvoice profile", () => {
 
   it("follows the brand when the branch sets none, and ignores a value set on one till", async () => {
     const shop = await syncShop(app, pool);
-    await saveEInvoiceProfile(pool, shop.shop.tenantId, { scopeKind: "brand", scopeId: shop.brandId });
+    await saveEInvoiceProfile(pool, shop.shop.tenantId, {
+      scopeKind: "brand",
+      scopeId: shop.brandId,
+    });
     const tillValue = { ...EINVOICE_PROFILE, sellerTaxCode: "0399999999" };
     const device = { scopeKind: "device" as const, scopeId: shop.tillA.deviceId };
     await saveEInvoiceProfile(pool, shop.shop.tenantId, device, tillValue);
@@ -103,7 +106,12 @@ describe("a branch's einvoice profile", () => {
   it("reads a stored value the contract refuses as unreadable, never as a profile", async () => {
     const shop = await syncShop(app, pool);
     const broken = { ...EINVOICE_PROFILE, templateSymbol: "1C26TAA" };
-    await saveEInvoiceProfile(pool, shop.shop.tenantId, { scopeKind: "branch", scopeId: shop.shop.branchId }, broken);
+    await saveEInvoiceProfile(
+      pool,
+      shop.shop.tenantId,
+      { scopeKind: "branch", scopeId: shop.shop.branchId },
+      broken,
+    );
     const found = await withTenant(pool, shop.shop.tenantId, (client) =>
       readBranchEInvoiceProfile(client, shop.shop.branchId),
     );

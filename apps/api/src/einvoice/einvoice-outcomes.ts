@@ -86,7 +86,12 @@ export async function recordIssueOutcome(
     action: "einvoice.failed_permanent",
     entityKind: "einvoice",
     entityId: claimed.id,
-    payload: { orderId: claimed.orderId, code, lastProviderCode: outcome.code, attempts: claimed.attempts },
+    payload: {
+      orderId: claimed.orderId,
+      code,
+      lastProviderCode: outcome.code,
+      attempts: claimed.attempts,
+    },
   });
   await announceToTills(client, context.tenantId, claimed.orderId);
   return "failed";

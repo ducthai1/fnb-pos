@@ -13,7 +13,12 @@ export const setBuyerInfoPayloadSchema = z
 
 export type SetBuyerInfoPayload = z.output<typeof setBuyerInfoPayloadSchema>;
 
-export const EINVOICE_STATUSES = ["pending", "issued", "failed_retryable", "failed_permanent"] as const;
+export const EINVOICE_STATUSES = [
+  "pending",
+  "issued",
+  "failed_retryable",
+  "failed_permanent",
+] as const;
 
 export const einvoiceStatusSchema = z.enum(EINVOICE_STATUSES);
 

@@ -73,7 +73,10 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
     "UPDATE sales_order SET status = $2, version = $3, paid_at = $4 WHERE id = $1",
     [refund.id, paid.status, paid.version, command.createdAt],
   );
-  await queueRefundInvoice(context, sale.order.id, { order: paid, chargeProfile: sale.chargeProfile });
+  await queueRefundInvoice(context, sale.order.id, {
+    order: paid,
+    chargeProfile: sale.chargeProfile,
+  });
   return refund.id;
 }
 

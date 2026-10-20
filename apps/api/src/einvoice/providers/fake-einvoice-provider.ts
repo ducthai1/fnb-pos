@@ -51,7 +51,10 @@ export class FakeEInvoiceProvider implements EInvoiceProvider {
 
   /** Every call fails temporarily until comeBack(); `throws` drops it like a lost connection. */
   goDown(options: { code?: string; throws?: boolean } = {}): void {
-    this.down = { code: options.code ?? "FAKE_PROVIDER_UNAVAILABLE", throws: options.throws ?? false };
+    this.down = {
+      code: options.code ?? "FAKE_PROVIDER_UNAVAILABLE",
+      throws: options.throws ?? false,
+    };
   }
 
   comeBack(): void {

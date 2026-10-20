@@ -1,7 +1,13 @@
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import { rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE, line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
 import type { SyncShop, Till } from "../support/sync-shop";
@@ -42,13 +48,18 @@ const dayOf = async (s: SyncShop, businessDate = BUSINESS_DATE) =>
 async function paidOn(s: SyncShop, till: Till, businessDate: string) {
   const draft = { ...saveDraft(till, [line(s.menu.coffee.id)]), businessDate };
   await pushOne(api.app, till, draft);
-  const paid = await pushOne(api.app, till, { ...pay(till, orderIdOf(draft), 29_000), businessDate });
+  const paid = await pushOne(api.app, till, {
+    ...pay(till, orderIdOf(draft), 29_000),
+    businessDate,
+  });
   expect(paid.status).toBe("accepted");
   return orderIdOf(draft);
 }
 
 const batchesSentFor = (s: SyncShop) =>
-  api.provider.callsOf("submitDailyBatch").filter((call) => call.batch.branchId === s.shop.branchId);
+  api.provider
+    .callsOf("submitDailyBatch")
+    .filter((call) => call.batch.branchId === s.shop.branchId);
 
 describe("the end-of-day batch", () => {
   it("sends the day's issued invoices of the branch once, and no other day's or branch's", async () => {
@@ -69,7 +80,9 @@ describe("the end-of-day batch", () => {
     );
     expect(sent?.batch.invoices.map((invoice) => invoice.amountDue)).toEqual([29_000n, 29_000n]);
     expect(closed.json()).toMatchObject({
-      batches: [{ status: "submitted", invoiceCount: 2, reference: expect.stringMatching(/^FAKE-BATCH-/) }],
+      batches: [
+        { status: "submitted", invoiceCount: 2, reference: expect.stringMatching(/^FAKE-BATCH-/) },
+      ],
       unsentInvoices: [],
     });
   });
@@ -93,7 +106,10 @@ describe("the end-of-day batch", () => {
     expect(closed.json().unsentInvoices).toHaveLength(1);
     api.clock.advance(30_000);
     expect(await api.workFor(s.shop.tenantId)).toMatchObject({ submitted: 1 });
-    expect(await dayOf(s)).toMatchObject({ batches: [{ status: "submitted" }], unsentInvoices: [] });
+    expect(await dayOf(s)).toMatchObject({
+      batches: [{ status: "submitted" }],
+      unsentInvoices: [],
+    });
   });
 
   it("is failed and flagged when the provider refuses it for good", async () => {
@@ -110,7 +126,9 @@ describe("the end-of-day batch", () => {
       s.shop.tenantId,
       "SELECT payload FROM audit_log WHERE action = 'einvoice.batch_failed_permanent'",
     );
-    expect(flags).toMatchObject([{ payload: { businessDate: BUSINESS_DATE, code: "BATCH_REJECTED" } }]);
+    expect(flags).toMatchObject([
+      { payload: { businessDate: BUSINESS_DATE, code: "BATCH_REJECTED" } },
+    ]);
   });
 
   it("reports an invoice of a closed day that synced after the close as not sent", async () => {

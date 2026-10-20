@@ -62,7 +62,10 @@ export async function runEInvoiceWorkForTenant(
 ): Promise<WorkerRound> {
   const round = emptyRound();
   // Invoices first: a day's batch is only built once its invoices are out.
-  const steps = [issueNextInvoice, (d: EInvoiceWorkDependencies, t: string) => submitNextBatch(d, t)];
+  const steps = [
+    issueNextInvoice,
+    (d: EInvoiceWorkDependencies, t: string) => submitNextBatch(d, t),
+  ];
   for (const next of steps) {
     for (let item = 0; item < ITEMS_PER_TENANT; item++) {
       const outcome = await next(deps, tenantId);

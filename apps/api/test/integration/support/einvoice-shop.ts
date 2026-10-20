@@ -36,7 +36,12 @@ export function invoicingApi(pool: pg.Pool, policy?: EInvoiceRetryPolicy): Invoi
   const clock = new ManualClock();
   const provider = new FakeEInvoiceProvider(`fake_${randomBytes(6).toString("hex")}`);
   const app = buildApp({ pool, clock, einvoiceProviders: [provider] });
-  const deps = { pool, clock, providers: providersByKey([provider]), ...(policy ? { policy } : {}) };
+  const deps = {
+    pool,
+    clock,
+    providers: providersByKey([provider]),
+    ...(policy ? { policy } : {}),
+  };
   return {
     app,
     clock,
@@ -55,7 +60,12 @@ export async function invoicingShop(
 ): Promise<SyncShop> {
   const s = await syncShop(api.app, pool);
   const value = { ...EINVOICE_PROFILE, provider: api.provider.key, ...profile };
-  await saveEInvoiceProfile(pool, s.shop.tenantId, { scopeKind: "branch", scopeId: s.shop.branchId }, value);
+  await saveEInvoiceProfile(
+    pool,
+    s.shop.tenantId,
+    { scopeKind: "branch", scopeId: s.shop.branchId },
+    value,
+  );
   return s;
 }
 

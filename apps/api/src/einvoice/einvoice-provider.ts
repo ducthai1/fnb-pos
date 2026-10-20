@@ -129,7 +129,8 @@ export function providersByKey(
 ): ReadonlyMap<string, EInvoiceProvider> {
   const byKey = new Map<string, EInvoiceProvider>();
   for (const provider of providers) {
-    if (byKey.has(provider.key)) throw new Error(`einvoice provider defined twice: ${provider.key}`);
+    if (byKey.has(provider.key))
+      throw new Error(`einvoice provider defined twice: ${provider.key}`);
     byKey.set(provider.key, provider);
   }
   return byKey;

@@ -1,7 +1,12 @@
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+} from "../support/einvoice-shop";
 import { signInAs } from "../support/sync-approvals";
 import { line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
 import { refund } from "../support/sync-order-commands";
@@ -30,7 +35,11 @@ async function saleAndRefund(s: SyncShop) {
   await pushOne(api.app, s.tillB, draft);
   await pushOne(api.app, s.tillB, pay(s.tillB, orderIdOf(draft), 58_000));
   const back = [{ lineId: coffee.lineId, quantity: "1", restock: false }];
-  const refunded = await pushOne(api.app, s.tillB, refund(s.tillB, orderIdOf(draft), back, -29_000));
+  const refunded = await pushOne(
+    api.app,
+    s.tillB,
+    refund(s.tillB, orderIdOf(draft), back, -29_000),
+  );
   expect(refunded.status).toBe("accepted");
   return { saleId: orderIdOf(draft), refundId: refunded.snapshot?.id ?? "" };
 }

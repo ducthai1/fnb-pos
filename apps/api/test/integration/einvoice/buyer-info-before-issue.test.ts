@@ -1,8 +1,22 @@
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
-import { command, line, orderIdOf, pay, pullAll, pushOne, saveDraft } from "../support/sync-commands";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
+import {
+  command,
+  line,
+  orderIdOf,
+  pay,
+  pullAll,
+  pushOne,
+  saveDraft,
+} from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -22,7 +36,11 @@ afterAll(async () => {
   await pool.end();
 });
 
-const COMPANY = { name: "Công ty CP Sáng Tạo Việt", taxCode: "0109876543", address: "1 Tràng Tiền, Hà Nội" };
+const COMPANY = {
+  name: "Công ty CP Sáng Tạo Việt",
+  taxCode: "0109876543",
+  address: "1 Tràng Tiền, Hà Nội",
+};
 
 const setBuyer = (till: Till, orderId: string, buyer: unknown) =>
   pushOne(api.app, till, command(till, "order.set_buyer_info", { orderId, buyer }));

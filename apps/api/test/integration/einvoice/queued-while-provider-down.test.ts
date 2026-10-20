@@ -4,7 +4,13 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { claimDueInvoice } from "../../../src/einvoice/einvoice-claims";
 import { DEFAULT_EINVOICE_RETRY_POLICY } from "../../../src/einvoice/einvoice-retry-policy";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import type { SyncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");

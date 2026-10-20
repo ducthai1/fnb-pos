@@ -2,7 +2,13 @@ import { withTenant } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import { latestOrders, pullAll } from "../support/sync-commands";
 import type { SyncShop } from "../support/sync-shop";
 
@@ -49,7 +55,12 @@ describe("an invoice the provider refuses for good", () => {
       {
         actor_kind: "system",
         entity_id: row?.id,
-        payload: { orderId, code: "BUYER_TAX_CODE_UNKNOWN", lastProviderCode: "BUYER_TAX_CODE_UNKNOWN", attempts: 1 },
+        payload: {
+          orderId,
+          code: "BUYER_TAX_CODE_UNKNOWN",
+          lastProviderCode: "BUYER_TAX_CODE_UNKNOWN",
+          attempts: 1,
+        },
       },
     ]);
     const shown = latestOrders((await pullAll(api.app, s.tillA, cursor)).changes).get(orderId);

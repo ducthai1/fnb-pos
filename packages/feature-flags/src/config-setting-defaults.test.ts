@@ -49,9 +49,9 @@ describe("configDefaults", () => {
     const system = configDefaults();
     const profile = { enabled: true, sellerTaxCode: "0312345678" };
     expect(resolveConfig("einvoice_profile", { system }).value).toBeNull();
-    expect(resolveConfig("einvoice_profile", { system, brand: { einvoice_profile: profile } })).toEqual(
-      { value: profile, source: "brand" },
-    );
+    expect(
+      resolveConfig("einvoice_profile", { system, brand: { einvoice_profile: profile } }),
+    ).toEqual({ value: profile, source: "brand" });
   });
 
   it("asks for an approver before cancelling what the kitchen has, unless a branch turns it off", () => {

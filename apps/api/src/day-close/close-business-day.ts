@@ -45,10 +45,12 @@ export async function closeBusinessDay(
   client: pg.ClientBase,
   request: DayCloseRequest,
 ): Promise<DayCloseOutcome> {
-  const branch = await client.query<{ utc_offset_minutes: number; business_day_start_minute: number }>(
-    "SELECT utc_offset_minutes, business_day_start_minute FROM branch WHERE id = $1",
-    [request.branchId],
-  );
+  const branch = await client.query<{
+    utc_offset_minutes: number;
+    business_day_start_minute: number;
+  }>("SELECT utc_offset_minutes, business_day_start_minute FROM branch WHERE id = $1", [
+    request.branchId,
+  ]);
   const clock = branch.rows[0];
   if (clock === undefined) return refused(404, CODES.branchNotFound);
   const today = businessDate(request.now.getTime(), {

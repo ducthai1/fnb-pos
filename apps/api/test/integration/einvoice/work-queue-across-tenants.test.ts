@@ -5,7 +5,13 @@ import { afterAll, beforeAll, describe, expect, inject, it, vi } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { FakeEInvoiceProvider } from "../../../src/einvoice/providers/fake-einvoice-provider";
 import { EINVOICE_PROFILE, saveEInvoiceProfile } from "../support/einvoice-profiles";
-import { type InvoicingApi, invoicesOf, invoicingApi, invoicingShop, paidCoffee } from "../support/einvoice-shop";
+import {
+  type InvoicingApi,
+  invoicesOf,
+  invoicingApi,
+  invoicingShop,
+  paidCoffee,
+} from "../support/einvoice-shop";
 import { postgresErrorCode } from "../support/postgres-error-code";
 import { syncShop } from "../support/sync-shop";
 
@@ -64,7 +70,12 @@ describe("the worker inside the API process", () => {
     try {
       const s = await syncShop(app, pool);
       const value = { ...EINVOICE_PROFILE, provider: provider.key };
-      await saveEInvoiceProfile(pool, s.shop.tenantId, { scopeKind: "branch", scopeId: s.shop.branchId }, value);
+      await saveEInvoiceProfile(
+        pool,
+        s.shop.tenantId,
+        { scopeKind: "branch", scopeId: s.shop.branchId },
+        value,
+      );
       await paidCoffee(app, s);
       await vi.waitFor(
         async () => expect((await invoicesOf(pool, s.shop.tenantId))[0]?.status).toBe("issued"),
