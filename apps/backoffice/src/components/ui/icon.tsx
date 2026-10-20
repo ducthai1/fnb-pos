@@ -5,5 +5,13 @@ import type { LucideIcon } from "lucide-react";
  * readers. A button with only an icon carries its own `aria-label`.
  */
 export function Icon({ of: Glyph, size = 18 }: { of: LucideIcon; size?: number }) {
-  return <Glyph aria-hidden="true" focusable="false" size={size} strokeWidth={1.75} className="bo-icon" />;
+  return (
+    <Glyph
+      aria-hidden="true"
+      focusable="false"
+      size={size}
+      strokeWidth={1.75}
+      className="bo-icon"
+    />
+  );
 }

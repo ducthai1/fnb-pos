@@ -1,0 +1,46 @@
+/* The day's report page: six figures in three columns, then the tables in a grid. */
+
+.bo-stats--six {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+/* The day's report: totals on the left, by method and by hour beside them, items below. */
+.bo-report-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--sp-4);
+  align-items: start;
+  min-width: 0;
+}
+
+.bo-report-grid > .bo-empty,
+.bo-report-grid__wide {
+  grid-column: 1 / -1;
+}
+
+.bo-report-grid__summary {
+  grid-column: 1;
+  grid-row: span 2;
+}
+
+.bo-report-grid__side {
+  grid-column: 2;
+}
+
+@media (max-width: 1023px) {
+  .bo-report-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bo-report-grid__summary,
+  .bo-report-grid__side {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .bo-stats--six {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

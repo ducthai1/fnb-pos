@@ -54,13 +54,13 @@ export function DailySalesTables({ report }: { report: DailySalesReport }) {
   const H = T.hourColumns;
   const I = T.itemColumns;
   return (
-    <div className="bo-stack">
-      {report.sales.orderCount === 0 && report.refunds.orderCount === 0 && <p className="bo-muted">{T.emptyDay}</p>}
-      <div className="bo-card">
+    <div className="bo-report-grid">
+      {report.sales.orderCount === 0 && report.refunds.orderCount === 0 && <p className="bo-empty">{T.emptyDay}</p>}
+      <div className="bo-card bo-report-grid__summary">
         <SummaryTable report={report} />
         <p className="bo-muted bo-wrap">{T.definitions}</p>
       </div>
-      <div className="bo-card">
+      <div className="bo-card bo-report-grid__side">
         <SimpleTable
           caption={T.paymentsTitle}
           columns={[{ label: P.method }, { label: P.sales, numeric: true }, { label: P.refunds, numeric: true }, { label: P.net, numeric: true }]}
@@ -72,7 +72,7 @@ export function DailySalesTables({ report }: { report: DailySalesReport }) {
           empty={T.empty}
         />
       </div>
-      <div className="bo-card">
+      <div className="bo-card bo-report-grid__side">
         <SimpleTable
           caption={T.hoursTitle}
           columns={[{ label: H.hour }, { label: H.orderCount, numeric: true }, { label: H.collected, numeric: true }]}
@@ -83,7 +83,7 @@ export function DailySalesTables({ report }: { report: DailySalesReport }) {
           empty={T.empty}
         />
       </div>
-      <div className="bo-card">
+      <div className="bo-card bo-report-grid__wide">
         <SimpleTable
           caption={T.itemsTitle}
           columns={[
