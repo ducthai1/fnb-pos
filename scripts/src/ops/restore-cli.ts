@@ -51,6 +51,11 @@ try {
     process.exit(1);
   }
   console.log(`ops:restore: restored ${file} into database ${database} in ${outcome.millis} ms`);
+  console.log(
+    outcome.generation === null
+      ? "ops:restore: the backup predates server generations: migrating it draws one"
+      : `ops:restore: new server generation ${outcome.generation}: tills will resend what it lacks`,
+  );
   console.log(`ops:restore: point FNB_DATABASE_URL at database ${database} to serve it`);
 } catch (error) {
   console.error(`ops:restore: failed: ${error instanceof Error ? error.message : error}`);

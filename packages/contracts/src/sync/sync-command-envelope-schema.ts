@@ -33,6 +33,11 @@ export const syncCommandEnvelopeSchema = z
     domainVersion: z.string().min(1).max(32),
     /** The till's clock when the command was recorded; kept for audit, never trusted for order. */
     createdAt: instantSchema,
+    /**
+     * Only on a command sent again after a restore: the server generation that took it
+     * first and then lost it in the restore. The server notes the resend in its audit.
+     */
+    resentFromGeneration: uuidSchema.optional(),
   })
   .strict();
 

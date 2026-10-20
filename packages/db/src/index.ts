@@ -45,6 +45,7 @@ export {
   membership,
 } from "./schema/access-tables";
 export { allTables } from "./schema/all-tables";
+export { readServerGeneration, renewServerGeneration } from "./server-generation/server-generation";
 export { role, staff, staffBranch, staffSession, staffTables } from "./schema/staff-tables";
 export { appliedCommand, changeLog, deviceSyncState, syncTables } from "./schema/sync-tables";
 export {

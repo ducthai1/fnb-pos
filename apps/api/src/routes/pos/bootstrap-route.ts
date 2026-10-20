@@ -1,4 +1,5 @@
-import { withTenant } from "@fnb/db";
+import { SERVER_GENERATION_HEADER } from "@fnb/contracts";
+import { readServerGeneration, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { deviceAuth } from "../../devices/device-auth-hook";
@@ -22,9 +23,14 @@ export function registerPosBootstrapRoute(app: FastifyInstance, context: ApiCont
       lockTenantChangeFeed(client, device.tenantId),
     );
     const now = context.clock.now();
-    const body = await withTenant(context.pool, device.tenantId, (client) =>
-      readPosBootstrap(client, device, now),
+    const { body, generation } = await withTenant(
+      context.pool,
+      device.tenantId,
+      async (client) => ({
+        generation: await readServerGeneration(client),
+        body: await readPosBootstrap(client, device, now),
+      }),
     );
-    return reply.send(body);
+    return reply.header(SERVER_GENERATION_HEADER, generation).send(body);
   });
 }
