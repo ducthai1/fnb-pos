@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { backofficeSessionHook } from "../../../src/auth/backoffice-session-hook";
+import { sessionCookieJar } from "../../../src/auth/session-cookie";
 import { buildApp } from "../../../src/build-app";
 import { systemClock } from "../../../src/clock";
 import { requirePermissionHook } from "../../../src/permissions/require-permission";
@@ -73,7 +74,7 @@ describe("a member's grants", () => {
       "/probe/refund",
       {
         onRequest: [
-          backofficeSessionHook(pool, systemClock),
+          backofficeSessionHook(pool, systemClock, sessionCookieJar({ secure: true })),
           requirePermissionHook(pool)("refund"),
         ],
       },

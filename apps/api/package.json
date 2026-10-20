@@ -9,6 +9,7 @@
     "./test-support/payment-webhooks": "./test/integration/support/payment-webhooks.ts"
   },
   "scripts": {
+    "start": "node --import tsx src/server/main.ts",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:api": "vitest run --config vitest.integration.config.ts"
@@ -20,6 +21,7 @@
     "@fnb/feature-flags": "workspace:*",
     "fastify": "5.12.5",
     "pg": "8.23.1",
+    "tsx": "4.23.15",
     "zod": "3.25.76"
   },
   "devDependencies": {

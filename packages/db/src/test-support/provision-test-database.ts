@@ -1,44 +1,20 @@
 import pg from "pg";
-import { runMigrations } from "../migrations/run-migrations";
+import { provisionDatabase } from "../provisioning/provision-database";
 import { type TestPostgresInfo, testConnectionString } from "./test-postgres-info";
 
 /**
  * Creates the owner and app roles and the shared test database, then migrates it as the
- * owner. The app role gets DML on every table the owner creates in `public`, and EXECUTE
- * on every function the owner creates, through default privileges, so migrations never
- * need to name roles.
+ * owner, the way a real environment is provisioned: the app role gets DML on every table
+ * the owner creates in `public`, and EXECUTE on every function the owner creates, through
+ * default privileges, so migrations never need to name roles.
  */
 export async function provisionTestDatabase(info: TestPostgresInfo): Promise<void> {
-  await asSuperuser(info, "postgres", async (client) => {
-    const owner = client.escapeIdentifier(info.owner.user);
-    const app = client.escapeIdentifier(info.app.user);
-    const attributes = "LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE";
-    await client.query(
-      `CREATE ROLE ${owner} ${attributes} PASSWORD ${client.escapeLiteral(info.owner.password)}`,
-    );
-    await client.query(
-      `CREATE ROLE ${app} ${attributes} NOINHERIT PASSWORD ${client.escapeLiteral(info.app.password)}`,
-    );
-    await createOwnedDatabase(client, info, info.database);
+  await provisionDatabase({
+    adminUrl: testConnectionString(info, "superuser", "postgres"),
+    database: info.database,
+    owner: info.owner,
+    app: info.app,
   });
-  await asSuperuser(info, info.database, async (client) => {
-    const owner = client.escapeIdentifier(info.owner.user);
-    const app = client.escapeIdentifier(info.app.user);
-    await client.query(`GRANT USAGE ON SCHEMA public TO ${app}`);
-    await client.query(
-      `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} IN SCHEMA public ` +
-        `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${app}`,
-    );
-    // Functions are executable by PUBLIC unless revoked. The owner's SECURITY DEFINER
-    // functions guard sign-in data, so only the app role may call them.
-    await client.query(
-      `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`,
-    );
-    await client.query(
-      `ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} GRANT EXECUTE ON FUNCTIONS TO ${app}`,
-    );
-  });
-  await runMigrations(testConnectionString(info, "owner"));
 }
 
 /** An empty database owned by the owner role, for tests that migrate from scratch. */
