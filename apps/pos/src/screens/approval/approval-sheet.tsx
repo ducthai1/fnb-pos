@@ -1,9 +1,11 @@
+import { ShieldCheck } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import type { BootstrapStaff } from "../../features/bootstrap/bootstrap-source";
 import { vi } from "../../messages/vi";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
+import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
 import { StaffAvatar } from "../shared/staff-avatar";
 
@@ -52,8 +54,19 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
   };
 
   return (
-    <ScreenFrame title={A.title}>
-      <section className="pos-card pos-approval" aria-label={A.title}>
+    <ScreenFrame
+      title={A.title}
+      width="narrow"
+      dock={
+        <button type="button" className="pos-button" onClick={props.onCancel}>
+          {A.cancel}
+        </button>
+      }
+    >
+      <section className="pos-card pos-approval pos-approval--asked" aria-label={A.title}>
+        <span className="pos-approval__mark">
+          <Icon of={ShieldCheck} size={28} />
+        </span>
         <p className="pos-approval__what pos-wrap" data-approval-for={props.description}>
           {props.description}
         </p>
@@ -88,9 +101,6 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
           </button>
         </form>
       )}
-      <button type="button" className="pos-button" onClick={props.onCancel}>
-        {A.cancel}
-      </button>
     </ScreenFrame>
   );
 }

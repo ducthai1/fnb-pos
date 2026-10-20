@@ -6,8 +6,27 @@
 }
 
 .pos-approval__what {
-  font-size: 1.15rem;
-  font-weight: 700;
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+/* What waits for a manager: an amber card with a shield, so it reads as a stop. */
+.pos-approval--asked {
+  justify-items: center;
+  border-color: var(--c-amber-line);
+  background: var(--c-amber-soft);
+  text-align: center;
+}
+
+.pos-approval__mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-amber);
 }
 
 .pos-choices {
