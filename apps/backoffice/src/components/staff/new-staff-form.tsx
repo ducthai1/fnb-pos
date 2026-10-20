@@ -63,7 +63,7 @@ export function NewStaffFormView({ roles, onCreated }: { roles: readonly Role[];
     });
 
   return (
-    <form className="bo-card" aria-labelledby="new-staff-title" onSubmit={(event) => void submit(event)} noValidate>
+    <form className="bo-card bo-form-grid" aria-labelledby="new-staff-title" onSubmit={(event) => void submit(event)} noValidate>
       <h2 id="new-staff-title" className="bo-subtitle">
         {T.addTitle}
       </h2>

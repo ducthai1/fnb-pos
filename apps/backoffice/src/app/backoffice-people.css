@@ -57,3 +57,22 @@ input[type="radio"] {
   flex: none;
   accent-color: var(--bo-primary);
 }
+
+/* A short form on a computer: its fields two across, the title, notices and button full width. */
+@media (min-width: 1024px) {
+  .bo-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .bo-form-grid > h2,
+  .bo-form-grid > .bo-notice,
+  .bo-form-grid > button[type="submit"] {
+    grid-column: 1 / -1;
+  }
+
+  .bo-form-grid > button[type="submit"] {
+    justify-self: start;
+  }
+}
