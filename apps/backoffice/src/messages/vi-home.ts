@@ -34,6 +34,7 @@ export const VI_HOME = {
     unmatched: (count: number) => `${count} chuyển khoản chưa khớp đơn`,
     printFailures: (count: number, more: boolean) => `${count}${more ? "+" : ""} phiếu in lỗi hôm nay`,
     dayOpen: (date: string) => `Ngày ${date} chưa chốt`,
+    soldOut: (count: number) => `${count} món đang báo hết tại quầy`,
   },
   shortcutsTitle: "Đi tới",
 } as const;

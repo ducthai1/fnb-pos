@@ -29,6 +29,7 @@ function reportsApi(change: Record<string, unknown> = {}) {
     listUnmatched: mock.fn(async () => ok(empty())),
     getPrintFailures: mock.fn(async () => ok({ failures: [], truncated: false })),
     getDayStatus: mock.fn(async () => ok(dayStatus())),
+    listSoldOut: mock.fn(async () => ok([])),
     ...change,
   };
 }
@@ -111,6 +112,17 @@ describe("the home page of a member who may read reports", () => {
     const [y, m, d] = yesterday.split("-");
     expect((await todo(T.todo.dayOpen(`${d}/${m}/${y}`))).getAttribute("href")).toBe("/day-close");
     expect(screen.queryByText(T.todoClear)).toBeNull();
+  });
+
+  it("counts items sold out at the counter, not those off a delivery channel only", async () => {
+    const soldOut = [
+      { productId: "p1", channelKey: null, unavailableUntil: null },
+      { productId: "p2", channelKey: null, unavailableUntil: null },
+      { productId: "p3", channelKey: "grab", unavailableUntil: null },
+    ];
+    await renderSignedIn(<HomeScreen />, reportsApi({ listSoldOut: mock.fn(async () => ok(soldOut)) }));
+    const link = await screen.findByRole("link", { name: T.todo.soldOut(2) });
+    expect(link.getAttribute("href")).toBe("/menu/availability");
   });
 
   it("says nothing needs doing when yesterday is closed or sold nothing, and nothing is owed", async () => {

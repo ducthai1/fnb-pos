@@ -3,6 +3,7 @@
 import {
   CalendarCheck,
   CircleCheck,
+  CircleOff,
   type LucideIcon,
   PrinterX,
   QrCode,
@@ -41,8 +42,8 @@ const failedOr = <V,>(result: ApiResult<V>, read: (value: V) => Todo | "clear"):
 
 /**
  * What a person should see to today, from pages that already exist: QR money owed back,
- * transfers nobody matched, slips that never printed, and yesterday left open (only when
- * something was sold that day). Each line goes to the page where it is done.
+ * transfers nobody matched, slips that never printed, items marked sold out at the counter,
+ * and yesterday left open (only when something was sold that day). Each line goes to the page where it is done.
  */
 export function TodoList({ branchId }: { branchId: string }) {
   const api = useApi();
@@ -95,6 +96,14 @@ export function TodoList({ branchId }: { branchId: string }) {
                     },
               ),
             ]),
+      api.listSoldOut(branchId).then((result) => [
+        failedOr(result, (entries) => {
+          const count = new Set(entries.filter((entry) => entry.channelKey === null).map((entry) => entry.productId)).size;
+          return count === 0
+            ? "clear"
+            : { key: "sold-out", text: T.todo.soldOut(count), href: "/menu/availability", icon: CircleOff, tone: "info" };
+        }),
+      ]),
       Promise.all([
         api.getDayStatus(branchId, yesterday),
         api.getDailySales(branchId, yesterday),
