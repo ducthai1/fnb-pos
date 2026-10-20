@@ -122,7 +122,7 @@ Còn mở (lên lịch ở đợt 9d):
 - Luật nghiệp vụ nằm một chỗ (`packages/domain`), thuần (không mạng, không đồng hồ) — POS offline và server chạy **cùng một đoạn code**. ESLint chặn `Date.now`/`fetch`/`Math.random` trong gói này.
 - Test tích hợp chạy trên Postgres 17 thật với RLS bật và role app không phải chủ bảng — rò dữ liệu giữa các quán là test đỏ.
 - 29 luật viết test (`docs/testing-strategy-and-test-file-layout.md`), gồm: test phải đỏ khi gỡ hành vi; có dữ liệu xấu (tên dài, emoji, số lớn); có kịch bản chạy lần 2 trên dữ liệu cũ; đọc status code chứ không đọc chữ trên màn.
-- Cổng chạy trước mỗi lần merge: typecheck · lint · unit · `test:api` · `test:sync` · `test:browser`. Chưa có CI tự chạy trên GitHub.
+- Cổng chạy trước mỗi lần merge: typecheck · lint · unit · `test:api` · `test:sync` · `test:browser`. CI GitHub Actions chạy cùng bộ đó + build ở mỗi lần push. **Đính chính (21:40):** CI đã đỏ từ 01:44 tới 21:40 (13 lần push) mà mình không kiểm — máy CI chậm hơn máy dev 5–6 lần nên các test property quá hạn giờ; code không sai. Đã sửa ở `bbe3d80` (chạy test từng gói một, nới hạn giờ) — CI xanh lại; từ nay kiểm CI sau mỗi lần push.
 
 ---
 
