@@ -21,6 +21,7 @@ export const SOLD: CounterOrder = {
   deviceOrderNo: 101,
   serviceType: "takeaway",
   tableTag: null,
+  table: null,
   lines: [
     {
       lineId: tid(0x801),

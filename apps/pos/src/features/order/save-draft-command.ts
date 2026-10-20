@@ -12,7 +12,7 @@ export function draftPayload(order: CounterOrder): SaveDraftPayload {
     deviceOrderNo: order.deviceOrderNo,
     serviceType: order.serviceType,
     channelKey: null,
-    tableId: null,
+    tableId: order.table?.id ?? null,
     tableTag: order.tableTag,
     lines: order.lines.map((line) => ({
       lineId: line.lineId,

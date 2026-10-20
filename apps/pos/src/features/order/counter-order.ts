@@ -22,7 +22,14 @@ export interface CounterOrder {
   readonly serviceType: CounterServiceType;
   /** The table number a dine-in order is brought to; a takeaway has none. */
   readonly tableTag: string | null;
+  /** The table the order is seated at, which it holds until paid; null at the counter. */
+  readonly table: SeatedTable | null;
   readonly lines: readonly CartLine[];
+}
+
+export interface SeatedTable {
+  readonly id: string;
+  readonly name: string;
 }
 
 /** The draft contract's limit is 9 digits; no counter sells a thousand of one thing. */
@@ -32,7 +39,14 @@ export const MAX_NOTE_LENGTH = 500;
 export const MAX_TABLE_TAG_LENGTH = 20;
 
 export function newCounterOrder(orderId: string, deviceOrderNo: number): CounterOrder {
-  return { orderId, deviceOrderNo, serviceType: "takeaway", tableTag: null, lines: [] };
+  return {
+    orderId,
+    deviceOrderNo,
+    serviceType: "takeaway",
+    tableTag: null,
+    table: null,
+    lines: [],
+  };
 }
 
 export function addCartLine(order: CounterOrder, line: CartLine): CounterOrder {

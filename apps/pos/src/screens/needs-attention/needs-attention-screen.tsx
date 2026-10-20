@@ -1,6 +1,6 @@
 import type { RejectedCommand } from "@fnb/sync-client";
 import { orderIdOfRejected } from "../../features/payment/use-settled-qr-closing";
-import { messageForCode, vi } from "../../messages/vi";
+import { refusalSentence, vi } from "../../messages/vi";
 import { commandNameOf } from "../../messages/vi-sync-errors";
 import { ScreenFrame } from "../shared/screen-frame";
 
@@ -38,7 +38,9 @@ export function NeedsAttentionScreen({
                 className="pos-card pos-wrap pos-rejected"
                 data-rejected-code={entry.code}
               >
-                <p className="pos-rejected__sentence">{messageForCode(entry.code)}</p>
+                <p className="pos-rejected__sentence">
+                  {refusalSentence(entry.command.type, entry.code)}
+                </p>
                 <p className="pos-hint">
                   {vi.needsAttention.commandLine(commandNameOf(entry.command.type), entry.code)}
                 </p>

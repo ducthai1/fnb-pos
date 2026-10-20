@@ -3,6 +3,7 @@ import type { TillMenu } from "../menu/till-menu";
 import { vi } from "../../messages/vi";
 import type { CartLine, CounterOrder } from "./counter-order";
 import {
+  type KeptLines,
   type PricedCounterOrder,
   ProductGoneError,
   priceCounterOrder,
@@ -23,13 +24,18 @@ export function cartView(
   order: CounterOrder,
   chargeProfile: Parameters<typeof priceCounterOrder>[2],
   at: number,
+  kept?: KeptLines,
 ): CartView {
   const common = {
     pricesIncludeTax: chargeProfile.pricesIncludeTax,
     nameOf: (line: CartLine) => menu.productsById.get(line.productId)?.name ?? "",
   };
   try {
-    return { ...common, kind: "priced", priced: priceCounterOrder(menu, order, chargeProfile, at) };
+    return {
+      ...common,
+      kind: "priced",
+      priced: priceCounterOrder(menu, order, chargeProfile, at, kept),
+    };
   } catch (error) {
     // The menu changed under the open order: a product gone, an option the shop removed.
     if (error instanceof ProductGoneError || isDomainError(error)) {

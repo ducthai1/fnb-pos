@@ -5,19 +5,9 @@ import type { PrintedSlip } from "../../features/printing/print-sale-slips";
 import { callNumberOf } from "../../features/order/device-order-number";
 import { vi } from "../../messages/vi";
 import { ScreenFrame } from "../shared/screen-frame";
+import { PrintedSlipList } from "./printed-slip-list";
 
 const T = vi.checkout.done;
-
-function slipStatus(slip: PrintedSlip): string {
-  switch (slip.outcome.status) {
-    case "preview_only":
-      return T.previewOnly;
-    case "printed":
-      return T.printed;
-    case "failed":
-      return T.printFailed(slip.outcome.errorCode);
-  }
-}
 
 export interface SaleDoneScreenProps {
   header: ReactNode;
@@ -26,6 +16,8 @@ export interface SaleDoneScreenProps {
   slips: readonly PrintedSlip[] | null;
   /** The sale's e-invoice, when the branch issues them. */
   invoice?: ReactNode;
+  /** What the button after the sale says; a new order at the counter by default. */
+  nextOrderLabel?: string;
   onNextOrder(): void;
 }
 
@@ -49,23 +41,10 @@ export function SaleDoneScreen(props: SaleDoneScreenProps) {
         className="pos-button pos-button--primary pos-cart__checkout"
         onClick={onNextOrder}
       >
-        {T.nextOrder}
+        {props.nextOrderLabel ?? T.nextOrder}
       </button>
       {props.invoice}
-      <section className="pos-slips" aria-label={T.slips}>
-        {slips === null ? <p className="pos-hint">{T.printing}</p> : null}
-        {(slips ?? []).map((slip) => (
-          <article
-            key={slip.job.jobId}
-            className="pos-card pos-slip"
-            data-print-status={slip.outcome.status}
-          >
-            <h2 className="pos-slip__title">{T.slipNames[slip.job.kind]}</h2>
-            <p className="pos-hint pos-wrap">{slipStatus(slip)}</p>
-            <pre className="pos-slip__preview">{slip.job.preview}</pre>
-          </article>
-        ))}
-      </section>
+      <PrintedSlipList slips={slips} />
     </ScreenFrame>
   );
 }

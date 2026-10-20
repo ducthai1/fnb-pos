@@ -1,22 +1,41 @@
 import { markSentToKitchenPayloadSchema, printJobReportedPayloadSchema } from "@fnb/contracts";
 import type { SentLineState } from "@fnb/domain";
 import type { LocalCommand } from "@fnb/sync-client";
-import { tillOrderSnapshot } from "../order/order-snapshot-for-till";
+import type { CounterOrder } from "../order/counter-order";
+import { type TillOrderState, tillOrderSnapshot } from "../order/order-snapshot-for-till";
+import type { PricedCounterOrder } from "../order/price-counter-order";
 import { type TillPlace, tillCommand } from "../order/till-command";
 import type { KitchenTicketJob } from "./kitchen-slips";
-import type { PaidSale } from "./paid-sale";
 import type { PrintJob, PrintOutcome } from "./printer-port";
+
+/** An order as the till last recorded it, for the row a command on it is expected to leave. */
+export interface RecordedOrder {
+  readonly order: CounterOrder;
+  readonly priced: PricedCounterOrder;
+  /** The order as recorded before this command; the command adds one to its version. */
+  readonly state: Omit<TillOrderState, "sent">;
+}
+
+/** The sent state of earlier tickets with a ticket's lines laid over it, line by line. */
+export function withSent(
+  earlier: readonly SentLineState[],
+  printed: readonly SentLineState[],
+): SentLineState[] {
+  const replaced = new Set(printed.map((line) => line.lineId));
+  return [...earlier.filter((line) => !replaced.has(line.lineId)), ...printed];
+}
 
 /** order.mark_sent_to_kitchen for a ticket the printer took; never for one only shown. */
 export function markSentCommand(
   place: TillPlace,
-  sale: PaidSale,
+  recorded: RecordedOrder,
   ticket: KitchenTicketJob,
   sentSoFar: readonly SentLineState[],
   at: number,
 ): LocalCommand {
+  const { order, priced, state } = recorded;
   const payload = {
-    orderId: sale.order.orderId,
+    orderId: order.orderId,
     ticketId: ticket.job.jobId,
     stations: [{ stationId: ticket.stationId, lines: ticket.lines }],
   };
@@ -28,13 +47,10 @@ export function markSentCommand(
     at,
     {
       entity: "order",
-      entityId: sale.order.orderId,
-      optimistic: tillOrderSnapshot(place, sale.order, sale.priced, {
-        status: "paid",
-        version: sale.version + 1,
-        businessDate: sale.businessDate,
-        chargeProfile: sale.chargeProfile,
-        payments: sale.payments,
+      entityId: order.orderId,
+      optimistic: tillOrderSnapshot(place, order, priced, {
+        ...state,
+        version: state.version + 1,
         sent: sentSoFar,
       }),
     },

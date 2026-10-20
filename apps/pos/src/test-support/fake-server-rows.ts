@@ -1,14 +1,20 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
-
-type Row = Record<string, unknown> & { id: string; version: number };
+import type { TillMenu } from "../features/menu/till-menu";
+import { type Row, fakeTableRows } from "./fake-table-rows";
 
 /**
  * The rows the real server answers accepted commands with, kept just far enough for a
  * till to see its shift and orders come back: the fields the till reads, a version that
  * grows, the status a command leaves. Prices and totals are the server's business, not this.
  */
-export function fakeServerRows(deviceId: string, branchId: string) {
+export function fakeServerRows(
+  deviceId: string,
+  branchId: string,
+  menu: TillMenu,
+  tableNameOf: (tableId: string) => string,
+) {
   const rows = new Map<string, Row>();
+  const tables = fakeTableRows(rows, menu, { deviceId, branchId }, tableNameOf);
   /** How long a QR stays payable from the till's command, as the server would decide it. */
   const qr = { lifetimeMs: 15 * 60_000 };
   const bump = (id: string, fields: Record<string, unknown>): Row => {
@@ -20,9 +26,12 @@ export function fakeServerRows(deviceId: string, branchId: string) {
   return {
     rows,
     qr,
+    refusalOf: tables.refusalOf,
     /** The row an accepted command answers with, or undefined for a command about no row. */
     answer(command: SyncCommandEnvelope): Row | undefined {
       const payload = command.payload as Record<string, unknown>;
+      const atTable = tables.answer(command);
+      if (atTable !== undefined) return atTable;
       switch (command.type) {
         case "shift.open":
           return bump(String(payload.shiftId), {

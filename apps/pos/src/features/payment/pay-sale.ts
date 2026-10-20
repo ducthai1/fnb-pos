@@ -46,8 +46,9 @@ export async function paySale(input: {
     change: settlement.change,
     paidAt: at,
     cashierName: input.cashierName,
+    sent: state.sent ?? [],
   };
-  const orderState = { ...sale, status: "paid" as const, sent: [] };
+  const orderState = { ...sale, status: "paid" as const, sent: sale.sent ?? [] };
   await session.record(
     payOrderCommand(place, order, priced, orderState, payments, input.shiftId, at),
   );

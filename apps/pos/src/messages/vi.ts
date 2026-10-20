@@ -5,6 +5,8 @@ import { VI_INVOICE } from "./vi-invoice";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
 import { VI_SALE } from "./vi-sale";
 import { VI_SYNC_ERRORS } from "./vi-sync-errors";
+import { VI_TABLE_ERRORS, commandSpecificSentence } from "./vi-table-errors";
+import { VI_TABLES } from "./vi-tables";
 
 export const vi = {
   boot: {
@@ -49,6 +51,7 @@ export const vi = {
   checkout: VI_CHECKOUT,
   qr: VI_QR_PAYMENT,
   invoice: VI_INVOICE,
+  tables: VI_TABLES,
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
@@ -80,6 +83,7 @@ export const vi = {
     API_STAFF_NOT_IN_BRANCH: "Nhân viên này không làm ở chi nhánh của máy.",
     API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ.",
     ...VI_SYNC_ERRORS,
+    ...VI_TABLE_ERRORS,
     pinLockedUntil: (time: string) => `Nhập sai PIN quá nhiều lần. Thử lại lúc ${time}.`,
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     unknown: "Có lỗi xảy ra. Thử lại sau ít phút.",
@@ -98,4 +102,9 @@ export function messageForCode(code: string | null): string {
     if (typeof message === "string") return message;
   }
   return vi.errors.unknown;
+}
+
+/** The sentence for a refused command: its own for the command when it has one, else the code's. */
+export function refusalSentence(type: string, code: string): string {
+  return commandSpecificSentence(type, code) ?? messageForCode(code);
 }

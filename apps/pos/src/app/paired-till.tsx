@@ -52,6 +52,7 @@ export function PairedTill(props: {
   useEffect(() => {
     void loadBootstrap();
   }, [loadBootstrap]);
+  const loadFloor = useCallback(() => deps.floor.load(credential), [deps, credential]);
 
   if (snapshot === null) return <BootstrapScreen error={bootstrapError} onRetry={loadBootstrap} />;
   if (signedIn === null) {
@@ -87,6 +88,7 @@ export function PairedTill(props: {
       staff={signedIn.staff}
       status={status}
       printer={deps.printer}
+      loadFloor={loadFloor}
       onOpenNeedsAttention={() => {
         void till?.client.rejectedCommands().then(setRejected);
       }}

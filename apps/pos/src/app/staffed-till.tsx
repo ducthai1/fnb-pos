@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+import type { ApiResult } from "../features/api/api-result";
 import {
   type BootstrapSnapshot,
   type BootstrapStaff,
   tillPlaceOf,
 } from "../features/bootstrap/bootstrap-source";
+import type { FloorOccupancy } from "../features/floor/floor-occupancy";
 import { useNow } from "../features/menu/use-now";
 import { useTillMenu } from "../features/menu/use-till-menu";
 import type { TillPlace } from "../features/order/till-command";
@@ -15,8 +17,10 @@ import { vi } from "../messages/vi";
 import { OpenShiftScreen } from "../screens/open-shift/open-shift-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
 import { TillHeader } from "../screens/till/till-header";
-import { CounterSale } from "./counter-sale";
+import { SellingModes } from "./selling-modes";
 import type { RunningTill } from "./use-background-sync";
+
+const noPasses = () => () => {};
 
 export interface StaffedTillProps {
   snapshot: BootstrapSnapshot;
@@ -26,6 +30,7 @@ export interface StaffedTillProps {
   printer: PrinterPort;
   onOpenNeedsAttention(): void;
   onSwitchStaff(): void;
+  loadFloor(): Promise<ApiResult<FloorOccupancy>>;
 }
 
 /** A till with someone signed in: its live menu, its shift (opened first), then the sale. */
@@ -64,7 +69,9 @@ export function StaffedTill(props: StaffedTillProps) {
     );
   }
   return (
-    <CounterSale
+    <SellingModes
+      loadFloor={props.loadFloor}
+      onSyncPass={till?.sync.subscribe ?? noPasses}
       client={client}
       place={place}
       menu={menu}

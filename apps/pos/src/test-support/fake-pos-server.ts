@@ -11,8 +11,10 @@ import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
+import { NO_MENU_COPIES, buildTillMenu } from "../features/menu/till-menu";
 import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
 import { CREDENTIAL } from "./credential";
+import { type FakeFloorPlan, fakeFloorSource } from "./fake-floor";
 import { fakeServerRows } from "./fake-server-rows";
 import type {
   DeviceCredential,
@@ -78,6 +80,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     pairingCode: "ABCDEFGH",
     pins: new Map<string, string>(),
     bootstrapFailure: null as ApiFailure | null,
+    floorPlan: { areas: [], tables: [] } as FakeFloorPlan,
+    floorFailure: null as ApiFailure | null,
     refuseCommandsWith: null as string | null,
     /** Commands of a type refused for good with a code, the others answered as usual. */
     refuseTypes: new Map<string, string>(),
@@ -88,12 +92,16 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
       pair: [] as { code: string; deviceName: string }[],
       signIn: [] as { staffId: string; pin: string; deviceToken: string }[],
       bootstrap: 0,
+      floor: 0,
       pulls: 0,
       pushedCommands: 0,
     },
   };
   const unreachable = () => refusal(null, null);
-  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId);
+  const tableName = (id: string) => state.floorPlan.tables.find((t) => t.id === id)?.name ?? "";
+  const menu = buildTillMenu(snapshot, NO_MENU_COPIES, new Set());
+  const rows = fakeServerRows(CREDENTIAL.deviceId, CREDENTIAL.branchId, menu, tableName);
+  const floor = fakeFloorSource(state, rows.rows, state.calls);
 
   const api: PosApi = {
     async pairDevice(input) {
@@ -125,7 +133,11 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
       state.calls.pushedCommands += batch.length;
       state.pushed.push(...batch);
       return batch.map((command) => {
-        const code = state.refuseCommandsWith ?? state.refuseTypes.get(command.type) ?? null;
+        const code =
+          state.refuseCommandsWith ??
+          state.refuseTypes.get(command.type) ??
+          rows.refusalOf(command) ??
+          null;
         if (code !== null)
           return { commandId: command.commandId, status: "rejected" as const, code };
         const snapshot = rows.answer(command);
@@ -145,7 +157,17 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     },
   };
 
-  return { state, api, bootstrap, transport, rows: rows.rows, qr: rows.qr };
+  return {
+    state,
+    api,
+    bootstrap,
+    floor,
+    transport,
+    rows: rows.rows,
+    /** The row the server would answer a command with, as if another till had sent it. */
+    answer: rows.answer,
+    qr: rows.qr,
+  };
 }
 
 /** The POS wired to the fake server, an in-memory store and saved credentials. */
@@ -162,6 +184,7 @@ export function fakeDependencies(
     credentials: options.credentials ?? memoryCredentials().store,
     api: server.api,
     bootstrap: server.bootstrap,
+    floor: server.floor,
     transportFor: () => server.transport,
     syncIdleMs: 20,
     printer: options.printer ?? previewOnlyPrinter,

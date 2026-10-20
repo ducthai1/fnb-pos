@@ -46,7 +46,12 @@ export const VI_CHECKOUT = {
     noChange: "Không có tiền thừa",
     nextOrder: "Đơn mới",
     slips: "Phiếu in",
-    slipNames: { bill: "Hóa đơn", cup_label: "Tem dán ly", kitchen: "Phiếu pha chế" },
+    slipNames: {
+      bill: "Hóa đơn",
+      cup_label: "Tem dán ly",
+      kitchen: "Phiếu pha chế",
+      pre_bill: "Phiếu tạm tính",
+    },
     previewOnly: "Bản xem trước — máy này chưa nối máy in, phiếu chưa được in.",
     printed: "Đã in",
     printFailed: (code: string) => `In lỗi (${code}) — phiếu chưa ra giấy.`,

@@ -32,6 +32,8 @@ export interface CounterCheckoutProps {
   priced: PricedCounterOrder;
   onBackToSale(): void;
   onNextOrder(): void;
+  /** What the button after the sale says, when it does not start the next counter order. */
+  nextOrderLabel?: string;
 }
 
 type Step = "paying" | "qr" | "buyer";
@@ -119,6 +121,7 @@ export function CounterCheckout(props: CounterCheckoutProps) {
         sale={paid.sale}
         slips={paid.slips}
         invoice={invoiceSlot}
+        {...(props.nextOrderLabel === undefined ? {} : { nextOrderLabel: props.nextOrderLabel })}
         onNextOrder={props.onNextOrder}
       />
     );

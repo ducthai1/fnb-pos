@@ -13,6 +13,7 @@ export const HOSTILE_ORDER: CounterOrder = {
   deviceOrderNo: 123_456,
   serviceType: "dine_in",
   tableTag: "SânThượngBàn20",
+  table: null,
   lines: [
     {
       lineId: tid(0x601),
