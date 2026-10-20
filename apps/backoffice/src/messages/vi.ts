@@ -5,6 +5,7 @@ import { VI_API_ERRORS_OPERATIONS } from "./vi-api-errors-operations";
 import { VI_DAY_CLOSE, VI_TRANSFERS } from "./vi-day-close-and-payments";
 import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
 import { VI_FLOOR } from "./vi-floor";
+import { VI_HOME } from "./vi-home";
 import { VI_MENU } from "./vi-menu";
 import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
@@ -16,6 +17,7 @@ export const vi = {
   login: VI_LOGIN,
   shell: VI_SHELL,
   common: VI_COMMON,
+  home: VI_HOME,
   devices: VI_DEVICES,
   staff: VI_STAFF,
   roles: VI_ROLES,

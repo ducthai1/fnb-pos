@@ -42,6 +42,12 @@ export function shopDaysWindow(fromDate: string, toDate: string): { from: string
   };
 }
 
+/** The calendar day before a day ("2026-10-19" for "2026-10-20"); the text itself when it is not a day. */
+export function dayBefore(text: string): string {
+  if (!isCalendarDate(text)) return text;
+  return new Date(Date.parse(`${text}T00:00:00Z`) - DAY_MS).toISOString().slice(0, 10);
+}
+
 /** "20/10/2026" for "2026-10-20"; the text itself when it is not a day. */
 export function formatBusinessDate(text: string): string {
   if (!isCalendarDate(text)) return text;
