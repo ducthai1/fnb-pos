@@ -1,0 +1,71 @@
+/* Closing a day: whether it is closed, in a tone; what the close waits for, ticked. */
+
+.bo-day-state {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+}
+
+.bo-day-state[data-state="closed"] {
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.bo-day-state .bo-stack {
+  gap: 0;
+}
+
+.bo-day-state__icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+}
+
+.bo-day-state__date {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-day-state .bo-subtitle {
+  color: var(--c-text);
+}
+
+.bo-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-checklist__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-sm);
+  color: var(--c-amber);
+}
+
+.bo-checklist__item[data-done="true"] {
+  color: var(--c-success);
+}
+
+.bo-checklist__item > .bo-wrap {
+  flex: 1;
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}

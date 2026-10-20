@@ -1,7 +1,9 @@
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { useId } from "react";
 import type { DayInvoice, DayOrder, DayStatus } from "../../lib/api/day-close-api";
 import type { DayCloseBlockers } from "../../lib/day-close/day-close-refusal";
 import { vi } from "../../messages/vi";
+import { Icon } from "../ui/icon";
 
 const T = vi.dayClose;
 
@@ -36,11 +38,34 @@ const invoices = (list: readonly DayInvoice[]) =>
   list.map((invoice) => ({ key: invoice.id, text: T.invoice(invoice.orderId, invoice.status, invoice.lastErrorCode) }));
 const shifts = (list: readonly string[]) => list.map((id) => ({ key: id, text: T.shift(id) }));
 
+/** The three things a close waits for, each ticked or with how many are left. */
+function DayChecklist({ status }: { status: DayStatus }) {
+  const checks = [
+    { key: "shifts", label: T.checks.shifts, left: status.openShiftIds.length },
+    { key: "drafts", label: T.checks.drafts, left: status.openDrafts.length },
+    { key: "invoices", label: T.checks.invoices, left: status.unissuedInvoices.length },
+  ];
+  return (
+    <ul className="bo-checklist" aria-label={T.checklistTitle}>
+      {checks.map((check) => (
+        <li key={check.key} className="bo-checklist__item" data-check={check.key} data-done={check.left === 0}>
+          <Icon of={check.left === 0 ? CircleCheck : CircleAlert} size={20} />
+          <span className="bo-wrap">{check.label}</span>
+          <span className="bo-badge" data-tone={check.left === 0 ? "ok" : "warn"}>
+            {check.left === 0 ? T.checkDone : T.checkLeft(check.left)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** What still stops the day closing, and what needs a person even once it is closed. */
 export function DayStatusLists({ status }: { status: DayStatus }) {
   const blocking = status.openShiftIds.length + status.openDrafts.length + status.unissuedInvoices.length;
   return (
     <div className="bo-stack">
+      {status.dayClose === null && <DayChecklist status={status} />}
       {status.dayClose === null && blocking === 0 && <p className="bo-muted">{T.nothingOpen}</p>}
       <DayList list="open-shifts" title={T.openShiftsTitle} items={shifts(status.openShiftIds)} />
       <DayList list="open-drafts" title={T.openDraftsTitle} items={orders(status.openDrafts)} />

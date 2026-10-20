@@ -20,6 +20,14 @@ export const VI_DAY_CLOSE = {
   invoice: (orderId: string, status: string, errorCode: string | null) =>
     `Đơn …${orderId.slice(-6)} · ${status}${errorCode === null ? "" : ` · ${errorCode}`}`,
   nothingOpen: "Không còn gì chặn việc chốt ngày.",
+  checklistTitle: "Trước khi chốt",
+  checks: {
+    shifts: "Mọi ca đã đóng",
+    drafts: "Không còn đơn chưa thanh toán",
+    invoices: "Không còn hóa đơn chờ phát hành",
+  },
+  checkLeft: (count: number) => `còn ${count}`,
+  checkDone: "xong",
   close: "Chốt ngày",
   closeTitle: (date: string) => `Chốt ngày ${date}?`,
   closeHint: "Số liệu ngày được giữ nguyên từ lúc này. Không hủy được thao tác này.",
