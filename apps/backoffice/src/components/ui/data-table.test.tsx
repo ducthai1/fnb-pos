@@ -62,6 +62,21 @@ describe("a shared table of records", () => {
     expect(shownNames()).toHaveLength(3);
   });
 
+  it("goes to the search box on /, but not while typing in another field", () => {
+    renderTable();
+    const box = screen.getByLabelText("Tìm máy");
+    fireEvent.keyDown(document.body, { key: "/" });
+    expect(document.activeElement).toBe(box);
+    const other = document.createElement("input");
+    document.body.append(other);
+    other.focus();
+    fireEvent.keyDown(other, { key: "/" });
+    expect(document.activeElement).toBe(other);
+    fireEvent.keyDown(document.body, { key: "/", ctrlKey: true });
+    expect(document.activeElement).toBe(other);
+    other.remove();
+  });
+
   it("filters by a segment that counts its rows, and back to all", () => {
     renderTable();
     fireEvent.click(screen.getByRole("button", { name: T.count("Đang bật", 2) }));

@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { Sort } from "./data-table";
 import { vi } from "../../messages/vi";
 import { Icon } from "./icon";
@@ -41,19 +42,44 @@ export function TableToolbar({
   shown: number;
 }) {
   const sortText = sort === null ? "" : `${sort.key}:${sort.direction}`;
+  const searchBox = useRef<HTMLInputElement>(null);
+  const searchable = search !== undefined;
+  // "/" goes to the search box, as on most sites, unless the person is typing somewhere.
+  useEffect(() => {
+    if (!searchable) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      searchBox.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchable]);
   return (
     <div className="bo-data__tools">
       {search !== undefined && (
-        <label className="bo-search">
+        <div className="bo-search">
           <Icon of={Search} />
-          <span className="bo-sr-only">{search.label}</span>
+          <label className="bo-sr-only" htmlFor={`${id}-search`}>
+            {search.label}
+          </label>
           <input
+            id={`${id}-search`}
+            ref={searchBox}
             className="bo-search__input"
             type="search"
+            aria-keyshortcuts="/"
             value={search.typed}
             placeholder={search.label}
             onChange={(event) => search.onType(event.target.value)}
           />
+          {search.typed === "" && (
+            <kbd className="bo-kbd" aria-hidden="true">
+              /
+            </kbd>
+          )}
           {search.typed !== "" && (
             <button
               type="button"
@@ -64,7 +90,7 @@ export function TableToolbar({
               <Icon of={X} size={16} />
             </button>
           )}
-        </label>
+        </div>
       )}
       {filters.length > 0 && (
         <div className="bo-tabs" role="group" aria-label={T.filter}>
