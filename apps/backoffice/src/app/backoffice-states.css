@@ -39,13 +39,19 @@
 .bo-tabs {
   display: inline-flex;
   flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
   gap: 4px;
   padding: 4px;
   border-radius: var(--r-md);
   background: var(--c-surface-3);
 }
 
+/* A segment may carry a shop's name (a category to filter by): it wraps, never widens the page. */
 .bo-tab {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   min-height: 36px;
   padding: 6px 14px;
   border: 0;
