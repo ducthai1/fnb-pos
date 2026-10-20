@@ -1,4 +1,11 @@
-export { type PosBootstrap, type PosBootstrapWire, posBootstrapSchema } from "./bootstrap-schema";
+export {
+  type PosBootstrap,
+  type PosBootstrapWire,
+  STAFF_MEMBER_ENTITY,
+  posBootstrapSchema,
+  posStaffMemberCopySchema,
+  posStaffMemberSchema,
+} from "./bootstrap-schema";
 export {
   type PosDeviceConfig,
   type PosDeviceConfigWire,

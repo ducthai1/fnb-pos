@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
-import type { Role } from "../../lib/api/roles-api";
-import type { StaffMember } from "../../lib/api/staff-api";
+import { useMemo, useState } from "react";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { LoadStateView } from "../shell/load-state-view";
-import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
+import { SuccessNotice } from "../ui/error-notice";
 import { NewStaffFormView } from "./new-staff-form";
+import { type OpenTool, StaffTable } from "./staff-table";
 
 const T = vi.staff;
 
@@ -22,6 +21,8 @@ export function StaffScreen() {
   const loadStaff = useMemo(() => () => api.listStaff(), [api]);
   const [roles, reloadRoles] = useApiLoad(loadRoles);
   const [staff, reloadStaff, refreshStaff] = useApiLoad(loadStaff);
+  const [open, setOpen] = useState<OpenTool | null>(null);
+  const [done, setDone] = useState<string | null>(null);
 
   return (
     <section className="bo-stack" aria-labelledby="staff-title">
@@ -32,44 +33,30 @@ export function StaffScreen() {
       <LoadStateView loaded={roles} retry={reloadRoles}>
         {(roleList) => (
           <>
-            <NewStaffFormView roles={roleList} onCreated={refreshStaff} />
+            <NewStaffFormView roles={roleList.filter((role) => role.archivedAt === null)} onCreated={refreshStaff} />
+            <SuccessNotice message={done} />
             <LoadStateView loaded={staff} retry={reloadStaff}>
-              {(members) => <StaffTable staff={members} roles={roleList} />}
+              {(members) => (
+                <StaffTable
+                  staff={members}
+                  roles={roleList}
+                  open={open}
+                  onOpen={(tool) => {
+                    setDone(null);
+                    setOpen(tool);
+                  }}
+                  onClose={() => setOpen(null)}
+                  onDone={(message) => {
+                    setOpen(null);
+                    setDone(message);
+                    refreshStaff();
+                  }}
+                />
+              )}
             </LoadStateView>
           </>
         )}
       </LoadStateView>
     </section>
-  );
-}
-
-function StaffTable({ staff, roles }: { staff: readonly StaffMember[]; roles: readonly Role[] }) {
-  const { branches } = useSession();
-  const branchName = (id: string) =>
-    branches?.find((branch) => branch.id === id)?.name ?? T.unknownBranch;
-  if (staff.length === 0) return <p className="bo-muted">{T.empty}</p>;
-  return (
-    <table className="bo-table" aria-label={T.title}>
-      <thead>
-        <tr>
-          <th scope="col">{T.columns.name}</th>
-          <th scope="col">{T.columns.role}</th>
-          <th scope="col">{T.columns.branches}</th>
-          <th scope="col">{T.columns.status}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {staff.map((member) => (
-          <tr key={member.id}>
-            <td data-label={T.columns.name}>{member.displayName}</td>
-            <td data-label={T.columns.role}>
-              {roles.find((role) => role.id === member.roleId)?.name ?? T.unknownRole}
-            </td>
-            <td data-label={T.columns.branches}>{member.branchIds.map(branchName).join(", ")}</td>
-            <td data-label={T.columns.status}>{member.active ? T.active : T.inactive}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }

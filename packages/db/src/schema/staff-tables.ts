@@ -10,6 +10,8 @@ export const role = pgTable("role", {
   permissionKeys: text("permission_keys").array().notNull().default([]),
   thresholds: jsonb("thresholds").notNull().default({}),
   isTemplate: boolean("is_template").notNull().default(false),
+  /** Set once nobody holds it and it was put away; see 0026. */
+  archivedAt: at("archived_at"),
 });
 
 /** Signs in on a paired till with a PIN; pin_* columns are server-side lockout state. */

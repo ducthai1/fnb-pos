@@ -148,6 +148,8 @@ describe("GET /staff", () => {
       roleId: shop.roleId,
       active: true,
       branchIds: [shop.branchId],
+      lockedOutUntil: null,
+      failedSignIns: 0,
     });
     expect(listed.get(leaver)).toMatchObject({ active: false, roleId: shop.roleIds.manager });
   });

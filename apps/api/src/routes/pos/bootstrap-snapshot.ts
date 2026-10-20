@@ -63,13 +63,13 @@ export async function readPosBootstrap(
 }
 
 /**
- * Who works at the branch, for the PIN screen: names and whether they may still sign in.
+ * Who may sign in at the branch, for the PIN screen: someone locked out is not listed.
  * Columns are named one by one, never `*`, so the PIN hash and lockout state of a staff row
  * cannot reach a till whatever is added to the table later.
  */
 async function readBranchStaff(client: pg.PoolClient, branchId: string) {
   const { rows } = await client.query<{ id: string; display_name: string; active: boolean }>(
-    "SELECT s.id, s.display_name, s.active FROM staff s WHERE EXISTS " +
+    "SELECT s.id, s.display_name, s.active FROM staff s WHERE s.active AND EXISTS " +
       "(SELECT 1 FROM staff_branch sb WHERE sb.staff_id = s.id AND sb.branch_id = $1) " +
       "ORDER BY s.display_name, s.id",
     [branchId],

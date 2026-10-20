@@ -15,6 +15,8 @@ export interface Role {
   readonly permissionKeys: readonly string[];
   readonly thresholds: StoredThresholds;
   readonly isTemplate: boolean;
+  /** When it was put away: it is shown, but given to no one. */
+  readonly archivedAt: string | null;
   readonly version: number;
 }
 
@@ -48,13 +50,17 @@ const readRole = (item: Record<string, unknown>): Role | null => {
   if (id === null || name === null || version === null || thresholds === null) return null;
   if (!Array.isArray(keys) || !keys.every((key) => typeof key === "string")) return null;
   if (typeof item.isTemplate !== "boolean") return null;
-  return { id, name, permissionKeys: keys, thresholds, isTemplate: item.isTemplate, version };
+  const archivedAt = item.archivedAt === null ? null : textOf(item, "archivedAt");
+  if (archivedAt === null && item.archivedAt !== null) return null;
+  return { id, name, permissionKeys: keys, thresholds, isTemplate: item.isTemplate, archivedAt, version };
 };
 
 export interface RolesApi {
   listRoles(): Promise<ApiResult<Role[]>>;
   createRole(body: RoleGrantsBody): Promise<ApiResult<{ roleId: string }>>;
   updateRole(roleId: string, body: RoleGrantsBody): Promise<ApiResult<Role>>;
+  /** `POST /roles/:id/archive` → the role; 409 API_ROLE_IN_USE names who holds it. */
+  archiveRole(roleId: string): Promise<ApiResult<Role>>;
 }
 
 export function httpRolesApi(base: string, fetchImpl: FetchLike): RolesApi {
@@ -73,6 +79,11 @@ export function httpRolesApi(base: string, fetchImpl: FetchLike): RolesApi {
     async updateRole(roleId, body) {
       const url = `${base}/roles/${encodeURIComponent(roleId)}`;
       const answer = await requestJson(fetchImpl, url, { method: "PATCH", body });
+      return resultOf(answer, (reply) => (isRecord(reply) ? readRole(reply) : null));
+    },
+    async archiveRole(roleId) {
+      const url = `${base}/roles/${encodeURIComponent(roleId)}/archive`;
+      const answer = await requestJson(fetchImpl, url, { method: "POST" });
       return resultOf(answer, (reply) => (isRecord(reply) ? readRole(reply) : null));
     },
   };

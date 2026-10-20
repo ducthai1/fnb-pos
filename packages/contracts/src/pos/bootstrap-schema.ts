@@ -16,8 +16,23 @@ import { posProductSchema } from "./pos-product-schema";
  */
 const shownNameSchema = z.string();
 
-const staffMemberSchema = z
+/**
+ * Someone who may sign in at the branch's tills. Only staff still allowed to sign in are
+ * sent; `active` stays for tills that look at it.
+ */
+export const posStaffMemberSchema = z
   .object({ id: idSchema, displayName: shownNameSchema, active: z.boolean() })
+  .strict();
+
+/**
+ * The change feed entity of a staff member at a branch, by the staff id: the copy as the
+ * bootstrap sends it with the staff row's version, which orders copies of one person, or
+ * null once they may no longer sign in there (locked).
+ */
+export const STAFF_MEMBER_ENTITY = "staff_member";
+
+export const posStaffMemberCopySchema = posStaffMemberSchema
+  .extend({ version: z.number().int().nonnegative() })
   .strict();
 
 /**
@@ -45,7 +60,7 @@ export const posBootstrapSchema = z
       .strict(),
     brand: z.object({ id: idSchema, name: shownNameSchema }).strict(),
     config: posDeviceConfigSchema,
-    staff: z.array(staffMemberSchema),
+    staff: z.array(posStaffMemberSchema),
     menu: z
       .object({
         categories: z.array(posCategorySchema),

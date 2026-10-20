@@ -1,4 +1,4 @@
-import { type StaffSummary, staffListSchema } from "@fnb/contracts";
+import { type StaffSummary, type StaffUpdateBody, staffListSchema } from "@fnb/contracts";
 import { type ApiResult, type FetchLike, requestJson, resultOf } from "./api-result";
 import { isRecord, parsedBy, textOf } from "./read-json-fields";
 
@@ -14,11 +14,25 @@ export interface NewStaffMember {
   readonly branchIds: readonly string[];
 }
 
+export type { StaffUpdateBody };
+
 export interface StaffApi {
-  /** `GET /staff` → `{ staff: [{ id, displayName, roleId, active, branchIds }] }`. */
+  /** `GET /staff` → `{ staff: [{ id, displayName, roleId, active, branchIds, lockedOutUntil, failedSignIns }] }`. */
   listStaff(): Promise<ApiResult<StaffMember[]>>;
   createStaff(member: NewStaffMember): Promise<ApiResult<{ staffId: string }>>;
+  /** `PATCH /staff/:id` `{ displayName?, roleId? }` → 204. */
+  updateStaff(staffId: string, body: StaffUpdateBody): Promise<ApiResult<true>>;
+  /** `POST /staff/:id/deactivate` → 204: their shift ends and the tills refuse them. */
+  deactivateStaff(staffId: string): Promise<ApiResult<true>>;
+  /** `POST /staff/:id/reactivate` → 204. */
+  reactivateStaff(staffId: string): Promise<ApiResult<true>>;
+  /** `PUT /staff/:id/pin` `{ pin }` → 204. */
+  resetStaffPin(staffId: string, pin: string): Promise<ApiResult<true>>;
+  /** `POST /staff/:id/pin-unlock` → 204. */
+  unlockStaffPin(staffId: string): Promise<ApiResult<true>>;
 }
+
+const done = () => true as const;
 
 export function httpStaffApi(base: string, fetchImpl: FetchLike): StaffApi {
   return {
@@ -35,6 +49,26 @@ export function httpStaffApi(base: string, fetchImpl: FetchLike): StaffApi {
         const staffId = isRecord(body) ? textOf(body, "staffId") : null;
         return staffId === null ? null : { staffId };
       });
+    },
+    async updateStaff(staffId, body) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "PATCH", body }), done);
+    },
+    async deactivateStaff(staffId) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/deactivate`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), done);
+    },
+    async reactivateStaff(staffId) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/reactivate`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), done);
+    },
+    async resetStaffPin(staffId, pin) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/pin`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "PUT", body: { pin } }), done);
+    },
+    async unlockStaffPin(staffId) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/pin-unlock`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), done);
     },
   };
 }

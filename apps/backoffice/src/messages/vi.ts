@@ -9,6 +9,7 @@ import { VI_MENU } from "./vi-menu";
 import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
 import { VI_SETTINGS } from "./vi-settings";
+import { VI_STAFF_TOOLS } from "./vi-staff-tools";
 import { VI_COMMON, VI_LOGIN, VI_SHELL } from "./vi-shell";
 
 export const vi = {
@@ -18,6 +19,7 @@ export const vi = {
   devices: VI_DEVICES,
   staff: VI_STAFF,
   roles: VI_ROLES,
+  staffTools: VI_STAFF_TOOLS,
   menu: VI_MENU,
   settings: VI_SETTINGS,
   dailySales: VI_DAILY_SALES,

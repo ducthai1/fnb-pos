@@ -16,7 +16,15 @@ function answering(body: unknown) {
 }
 
 const device = { id: id(1), name: "Quầy 1", branchId: id(2), pairedAt: "2026-10-20T03:00:00.000Z", revokedAt: null };
-const member = { id: id(3), displayName: "Lan", roleId: id(4), active: true, branchIds: [id(2)] };
+const member = {
+  id: id(3),
+  displayName: "Lan",
+  roleId: id(4),
+  active: true,
+  branchIds: [id(2)],
+  lockedOutUntil: null,
+  failedSignIns: 0,
+};
 
 describe("the list calls", () => {
   it("read the lists the API answers with", async () => {

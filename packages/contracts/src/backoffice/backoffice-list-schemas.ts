@@ -41,6 +41,10 @@ export const staffSummarySchema = z
     roleId: uuidSchema,
     active: z.boolean(),
     branchIds: z.array(uuidSchema),
+    /** Until when wrong PINs keep them from signing in; null when no lock holds now. */
+    lockedOutUntil: instantSchema.nullable(),
+    /** Wrong PINs counted since the last right one: the next lock grows with it. */
+    failedSignIns: z.number().int().nonnegative(),
   })
   .strict();
 

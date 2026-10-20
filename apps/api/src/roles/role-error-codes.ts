@@ -4,4 +4,6 @@ export const ROLE_ERROR_CODES = {
   roleInUse: "API_ROLE_IN_USE",
   /** The change would leave no active member who can manage staff and roles. */
   lastAdministrator: "API_ROLE_LAST_ADMINISTRATOR",
+  /** The role was archived: it is given to no one, and kept only for the record. */
+  roleArchived: "API_ROLE_ARCHIVED",
 } as const;

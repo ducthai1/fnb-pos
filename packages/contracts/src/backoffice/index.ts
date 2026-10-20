@@ -11,3 +11,11 @@ export {
   staffSummarySchema,
 } from "./backoffice-list-schemas";
 export { type SignedInMember, signedInMemberSchema } from "./signed-in-member-schema";
+export {
+  type RoleHolders,
+  type StaffPinBody,
+  type StaffUpdateBody,
+  roleHoldersSchema,
+  staffPinBodySchema,
+  staffUpdateBodySchema,
+} from "./staff-admin-schemas";

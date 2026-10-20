@@ -31,7 +31,7 @@ export const VI_STAFF = {
   empty: "Chưa có nhân viên nào.",
   columns: { name: "Tên", role: "Vai trò", branches: "Chi nhánh", status: "Trạng thái" },
   active: "Đang làm",
-  inactive: "Đã nghỉ",
+  inactive: "Đã khóa",
   unknownRole: "(vai trò đã xóa)",
   unknownBranch: "(chi nhánh khác)",
   addTitle: "Thêm nhân viên",
