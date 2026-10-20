@@ -8,7 +8,7 @@ import {
   posFloorTableSchema,
 } from "@fnb/contracts";
 import type { SyncClient } from "@fnb/sync-client";
-import type { FloorOccupancy } from "./floor-occupancy";
+import type { FloorOccupancy, TableLayout } from "./floor-occupancy";
 
 const FLOOR_ENTITIES: ReadonlySet<string> = new Set([FLOOR_AREA_ENTITY, FLOOR_TABLE_ENTITY]);
 export const isFloorEntity = (entity: string) => FLOOR_ENTITIES.has(entity);
@@ -89,7 +89,7 @@ export function floorPlanOf(
     .sort(inOrder);
   return {
     areas: areas.map(({ id, name }) => ({ id, name })),
-    tables: tables.map(({ id, areaId, name, seats }) => ({
+    tables: tables.map(({ id, areaId, name, seats, ...place }) => ({
       id,
       areaId,
       name,
@@ -97,6 +97,15 @@ export function floorPlanOf(
       status: "free" as const,
       orderId: null,
       openedAt: null,
+      layout: layoutOfPlace(place),
     })),
   };
+}
+
+/** Where a table stands, as the plan draws it; null (the grid lists it) when it has no size. */
+function layoutOfPlace(
+  place: Pick<PosFloorTable, "x" | "y" | "width" | "height" | "shape">,
+): TableLayout | null {
+  const { x, y, width, height, shape } = place;
+  return width > 0 && height > 0 ? { x, y, width, height, shape } : null;
 }
