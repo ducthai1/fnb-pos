@@ -9,9 +9,18 @@ const MINUTE_MS = 60_000;
  * negative time.
  */
 export function seatedFor(openedAt: string | null, now: number): string {
-  const opened = openedAt === null ? Number.NaN : Date.parse(openedAt);
-  if (Number.isNaN(opened)) return F.justOpened;
-  const minutes = Math.max(0, Math.floor((now - opened) / MINUTE_MS));
+  const minutes = seatedMinutes(openedAt, now);
+  if (minutes === null) return F.justOpened;
   if (minutes < 60) return F.seatedFor(F.minutes(minutes));
   return F.seatedFor(F.hours(Math.floor(minutes / 60), minutes % 60));
 }
+
+/** Whole minutes the guests have sat; null for an order the server has not answered for. */
+export function seatedMinutes(openedAt: string | null, now: number): number | null {
+  const opened = openedAt === null ? Number.NaN : Date.parse(openedAt);
+  if (Number.isNaN(opened)) return null;
+  return Math.max(0, Math.floor((now - opened) / MINUTE_MS));
+}
+
+/** Past this, a table's time sat is marked so a waiter checks on it. */
+export const LONG_SEATED_MINUTES = 120;

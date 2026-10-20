@@ -78,6 +78,12 @@
   overflow-wrap: anywhere;
 }
 
+/* Guests sat a long time: the time turns amber and bold, for a waiter to check on them. */
+.pos-table__fact[data-long-seated="true"] {
+  color: var(--c-amber);
+  font-weight: var(--fw-semibold);
+}
+
 .pos-table__amount {
   max-width: 100%;
   margin-top: auto;

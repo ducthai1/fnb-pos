@@ -4,7 +4,7 @@ import { tid } from "../../test-support/till-fixtures";
 import type { StoredTableOrder } from "../table-order/stored-table-order";
 import type { FloorOccupancy } from "./floor-occupancy";
 import { floorTablesView } from "./floor-tables-view";
-import { seatedFor } from "./seated-time";
+import { LONG_SEATED_MINUTES, seatedFor, seatedMinutes } from "./seated-time";
 import { vi } from "../../messages/vi";
 
 const T1 = tid(101);
@@ -125,5 +125,14 @@ describe("how long guests have sat", () => {
     expect(seatedFor(OPENED, at - 5 * 60_000)).toBe(F.seatedFor(F.minutes(0)));
     expect(seatedFor(null, at)).toBe(F.justOpened);
     expect(seatedFor("not a time", at)).toBe(F.justOpened);
+  });
+});
+
+describe("seatedMinutes", () => {
+  it("counts whole minutes, never below zero, and nothing for an order not yet answered", () => {
+    const at = Date.parse(OPENED);
+    expect(seatedMinutes(OPENED, at + LONG_SEATED_MINUTES * 60_000)).toBe(LONG_SEATED_MINUTES);
+    expect(seatedMinutes(OPENED, at - 60_000)).toBe(0);
+    expect(seatedMinutes(null, at)).toBeNull();
   });
 });

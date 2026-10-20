@@ -1,7 +1,7 @@
 import { formatVnd } from "@fnb/domain";
 import { Clock, Users } from "lucide-react";
 import type { FloorTableView } from "../../features/floor/floor-tables-view";
-import { seatedFor } from "../../features/floor/seated-time";
+import { LONG_SEATED_MINUTES, seatedFor, seatedMinutes } from "../../features/floor/seated-time";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 
@@ -20,6 +20,7 @@ export function TableTile(props: {
 }) {
   const { table, now } = props;
   const seated = table.status !== "free";
+  const minutes = seated ? seatedMinutes(table.openedAt, now) : null;
   return (
     <button
       type="button"
@@ -38,7 +39,10 @@ export function TableTile(props: {
         </span>
       ) : null}
       {seated ? (
-        <span className="pos-table__fact">
+        <span
+          className="pos-table__fact"
+          data-long-seated={minutes !== null && minutes >= LONG_SEATED_MINUTES}
+        >
           <Icon of={Clock} size={16} />
           {seatedFor(table.openedAt, now)}
         </span>
