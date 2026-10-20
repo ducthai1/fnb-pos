@@ -44,7 +44,6 @@
   padding: var(--sp-2) var(--sp-4);
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border-soft);
-  box-shadow: 0 1px 0 rgb(23 20 31 / 0.02);
 }
 
 .pos-topbar__place {
@@ -150,10 +149,10 @@
   }
   .pos-topbar__place {
     flex: 1 1 220px;
-    min-width: 200px;
+    min-width: 160px;
   }
   .pos-topbar .pos-badges {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     justify-content: flex-end;
   }
   .pos-topbar__who {

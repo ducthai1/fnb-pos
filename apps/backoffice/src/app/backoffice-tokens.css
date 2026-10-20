@@ -42,6 +42,11 @@
   --c-success: #127a53;
   --c-success-soft: #e4f6ee;
 
+  /* The thin edge of a tinted notice, the meaning's own colour at low strength */
+  --c-danger-line: rgb(180 40 65 / 0.18);
+  --c-success-line: rgb(18 122 83 / 0.18);
+  --c-amber-line: rgb(138 90 0 / 0.18);
+
   /* Type: one family with every Vietnamese mark drawn, not stacked from fallbacks */
   --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-num: "Be Vietnam Pro", system-ui, sans-serif;

@@ -152,7 +152,7 @@ body,
   align-items: flex-start;
   margin: 0;
   padding: var(--sp-3) 14px;
-  border: 1px solid rgb(180 40 65 / 0.18);
+  border: 1px solid var(--c-danger-line);
   border-radius: var(--r-md);
   background: var(--c-danger-soft);
   color: var(--c-danger);
@@ -161,18 +161,18 @@ body,
 
 .pos-alert--info {
   background: var(--c-info-soft);
-  border-color: rgb(29 111 184 / 0.18);
+  border-color: var(--c-info-line);
   color: var(--c-info);
 }
 
 .pos-alert--ok {
   background: var(--c-success-soft);
-  border-color: rgb(18 122 83 / 0.18);
+  border-color: var(--c-success-line);
   color: var(--c-success);
 }
 
 .pos-alert--warn {
   background: var(--c-amber-soft);
-  border-color: rgb(138 90 0 / 0.18);
+  border-color: var(--c-amber-line);
   color: var(--c-amber);
 }

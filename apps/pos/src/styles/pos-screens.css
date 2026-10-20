@@ -76,6 +76,11 @@
   color: var(--c-brand-strong);
 }
 
+.pos-signin__mark[data-tone="danger"] {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
 .pos-pin {
   align-items: stretch;
 }

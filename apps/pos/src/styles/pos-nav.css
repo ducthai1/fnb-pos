@@ -33,8 +33,8 @@
   --avatar-fg: var(--c-amber);
 }
 .pos-avatar[data-tone="3"] {
-  --avatar-bg: #f1e8fb;
-  --avatar-fg: #6b3fa0;
+  --avatar-bg: var(--c-violet-soft);
+  --avatar-fg: var(--c-violet);
 }
 .pos-avatar[data-tone="4"] {
   --avatar-bg: var(--c-danger-soft);

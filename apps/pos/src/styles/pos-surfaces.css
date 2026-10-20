@@ -32,7 +32,7 @@
   padding: var(--sp-3) max(var(--sp-4), calc((100% - var(--frame-max)) / 2));
   border-top: 1px solid var(--c-border-soft);
   background: var(--c-surface);
-  box-shadow: 0 -8px 24px -16px rgb(23 20 31 / 0.25);
+  box-shadow: var(--shadow-dock);
 }
 
 /* A sheet over the screen: from the bottom on a phone, centred on a till. */
@@ -109,6 +109,12 @@
 .pos-state__body {
   margin: 0;
   max-width: 42ch;
+}
+
+/* A screen that is only waiting: the spinner sits in the middle, a little below the title. */
+.pos-screen__inner > .pos-spinner {
+  justify-self: center;
+  margin-top: var(--sp-8);
 }
 
 .pos-spinner {

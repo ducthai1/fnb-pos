@@ -50,7 +50,7 @@
   background: var(--c-brand);
   color: var(--c-on-brand);
   font-weight: var(--fw-semibold);
-  box-shadow: 0 1px 2px rgb(7 95 70 / 0.25);
+  box-shadow: var(--shadow-brand);
 }
 
 .pos-button--primary:active:not(:disabled) {
@@ -66,7 +66,7 @@
 }
 
 .pos-button--secondary:active:not(:disabled) {
-  background: #cdeee2;
+  background: var(--c-brand-soft-pressed);
 }
 
 .pos-button--danger {
