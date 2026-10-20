@@ -6,11 +6,9 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-20 08:50 — Đợt 6 xong (bị ngắt lúc ~05:00 do máy hết RAM, chạy lại 08:04 theo cặp 2 agent; tổng 861k token lần chạy lại) đã merge + push (`51b247f`): `GET /pos/bootstrap` (chi nhánh, cấu hình đã resolve, charge profile, nhân viên không kèm bí mật, menu đầy đủ, cursor) + menu/cấu hình đi qua change_log (một dòng mỗi chi nhánh của thương hiệu); LocalStore trên SQLite WASM opfs-sahpool trong Worker + khóa 1 tab; **app POS đầu tiên** (`apps/pos`: ghép máy, chọn nhân viên + PIN, huy hiệu online/offline/server_error, "chưa đồng bộ N", "Cần xử lý"); cổng `pnpm e2e` (Chrome hệ thống, API thật) với spec ghép máy + đăng nhập PIN; hợp nhất kiểm approval + lệnh ca vào registry + staff_id trong applied_command; `order.mark_sent_to_kitchen` (máy in xong mới báo, server chỉ nhận phần còn nợ) + `print.job_reported` + `GET /reports/print-failures`; sơ đồ bàn (`/floor/*`), đơn gắn bàn (mỗi bàn tối đa một đơn draft — unique index), `table.transfer` sang bàn trống, đơn quầy kèm số bàn, `order.mark_pre_bill_printed`, `GET /floor/occupancy`.
-- Cổng (chạy tuần tự vì thiếu RAM): unit 1.435 · `test:api` 1.263 · `test:sync` 12 · `test:browser`/e2e 33 — xanh.
-- **Máy đang thiếu RAM** (swap 8/8 GB do ứng dụng khác): chạy cổng bằng `VITEST_MAX_FORKS=2 VITEST_MAX_THREADS=2 pnpm exec turbo run <task> --concurrency=1 --env-mode=loose`, tối đa 2 agent cùng lúc.
-- Tiếp theo: màn bán hàng POS (lưới món, tùy chọn, giỏ, thanh toán tiền mặt/QR xác nhận tay, in) nối sync-client + bootstrap; backoffice web (đăng nhập, menu, nhân viên, thiết bị); thanh toán QR tự xác nhận (T05-01…04); hóa đơn điện tử (adapter + fake) + chốt ngày + báo cáo.
-- Đang chờ user: T00-01…05, T00-08…10; "chờ user" trong decision-log; có chạy tiếp các đợt sau không.
+- 2026-10-20 10:35 — Đợt 7 cặp 1 (2 agent, 953k token, 75 phút) đã merge + push (`e91e5be`): **màn bán hàng POS** (menu = bootstrap + thay đổi kéo về, hết món mờ đi, mở ca đếm mệnh giá, chọn size/topping theo đúng luật nhóm, giỏ dạng cây, tổng do domain tính, tiền mặt + tiền thừa, QR xác nhận tay, nhiều phương thức, xem trước bill/tem ly/phiếu bếp — chỉ báo đã gửi bếp khi máy in thật báo thành công); e2e bán ở quầy (132.000 đ khớp domain, thối 68k) + bán khi offline; **QR VietQR** (payload EMVCo + CRC, intent 15 phút, webhook SePay/PayOS idempotent + chữ ký, bí mật mã hóa AES-256-GCM, tự khớp đủ/thiếu/thừa, khớp tay, `order.pay` qr_transfer cần intent đã paid đúng số).
+- Cổng: unit ~1.540 · `test:api` 1.364 · `test:sync` 14 · `test:browser`/e2e 43 — xanh.
+- User đã cho chạy tiếp các đợt sau không cần hỏi (2026-10-20 09:06). Tiếp: đợt 7 cặp 2 — backoffice web (Next.js 15.5) + hóa đơn điện tử (adapter + bản giả) + chốt ngày + báo cáo.
 
 ---
 
@@ -238,6 +236,7 @@
 ### T04-06 Màn bán
 - **Làm:** lưới món, tìm nhanh, chọn biến thể/tùy chọn, ghi chú, số lượng, giữ đơn, nhiều đơn song song.
 - **Test:** `apps/pos/src/features/order/modifier-picker.test.tsx`; `e2e/pos/counter-sale-cash.spec.ts`.
+- **Trạng thái:** done bản web (2026-10-20) — tab danh mục, tìm bỏ dấu, lưới món, bảng chọn tùy chọn theo luật domain, giỏ dạng cây, lưu nháp tự động. Chưa có: combo, giá mở, món cân, ảnh món, mở lại nháp sau khi tải lại.
 
 ### T04-07 Tổng tiền + giảm tay + giá nhập tay + theo cân
 - **Test:** `e2e/pos/manual-discount-over-threshold-needs-approval.spec.ts`.
@@ -245,6 +244,7 @@
 ### T04-08 Thanh toán
 - **Làm:** tiền mặt (gợi ý mệnh giá, tiền thừa), QR động (xác nhận tay), thẻ (ghi nhận tay), nhiều phương thức.
 - **Test:** `e2e/pos/split-tender-cash-and-qr.spec.ts`.
+- **Trạng thái:** done bản web (2026-10-20) — tiền mặt (phím nhanh, tiền thừa), QR xác nhận tay, nhiều phương thức; e2e `counter-sale-cash.spec.ts`. Chưa làm tròn tiền mặt.
 
 ### T04-09 Số đơn 3 lớp + số gọi món
 - **Test:** `packages/domain/src/order/order-numbering.test.ts`; `packages/sync-client/test/scenarios/offline-orders-get-unique-numbers.test.ts`.
@@ -281,6 +281,7 @@
 ### T04-18 Offline mode + kiểm thử
 - **Làm:** phát hiện mất mạng; khóa thao tác (catalog §20); badge "chưa đồng bộ N".
 - **Test:** `packages/sync-client/test/scenarios/{offline-sale-then-sync,continue-on-previous-state}.test.ts`; `e2e/pos/offline-counter-sale.spec.ts`; `e2e/pos/hostile-order-data.spec.ts`.
+- **Trạng thái:** một phần (2026-10-20) — e2e `offline-counter-sale.spec.ts` (chặn /api ⇒ bán + trả ⇒ mở mạng ⇒ đồng bộ đủ).
 
 ---
 
@@ -319,11 +320,19 @@
 
 ### T05-01 `payment_intent` + payload VietQR
 - **Test:** `packages/domain/src/payment/vietqr-payload-crc.test.ts` — so với QR mẫu của ngân hàng.
+- **Trạng thái:** done (2026-10-20) — `domain/payment` buildVietQrPayload/parseVietQrPayload + CRC-16/CCITT-FALSE; lệnh payment.create_intent/cancel_intent.
+
 ### T05-02 Webhook + chữ ký + `bank_transaction` unique
 - **Test:** `apps/api/test/integration/payments/webhook-is-idempotent.test.ts` — gửi 10 lần = 1 thanh toán; chữ ký sai bị chặn.
+- **Trạng thái:** done (2026-10-20) — `POST /webhooks/payments/:gateway/:tenantRoute`, adapter SePay + PayOS (+ fake), bank_transaction chỉ-thêm unique (gateway, reference_code). PayOS: cần đối chiếu sandbox.
+
 ### T05-03 Khớp tự động + đẩy realtime
+- **Trạng thái:** done (2026-10-20) — khớp tự động theo mã nội dung FNB+8 ký tự; snapshot intent qua change_log. Màn QR tự đổi trạng thái trên POS chưa nối.
+
 ### T05-04 Màn khớp tay
 - **Test chung:** `apps/api/test/integration/payments/match-under-over-duplicate.test.ts`.
+- **Trạng thái:** done phía API (2026-10-20) — `GET /payments/unmatched`, `POST /payments/match`; UI backoffice chưa.
+
 ### T05-05 Hồ sơ HĐĐT theo chi nhánh
 ### T05-06 Adapter nhà cung cấp HĐĐT
 - **Test:** `apps/api/test/integration/einvoice/provider-adapter-contract.test.ts` (fake ghi lại lời gọi + sandbox thật chạy tay).
@@ -407,4 +416,6 @@
 - 2026-10-20 · Chưa có route backoffice ghi cấu hình (charge profile, công tắc) — phải đi qua saveConfigValue/clearConfigValue + validateFlags. Hết món có hạn (`unavailableUntil`) tự hết không sinh thay đổi ⇒ máy tự so giờ.
 - 2026-10-20 · change_log phình theo (món đổi × số chi nhánh) — cần chính sách giữ/gom. → T11.
 - 2026-10-20 · Lưu trữ bản web POS: reverse proxy `/api` cùng origin (đang dùng) hay `VITE_FNB_API_BASE` + CORS? → T11-05.
+- 2026-10-20 · POS: màn QR tự đổi trạng thái theo intent (đã có snapshot payment_intent); QR thiếu/thừa xử lý thế nào (QR thứ hai cho phần còn lại? tiền mặt? hoàn phần thừa?) — chờ user; mở lại nháp chưa trả sau khi tải lại; số gọi món nên do server cấp lúc trả?; nhóm tùy chọn cần "vai trò" (đường/đá) để in tem ly đúng; hồ sơ máy in theo máy quầy (khổ giấy, code page 1258); combo/giá mở/món cân trên POS.
+- 2026-10-20 · `/tmp` là tmpfs + quota chung (~7 GB/user): Postgres nhúng của test để dữ liệu trong os.tmpdir() — nếu gặp EDQUOT thì chuyển thư mục dữ liệu test về ổ home.
 - 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.
