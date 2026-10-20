@@ -1,0 +1,164 @@
+/* The till's frame around the screens: the bar along the top (where, who, which shift, sync)
+   and the main navigation under it. The bar sticks to the top of the screen's scroller and
+   runs edge to edge; every name in it keeps to one line and shows the rest as "…". */
+
+.pos-screen__inner--narrow {
+  --frame-max: 440px;
+}
+
+.pos-screen__inner--wide {
+  --frame-max: 1240px;
+}
+
+.pos-screen__inner > .pos-topbar {
+  grid-column: 1 / -1;
+  order: -2;
+  margin-top: calc(-1 * var(--sp-5));
+}
+
+.pos-screen__inner > .pos-navbar,
+.pos-screen__inner > .pos-modes,
+.pos-screen__inner > .pos-till-tools {
+  order: -1;
+}
+
+.pos-clip {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pos-topbar {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "place who"
+    "sync sync";
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  min-height: var(--bar-h);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border-soft);
+  box-shadow: 0 1px 0 rgb(23 20 31 / 0.02);
+}
+
+.pos-topbar__place {
+  grid-area: place;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.pos-topbar__mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.pos-topbar__names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pos-topbar__brand {
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+}
+
+.pos-topbar__branch {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.pos-topbar .pos-badges {
+  grid-area: sync;
+  min-width: 0;
+}
+
+.pos-topbar__who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.pos-topbar__person {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: min(220px, 30vw);
+}
+
+.pos-signed-in {
+  min-width: 0;
+  margin: 0;
+  font-weight: var(--fw-semibold);
+}
+
+.pos-topbar__shift {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+}
+
+.pos-topbar__shift[data-open="false"] {
+  color: var(--c-amber);
+}
+
+.pos-topbar__actions {
+  display: flex;
+  gap: var(--sp-1);
+}
+
+/* On a phone the two staff buttons keep their words for screen readers, show icons only. */
+@media (max-width: 559px) {
+  .pos-topbar__actions .pos-button {
+    width: var(--tap);
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* A till held sideways: one row, kept in view while the screen scrolls. The sync pills wrap
+   onto a second line only when something is wrong, which is when they should stand out. */
+@media (min-width: 1024px) {
+  .pos-screen__inner > .pos-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .pos-topbar {
+    display: flex;
+    padding-inline: var(--sp-5);
+  }
+  .pos-topbar__place {
+    flex: 1 1 220px;
+    min-width: 200px;
+  }
+  .pos-topbar .pos-badges {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+  }
+  .pos-topbar__who {
+    flex: none;
+    padding-left: var(--sp-3);
+    border-left: 1px solid var(--c-border-soft);
+  }
+}

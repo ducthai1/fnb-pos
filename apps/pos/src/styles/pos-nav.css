@@ -1,0 +1,97 @@
+/* A person's initial, and the strip of selling modes and till tools under the bar. */
+
+.pos-avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
+  line-height: 1;
+  background: var(--avatar-bg, var(--c-brand-soft));
+  color: var(--avatar-fg, var(--c-brand-strong));
+}
+
+.pos-avatar::before {
+  content: attr(data-initial);
+}
+
+.pos-avatar--lg {
+  width: 64px;
+  height: 64px;
+  font-size: var(--fs-2xl);
+}
+
+.pos-avatar[data-tone="1"] {
+  --avatar-bg: var(--c-info-soft);
+  --avatar-fg: var(--c-info);
+}
+.pos-avatar[data-tone="2"] {
+  --avatar-bg: var(--c-amber-soft);
+  --avatar-fg: var(--c-amber);
+}
+.pos-avatar[data-tone="3"] {
+  --avatar-bg: #f1e8fb;
+  --avatar-fg: #6b3fa0;
+}
+.pos-avatar[data-tone="4"] {
+  --avatar-bg: var(--c-danger-soft);
+  --avatar-fg: var(--c-danger);
+}
+.pos-avatar[data-tone="5"] {
+  --avatar-bg: var(--c-surface-3);
+  --avatar-fg: var(--c-text);
+}
+
+/* Selling modes and the till's tools on one strip, scrolled sideways on a phone. */
+.pos-navbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+}
+
+.pos-modes {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-md);
+  background: var(--c-surface-3);
+}
+
+.pos-modes .pos-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 112px;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text-2);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-modes .pos-mode[aria-pressed="true"] {
+  background: var(--c-surface);
+  color: var(--c-brand-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.pos-till-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.pos-navbar .pos-till-tools {
+  margin-left: auto;
+}
+
+.pos-tool {
+  color: var(--c-text-2);
+  background: var(--c-surface);
+  border-color: var(--c-border-soft);
+}

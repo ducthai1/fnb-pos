@@ -1,0 +1,136 @@
+/* Surfaces the screens sit on: cards, lists, the bottom dock, sheets, and the empty /
+   loading / error views. */
+
+.pos-card {
+  margin: 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.pos-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The screen's last row kept in view at the bottom: a total and the buttons that act on it. */
+.pos-screen__inner > .pos-dock {
+  grid-column: 1 / -1;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-bottom: calc(-1 * var(--sp-8));
+  padding: var(--sp-3) max(var(--sp-4), calc((100% - var(--frame-max)) / 2));
+  border-top: 1px solid var(--c-border-soft);
+  background: var(--c-surface);
+  box-shadow: 0 -8px 24px -16px rgb(23 20 31 / 0.25);
+}
+
+/* A sheet over the screen: from the bottom on a phone, centred on a till. */
+.pos-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--c-overlay);
+}
+
+.pos-sheet {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-5) var(--sp-4) var(--sp-6);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--c-surface);
+  box-shadow: var(--shadow-raised);
+}
+
+@media (min-width: 760px) {
+  .pos-sheet-backdrop {
+    align-items: center;
+  }
+  .pos-sheet {
+    width: min(560px, calc(100% - 48px));
+    border-radius: var(--r-lg);
+    padding: var(--sp-6);
+  }
+}
+
+/* Nothing yet, still loading, or could not load: the same calm block on every screen. */
+.pos-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-8) var(--sp-4);
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.pos-state__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  color: var(--c-text-3);
+  box-shadow: var(--shadow-card);
+}
+
+.pos-state[data-tone="error"] .pos-state__icon {
+  color: var(--c-danger);
+}
+
+.pos-state__title {
+  margin: 0;
+  color: var(--c-text);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-state__body {
+  margin: 0;
+  max-width: 42ch;
+}
+
+.pos-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--c-border-soft);
+  border-top-color: var(--c-brand);
+  border-radius: 50%;
+  animation: pos-spin 0.9s linear infinite;
+}
+
+@keyframes pos-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-spinner {
+    animation-duration: 3s;
+  }
+  .pos-button {
+    transition: none;
+  }
+}

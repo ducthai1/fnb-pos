@@ -1,0 +1,103 @@
+/* Design tokens of the till: colour by role, type scale, spacing, radii, shadows. Screens use
+   these names only; a colour written by hand in a screen's CSS is a bug. The backoffice keeps
+   the same roles and values in its own file (backoffice-tokens.css), tuned for a mouse.
+
+   Colour that carries text on it is dark enough for AA (4.5:1) with white text; the bright
+   brand tint is only ever a background behind dark text or an outline. */
+
+:root {
+  /* Surfaces */
+  --c-bg: #f1f2f6;
+  --c-surface: #ffffff;
+  --c-surface-2: #f6f6f9;
+  --c-surface-3: #ebeaf1;
+  --c-overlay: rgb(23 20 31 / 0.45);
+
+  /* Text */
+  --c-text: #2b2833;
+  --c-text-2: #5b5666;
+  --c-text-3: #7a7586;
+  --c-text-inverse: #ffffff;
+
+  /* Lines */
+  --c-border: #d9d7e2;
+  --c-border-soft: #e8e6ee;
+  --c-focus: #1d6fb8;
+
+  /* Brand: the main action, what is selected, a table in use */
+  --c-brand: #0b7d5c;
+  --c-brand-strong: #075f46;
+  --c-brand-soft: #e3f6ef;
+  --c-brand-tint: #2fb98c;
+  --c-on-brand: #ffffff;
+
+  /* Meanings */
+  --c-info: #1d6fb8;
+  --c-info-soft: #e8f2fc;
+  --c-on-info: #ffffff;
+  --c-amber: #8a5a00;
+  --c-amber-bold: #b7791f;
+  --c-amber-soft: #fdf3e1;
+  --c-danger: #b42841;
+  --c-danger-soft: #fdecef;
+  --c-on-danger: #ffffff;
+  --c-success: #127a53;
+  --c-success-soft: #e4f6ee;
+
+  /* Type: one family with every Vietnamese mark drawn, not stacked from fallbacks */
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "Be Vietnam Pro", system-ui, sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.75rem;
+  --fs-4xl: 2rem;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --lh-tight: 1.25;
+  --lh-body: 1.45;
+
+  /* Space: a 4px grid */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Shape */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+  --shadow-card: 0 1px 2px rgb(23 20 31 / 0.06), 0 6px 16px -6px rgb(23 20 31 / 0.12);
+  --shadow-raised: 0 2px 6px rgb(23 20 31 / 0.08), 0 18px 40px -12px rgb(23 20 31 / 0.28);
+  --ring: 0 0 0 3px rgb(29 111 184 / 0.35);
+
+  /* Touch: nothing tappable is smaller than this, nothing primary smaller than the second */
+  --tap: 48px;
+  --tap-lg: 56px;
+  --bar-h: 64px;
+
+  /* The names the screens were first written with, kept so every screen takes the new look */
+  --pos-bg: var(--c-bg);
+  --pos-surface: var(--c-surface);
+  --pos-text: var(--c-text);
+  --pos-muted: var(--c-text-2);
+  --pos-primary: var(--c-brand);
+  --pos-primary-text: var(--c-on-brand);
+  --pos-border: var(--c-border);
+  --pos-danger-bg: var(--c-danger-soft);
+  --pos-danger-text: var(--c-danger);
+  --pos-ok-bg: var(--c-success-soft);
+  --pos-ok-text: var(--c-success);
+  --pos-warn-bg: var(--c-amber-soft);
+  --pos-warn-text: var(--c-amber);
+}

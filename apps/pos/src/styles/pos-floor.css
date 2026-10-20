@@ -3,16 +3,6 @@
    Table and area names come from the shop, so tiles use minmax(min(100%, …), 1fr) columns
    and every name wraps anywhere. */
 
-.pos-modes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pos-mode {
-  min-width: 112px;
-}
-
 .pos-tab[aria-pressed="true"] {
   border-color: var(--pos-primary);
   background: var(--pos-primary);

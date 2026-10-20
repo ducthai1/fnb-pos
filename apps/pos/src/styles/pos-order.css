@@ -1,24 +1,6 @@
 /* The order beside the menu, the option picker, the shift float. Long names wrap anywhere;
    columns are minmax(0, …) so no name can widen the screen. */
 
-.pos-screen__inner--wide {
-  max-width: 1200px;
-}
-
-.pos-till-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.pos-till-header__who {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  min-width: 0;
-}
-
 .pos-sale {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -34,6 +16,13 @@
   .pos-cart {
     position: sticky;
     top: 0;
+  }
+}
+
+/* Under the till's bar, which stays in view from this width up. */
+@media (min-width: 1024px) {
+  .pos-cart {
+    top: calc(var(--bar-h) + var(--sp-3));
   }
 }
 

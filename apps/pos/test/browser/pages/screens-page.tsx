@@ -9,14 +9,7 @@ import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-s
 import { PinEntry } from "../../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../../src/screens/staff-login/staff-picker";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
-import "../../../src/styles/pos-base.css";
-import "../../../src/styles/pos-screens.css";
-import "../../../src/styles/pos-sale.css";
-import "../../../src/styles/pos-order.css";
-import "../../../src/styles/pos-picker.css";
-import "../../../src/styles/pos-checkout.css";
-import "../../../src/styles/pos-floor.css";
-import "../../../src/styles/pos-operations.css";
+import "../../../src/styles/pos-styles";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
 import { HISTORY_REFUND_SCREENS } from "./history-refund-screens";
 import { OPERATIONS_SCREENS } from "./operations-screens";
