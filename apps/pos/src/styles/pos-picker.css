@@ -127,8 +127,10 @@
   flex-wrap: nowrap;
 }
 
+/* The way back keeps its words whole; the main action takes what room is left. */
 .pos-actions--split > .pos-button {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  overflow-wrap: normal;
 }
 
 .pos-actions--split > .pos-button--primary {
