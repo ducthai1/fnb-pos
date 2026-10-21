@@ -142,7 +142,7 @@ th:not([aria-sort]) .bo-sort .bo-icon {
 .bo-data__actions > * {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
 }
 
 .bo-data__panel > td {
