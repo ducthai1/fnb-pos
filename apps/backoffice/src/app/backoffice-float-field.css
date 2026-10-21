@@ -1,0 +1,61 @@
+/* A field in a form card, drawn as the reference's: one 56px box with a 12px corner, its
+   label small and grey along the top inside the box, what is typed 16/24 under it. Only the
+   look moves: the label is still the <label for> before the input, so its name is unchanged.
+   Fields outside a card (the day over a report) keep the plain 44px box. */
+
+.bo-card .bo-field:has(> label + .bo-input) {
+  position: relative;
+}
+
+.bo-card .bo-field:has(> label + .bo-input) > label {
+  position: absolute;
+  top: 7px;
+  left: 17px;
+  right: 17px;
+  z-index: 1;
+  overflow: hidden;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  font-weight: var(--fw-regular);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.bo-card .bo-field > label + .bo-input {
+  min-height: 56px;
+  padding: 24px 15px 6px;
+  border-color: var(--c-border);
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+/* A select draws its value about 4px in from its padding: start it that much sooner. */
+.bo-card .bo-field > label + select.bo-input {
+  padding-left: 11px;
+  padding-right: 8px;
+}
+
+/* Read only: the reference greys the box. */
+.bo-card .bo-field > label + .bo-input:disabled,
+.bo-card .bo-field > label + .bo-input[readonly] {
+  background: var(--c-hover);
+}
+
+.bo-card .bo-field:has(> label + .bo-input[aria-invalid="true"]) > label {
+  color: var(--c-danger);
+}
+
+.bo-card .bo-field > .bo-muted {
+  font-size: var(--fs-xs);
+  line-height: 16px;
+}
+
+/* A button on the same row as such a field stands as tall as its box. */
+.bo-card .bo-row:has(> .bo-field > label + .bo-input) > .bo-button,
+.bo-card.bo-row:has(> .bo-field > label + .bo-input) > .bo-button {
+  min-height: 56px;
+  border-radius: var(--r-md);
+}
