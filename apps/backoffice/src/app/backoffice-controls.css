@@ -170,6 +170,12 @@
   border-color: var(--c-danger);
 }
 
+.bo-button--danger:hover:not(:disabled) {
+  border-color: var(--c-danger);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
 .bo-button--block {
   width: 100%;
 }

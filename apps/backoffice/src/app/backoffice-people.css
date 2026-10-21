@@ -46,8 +46,46 @@
   align-items: flex-start;
 }
 
+/* A second step, as the reference's confirm box: a red warning sign before a red title,
+   the sentence in grey, two 36px buttons on the right, the one that acts filled red. */
 .bo-confirm {
-  border-color: var(--bo-danger);
+  gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  border: 1px solid var(--c-danger-line);
+  border-radius: var(--r-lg);
+}
+
+.bo-confirm__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--c-danger);
+}
+
+.bo-confirm > .bo-muted {
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.bo-confirm > .bo-row {
+  justify-content: flex-end;
+  gap: var(--sp-1);
+}
+
+.bo-confirm > .bo-row > .bo-button {
+  min-width: min(137px, 100%);
+  min-height: var(--control-dense);
+}
+
+.bo-confirm .bo-button--danger {
+  border-color: var(--c-danger);
+  background: var(--c-danger);
+  color: var(--c-on-danger);
+}
+
+.bo-confirm .bo-button--danger:hover:not(:disabled) {
+  color: var(--c-on-danger);
+  filter: brightness(0.92);
 }
 
 input[type="checkbox"],
