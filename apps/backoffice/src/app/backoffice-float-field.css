@@ -58,3 +58,23 @@
   min-height: 56px;
   border-radius: var(--r-md);
 }
+
+/* A group of choices (branches, a scope, a list to pick from) in the same box as a field:
+   its name small and grey inside along the top, not cut into the edge. A floated legend is
+   an ordinary first child, so the group keeps its name. The selection preview draws its own. */
+.bo-fieldset:not(.bo-preview .bo-fieldset) {
+  padding: 6px 15px 12px;
+  border-color: var(--c-border);
+  border-radius: var(--r-md);
+}
+
+.bo-fieldset:not(.bo-preview .bo-fieldset) > legend {
+  float: left;
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+}
