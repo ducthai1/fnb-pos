@@ -4,7 +4,7 @@ import { COUNTER_CHANNEL, tilePrice } from "../../features/menu/menu-prices";
 import { isSoldOut } from "../../features/menu/product-availability";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
-import { productMark } from "./product-mark";
+import { ProductMark } from "./product-photo";
 
 export interface ProductTileProps {
   menu: TillMenu;
@@ -18,8 +18,8 @@ export interface ProductTileProps {
 }
 
 /**
- * One product: its category's colour where a photo would be, then a white body with its name
- * (two lines, the rest cut) and its price. Every tile is the same height so the grid reads
+ * One product: its photo, or its category's colour with its initials, then a white body with
+ * its name (two lines, the rest cut) and its price. Every tile is the same height so the grid reads
  * in rows.
  */
 export function ProductTile({ menu, product, tone, inCart, now, onPick }: ProductTileProps) {
@@ -35,7 +35,7 @@ export function ProductTile({ menu, product, tone, inCart, now, onPick }: Produc
       disabled={soldOut || price === null}
       onClick={() => onPick(product)}
     >
-      <span className="pos-product__thumb" data-initial={productMark(product.name)} aria-hidden />
+      <ProductMark className="pos-product__thumb" name={product.name} imageUrl={product.imageUrl} />
       <span className="pos-product__body">
         <span className="pos-product__name">{product.name}</span>
         <span className="pos-product__price" data-no-price={price === null}>

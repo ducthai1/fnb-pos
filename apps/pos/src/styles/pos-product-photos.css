@@ -1,0 +1,58 @@
+/* Product photos: on a tile the photo takes the coloured band's place, cropped to a fixed
+   4:3 frame whatever its own shape, with the white body over its foot; once any product on
+   the grid has a photo, every band takes that frame so rows stay even, and products
+   without one show their initials on the taller band. The photo sits under the mark's
+   initials, which come back when it cannot be loaded or drawn. */
+
+.pos-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.pos-product__thumb,
+.pos-picker-head .pos-picker-head__mark {
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-product__thumb[data-photo="shown"]::before,
+.pos-product__thumb[data-photo="loading"]::before,
+.pos-cart-line__photo[data-photo="shown"]::before,
+.pos-cart-line__photo[data-photo="loading"]::before {
+  content: none;
+}
+
+.pos-product-grid:has(.pos-product__thumb:not([data-photo="none"])) .pos-product__thumb {
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.pos-product:disabled .pos-photo {
+  opacity: 0.55;
+  filter: grayscale(1);
+}
+
+/* In the cart: a small square before the line's name, only for a product with a photo. */
+.pos-cart-line__photo {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.pos-cart-line__photo::before {
+  content: attr(data-initial);
+}

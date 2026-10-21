@@ -5,13 +5,11 @@ import { PosApp } from "./app/pos-app";
 import type { PosDependencies } from "./app/pos-dependencies";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
+import { API_BASE } from "./features/menu/api-base";
 import { httpFloorSource } from "./features/floor/floor-occupancy";
 import { printerForBuild } from "./features/printing/printer-port";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-styles";
-
-/** The API under the POS's own origin (proxied by Vite), unless a build points elsewhere. */
-const API_BASE: string = import.meta.env.VITE_FNB_API_BASE ?? "/api";
 
 const store = openBrowserLocalStore();
 // The app reports a failed open on screen; this only keeps it from counting as unhandled.

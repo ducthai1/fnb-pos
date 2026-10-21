@@ -17,6 +17,8 @@ export type CartView = (
   readonly pricesIncludeTax: boolean;
   /** A line's name when the menu cannot price it any more. */
   nameOf(line: CartLine): string;
+  /** The line's product photo, when the menu has one. */
+  photoOf(line: CartLine): string | undefined;
 };
 
 export function cartView(
@@ -30,6 +32,7 @@ export function cartView(
   const common = {
     pricesIncludeTax: chargeProfile.pricesIncludeTax,
     nameOf: (line: CartLine) => menu.productsById.get(line.productId)?.name ?? "",
+    photoOf: (line: CartLine) => menu.productsById.get(line.productId)?.imageUrl,
   };
   try {
     return {
