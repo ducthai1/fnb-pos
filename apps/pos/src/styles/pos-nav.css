@@ -51,33 +51,36 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-1);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
 }
 
+/* The modes read as the till's main tabs: plain words with an icon, the open one in brand
+   on a soft fill (the fill says it as well as the colour). */
 .pos-modes {
   display: inline-flex;
   gap: 4px;
-  padding: 4px;
-  border-radius: var(--r-md);
-  background: var(--c-surface-3);
 }
 
 .pos-modes .pos-mode {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  min-width: 112px;
   justify-content: center;
+  padding-inline: var(--sp-3);
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
-  color: var(--c-text-2);
-  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+  font-size: 0.9375rem;
+  font-weight: var(--fw-medium);
 }
 
 .pos-modes .pos-mode[aria-pressed="true"] {
-  background: var(--c-surface);
-  color: var(--c-brand-strong);
-  box-shadow: var(--shadow-card);
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+  font-weight: var(--fw-semibold);
 }
 
 .pos-till-tools {
@@ -91,9 +94,12 @@
 }
 
 .pos-tool {
-  color: var(--c-text-2);
+  border-color: var(--c-border);
+  border-radius: var(--r-sm);
   background: var(--c-surface);
-  border-color: var(--c-border-soft);
+  color: var(--c-text);
+  font-size: 0.9375rem;
+  font-weight: var(--fw-medium);
 }
 
 /* Two to four exclusive choices (cash in / out, by percent / by amount): one segmented
