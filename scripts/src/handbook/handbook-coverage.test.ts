@@ -1,10 +1,12 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  COUNTER_PART_DIR,
   HANDBOOK_DIR,
+  MAX_PICTURE_BYTES,
+  PAGE_SECTIONS,
+  brokenLinks,
   brokenReferences,
   claimedTwice,
   readCounterScreens,
@@ -14,6 +16,8 @@ import {
   readNotDescribed,
   readRoutedPages,
   missingPictures,
+  missingSections,
+  picturesOverLimit,
   undescribed,
   unknownScreens,
 } from "./handbook-coverage";
@@ -23,12 +27,19 @@ const { pages, problems } = readHandbookPages(HANDBOOK_DIR);
 const notDescribed = readNotDescribed(HANDBOOK_DIR);
 const counterScreens = readCounterScreens();
 const backofficePages = [...new Set([...readMenuPages(), ...readRoutedPages()])];
-const counterPartWritten = existsSync(COUNTER_PART_DIR);
-if (!counterPartWritten) {
-  console.warn(
-    "handbook: docs/handbook/may-quay/ is not here yet (the till part is written on its own branch), " +
-      "so the till screens are not checked; every other check runs.",
-  );
+
+/** A throwaway handbook folder with `files` written in it, removed after `check` runs. */
+function inFolder(files: Record<string, string | Buffer>, check: (dir: string) => void) {
+  const dir = mkdtempSync(join(tmpdir(), "handbook-"));
+  try {
+    for (const [name, content] of Object.entries(files)) {
+      mkdirSync(join(dir, name, ".."), { recursive: true });
+      writeFileSync(join(dir, name), content);
+    }
+    check(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 describe("the handbook covers the product", () => {
@@ -46,13 +57,18 @@ describe("the handbook covers the product", () => {
     expect(claimedTwice(backofficePages, pages)).toEqual([]);
   });
 
-  it.skipIf(!counterPartWritten)(
-    "describes every till screen (skipped while docs/handbook/may-quay/ is missing)",
-    () => {
-      expect(counterScreens.length).toBeGreaterThan(10);
-      expect(undescribed(counterScreens, pages, notDescribed)).toEqual([]);
-    },
-  );
+  it("describes every till screen", () => {
+    expect(counterScreens.length).toBeGreaterThan(10);
+    expect(undescribed(counterScreens, pages, notDescribed)).toEqual([]);
+  });
+
+  it("gives each till screen to exactly one handbook page", () => {
+    expect(claimedTwice(counterScreens, pages)).toEqual([]);
+  });
+
+  it("answers the same questions on every page", () => {
+    expect(missingSections(pages)).toEqual([]);
+  });
 
   it("names only screens and pages that exist", () => {
     expect(unknownScreens([...counterScreens, ...backofficePages], pages)).toEqual([]);
@@ -67,8 +83,13 @@ describe("the handbook covers the product", () => {
     expect(brokenReferences(pages, readDecisionIds())).toEqual([]);
   });
 
-  it("shows only pictures whose file is there", () => {
+  it("shows only pictures whose file is there, each small enough for a phone", () => {
     expect(missingPictures(HANDBOOK_DIR)).toEqual([]);
+    expect(picturesOverLimit(HANDBOOK_DIR)).toEqual([]);
+  });
+
+  it("links only to files that are there", () => {
+    expect(brokenLinks(HANDBOOK_DIR)).toEqual([]);
   });
 });
 
@@ -79,16 +100,38 @@ describe("the coverage check itself", () => {
   });
 
   it("reports a picture whose file is missing", () => {
-    const dir = mkdtempSync(join(tmpdir(), "handbook-"));
-    try {
-      writeFileSync(
-        join(dir, "page.md"),
-        "![Màn hình](images/not-taken.webp)\n\nVí dụ cú pháp: `![tên](đường dẫn)`\n",
-      );
-      expect(missingPictures(dir)).toHaveLength(1);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
+    inFolder(
+      { "page.md": "![Màn hình](images/not-taken.webp)\n\nVí dụ cú pháp: `![tên](đường dẫn)`\n" },
+      (dir) => expect(missingPictures(dir)).toHaveLength(1),
+    );
+  });
+
+  it("reports a picture too big and a link to a page that is not there", () => {
+    inFolder(
+      {
+        "images/huge.webp": Buffer.alloc(MAX_PICTURE_BYTES + 1),
+        "images/small.webp": Buffer.alloc(10),
+        "page.md": "[có](images/small.webp) [mất](02-khong-co.md#buoc) [web](https://example.com)\n",
+      },
+      (dir) => {
+        expect(picturesOverLimit(dir)).toHaveLength(1);
+        expect(brokenLinks(dir)).toEqual([expect.stringMatching(/page\.md: 02-khong-co\.md#buoc$/)]);
+      },
+    );
+  });
+
+  it("reports a page without a part of the template, the offline one outside operations", () => {
+    const page = (path: string, headings: readonly string[]) => ({
+      path,
+      headings,
+      frontMatter: pages[0]!.frontMatter,
+    });
+    expect(
+      missingSections([
+        page("docs/handbook/quan-ly/x.md", PAGE_SECTIONS),
+        page("docs/handbook/van-hanh/y.md", PAGE_SECTIONS),
+      ]),
+    ).toEqual(["docs/handbook/quan-ly/x.md: Mất mạng thì sao"]);
   });
 
   it("lets the not-described list excuse a screen", () => {
@@ -111,7 +154,7 @@ describe("the coverage check itself", () => {
       ].join("\n"),
     );
     if (!parsed.ok) throw new Error(parsed.reason);
-    const fake = { path: "docs/handbook/fake.md", frontMatter: parsed.value };
+    const fake = { path: "docs/handbook/fake.md", frontMatter: parsed.value, headings: [] };
     expect(brokenReferences([fake], new Set(["D-001"]))).toEqual([
       "docs/handbook/fake.md: test file nowhere/missing.test.ts does not exist",
       "docs/handbook/fake.md: decision D-999 is not in docs/decision-log.md",
@@ -131,6 +174,15 @@ describe("the coverage check itself", () => {
       ok: false,
     });
     expect(parseFrontMatter("# no front matter")).toMatchObject({ ok: false });
+  });
+
+  it("reads the audience as one name or a list", () => {
+    const one = parseFrontMatter("---\ntitle: A\naudience: quan-ly\nscreens: []\ndecisions: []\ntests: []\n---\n");
+    const two = parseFrontMatter(
+      "---\ntitle: A\naudience:\n  - thu-ngan\n  - pha-che\nscreens: []\ndecisions: []\ntests: []\n---\n",
+    );
+    expect(one).toMatchObject({ ok: true, value: { audience: ["quan-ly"] } });
+    expect(two).toMatchObject({ ok: true, value: { audience: ["thu-ngan", "pha-che"] } });
   });
 
   it("reads lists written inline, indented or not", () => {

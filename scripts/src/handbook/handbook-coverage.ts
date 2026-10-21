@@ -1,12 +1,10 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type HandbookFrontMatter, parseFrontMatter } from "./handbook-front-matter";
 
 export const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 export const HANDBOOK_DIR = join(REPO_ROOT, "docs/handbook");
-/** The counter's part of the handbook; written on its own branch, checked once it is here. */
-export const COUNTER_PART_DIR = join(HANDBOOK_DIR, "may-quay");
 /** Screens and pages left out on purpose, each with its reason, in a table of this file. */
 export const NOT_DESCRIBED_FILE = "_khong-mo-ta.md";
 /** Files of the handbook that describe no screen: the index, the gaps list, the left-out list. */
@@ -16,7 +14,24 @@ export interface HandbookPage {
   /** Path from the repo root, as problems name it. */
   readonly path: string;
   readonly frontMatter: HandbookFrontMatter;
+  /** The page's `## ` headings, in order. */
+  readonly headings: readonly string[];
 }
+
+/** The parts every page has, in the template's words, so a reader finds the same answers everywhere. */
+export const PAGE_SECTIONS = [
+  "Dùng để làm gì",
+  "Ai dùng, cần quyền gì",
+  "Các bước",
+  "Luật và giới hạn",
+  "Khi có lỗi",
+  "Chưa làm / sắp có",
+] as const;
+/** What a screen does offline; the operations part runs no screen of the shop, so it has none. */
+export const OFFLINE_SECTION = "Mất mạng thì sao";
+const OPERATIONS_PART = "docs/handbook/van-hanh/";
+/** A picture is fetched with the page on a phone: keep each small. */
+export const MAX_PICTURE_BYTES = 150 * 1024;
 
 /** Every handbook page under `dir` (the not-described list aside), or why one cannot be read. */
 export function readHandbookPages(dir: string): { pages: HandbookPage[]; problems: string[] } {
@@ -28,8 +43,10 @@ export function readHandbookPages(dir: string): { pages: HandbookPage[]; problem
       if (entry.isDirectory()) walk(full);
       else if (entry.name.endsWith(".md") && !NOT_PAGES.has(entry.name)) {
         const path = relative(REPO_ROOT, full);
-        const parsed = parseFrontMatter(readFileSync(full, "utf8"));
-        if (parsed.ok) pages.push({ path, frontMatter: parsed.value });
+        const text = readFileSync(full, "utf8");
+        const parsed = parseFrontMatter(text);
+        const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => (match[1] ?? "").trim());
+        if (parsed.ok) pages.push({ path, frontMatter: parsed.value, headings });
         else problems.push(`${path}: ${parsed.reason}`);
       }
     }
@@ -168,4 +185,54 @@ export function missingPictures(dir: string): string[] {
   };
   walk(dir);
   return missing;
+}
+
+/** Template parts a page leaves out, as `page: part`. */
+export function missingSections(pages: readonly HandbookPage[]): string[] {
+  return pages.flatMap((page) => {
+    const parts = page.path.startsWith(OPERATIONS_PART)
+      ? PAGE_SECTIONS
+      : [...PAGE_SECTIONS, OFFLINE_SECTION];
+    return parts.filter((part) => !page.headings.includes(part)).map((part) => `${page.path}: ${part}`);
+  });
+}
+
+const PICTURE_FILE = /\.(webp|png|jpe?g|gif)$/i;
+
+/** Picture files under `dir` bigger than MAX_PICTURE_BYTES, as `path: size`. */
+export function picturesOverLimit(dir: string): string[] {
+  const big: string[] = [];
+  const walk = (current: string) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (PICTURE_FILE.test(entry.name) && statSync(full).size > MAX_PICTURE_BYTES)
+        big.push(`${relative(REPO_ROOT, full)}: ${statSync(full).size} bytes`);
+    }
+  };
+  walk(dir);
+  return big;
+}
+
+const LINK = /(?<!!)\[[^\]]*\]\(([^)\s]+)\)/g;
+
+/** Links (`[…](path)`) from any handbook file to a file that is not there, as `file: path`. */
+export function brokenLinks(dir: string): string[] {
+  const broken: string[] = [];
+  const walk = (current: string) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".md")) {
+        for (const match of withoutCode(readFileSync(full, "utf8")).matchAll(LINK)) {
+          const target = (match[1] ?? "").split("#")[0] ?? "";
+          if (target === "" || /^[a-z]+:/i.test(target)) continue;
+          if (!existsSync(join(dirname(full), target)))
+            broken.push(`${relative(REPO_ROOT, full)}: ${match[1]}`);
+        }
+      }
+    }
+  };
+  walk(dir);
+  return broken;
 }

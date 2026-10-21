@@ -6,7 +6,8 @@
  */
 export interface HandbookFrontMatter {
   readonly title: string;
-  readonly audience: string;
+  /** Who reads the page; one name (`audience: quan-ly`) or a list (a till page for two jobs). */
+  readonly audience: readonly string[];
   readonly screens: readonly string[];
   readonly decisions: readonly string[];
   readonly tests: readonly string[];
@@ -14,7 +15,7 @@ export interface HandbookFrontMatter {
 
 export const AUDIENCES = ["chu-quan", "quan-ly", "thu-ngan", "pha-che", "van-hanh"] as const;
 
-const LIST_KEYS = ["screens", "decisions", "tests"] as const;
+const LIST_KEYS = ["audience", "screens", "decisions", "tests"] as const;
 type ListKey = (typeof LIST_KEYS)[number];
 
 const unquote = (value: string) => value.trim().replace(/^(["'])(.*)\1$/, "$2");
@@ -54,7 +55,8 @@ export function parseFrontMatter(
     open = null;
     if ((LIST_KEYS as readonly string[]).includes(key)) {
       const listKey = key as ListKey;
-      const inline = value === "" ? [] : inlineList(value);
+      const inline =
+        value === "" ? [] : (inlineList(value) ?? (listKey === "audience" ? [unquote(value)] : null));
       if (inline === null) return { ok: false, reason: `${key} must be a list` };
       lists.set(listKey, inline);
       if (value === "") open = listKey;
@@ -64,10 +66,12 @@ export function parseFrontMatter(
   }
 
   const title = scalars.get("title") ?? "";
-  const audience = scalars.get("audience") ?? "";
+  const audience = lists.get("audience") ?? [];
   if (title === "") return { ok: false, reason: "title is missing" };
-  if (!(AUDIENCES as readonly string[]).includes(audience)) {
-    return { ok: false, reason: `audience "${audience}" is not one of ${AUDIENCES.join(", ")}` };
+  if (audience.length === 0) return { ok: false, reason: "audience is missing" };
+  const stranger = audience.find((who) => !(AUDIENCES as readonly string[]).includes(who));
+  if (stranger !== undefined) {
+    return { ok: false, reason: `audience "${stranger}" is not one of ${AUDIENCES.join(", ")}` };
   }
   for (const key of LIST_KEYS) {
     if (!lists.has(key))
