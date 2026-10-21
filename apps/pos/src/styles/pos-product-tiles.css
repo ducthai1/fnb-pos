@@ -1,10 +1,13 @@
-/* Product tiles: a coloured mark where a photo would be, the name cut after two lines, the
-   price at the foot. Sold out stays on the grid, greyed and labelled, never hidden: the
-   cashier must see it is sold out, not wonder where it went. */
+/* Product tiles: the category's colour where a photo would be, with the product's initials
+   on it; a white body over its lower part holds the name (cut after two lines) and the price.
+   Sold out stays on the grid, greyed and labelled, never hidden: the cashier must see it is
+   sold out, not wonder where it went. */
 
 .pos-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 128px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  /* Rows as tall as their tiles, even when the categories beside them run longer. */
+  align-content: start;
   gap: var(--sp-3);
   margin: 0;
   padding: 0;
@@ -20,27 +23,25 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
   width: 100%;
   height: 100%;
-  padding: var(--sp-2) var(--sp-2) var(--sp-3);
-  border: 1px solid var(--c-border-soft);
+  min-height: 140px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
   border-radius: var(--r-lg);
-  background: var(--c-surface);
+  background: var(--cat);
   box-shadow: var(--shadow-card);
   color: var(--c-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
-  transition:
-    transform 80ms ease,
-    border-color 120ms ease;
+  transition: transform 80ms ease;
 }
 
 .pos-product:active:not(:disabled) {
   transform: scale(0.97);
-  border-color: var(--c-brand-tint);
 }
 
 .pos-product:focus-visible {
@@ -50,92 +51,110 @@
 
 .pos-product__thumb {
   display: grid;
+  flex: none;
   place-items: center;
   height: 64px;
-  overflow: hidden;
-  border-radius: var(--r-md);
-  background: var(--cat-soft);
-  color: var(--cat);
+  margin-bottom: calc(-1 * var(--sp-4));
+  padding-bottom: var(--sp-4);
+  box-sizing: border-box;
+  color: var(--c-on-cat);
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
   line-height: 1;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .pos-product__thumb::before {
   content: attr(data-initial);
 }
 
+/* The white body: name on top, price at the foot, at least 92px whatever the name. */
+.pos-product__body {
+  position: relative;
+  display: flex;
+  flex: 1 0 92px;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--c-surface);
+}
+
 .pos-product__name {
   display: -webkit-box;
-  min-height: calc(2em * 1.3);
-  padding-inline: var(--sp-1);
+  min-height: 40px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-weight: var(--fw-semibold);
-  line-height: 1.3;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 20px;
   overflow-wrap: anywhere;
 }
 
 .pos-product__price {
   margin-top: auto;
-  padding-inline: var(--sp-1);
-  color: var(--c-brand-strong);
-  font-weight: var(--fw-bold);
+  color: var(--c-price);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: 24px;
+  overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
 }
 
 .pos-product__price[data-no-price="true"] {
   color: var(--c-text-2);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
 }
 
 .pos-product__flag {
   position: absolute;
-  top: var(--sp-3);
-  right: var(--sp-3);
-  max-width: calc(100% - 2 * var(--sp-3));
+  top: var(--sp-2);
+  left: var(--sp-2);
+  max-width: calc(100% - 2 * var(--sp-2) - 36px);
   padding: 2px var(--sp-2);
   border-radius: var(--r-pill);
   background: var(--c-danger);
   color: var(--c-on-danger);
   font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  line-height: 18px;
+  font-weight: var(--fw-semibold);
+  line-height: 16px;
   overflow-wrap: anywhere;
 }
 
-/* How many are on the order already, on the tile's corner like a notification. */
+/* How many are on the order already, a pill in the coloured corner. */
 .pos-product__count {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: var(--sp-2);
+  right: var(--sp-2);
   z-index: 1;
   box-sizing: border-box;
   min-width: 28px;
   padding: 0 var(--sp-2);
   border-radius: var(--r-pill);
-  background: var(--c-brand);
-  color: var(--c-on-brand);
-  box-shadow: 0 0 0 2px var(--c-surface);
+  background: var(--c-surface);
+  color: var(--c-brand-strong);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  line-height: 28px;
+  line-height: 24px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
 .pos-product:disabled {
-  background: var(--c-surface-2);
+  background: var(--c-surface-3);
   box-shadow: none;
   cursor: not-allowed;
 }
 
 .pos-product:disabled .pos-product__thumb {
-  filter: grayscale(1);
-  opacity: 0.45;
+  color: var(--c-text-3);
+}
+
+.pos-product:disabled .pos-product__body {
+  background: var(--c-surface-2);
 }
 
 .pos-product:disabled .pos-product__name {
@@ -149,37 +168,4 @@
 
 .pos-menu__empty {
   padding: var(--sp-6) 0;
-}
-
-/* A till held sideways: categories in a column beside the products, kept in view. */
-@media (min-width: 1024px) {
-  .pos-menu {
-    grid-template-columns: 184px minmax(0, 1fr);
-    /* A long list of categories grows the products' row, never the search's. */
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-      "cats search"
-      "cats grid";
-    column-gap: var(--sp-4);
-  }
-  .pos-categories {
-    grid-area: cats;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-self: start;
-    position: sticky;
-    top: calc(var(--bar-h) + var(--sp-3));
-  }
-  .pos-category {
-    width: 100%;
-    min-height: var(--tap-lg);
-    border-radius: var(--r-md);
-  }
-  .pos-search {
-    grid-area: search;
-  }
-  .pos-product-grid,
-  .pos-menu__empty {
-    grid-area: grid;
-  }
 }
