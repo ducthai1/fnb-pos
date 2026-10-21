@@ -60,7 +60,7 @@ export function CartRow(
       data-locked={locked}
       onKeyDown={closeOnEscape}
     >
-      <div className="pos-cart-line__row" data-photo={photo !== undefined}>
+      <div className="pos-cart-line__row">
         {/* Only a photo: a line without one keeps the plain layout, no coloured square. */}
         {photo === undefined ? null : (
           <ProductMark className="pos-cart-line__photo" name={name} imageUrl={photo} />
