@@ -1,0 +1,69 @@
+/* Tick boxes, radio dots and selects drawn the same on every system, as the reference's:
+   a 20px box with a 4px corner and a #d2cddb edge that fills brand green with a white tick,
+   a round dot that becomes a thick green ring, a select with its own grey chevron. They stay
+   the real inputs, so their names and keys are the browser's. The feature switches and the
+   availability toggle draw themselves (more specific rules) and are left alone. */
+
+input[type="checkbox"]:not(.bo-toggle__input),
+input[type="radio"] {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  margin: 0;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface) center / 14px 14px no-repeat;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+input[type="checkbox"]:not(.bo-toggle__input) {
+  border-radius: 4px;
+}
+
+input[type="radio"] {
+  border-radius: var(--r-pill);
+}
+
+input[type="checkbox"]:not(.bo-toggle__input):checked {
+  border-color: var(--c-brand);
+  background-color: var(--c-brand);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+input[type="radio"]:checked {
+  border: 6px solid var(--c-brand);
+}
+
+input[type="checkbox"]:not(.bo-toggle__input):hover:not(:disabled),
+input[type="radio"]:hover:not(:disabled):not(:checked) {
+  border-color: var(--c-brand);
+}
+
+input[type="checkbox"]:not(.bo-toggle__input):focus-visible,
+input[type="radio"]:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+input[type="checkbox"]:not(.bo-toggle__input):disabled,
+input[type="radio"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+select.bo-input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23756f80' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+}
+
+/* The branch over the bar has no edge of its own; its chevron sits at its end. */
+.bo-branch-picker__select.bo-input {
+  padding-right: 32px;
+  background-position: right 10px center;
+}

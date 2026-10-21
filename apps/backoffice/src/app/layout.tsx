@@ -12,6 +12,7 @@ import "./backoffice-shell.css";
 import "./backoffice-sidenav.css";
 import "./backoffice-controls.css";
 import "./backoffice-float-field.css";
+import "./backoffice-checks.css";
 import "./backoffice-page.css";
 import "./backoffice-stats.css";
 import "./backoffice-hours-chart.css";

@@ -32,10 +32,9 @@
   line-height: 24px;
 }
 
-/* A select draws its value about 4px in from its padding: start it that much sooner. */
+/* A select keeps room at its end for its chevron (backoffice-checks.css). */
 .bo-card .bo-field > label + select.bo-input {
-  padding-left: 11px;
-  padding-right: 8px;
+  padding-right: 36px;
 }
 
 /* Read only: the reference greys the box. */
