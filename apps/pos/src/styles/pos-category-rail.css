@@ -52,15 +52,23 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
+  /* A badge on the tile's corner, ringed in the tile's colour so it reads as laid over the
+     icon; on the chosen tile it is white with brand writing, as the count on a product. */
   .pos-category__count {
     position: absolute;
     top: var(--sp-1);
     right: var(--sp-1);
     padding: 0 5px;
     line-height: 16px;
+    box-shadow: 0 0 0 2px var(--c-surface);
   }
   .pos-category[aria-selected="true"] {
     background: var(--c-brand);
+  }
+  .pos-category[aria-selected="true"] .pos-category__count {
+    background: var(--c-surface);
+    color: var(--c-brand-strong);
+    box-shadow: 0 0 0 2px var(--c-brand);
   }
   .pos-search {
     grid-area: search;
