@@ -1,9 +1,12 @@
 /* Importing the menu from a products sheet: the file card, the choices, the run bar. */
 
+/* A drop zone, as the reference's upload box: a dashed edge that turns brand green while a
+   file is held over it. */
 .bo-import-file {
   flex-direction: row;
   align-items: flex-start;
   gap: var(--sp-4);
+  border: 1.5px dashed var(--c-border);
 }
 
 .bo-import-file__icon {

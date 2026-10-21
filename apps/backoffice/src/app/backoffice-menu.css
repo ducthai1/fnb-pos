@@ -37,6 +37,12 @@
   border-color: var(--bo-danger);
 }
 
+/* Cards have no edge of their own: a group that is not right yet gets a whole red one. */
+.bo-group-card[data-error="true"] {
+  border: 1px solid var(--bo-danger);
+  border-left-width: 4px;
+}
+
 /* An option, a size or a size rule: its fields side by side while they fit, then wrapped. */
 .bo-entry {
   padding: 8px 0;

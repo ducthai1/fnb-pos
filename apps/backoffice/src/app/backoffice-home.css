@@ -145,13 +145,15 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  min-height: 48px;
+  min-height: var(--control-h);
   padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-md);
-  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
   color: var(--c-text);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-body);
+  line-height: 20px;
+  font-weight: var(--fw-medium);
   text-decoration: none;
 }
 
@@ -160,7 +162,7 @@
 }
 
 .bo-home-link:hover {
-  border-color: var(--c-brand-tint);
+  border-color: var(--c-brand);
   color: var(--c-brand-strong);
 }
 
