@@ -7,6 +7,7 @@ import { TextField } from "../../ui/text-field";
 import { type DraftErrors, productPath } from "./draft-error-paths";
 import { EDITOR_SECTIONS } from "./editor-sections";
 import type { ProductDraft } from "./product-draft";
+import { ProductPhotoField } from "./product-photo-field";
 import { type DraftEdit, setFields } from "./product-draft-edits";
 
 const T = vi.menu.editor;
@@ -32,6 +33,7 @@ export function GeneralSection({
   return (
     <fieldset className="bo-card bo-fieldset-card" id={EDITOR_SECTIONS.info}>
       <legend className="bo-subtitle">{T.general}</legend>
+      <ProductPhotoField draft={draft} edit={edit} />
       <TextField label={T.name} value={draft.name} onChange={(name) => set({ name })} error={errors[productPath("name")]} />
       <div className="bo-row">
         <SelectField

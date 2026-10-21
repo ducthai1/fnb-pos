@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { build, preview } from "vite";
+import { servePhotos } from "./support/serve-hostile-photos";
 import type { TestProject } from "vitest/node";
 
 declare module "vitest" {
@@ -28,6 +29,7 @@ export default async function setup(project: TestProject): Promise<() => Promise
   });
   const server = await preview({
     ...shared,
+    plugins: [servePhotos()],
     build: { outDir },
     preview: { host: "127.0.0.1", port: 0, strictPort: true },
   });

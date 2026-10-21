@@ -109,6 +109,7 @@ export function draftToProductBody(draft: ProductDraft, errors: DraftErrorList):
     trackStock: draft.trackStock,
     earnsPoints: draft.earnsPoints,
     printCupLabel: draft.printCupLabel,
+    imageKey: draft.photo?.key ?? null,
     variants: draft.variants.map((variant) => ({
       id: variant.id,
       name: read.name(variantPath(variant.id, "name"), variant.name),

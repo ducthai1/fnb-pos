@@ -9,6 +9,11 @@ PATH=/usr/local/bin:/usr/bin:/bin
 # ngày kinh doanh 04:00. Giữ 14 bản mới nhất trong /var/backups/fnb.
 30 3 * * * fnbbackup cd /srv/fnb/current && FNB_PG_BIN_DIR=/usr/lib/postgresql/17/bin FNB_BACKUP_DATABASE_URL=postgresql://fnb_backup@127.0.0.1:5432/fnb FNB_BACKUP_DIRECTORY=/var/backups/fnb FNB_BACKUP_KEEP=14 node --import tsx scripts/src/ops/backup-cli.ts 2>&1 | logger -t fnb-backup
 
+# Ảnh món (không có trong pg_dump): chép sau bản dump. File ảnh không bao giờ đổi nội dung
+# dưới cùng tên ⇒ rsync chỉ chép ảnh mới; không --delete để bản sao đủ cho mọi bản dump còn giữ.
+# fnbbackup đọc được nhờ thuộc nhóm fnb (infra/README.md mục 10).
+40 3 * * * fnbbackup rsync -a /var/lib/fnb/media/ /var/backups/fnb/media/ 2>&1 | logger -t fnb-backup
+
 # Bản backup nằm cùng ổ với database thì không sống sót khi ổ hỏng: chép ra ngoài server.
 # Bỏ dấu # sau khi cấu hình rclone (`rclone config` bằng user fnbbackup, remote tên fnb-offsite).
 # 50 3 * * * fnbbackup rclone copy /var/backups/fnb fnb-offsite:fnb-backups --max-age 48h 2>&1 | logger -t fnb-backup

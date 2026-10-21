@@ -47,8 +47,11 @@ export const HOSTILE_PRODUCT: PosProductWire = {
   ],
 };
 
-/** The pilot café's menu with the worst names and amounts added, as the till holds it. */
-export function hostileTillMenu(): TillMenu {
+/**
+ * The pilot café's menu with the worst names and amounts added, as the till holds it;
+ * `photos` gives products (by id) a photo address.
+ */
+export function hostileTillMenu(photos: Readonly<Record<string, string>> = {}): TillMenu {
   const wire = tillBootstrapWire();
   const bootstrap = tillBootstrap({
     branch: { ...wire.branch, name: HOSTILE_NAMES.branch },
@@ -80,5 +83,13 @@ export function hostileTillMenu(): TillMenu {
       ],
     },
   });
-  return buildTillMenu(bootstrap, NO_MENU_COPIES, new Set());
+  const withPhotos = bootstrap.menu.products.map((product) => {
+    const imageUrl = photos[product.id];
+    return imageUrl === undefined ? product : { ...product, imageUrl };
+  });
+  return buildTillMenu(
+    { ...bootstrap, menu: { ...bootstrap.menu, products: withPhotos } },
+    NO_MENU_COPIES,
+    new Set(),
+  );
 }

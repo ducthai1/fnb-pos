@@ -7,6 +7,7 @@ import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
 import { VI_FLOOR } from "./vi-floor";
 import { VI_HOME } from "./vi-home";
 import { VI_MENU } from "./vi-menu";
+import { VI_MEDIA_ERRORS, VI_MENU_PHOTO } from "./vi-menu-photo";
 import { VI_MENU_IMPORT } from "./vi-menu-sheet";
 import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
@@ -27,6 +28,7 @@ export const vi = {
   staffTools: VI_STAFF_TOOLS,
   menu: VI_MENU,
   menuImport: VI_MENU_IMPORT,
+  menuPhoto: VI_MENU_PHOTO,
   settings: VI_SETTINGS,
   dailySales: VI_DAILY_SALES,
   printFailures: VI_PRINT_FAILURES,
@@ -38,6 +40,11 @@ export const vi = {
     /** A code this backoffice does not know yet: the sentence plus the code, for support. */
     unknown: (code: string) => `Có lỗi xảy ra (mã ${code}). Thử lại; nếu vẫn lỗi, báo hỗ trợ.`,
     unexpected: (status: number) => `Máy chủ trả lời bất thường (HTTP ${status}). Thử lại.`,
-    byCode: { ...VI_API_ERRORS, ...VI_API_ERRORS_OPERATIONS, ...VI_DOMAIN_ERRORS } as Readonly<Record<string, string>>,
+    byCode: {
+      ...VI_API_ERRORS,
+      ...VI_API_ERRORS_OPERATIONS,
+      ...VI_MEDIA_ERRORS,
+      ...VI_DOMAIN_ERRORS,
+    } as Readonly<Record<string, string>>,
   },
 } as const;

@@ -4,6 +4,7 @@ import type pg from "pg";
 import type { AuthPolicy } from "./auth/auth-policy";
 import type { SessionCookieJar } from "./auth/session-cookie";
 import type { Clock } from "./clock";
+import type { ProductImageStore } from "./media/product-image-store";
 import type { SecretVerifier } from "./security/secret-hash";
 
 /** What every route module receives from buildApp. */
@@ -19,6 +20,8 @@ export interface ApiContext {
   requireSession: onRequestHookHandler;
   /** onRequest hook: sets request.device from `Authorization: Device <token>`, or answers 401. */
   requireDevice: onRequestHookHandler;
+  /** Product photos on disk; null when the server is started without a media directory. */
+  productImages: ProductImageStore | null;
   /** onRequest hook after requireSession: the member's role allows `key`, or 403. */
   requirePermission: (key: UnlimitedPermissionKey) => onRequestHookHandler;
 }

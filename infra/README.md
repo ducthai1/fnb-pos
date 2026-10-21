@@ -11,7 +11,9 @@ Internet ──443──► Caddy (TLS tự động, header bảo mật)
                    ├── /pos/*  ──► file tĩnh      /srv/fnb/current/apps/pos/dist
                    └── còn lại ──► fnb-backoffice 127.0.0.1:3001  (next start, user fnb)
 fnb-api ──► Postgres 17 (127.0.0.1:5432, role fnb_app, RLS)
+fnb-api ──► ảnh món trên đĩa: /var/lib/fnb/media (FNB_MEDIA_DIR), phục vụ ở /api/media/...
 cron 03:30 (user fnbbackup) ──► pg_dump bằng role fnb_backup ──► /var/backups/fnb (+ chép ra ngoài)
+cron 03:40 (user fnbbackup) ──► rsync ảnh món ──► /var/backups/fnb/media
 ```
 
 Một origin `https://quan.example.vn` cho cả POS (`/pos/`) và backoffice (`/`): không cần CORS, cookie phiên `__Host-` của API dùng được, `FNB_ALLOWED_ORIGINS` chỉ một giá trị.
@@ -38,6 +40,9 @@ sudo adduser --system --group --home /var/lib/fnbbackup fnbbackup
 sudo install -d -o fnb -g fnb /srv/fnb/releases
 sudo install -d -o fnbbackup -g fnbbackup -m 700 /var/backups/fnb
 sudo install -d -o root -g fnb -m 750 /etc/fnb
+# Ảnh món (FNB_MEDIA_DIR): ngoài thư mục release, API ghi được, người backup đọc được.
+sudo install -d -o fnb -g fnb -m 750 /var/lib/fnb /var/lib/fnb/media
+sudo usermod -aG fnb fnbbackup
 ```
 
 ## 3. Node 22 và pnpm
@@ -157,6 +162,7 @@ journalctl -t fnb-backup -n 5
 ```
 
 - Tên file `fnb-fnb-<giờ UTC>.dump`, giữ 14 bản mới nhất (`FNB_BACKUP_KEEP`), bản cũ hơn tự xóa.
+- **Ảnh món không nằm trong dump**: dòng thứ hai của cron chép `/var/lib/fnb/media/` sang `/var/backups/fnb/media/` (rsync, chỉ ảnh mới). Chạy thử: `sudo -u fnbbackup rsync -a /var/lib/fnb/media/ /var/backups/fnb/media/`. Dòng `rclone` chép cả thư mục `/var/backups/fnb` nên ảnh cũng ra ngoài server.
 - **Bắt buộc chép ra ngoài server** (bật dòng `rclone` trong file cron sau khi `rclone config`): ổ hỏng là mất cả DB lẫn backup.
 - Diễn tập khôi phục mỗi tháng theo [`restore-drill.md`](restore-drill.md).
 
@@ -201,6 +207,8 @@ Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng c�
 - [ ] Có người trực (số điện thoại) cho ngày đầu, biết cách khởi động lại: `sudo systemctl restart fnb-api`.
 
 ## 14. Giới hạn đã biết
+
+- Ảnh món: thu nhỏ ở trình duyệt (≤ 800px, WebP), server chỉ kiểm loại bằng byte đầu file, ≤ 1 MB, mỗi cạnh 16–2048px; ảnh cũ (đã thay/xóa khỏi món) chưa được dọn khỏi đĩa (vài chục KB mỗi ảnh). Ảnh phục vụ không cần đăng nhập: ai có đường dẫn (chứa mã tenant + băm nội dung, không đoán được) đều xem được.
 
 - Giới hạn tần suất đếm trong bộ nhớ của tiến trình API: khởi động lại là đếm lại; chạy nhiều tiến trình thì mỗi tiến trình cho đủ hạn mức (cần kho dùng chung khi mở rộng).
 - Job dọn mã ghép/phiên chạy trong API: nhiều tiến trình cùng database thì chỉ bật ở một (`FNB_CLEANUP_ENABLED=false` ở các tiến trình khác).

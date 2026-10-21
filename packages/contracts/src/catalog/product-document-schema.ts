@@ -6,6 +6,7 @@ import {
   nameSchema,
   versionSchema,
 } from "./catalog-schema-parts";
+import { productImageKeySchema } from "./product-image-schemas";
 
 const variantSchema = z
   .object({ id: idSchema, name: nameSchema, price: amountSchema.nullable().default(null) })
@@ -84,6 +85,12 @@ export const productDocumentSchema = z
     trackStock: z.boolean().default(false),
     earnsPoints: z.boolean().default(true),
     printCupLabel: z.boolean().default(false),
+    /**
+     * The photo, as an upload named it; null takes it off. Left out, the stored one stays:
+     * a client that does not know about photos (an older backoffice, the Excel import)
+     * saves a product without wiping its photo.
+     */
+    imageKey: productImageKeySchema.nullable().optional(),
     variants: z.array(variantSchema).max(50).default([]),
     modifierGroups: z.array(modifierGroupSchema).max(30).default([]),
     combo: comboSchema.nullable().default(null),

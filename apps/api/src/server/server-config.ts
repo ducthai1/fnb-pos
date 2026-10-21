@@ -3,6 +3,7 @@ import type { RateLimitSettings } from "../http/rate-limit-hooks";
 import type { CleanupSettings } from "../ops/sign-in-cleanup-job";
 import { PAYMENT_SECRET_KEY_ENV } from "../payments/webhook-secret-box";
 import { cleanupEnvironment, cleanupSettingsOf } from "./cleanup-environment";
+import { mediaDirectoryOf, mediaEnvironment } from "./media-environment";
 import { rateLimitEnvironment, rateLimitSettingsOf } from "./rate-limit-environment";
 
 /** What the server process is started with, read once from its environment. */
@@ -24,6 +25,8 @@ export interface ServerConfig {
   readonly rateLimits: RateLimitSettings;
   /** Deletes expired pairing codes and old sessions; null when this process does not. */
   readonly cleanup: CleanupSettings | null;
+  /** Product photos, a directory per tenant; created at start if missing. */
+  readonly mediaDirectory: string;
 }
 
 export type ServerConfigResult =
@@ -75,6 +78,7 @@ const environmentSchema = z
     FNB_ALLOWED_ORIGINS: origins.optional(),
     ...rateLimitEnvironment,
     ...cleanupEnvironment,
+    ...mediaEnvironment,
   })
   .superRefine((env, context) => {
     if (env.FNB_ENV !== "production") return;
@@ -90,6 +94,9 @@ const environmentSchema = z
     }
     if (env.FNB_ALLOWED_ORIGINS === undefined) {
       problem("FNB_ALLOWED_ORIGINS", "is required in production");
+    }
+    if (env.FNB_MEDIA_DIR === undefined) {
+      problem("FNB_MEDIA_DIR", "is required in production: where product photos are kept");
     }
   });
 
@@ -130,6 +137,7 @@ export function readServerConfig(
       allowedOrigins: values.FNB_ALLOWED_ORIGINS ?? null,
       rateLimits: rateLimitSettingsOf(values),
       cleanup: cleanupSettingsOf(values),
+      mediaDirectory: mediaDirectoryOf(values),
     },
   };
 }

@@ -1,0 +1,65 @@
+/* A product's photo: the field of the editor (a 4:3 frame like the till's tile, beside its
+   buttons, the whole card a drop zone) and the small square of the product list, where the
+   photo covers the initials and leaves them showing if it fails to load. */
+
+.bo-photo-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px dashed var(--c-border);
+  border-radius: var(--r-md);
+}
+
+.bo-photo-field[data-dragging="true"] {
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+}
+
+.bo-photo-field__frame {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 160px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+}
+
+.bo-photo-field__frame img,
+.bo-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bo-photo-field__side {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.bo-photo-field__label {
+  font-weight: var(--fw-semibold);
+}
+
+.bo-photo-field label.bo-button {
+  cursor: pointer;
+}
+
+.bo-photo-field label.bo-button:focus-within {
+  box-shadow: var(--ring);
+}
+
+.bo-mark {
+  position: relative;
+  overflow: hidden;
+}

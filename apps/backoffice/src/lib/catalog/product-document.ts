@@ -17,6 +17,9 @@ export interface ProductDocument {
   readonly trackStock: boolean;
   readonly earnsPoints: boolean;
   readonly printCupLabel: boolean;
+  /** The stored photo's name, and its address under the API; null without one. */
+  readonly imageKey: string | null;
+  readonly imageUrl: string | null;
   readonly variants: ProductDocumentInput["variants"];
   readonly modifierGroups: ProductDocumentInput["modifierGroups"];
   readonly combo: ProductDocumentInput["combo"];
@@ -70,13 +73,19 @@ export function readProductDocument(body: unknown): ProductDocument | null {
     trackStock: body.trackStock as boolean,
     earnsPoints: body.earnsPoints as boolean,
     printCupLabel: body.printCupLabel as boolean,
+    // An API from before photos sends neither: the product has none.
+    imageKey: nullableTextOf(body, "imageKey") ?? null,
+    imageUrl: nullableTextOf(body, "imageUrl") ?? null,
     variants: body.variants as ProductDocument["variants"],
     modifierGroups: body.modifierGroups as ProductDocument["modifierGroups"],
     combo: (body.combo ?? null) as ProductDocument["combo"],
   };
 }
 
-/** The body that saves a document back unchanged; a caller then sets what it changes. */
+/**
+ * The body that saves a document back unchanged; a caller then sets what it changes. It
+ * names no photo, so the stored one stays whatever the caller does.
+ */
 export function bodyOfDocument(document: ProductDocument): ProductBody {
   return {
     version: document.version,

@@ -13,6 +13,7 @@ import { type CartLine, MAX_LINE_QUANTITY } from "../../features/order/counter-o
 import { type CartView, lineAmountOf } from "../../features/order/cart-view";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
+import { ProductMark } from "./product-photo";
 import { QuantityStepper } from "./quantity-stepper";
 
 const S = vi.sale;
@@ -51,11 +52,16 @@ export function CartRow(
   const discounts = under.filter((candidate) => candidate.lineType === "discount");
   const cancels = priced.filter((candidate) => candidate.reversesLineId === line.lineId);
   const name = item?.nameSnapshot ?? props.view.nameOf(line);
+  const photo = props.view.photoOf(line);
   const priceOf = (lineId: string) =>
     props.view.kind === "priced" ? formatVnd(lineAmountOf(props.view.priced, lineId)) : "";
   return (
     <li className="pos-cart-line" data-cart-line={line.lineId}>
       <div className="pos-cart-line__head">
+        {/* Only a photo: a line without one keeps the plain layout, no coloured square. */}
+        {photo === undefined ? null : (
+          <ProductMark className="pos-cart-line__photo" name={name} imageUrl={photo} />
+        )}
         <span className="pos-cart-line__name pos-wrap">
           {name}
           {props.locked === true ? ` ×${line.quantity}` : ""}

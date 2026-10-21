@@ -7,6 +7,7 @@
 - `pnpm ops:backup` chạy `pg_dump --format=custom` một database (`fnb`): mọi bảng, dữ liệu, hàm, trigger, chính sách RLS, `GRANT` cho role app, `ALTER DEFAULT PRIVILEGES`, sổ migration (`fnb_migration`).
 - **Không** gồm role (`fnb_owner`, `fnb_app`, `fnb_backup`) và mật khẩu của chúng: role thuộc cả cụm Postgres. Server mới phải chạy `pnpm db:provision` trước để có role.
 - **Không** gồm file môi trường (`/etc/fnb/fnb-api.env`): `FNB_PAYMENT_SECRET_KEY` mất là mọi secret cổng thanh toán đã niêm phong trong DB không mở được nữa ⇒ giữ bản sao file env ở nơi khác (két sắt mật khẩu của chủ), không để cạnh file backup.
+- **Không** gồm ảnh món: ảnh nằm trên đĩa ở `FNB_MEDIA_DIR` (`/var/lib/fnb/media`), database chỉ giữ tên file. Cron `fnb-backup` chép thư mục ảnh sang `/var/backups/fnb/media` bằng `rsync` ngay sau bản dump (xem `README.md` mục 10); file ảnh đặt tên theo băm nội dung và không bao giờ bị sửa ⇒ mỗi đêm chỉ chép ảnh mới. Ảnh không bị xóa khỏi bản sao khi món đổi ảnh: bản sao luôn đủ cho mọi bản dump đang giữ.
 - Tên file: `fnb-<database>-<giờ UTC>.dump`, quyền `600`; ghi dưới tên `.partial` rồi mới đổi tên ⇒ file đúng tên luôn là bản hoàn chỉnh. Giữ `FNB_BACKUP_KEEP` bản mới nhất (mặc định 14), bản cũ hơn bị xóa; file khác trong thư mục không bao giờ bị đụng.
 
 ## Vì sao backup phải chạy bằng role vượt RLS
@@ -41,16 +42,18 @@ Role này đọc được mọi thứ ⇒ mật khẩu chỉ nằm trong `PGPASS
    - RLS: `psql` bằng `fnb_app` vào `fnb_drill`, `SELECT count(*) FROM product;` phải ra **0** (chưa chọn tenant).
    - Thế hệ: `SELECT generation FROM fnb_server.generation;` (bằng `postgres`) ở `fnb_drill` khác server gốc và bằng mã `ops:restore` in ra. Đừng trỏ máy quầy thật vào database diễn tập: chúng sẽ gửi lại lệnh vào đó.
    - Chạy API trỏ `FNB_DATABASE_URL` vào `fnb_drill` (cổng khác), đăng nhập backoffice bằng tài khoản chủ quán, mở báo cáo ngày hôm qua: số khớp phiếu chốt ngày.
+   - Ảnh: chép bản sao ảnh về máy diễn tập (`rsync -a <nơi lưu>/media/ /tmp/fnb-drill-media/`), chạy API diễn tập với `FNB_MEDIA_DIR=/tmp/fnb-drill-media`; mọi tên trong `SELECT DISTINCT tenant_id, image_key FROM product WHERE image_key IS NOT NULL` (bằng `postgres`) phải có file `product-images/<tenant_id>/<image_key>`; mở danh sách món ở backoffice: ảnh hiện, không ô nào chỉ còn chữ cái mà lẽ ra có ảnh.
 5. Xóa database diễn tập: `DROP DATABASE fnb_drill;`. Ghi kết quả vào bảng dưới.
 
 ## Khôi phục thật (server hỏng)
 
 1. Dựng server mới theo `README.md` tới hết bước `pnpm db:provision`. API chưa bật (hoặc `sudo systemctl stop fnb-api fnb-backoffice`).
 2. `FNB_RESTORE_ADMIN_URL=<FNB_ADMIN_DATABASE_URL trong /etc/fnb/admin.env> pnpm ops:restore <file> --database fnb --replace-existing` (database `fnb` lúc này là bản rỗng do provision tạo).
-3. Chép lại `/etc/fnb/fnb-api.env` từ bản giữ riêng (đặc biệt `FNB_PAYMENT_SECRET_KEY`), `pnpm ops:preflight`, rồi mới bật API.
-4. Mất dữ liệu ở server = mọi thứ server nhận sau giờ của bản backup (cron mỗi đêm ⇒ tới 24 giờ). Phần do máy quầy gửi thì máy tự gửi lại (mục dưới); phần làm ở backoffice thì không.
-5. Khôi phục bằng cách khác `ops:restore` (snapshot ổ đĩa, bản sao được nâng lên…) ⇒ trước khi bật API chạy thêm `FNB_RESTORE_ADMIN_URL=... pnpm ops:new-server-generation --database fnb`. Database chưa mất gì thì chạy cũng vô hại: máy quầy không có gì để gửi lại, chỉ kéo lại dữ liệu từ đầu.
-6. Sau khi bật API: mở lại (tải lại trang) POS trên từng máy khi tiện, để menu gốc của máy (bootstrap) lấy theo database vừa khôi phục.
+3. Ảnh món: `sudo install -d -o fnb -g fnb -m 750 /var/lib/fnb/media && sudo rsync -a <bản sao ảnh>/ /var/lib/fnb/media/ && sudo chown -R fnb:fnb /var/lib/fnb/media`. Thiếu ảnh không làm hỏng gì: máy quầy và backoffice hiện ô chữ cái thay ảnh; chủ quán gắn lại ảnh ở trình sửa món.
+4. Chép lại `/etc/fnb/fnb-api.env` từ bản giữ riêng (đặc biệt `FNB_PAYMENT_SECRET_KEY`), `pnpm ops:preflight`, rồi mới bật API.
+5. Mất dữ liệu ở server = mọi thứ server nhận sau giờ của bản backup (cron mỗi đêm ⇒ tới 24 giờ). Phần do máy quầy gửi thì máy tự gửi lại (mục dưới); phần làm ở backoffice thì không.
+6. Khôi phục bằng cách khác `ops:restore` (snapshot ổ đĩa, bản sao được nâng lên…) ⇒ trước khi bật API chạy thêm `FNB_RESTORE_ADMIN_URL=... pnpm ops:new-server-generation --database fnb`. Database chưa mất gì thì chạy cũng vô hại: máy quầy không có gì để gửi lại, chỉ kéo lại dữ liệu từ đầu.
+7. Sau khi bật API: mở lại (tải lại trang) POS trên từng máy khi tiện, để menu gốc của máy (bootstrap) lấy theo database vừa khôi phục.
 
 ## Máy quầy sau khi khôi phục
 

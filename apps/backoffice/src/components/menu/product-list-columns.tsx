@@ -1,7 +1,7 @@
 import { formatVnd, vnd } from "@fnb/domain";
 import Link from "next/link";
 import type { Category, ProductSummary } from "../../lib/api/catalog-api";
-import { nameMark } from "../../lib/format/name-mark";
+import { ProductListPhoto } from "./product-list-photo";
 import { vi } from "../../messages/vi";
 import type { DataColumn } from "../ui/data-table";
 
@@ -18,7 +18,7 @@ export const columnsFor = (categoryName: (id: string | null) => string): readonl
     label: T.columns.name,
     cell: (product) => (
       <Link href={`/menu/products/${product.id}`} aria-label={T.edit(product.name)} className="bo-product-cell">
-        <span className="bo-mark" data-initial={nameMark(product.name)} aria-hidden="true" />
+        <ProductListPhoto name={product.name} imageUrl={product.imageUrl} />
         <span className="bo-wrap">{product.name}</span>
       </Link>
     ),

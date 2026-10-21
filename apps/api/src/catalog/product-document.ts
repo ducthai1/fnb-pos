@@ -14,6 +14,9 @@ export interface ProductDocument {
   trackStock: boolean;
   earnsPoints: boolean;
   printCupLabel: boolean;
+  /** The stored photo's name, and where it is served (relative to the API's base). */
+  imageKey: string | null;
+  imageUrl: string | null;
   variants: { id: string; name: string; price: number | null }[];
   modifierGroups: ProductDocumentGroup[];
   combo: { slots: ProductDocumentSlot[] } | null;

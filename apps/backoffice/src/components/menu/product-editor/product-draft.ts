@@ -40,6 +40,12 @@ export interface DraftGroup {
   readonly variantRules: Readonly<Record<string, DraftVariantRule>>;
 }
 
+/** A photo uploaded for the product: the stored file's name and its address under the API. */
+export interface DraftPhoto {
+  readonly key: string;
+  readonly url: string;
+}
+
 export interface ProductDraft {
   readonly id: string;
   /** null until the product is first saved. */
@@ -57,6 +63,7 @@ export interface ProductDraft {
   readonly trackStock: boolean;
   readonly earnsPoints: boolean;
   readonly printCupLabel: boolean;
+  readonly photo: DraftPhoto | null;
   readonly variants: readonly DraftVariant[];
   readonly modifierGroups: readonly DraftGroup[];
   /** Kept as read: combos are not edited on this page yet, and saving must not drop them. */
@@ -84,6 +91,7 @@ export function emptyDraft(id: string, brandId: string): ProductDraft {
     trackStock: false,
     earnsPoints: true,
     printCupLabel: false,
+    photo: null,
     variants: [],
     modifierGroups: [],
     combo: null,
@@ -95,6 +103,10 @@ export function draftOfDocument(document: ProductDocument): ProductDraft {
     ...document,
     basePrice: amountInputText(document.basePrice),
     taxRate: String(document.taxRateBp / 100),
+    photo:
+      document.imageKey === null || document.imageUrl === null
+        ? null
+        : { key: document.imageKey, url: document.imageUrl },
     variants: document.variants.map((variant) => ({
       id: variant.id,
       name: variant.name,

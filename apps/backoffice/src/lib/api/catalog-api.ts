@@ -30,6 +30,8 @@ export interface ProductSummary {
   readonly pricingMode: string;
   readonly version: number;
   readonly archivedAt: string | null;
+  /** The photo's address under the API; null or absent without one. */
+  readonly imageUrl?: string | null;
 }
 
 /** A product switched off at a branch (all channels when channelKey is null). */
@@ -61,7 +63,8 @@ const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
   if (!id || !name || !kind || !mode || version === null) return null;
   if (categoryId === undefined || archivedAt === undefined) return null;
   if (basePrice === null && item.basePrice !== null) return null;
-  return { id, name, kind, categoryId, basePrice, pricingMode: mode, version, archivedAt };
+  const imageUrl = nullableTextOf(item, "imageUrl") ?? null;
+  return { id, name, kind, categoryId, basePrice, pricingMode: mode, version, archivedAt, imageUrl };
 };
 
 const readSoldOut = (item: Record<string, unknown>): SoldOut | null => {

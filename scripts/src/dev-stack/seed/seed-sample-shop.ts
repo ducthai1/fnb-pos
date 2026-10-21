@@ -6,6 +6,7 @@ import { seedBranchSettings } from "./seed-branch-settings";
 import { seedOwnerAndOrganization } from "./seed-owner-and-organization";
 import { seedSampleFloor } from "./seed-sample-floor";
 import { seedSampleMenu } from "./seed-sample-menu";
+import { seedSamplePhotos } from "./seed-sample-photos";
 import { type SeededStaff, seedSampleStaff } from "./seed-sample-staff";
 
 export interface SampleShop {
@@ -14,6 +15,8 @@ export interface SampleShop {
   readonly branchId: string;
   readonly staff: readonly SeededStaff[];
   readonly productCount: number;
+  /** Products given a photo; 0 when the server keeps no photos. */
+  readonly photoCount: number;
   readonly tableCount: number;
   /** New on every run: what a till types to pair with the branch. */
   readonly pairingCode: { readonly code: string; readonly expiresAt: string };
@@ -34,6 +37,7 @@ export async function seedSampleShop(
   const call = backofficeCaller(app, shop.cookie);
   await seedBranchSettings(call, shop.branchId, logins.sepaySecret);
   const products = await seedSampleMenu(call, shop);
+  const photoCount = await seedSamplePhotos(app, shop.cookie, call, products);
   const tableCount = await seedSampleFloor(call, shop.branchId);
   const staff = await seedSampleStaff(call, shop.branchId, logins.staffPins);
   const pairingCode = await call<{ code: string; expiresAt: string }>(
@@ -48,6 +52,7 @@ export async function seedSampleShop(
     branchId: shop.branchId,
     staff,
     productCount: products.size,
+    photoCount,
     tableCount,
     pairingCode: { code: pairingCode.code, expiresAt: pairingCode.expiresAt },
   };

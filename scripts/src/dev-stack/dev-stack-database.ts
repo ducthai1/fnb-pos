@@ -3,7 +3,7 @@ import { FakeEInvoiceProvider } from "@fnb/api/fake-einvoice-provider";
 import { databaseUrlFor, provisionDatabase } from "@fnb/db";
 import { startEmbeddedPostgres } from "@fnb/db/embedded-postgres";
 import pg from "pg";
-import { DEV_STACK_PATHS } from "./dev-stack-paths";
+import { DEV_MEDIA_DIRECTORY, DEV_STACK_PATHS } from "./dev-stack-paths";
 import type { DevStackLogins } from "./dev-stack-generated-logins";
 import { type SampleShop, seedSampleShop } from "./seed/seed-sample-shop";
 
@@ -66,6 +66,8 @@ async function seedThroughTheApi(appUrl: string, logins: DevStackLogins): Promis
     pool,
     paymentSecretKey: Buffer.from(logins.paymentSecretKey, "base64"),
     einvoiceProviders: [new FakeEInvoiceProvider()],
+    // The same directory the stack's API serves photos from.
+    mediaDirectory: DEV_MEDIA_DIRECTORY,
   });
   try {
     return await seedSampleShop(api, pool, logins);

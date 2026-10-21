@@ -26,14 +26,19 @@ export interface JsonAnswer {
 export async function requestJson(
   fetchImpl: FetchLike,
   url: string,
-  init: { method: HttpMethod; body?: unknown },
+  init: { method: HttpMethod; body?: unknown; bytes?: Blob },
 ): Promise<JsonAnswer> {
   try {
+    const sent =
+      init.bytes !== undefined
+        ? { headers: { "content-type": init.bytes.type || "application/octet-stream" }, body: init.bytes }
+        : init.body === undefined
+          ? { headers: {} }
+          : { headers: { "content-type": "application/json" }, body: JSON.stringify(init.body) };
     const response = await fetchImpl(url, {
       method: init.method,
       credentials: "same-origin",
-      headers: init.body === undefined ? {} : { "content-type": "application/json" },
-      ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+      ...sent,
       signal: AbortSignal.timeout(15_000),
     });
     const text = await response.text();

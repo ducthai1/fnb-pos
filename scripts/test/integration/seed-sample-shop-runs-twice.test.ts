@@ -1,3 +1,7 @@
+import { randomUUID } from "node:crypto";
+import { readdir, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildApp } from "@fnb/api/build-app";
 import { FakeEInvoiceProvider } from "@fnb/api/fake-einvoice-provider";
 import { withTenant } from "@fnb/db";
@@ -10,6 +14,7 @@ import { type SampleShop, seedSampleShop } from "../../src/dev-stack/seed/seed-s
 
 const info = inject("testPostgres");
 const logins = generateDevStackLogins();
+const media = fileURLToPath(new URL(`../../tmp/media-${randomUUID()}`, import.meta.url));
 
 let pool: pg.Pool;
 let app: FastifyInstance;
@@ -35,6 +40,7 @@ beforeAll(async () => {
     pool,
     paymentSecretKey: Buffer.from(logins.paymentSecretKey, "base64"),
     einvoiceProviders: [new FakeEInvoiceProvider()],
+    mediaDirectory: media,
   });
   first = await seedSampleShop(app, pool, logins);
   second = await seedSampleShop(app, pool, logins);
@@ -43,6 +49,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await app.close();
   await pool.end();
+  await rm(media, { recursive: true, force: true });
 });
 
 describe("the sample shop seed", () => {
@@ -66,6 +73,20 @@ describe("the sample shop seed", () => {
     });
     await seedSampleShop(app, pool, logins);
     expect(await rowCounts(first.tenantId)).toEqual(counts);
+  });
+
+  it("gives every product its photo through the upload route, once", async () => {
+    expect([first.photoCount, second.photoCount]).toEqual([15, 15]);
+    const stored = await withTenant(
+      pool,
+      first.tenantId,
+      async (client) =>
+        (await client.query("SELECT DISTINCT image_key FROM product WHERE image_key IS NOT NULL"))
+          .rows,
+    );
+    expect(stored).toHaveLength(15);
+    const files = await readdir(join(media, "product-images", first.tenantId));
+    expect(files.sort()).toEqual(stored.map((row) => row.image_key).sort());
   });
 
   it("hands out a new pairing code on every run", () => {

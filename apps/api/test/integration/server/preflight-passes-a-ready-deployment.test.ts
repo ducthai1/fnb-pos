@@ -4,14 +4,17 @@ import { fileURLToPath } from "node:url";
 import { testConnectionString } from "@fnb/db/test-support";
 import { afterAll, beforeAll, expect, inject, it } from "vitest";
 import { type ApiProcess, listeningUrl, spawnApi } from "../support/api-process";
+import { scratchMediaDirectory } from "../support/product-image-requests";
 
 const info = inject("testPostgres");
 const API_DIRECTORY = fileURLToPath(new URL("../../..", import.meta.url));
+const media = scratchMediaDirectory();
 const PRODUCTION = {
   FNB_ENV: "production",
   FNB_DATABASE_URL: testConnectionString(info, "app"),
   FNB_EINVOICE_PROVIDER: "none",
   FNB_ALLOWED_ORIGINS: "https://quan.example.vn",
+  FNB_MEDIA_DIR: media.path,
   FNB_PAYMENT_SECRET_KEY: randomBytes(32).toString("base64"),
   FNB_TRUSTED_PROXIES: "127.0.0.1,::1",
   FNB_CLEANUP_ENABLED: "false",
@@ -28,6 +31,7 @@ beforeAll(async () => {
 afterAll(async () => {
   api.child.kill("SIGTERM");
   await api.exited;
+  await media.remove();
 });
 
 function preflight(env: Record<string, string>) {
