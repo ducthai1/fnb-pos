@@ -62,12 +62,19 @@ function typedPrice(where: { payload?: string; envelope?: string }) {
 const openPrice = { key: "open_price" };
 
 /** A till whose cashier has a shift open and has already moved 450.000 đ out alone. */
-async function tillNearTheCashCap(): Promise<Till> {
+async function tillNearTheCashCap(): Promise<{ till: Till; shiftId: string }> {
   const till = await freshTill(app, s);
-  await openedShift(app, till, 2_000_000);
+  const shiftId = await openedShift(app, till, 2_000_000);
   expect((await pushShift(app, till, cashMove(till, "out", 450_000))).status).toBe("accepted");
-  return till;
+  return { till, shiftId };
 }
+
+/** An approval of a cash move bringing the shift's total to `amount`. */
+const cashTotal = (shiftId: string, amount: string) => ({
+  key: "cash_move",
+  amount,
+  subject: { shiftId },
+});
 
 const usesOf = (approvalId: string) =>
   withTenant(pool, s.shop.tenantId, async (client) => {
@@ -87,8 +94,8 @@ describe("the one approval rule of order and shift commands", () => {
   });
 
   it("takes an approval named on the envelope of a shift command, and spends it the same way", async () => {
-    const till = await tillNearTheCashCap();
-    const approvalId = await approve(app, till, managerId, { key: "cash_move", amount: "550000" });
+    const { till, shiftId } = await tillNearTheCashCap();
+    const approvalId = await approve(app, till, managerId, cashTotal(shiftId, "550000"));
     const sent = { ...cashMove(till, "out", 100_000), createdAt: justNow(), approvalId };
     expect((await pushShift(app, till, sent)).status).toBe("accepted");
     expect(await usesOf(approvalId)).toEqual(["shift.cash_move"]);
@@ -103,9 +110,9 @@ describe("the one approval rule of order and shift commands", () => {
       typedPrice({ payload: inPayload, envelope: onEnvelope }),
     );
     expect(order).toMatchObject({ status: "rejected", code: "SYNC_INVALID_PAYLOAD" });
-    const till = await tillNearTheCashCap();
-    const cash = await approve(app, till, managerId, { key: "cash_move", amount: "550000" });
-    const other = await approve(app, till, managerId, { key: "cash_move", amount: "550000" });
+    const { till, shiftId } = await tillNearTheCashCap();
+    const cash = await approve(app, till, managerId, cashTotal(shiftId, "550000"));
+    const other = await approve(app, till, managerId, cashTotal(shiftId, "550000"));
     const sent = { ...cashMove(till, "out", 100_000, { approvalId: cash }), approvalId: other };
     expect((await pushShift(app, till, sent)).code).toBe("SYNC_INVALID_PAYLOAD");
     expect([...(await usesOf(inPayload)), ...(await usesOf(cash))]).toEqual([]);
@@ -113,8 +120,8 @@ describe("the one approval rule of order and shift commands", () => {
 
   it("leaves unspent an approval named by a command the staff member may do alone", async () => {
     const till = await freshTill(app, s);
-    await openedShift(app, till, 2_000_000);
-    const approvalId = await approve(app, till, managerId, { key: "cash_move", amount: "100000" });
+    const shiftId = await openedShift(app, till, 2_000_000);
+    const approvalId = await approve(app, till, managerId, cashTotal(shiftId, "100000"));
     const sent = cashMove(till, "out", 100_000, { approvalId });
     expect((await pushShift(app, till, sent)).status).toBe("accepted");
     // Moved alone under the cap, so the approval was never spent and stays for its own move.

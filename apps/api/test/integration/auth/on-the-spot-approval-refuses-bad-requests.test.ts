@@ -11,7 +11,14 @@ import { patchRole } from "../support/role-requests";
 import { type StaffedShop, hire, staffedShop, startShift } from "../support/staffed-shop";
 
 const info = inject("testPostgres");
-const DISCOUNT = { key: "line_discount", discountRate: 1_500 };
+const ORDER = "0190a000-0000-7000-8000-00000000000a";
+const LINE = "0190a000-0000-7000-8000-000000000001";
+const SHIFT = "0190a000-0000-7000-8000-0000000000f1";
+const DISCOUNT = {
+  key: "line_discount",
+  discountRate: 1_500,
+  subject: { orderId: ORDER, lineId: LINE },
+};
 
 let pool: pg.Pool;
 let app: FastifyInstance;
@@ -61,12 +68,59 @@ describe("an approval request", () => {
     ["a discount above 100%", { key: "order_discount", discountRate: 10_001 }],
     ["a cash move without its amount", { key: "cash_move" }],
     ["a refund carrying an amount", { key: "refund", amount: "1000" }],
+    ["a refund naming no money", { key: "refund", subject: { orderId: ORDER } }],
+    [
+      "a void naming no units",
+      { key: "void_after_sent", subject: { orderId: ORDER, lineId: LINE } },
+    ],
   ])("for %s is refused before the PIN is tried", async (_, action) => {
     const manager = await newManager();
     expect(await ask(manager, action, "0000")).toEqual(
       refused(400, "API_PERMISSION_INVALID_ACTION"),
     );
     expect(await failedAttempts(manager)).toBe(0);
+  });
+
+  // A till from before approvals were bound sends none: approved, it would cover the same
+  // action on any order (a 25.000 đ refund approval spent on 2.000.000 đ of another sale).
+  it.each([
+    ["a refund naming no sale", { key: "refund", refundAmount: "25000" }],
+    ["a cancel of a shown table naming no order", { key: "close_unpaid_table" }],
+    ["a line discount naming no line", { ...DISCOUNT, subject: { orderId: ORDER } }],
+    [
+      "an order discount naming a line",
+      { key: "order_discount", discountRate: 1_500, subject: { orderId: ORDER, lineId: LINE } },
+    ],
+    [
+      "a cash move naming an order, not a shift",
+      { key: "cash_move", amount: "900000", subject: { orderId: ORDER } },
+    ],
+    [
+      "a close difference naming no shift",
+      { key: "accept_close_difference", difference: "-20000" },
+    ],
+    [
+      "a table transfer naming a subject it has none of",
+      { key: "transfer_table", subject: { shiftId: SHIFT } },
+    ],
+  ])("for %s is refused before the PIN is tried", async (_, action) => {
+    const manager = await newManager();
+    expect(await ask(manager, action, "0000")).toEqual(
+      refused(400, "API_APPROVAL_SUBJECT_REQUIRED"),
+    );
+    expect(await failedAttempts(manager)).toBe(0);
+  });
+
+  it("with a malformed refund amount, voided units or subject is malformed", async () => {
+    const manager = await newManager();
+    const subject = { orderId: ORDER };
+    for (const action of [
+      { key: "refund", refundAmount: "-25000", subject },
+      { key: "refund", refundAmount: "25000", subject: { orderId: "12" } },
+      { key: "void_after_sent", voidedQuantity: "1.2345", subject: { ...subject, lineId: LINE } },
+    ]) {
+      expect(await ask(manager, action)).toEqual(refused(400, "API_INVALID_REQUEST"));
+    }
   });
 
   it("with a negative or fractional amount is malformed", async () => {

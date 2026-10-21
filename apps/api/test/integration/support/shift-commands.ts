@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 import type { ShiftSnapshot } from "../../../src/sync/shift-wire-types";
 import type { SyncCommandResult } from "../../../src/sync/sync-wire-types";
-import { requestApproval } from "./approval-requests";
+import { type WireAction, requestApproval } from "./approval-requests";
 import { pairDevice } from "./paired-devices";
 import { startShift } from "./staffed-shop";
 import { justNow } from "./sync-approvals";
@@ -112,7 +112,7 @@ export async function coffeeDraft(app: FastifyInstance, s: SyncShop, till: Till)
 export async function approval(
   app: FastifyInstance,
   till: Till,
-  action: { key: string; amount?: string; difference?: string },
+  action: WireAction,
   approverStaffId: string,
   approverPin: string,
 ): Promise<string> {

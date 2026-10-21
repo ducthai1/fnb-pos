@@ -45,8 +45,14 @@ const move = (till: Till, kind: "in" | "out", amount: number, approvalId?: strin
     till,
     cashMove(till, kind, amount, approvalId === undefined ? {} : { approvalId }),
   );
-const approvedFor = (till: Till, amount: number) =>
-  approval(app, till, { key: "cash_move", amount: String(amount) }, managerId, MANAGER_PIN);
+const approvedFor = (till: Till, shiftId: string, amount: number) =>
+  approval(
+    app,
+    till,
+    { key: "cash_move", amount: String(amount), subject: { shiftId } },
+    managerId,
+    MANAGER_PIN,
+  );
 
 /** A till with a 2.000.000 đ float in an open shift. */
 async function openTill() {
@@ -83,7 +89,7 @@ describe("shift.cash_move", () => {
   it("takes it with a manager's approval for the new total, and records the approval", async () => {
     const { till, shiftId } = await openTill();
     await move(till, "out", 450_000);
-    const approvalId = await approvedFor(till, 550_000);
+    const approvalId = await approvedFor(till, shiftId, 550_000);
     expect((await move(till, "out", 100_000, approvalId)).status).toBe("accepted");
     const stored = await rowsOf(
       pool,
@@ -95,7 +101,7 @@ describe("shift.cash_move", () => {
   });
 
   it("counts every move through the shift's drawer, whoever signed in to make it", async () => {
-    const { till } = await openTill();
+    const { till, shiftId } = await openTill();
     const first = { staffId: till.staffId, staffToken: till.staffToken };
     await move(till, "out", 300_000);
     const secondId = await hire(app, s.shop, SECOND_CASHIER_PIN);
@@ -108,7 +114,7 @@ describe("shift.cash_move", () => {
     Object.assign(till, first);
     expect((await move(till, "in", 1)).code).toBe("SYNC_APPROVAL_REQUIRED");
     // The approval the till asks for is the drawer's total, and that is what is checked.
-    const approvalId = await approvedFor(till, 800_000);
+    const approvalId = await approvedFor(till, shiftId, 800_000);
     expect((await move(till, "out", 300_000, approvalId)).status).toBe("accepted");
   });
 
@@ -117,27 +123,30 @@ describe("shift.cash_move", () => {
     ["less", 100_000],
     ["more", 2_000_000],
   ])("refuses an approval for %s than the new total", async (_label, approved) => {
-    const { till } = await openTill();
+    const { till, shiftId } = await openTill();
     await move(till, "out", 450_000);
-    const other = await approvedFor(till, approved);
+    const other = await approvedFor(till, shiftId, approved);
     expect((await move(till, "out", 100_000, other)).code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
   });
 
-  it("refuses an approval already spent, even on the same total in a later shift", async () => {
-    const { till } = await openTill();
+  it("refuses an approval of one shift's total in a later shift, even for the same total", async () => {
+    const { till, shiftId } = await openTill();
     await move(till, "out", 450_000);
-    const approvalId = await approvedFor(till, 550_000);
+    const approvalId = await approvedFor(till, shiftId, 550_000);
     expect((await move(till, "out", 100_000, approvalId)).status).toBe("accepted");
     expect((await pushShift(app, till, closeShift(till, 1_450_000))).status).toBe("accepted");
     await openedShift(app, till, 2_000_000);
     await move(till, "out", 450_000);
-    expect((await move(till, "out", 100_000, approvalId)).code).toBe("SYNC_APPROVAL_ALREADY_USED");
+    // Bound to the shift it was given in: spent or not, it covers no other shift's drawer.
+    expect((await move(till, "out", 100_000, approvalId)).code).toBe(
+      "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT",
+    );
   });
 
   it("refuses an approval the till recorded the move more than ten minutes away from", async () => {
-    const { till } = await openTill();
+    const { till, shiftId } = await openTill();
     await move(till, "out", 450_000);
-    const approvalId = await approvedFor(till, 550_000);
+    const approvalId = await approvedFor(till, shiftId, 550_000);
     // The till recorded the move eleven minutes after the approval and synced right after.
     const late = new Date(clock.now().getTime() + 11 * 60_000).toISOString();
     clock.advance(12 * 60_000);

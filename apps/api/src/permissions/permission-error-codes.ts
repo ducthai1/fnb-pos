@@ -17,6 +17,11 @@ export const APPROVAL_ERROR_CODES = {
   selfApproval: "API_APPROVAL_SELF_APPROVAL",
   /** The approver may not do the action alone either, threshold included. */
   approverNotPermitted: "API_APPROVAL_APPROVER_NOT_PERMITTED",
+  /**
+   * The request does not name what the approval is for (the order, its line, the shift),
+   * or names the wrong kind: a till from before approvals were bound sends none.
+   */
+  subjectRequired: "API_APPROVAL_SUBJECT_REQUIRED",
 } as const;
 
 const FROM_DOMAIN: Readonly<Record<string, string>> = {

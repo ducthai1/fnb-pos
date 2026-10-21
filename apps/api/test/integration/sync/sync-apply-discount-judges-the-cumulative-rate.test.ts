@@ -91,6 +91,7 @@ describe("order.apply_discount on one item", () => {
     const approvalId = await approve(app, s.tillA, managerId, {
       key: "line_discount",
       discountRate: 1_900,
+      subject: { orderId, lineId: coffee.lineId },
     });
     expect((await pushOne(app, s.tillA, withApproval(tenPercent(), approvalId))).status).toBe(
       "accepted",
@@ -99,20 +100,35 @@ describe("order.apply_discount on one item", () => {
     expect((await pushOne(app, s.tillA, withApproval(tenPercent(), approvalId))).code).toBe(
       "SYNC_APPROVAL_FOR_ANOTHER_ACTION",
     );
+    // Bound to this coffee of this order, it covers no other order's.
     const next = await draftWith();
     const again = () => percentOffLine(s.tillA, next.orderId, next.coffee.lineId, 1_000);
     expect((await pushOne(app, s.tillA, again())).status).toBe("accepted");
     expect((await pushOne(app, s.tillA, withApproval(again(), approvalId))).code).toBe(
-      "SYNC_APPROVAL_ALREADY_USED",
+      "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT",
     );
   });
 
   it.each([
-    ["another rate of the same action", { key: "line_discount", discountRate: 2_000 }],
-    ["another action", { key: "order_discount", discountRate: 1_500 }],
-  ])("refuses an approval of %s", async (_case, action) => {
+    [
+      "a lower rate of the same action",
+      (orderId: string, lineId: string) => ({
+        key: "line_discount",
+        discountRate: 1_000,
+        subject: { orderId, lineId },
+      }),
+    ],
+    [
+      "another action",
+      (orderId: string) => ({
+        key: "order_discount",
+        discountRate: 1_500,
+        subject: { orderId },
+      }),
+    ],
+  ])("refuses an approval of %s", async (_case, actionFor) => {
     const { orderId, coffee } = await draftWith();
-    const approvalId = await approve(app, s.tillA, managerId, action);
+    const approvalId = await approve(app, s.tillA, managerId, actionFor(orderId, coffee.lineId));
     const result = await pushOne(
       app,
       s.tillA,
@@ -139,6 +155,47 @@ describe("order.apply_discount on one item", () => {
   });
 });
 
+describe("an approved discount rate, bound to its order", () => {
+  const percentOff = (orderId: string, rate: number) =>
+    discount(s.tillA, orderId, { scope: "order", discount: { kind: "percent", rate } });
+  const twentyPercentOf = (orderId: string) =>
+    approve(app, s.tillA, managerId, {
+      key: "order_discount",
+      discountRate: 2_000,
+      subject: { orderId },
+    });
+
+  it("is refused on another order, and stays unspent for its own", async () => {
+    const a = await draftWith();
+    const b = await draftWith();
+    const approvalId = await twentyPercentOf(a.orderId);
+    const onB = await pushOne(app, s.tillA, withApproval(percentOff(b.orderId, 2_000), approvalId));
+    expect(onB).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT" });
+    const onA = await pushOne(app, s.tillA, withApproval(percentOff(a.orderId, 2_000), approvalId));
+    expect(onA.status).toBe("accepted");
+  });
+
+  // Another till adding goods to the order lowers the share the same discount takes: the
+  // manager agreed to "up to 20% of this order", so no second approval is asked for.
+  it("covers the order's cumulative rate once it has come down to 19%", async () => {
+    const { orderId } = await draftWith();
+    const approvalId = await twentyPercentOf(orderId);
+    const lower = await pushOne(app, s.tillA, withApproval(percentOff(orderId, 1_900), approvalId));
+    expect(lower.status).toBe("accepted");
+  });
+
+  it("does not cover a rate above the approved one, even on its own order", async () => {
+    const { orderId } = await draftWith();
+    const approvalId = await twentyPercentOf(orderId);
+    const higher = await pushOne(
+      app,
+      s.tillA,
+      withApproval(percentOff(orderId, 2_100), approvalId),
+    );
+    expect(higher).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_FOR_ANOTHER_ACTION" });
+  });
+});
+
 describe("order.apply_discount on the whole order", () => {
   const tenPercentOff = {
     scope: "order" as const,
@@ -153,6 +210,7 @@ describe("order.apply_discount on the whole order", () => {
     const approvalId = await approve(app, s.tillA, managerId, {
       key: "order_discount",
       discountRate: 1_000,
+      subject: { orderId },
     });
     const result = await pushOne(
       app,
@@ -166,7 +224,11 @@ describe("order.apply_discount on the whole order", () => {
   it("splits it into one line per tax rate, and refuses too few ids for them", async () => {
     const { orderId } = await draftWith(line(cake));
     const approve10 = () =>
-      approve(app, s.tillA, managerId, { key: "order_discount", discountRate: 1_000 });
+      approve(app, s.tillA, managerId, {
+        key: "order_discount",
+        discountRate: 1_000,
+        subject: { orderId },
+      });
     const short = withApproval(discount(s.tillA, orderId, tenPercentOff, 1), await approve10());
     expect((await pushOne(app, s.tillA, short)).code).toBe("SYNC_DISCOUNT_LINE_IDS_TOO_FEW");
     const enough = withApproval(discount(s.tillA, orderId, tenPercentOff, 3), await approve10());
@@ -184,6 +246,7 @@ describe("order.apply_discount on the whole order", () => {
     const approvalId = await approve(app, s.tillA, managerId, {
       key: "order_discount",
       discountRate: 1_000,
+      subject: { orderId },
     });
     await pushOne(
       app,

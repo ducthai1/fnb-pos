@@ -1,6 +1,6 @@
 import { type CancelOrderPayload, cancelOrderPayloadSchema } from "@fnb/contracts";
 import { appendAudit } from "@fnb/db";
-import { type PermissionAction, reversedQuantityOf, transitionOrder } from "@fnb/domain";
+import { reversedQuantityOf, transitionOrder } from "@fnb/domain";
 import { assertNoPaidQrLeftOut, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { orderOfBranch } from "./editable-order";
 import { requirePermission } from "./staff-permission-check";
@@ -20,8 +20,6 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * leave no sale behind. That needs close_unpaid_table, held or lent by a manager's
  * approval. A draft nobody was shown or served is cancelled as before.
  */
-const CLOSE_UNPAID_TABLE: PermissionAction = { key: "close_unpaid_table" };
-
 async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayload) {
   const { client, staffId } = context;
   const stored = await orderOfBranch(context, payload.orderId);
@@ -36,7 +34,11 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
   const shownABill = stored.preBillPrintedVersion !== null;
   const spent =
     kitchenHadIt || shownABill
-      ? await requirePermission(context, CLOSE_UNPAID_TABLE, payload.approvalId)
+      ? await requirePermission(
+          context,
+          { key: "close_unpaid_table", subject: { orderId: stored.order.id } },
+          payload.approvalId,
+        )
       : null;
   await assertNoPaidQrLeftOut(context, payload.orderId);
   await withdrawPendingIntents(context, payload.orderId);

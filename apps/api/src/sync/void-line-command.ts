@@ -47,10 +47,15 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
     authorize({ key: "void_after_sent" }, await grantsOfStaff(client, staffId)) !== "allowed";
   const named = approvalIdOf(context, payload.approvalId);
   const approvalId = needsApprover ? named : undefined;
+  // What the manager was shown: these units the kitchen has, of this line of this order.
   const approvedBy =
     approvalId === undefined
       ? null
-      : await redeemApproval(context, approvalId, { key: "void_after_sent" });
+      : await redeemApproval(context, approvalId, {
+          key: "void_after_sent",
+          voidedQuantity: planned.fromSent,
+          subject: { orderId: stored.order.id, lineId: payload.lineId },
+        });
   // Without an approver where one is needed, the domain refuses with its own code.
   const { order, record } = voidLine(stored.order, request(approvedBy, needsApprover));
   await refuseRaisedOrderDiscount(context, stored.order.lines, order.lines);

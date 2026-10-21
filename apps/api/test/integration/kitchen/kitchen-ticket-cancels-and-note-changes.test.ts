@@ -10,7 +10,7 @@ import {
   ticketLine,
   ticketLinesOf,
 } from "../support/kitchen-commands";
-import { approve, hireManager } from "../support/sync-approvals";
+import { approve, hireManager, voidOfSent } from "../support/sync-approvals";
 import { line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -60,7 +60,12 @@ async function twoCoffeesAtTheBar(note: string | null = null) {
 describe("cancel tickets", () => {
   it("records the cancel of a sent unit voided afterwards, once", async () => {
     const { orderId, coffee } = await twoCoffeesAtTheBar();
-    const approvalId = await approve(app, till(), managerId, { key: "void_after_sent" });
+    const approvalId = await approve(
+      app,
+      till(),
+      managerId,
+      voidOfSent(orderId, coffee.lineId, "1"),
+    );
     const voided = await pushOne(
       app,
       till(),

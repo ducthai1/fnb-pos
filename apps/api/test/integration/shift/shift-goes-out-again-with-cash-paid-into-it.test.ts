@@ -93,7 +93,7 @@ describe("closing a shift that took a table's cash from the previous one", () =>
     const forNothing = await approval(
       app,
       till,
-      { key: "accept_close_difference", difference: "0" },
+      { key: "accept_close_difference", difference: "0", subject: { shiftId: second } },
       managerId,
       MANAGER_PIN,
     );
@@ -102,7 +102,7 @@ describe("closing a shift that took a table's cash from the previous one", () =>
     const forTheShortfall = await approval(
       app,
       till,
-      { key: "accept_close_difference", difference: "-29000" },
+      { key: "accept_close_difference", difference: "-29000", subject: { shiftId: second } },
       managerId,
       MANAGER_PIN,
     );
@@ -120,9 +120,10 @@ describe("closing a shift that took a table's cash from the previous one", () =>
   });
 
   it("refuses an approval request for the close that names no difference", async () => {
-    const { till } = await tableCarriedIntoSecondShift();
+    const { till, second } = await tableCarriedIntoSecondShift();
+    const noFigure = { key: "accept_close_difference", subject: { shiftId: second } };
     await expect(
-      approval(app, till, { key: "accept_close_difference" }, managerId, MANAGER_PIN),
+      approval(app, till, noFigure, managerId, MANAGER_PIN),
     ).rejects.toThrow("approval answered 400");
   });
 });
