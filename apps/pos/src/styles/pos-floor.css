@@ -75,17 +75,55 @@
   overflow-wrap: anywhere;
 }
 
+/* A second step in place, drawn as the back office's confirm box: an amber warning sign
+   before an amber title, the sentence in grey, the two choices side by side on the right. */
 .pos-confirm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  border-color: var(--pos-warn-text);
-  background: var(--pos-warn-bg);
+  gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  border-color: var(--c-amber-line);
+  border-radius: var(--r-lg);
 }
 
-.pos-confirm h2 {
+.pos-confirm__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   margin: 0;
-  font-size: 1.25rem;
+  color: var(--c-amber);
+  font-size: var(--fs-lg);
+  line-height: 26px;
+  font-weight: var(--fw-semibold);
+}
+
+.pos-confirm__title .pos-icon {
+  flex: none;
+}
+
+.pos-confirm > p {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.pos-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+.pos-confirm__actions > .pos-button {
+  flex: 0 1 200px;
+  min-width: min(160px, 100%);
+}
+
+@media (max-width: 599px) {
+  .pos-confirm__actions > .pos-button {
+    flex-basis: 100%;
+  }
 }
 
 .pos-floor-area {
