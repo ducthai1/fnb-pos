@@ -130,6 +130,11 @@ th[aria-sort] .bo-sort {
   color: var(--c-on-pick);
 }
 
+/* As the reference: the sort mark stands out only on the column the list is sorted by. */
+th:not([aria-sort]) .bo-sort .bo-icon {
+  color: var(--c-text-3);
+}
+
 .bo-data__actions {
   white-space: normal;
 }

@@ -50,7 +50,7 @@
   padding: 8px 12px;
   border-color: var(--c-info);
   background: var(--c-info);
-  color: var(--c-on-info);
+  color: var(--c-on-info-tool);
   font-size: var(--fs-body);
   font-weight: var(--fw-regular);
 }
@@ -58,6 +58,7 @@
 .bo-page-head__actions > .bo-button:hover:not(:disabled) {
   border-color: var(--c-price);
   background: var(--c-price);
+  color: var(--c-on-info-tool);
 }
 
 .bo-crumbs {

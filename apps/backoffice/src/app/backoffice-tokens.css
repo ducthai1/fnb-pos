@@ -95,6 +95,8 @@
   --c-head-soft: #edf7ff;
   --c-hover: #f5f5f5;
   --c-on-pick: #005695;
+  /* The reference's pale mint writing on its blue tool buttons (4.8:1 on --c-info). */
+  --c-on-info-tool: #cffff0;
   --shadow-panel: 0 6px 16px 0 rgb(0 0 0 / 0.1);
   --shadow-filter: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-menu: 0 14px 30px -4px rgb(0 0 0 / 0.15);
