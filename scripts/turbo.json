@@ -1,0 +1,20 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test:unit": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/**",
+        "$TURBO_ROOT$/apps/pos/test/browser/pages/screen-names.ts",
+        "$TURBO_ROOT$/apps/backoffice/src/**",
+        "$TURBO_ROOT$/apps/*/test/**",
+        "$TURBO_ROOT$/apps/*/src/**/*.test.ts",
+        "$TURBO_ROOT$/apps/*/src/**/*.test.tsx",
+        "$TURBO_ROOT$/packages/*/src/**/*.test.ts",
+        "$TURBO_ROOT$/packages/*/test/**",
+        "$TURBO_ROOT$/e2e/**/*.spec.ts"
+      ]
+    }
+  }
+}
