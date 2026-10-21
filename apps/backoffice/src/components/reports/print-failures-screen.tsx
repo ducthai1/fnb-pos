@@ -106,6 +106,7 @@ function PrintFailuresTable({ answer }: { answer: PrintFailures }) {
             ].join(" "),
         }}
         filters={kindFilters(answer.failures)}
+        filterLabel={C.kind}
         initialSort={{ key: "occurredAt", direction: "desc" }}
         empty={<EmptyState icon={PrinterCheck}>{T.empty}</EmptyState>}
       />

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Inbox } from "lucide-react";
 import { describe, expect, it } from "vitest";
 import { vi } from "../../messages/vi";
@@ -127,5 +127,24 @@ describe("a shared table of records", () => {
     expect(screen.getByText("Chưa có máy.")).toBeTruthy();
     expect(screen.queryByLabelText("Tìm máy")).toBeNull();
     expect(screen.queryByText(T.noMatch)).toBeNull();
+  });
+  it("names its filters after what they sort by, or plainly as a filter", () => {
+    renderTable();
+    expect(screen.getByRole("group", { name: T.filter })).toBeTruthy();
+    cleanup();
+    render(
+      <DataTable
+        label="Máy"
+        rows={TILLS}
+        rowKey={(till) => till.id}
+        columns={COLUMNS}
+        filters={[{ key: "on", label: "Đang bật", test: (till) => till.on }]}
+        filterLabel="Trạng thái"
+        empty={<EmptyState icon={Inbox}>Chưa có máy.</EmptyState>}
+      />,
+    );
+    const group = screen.getByRole("group", { name: "Trạng thái" });
+    fireEvent.click(within(group).getByRole("button", { name: T.count("Đang bật", 2) }));
+    expect(shownNames()).toEqual(["Quầy 2", "Bếp"]);
   });
 });

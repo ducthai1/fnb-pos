@@ -55,6 +55,8 @@ export function DataTable<R>(props: {
   columns: readonly DataColumn<R>[];
   search?: { readonly label: string; readonly text: (row: R) => string };
   filters?: readonly DataFilter<R>[];
+  /** What the filters sort rows by, the title of their card on a wide screen. */
+  filterLabel?: string;
   actions?: (row: R) => ReactNode;
   /** The actions column's width on a computer, for rows with several buttons. */
   actionsWidth?: string;
@@ -72,6 +74,7 @@ export function DataTable<R>(props: {
     columns,
     search,
     filters = [],
+    filterLabel,
     actions,
     actionsWidth,
     expanded,
@@ -119,6 +122,7 @@ export function DataTable<R>(props: {
           count: rows.filter(candidate.test).length,
         }))}
         total={rows.length}
+        filterLabel={filterLabel}
         filterKey={filterKey}
         onFilter={setFilterKey}
         sortable={columns

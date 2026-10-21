@@ -124,6 +124,7 @@ export function StaffTable({
       rowData={(member) => ({ "data-staff": member.id })}
       columns={columns}
       search={{ label: T.search, text: (member) => member.displayName }}
+      filterLabel={T.columns.status}
       filters={[
         { key: "active", label: T.filters.active, test: (member) => member.active },
         { key: "inactive", label: T.filters.inactive, test: (member) => !member.active },

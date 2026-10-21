@@ -143,6 +143,7 @@ export function ImportPreviewTable({
       columns={columns}
       search={{ label: T.search, text: ({ row }) => `${row.name} ${row.code}` }}
       filters={filters}
+      filterLabel={T.columns.status}
       empty={<EmptyState icon={FileSpreadsheet}>{T.noMatch}</EmptyState>}
     />
   );

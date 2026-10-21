@@ -105,6 +105,7 @@ export function AvailabilityScreen() {
               },
             ]}
             search={{ label: T.search, text: (product) => product.name }}
+            filterLabel={T.columns.status}
             filters={[
               { key: "available", label: T.filters.available, test: (product) => !soldOut.has(product.id) },
               { key: "soldOut", label: T.filters.soldOut, test: (product) => soldOut.has(product.id) },
