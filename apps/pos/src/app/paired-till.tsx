@@ -18,6 +18,7 @@ import { vi } from "../messages/vi";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
 import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice";
+import { TillClockNotice } from "../screens/sales-home/till-clock-notice";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
 import type { PosDependencies } from "./pos-dependencies";
@@ -132,6 +133,7 @@ export function PairedTill(props: {
   return (
     <TillPermissionsProvider value={permissions}>
       <ServerRestoreNotice restore={status.restore} />
+      <TillClockNotice offsetMs={status.clockOffsetMs} />
       <StaffedTill
         snapshot={snapshot}
         till={till}

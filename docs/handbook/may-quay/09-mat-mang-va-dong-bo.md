@@ -16,9 +16,13 @@ decisions:
   - D-062
   - D-065
   - D-068
+  - D-077
 tests:
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
   - apps/pos/src/screens/sales-home/server-restore-notice.test.tsx
+  - apps/pos/src/screens/sales-home/till-clock-notice.test.tsx
+  - packages/sync-client/src/sync/sync-client-clock-offset.test.ts
+  - packages/sync-client/test/scenarios/till-clock-ahead-still-gets-paid.test.ts
   - apps/pos/src/screens/needs-attention/needs-attention-screen.test.tsx
   - apps/pos/src/features/sync/background-sync-loop.test.ts
   - apps/pos/src/features/sync/background-sync-restore.test.ts
@@ -61,6 +65,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
 | **Đã đồng bộ hết** | máy chủ đã nhận hết lệnh của máy |
 | **Chưa đồng bộ 3 lệnh** | còn 3 lệnh chờ gửi |
 | **Cần xử lý (1)** — nút đỏ | có lệnh bị máy chủ từ chối hẳn; bấm để xem |
+| **Giờ máy lệch 3 phút — máy đang dùng giờ máy chủ. Nên chỉnh lại giờ Windows.** — dải vàng | đồng hồ máy sai quá 2 phút; vẫn bán và thu tiền bình thường, nhưng nên chỉnh giờ máy |
 
 ### Xem "Cần xử lý"
 
@@ -79,12 +84,17 @@ Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người m
 - Máy đồng bộ (gửi lệnh chờ và nhận thay đổi từ máy chủ) **khoảng 5 giây một lần**, và ngay sau khi có người đăng nhập. Một thao tác vừa làm thường lên máy chủ trong vài giây.
 - Lệnh của một máy tới máy chủ **đúng thứ tự** đã làm; gửi trùng hay gửi lại không bao giờ làm đơn bị ghi hai lần.
 - **Máy chủ tính lại** mọi số tiền; máy quầy chỉ gửi "ý định" (món, số lượng, cách trả…).
-- **Giờ của lệnh do máy chủ quyết**: đồng hồ máy quầy **nhanh hơn quá 2 phút** thì lệnh bị từ chối; chậm hơn quá **12 giờ** thì máy chủ dùng giờ của mình và ghi nhật ký. Đơn bán đêm lúc mất mạng vẫn giữ đúng **ngày kinh doanh** và **ca** lúc bán.
+- **Giờ của lệnh do máy chủ quyết**. Mỗi lần đồng bộ, máy quầy tự đo đồng hồ của mình lệch với máy chủ bao nhiêu, và ghi giờ của mỗi lệnh **theo giờ máy chủ** (giờ máy + độ lệch); mất mạng thì dùng độ lệch đo lần gần nhất. Vì vậy máy để sai giờ (hết pin CMOS, Windows tắt tự đồng bộ giờ) vẫn bán và **thu tiền không bao giờ bị từ chối vì giờ máy**.
+- Lệnh tới máy chủ mà **nhanh hơn quá 2 phút** (máy chưa kịp đo độ lệch) thì máy chủ **không nhận, cũng không từ chối**: trả về "gửi lại" kèm giờ máy chủ, không ghi gì vào sổ. Máy quầy ghi lại giờ của lệnh đó theo giờ máy chủ (một lần, tính lại từ giờ máy, không cộng dồn) rồi gửi lại đúng lệnh đó ở lượt sau.
+- Lệnh **chậm hơn quá 12 giờ** thì máy chủ dùng giờ của mình và ghi nhật ký. Đơn bán đêm lúc mất mạng vẫn giữ đúng **ngày kinh doanh** và **ca** lúc bán.
+- Chỉnh đồng hồ máy cho trùng giờ vàng **không** được giá giờ vàng: giờ của lệnh luôn quy về giờ máy chủ.
 - Lệnh bị từ chối **không tự mất**: nằm trong **Cần xử lý** để người xem lại.
 - Máy giữ nhật ký các lệnh đã gửi **7 ngày** để gửi bù nếu máy chủ phải khôi phục từ bản sao lưu.
 - Một máy gửi quá nhiều yêu cầu trong một phút thì máy chủ tạm từ chối (máy báo số giây phải chờ).
 
 ### Khi mất mạng
+
+Giờ của lệnh lúc mất mạng là **giờ máy + độ lệch đo lần cuối có mạng**. Máy mới ghép, chưa từng đồng bộ mà mất mạng thì lệnh mang giờ máy; tới lúc có mạng, lệnh nào nhanh quá 2 phút được máy chủ trả về để máy tự ghi lại giờ và gửi lại — không lệnh nào mất.
 
 | Làm được | Không làm được / phải chờ mạng |
 |---|---|
@@ -110,7 +120,8 @@ Lệnh gửi lại mà bị từ chối thì vào **Cần xử lý**. Nếu bả
 
 | Máy báo | Nghĩa là | Làm gì |
 |---|---|---|
-| Đồng hồ của máy nhanh hơn máy chủ quá 2 phút. Chỉnh lại giờ của máy rồi làm lại thao tác. | Giờ máy sai | Chỉnh giờ hệ điều hành (bật tự đồng bộ giờ) |
+| Giờ máy lệch 3 phút — máy đang dùng giờ máy chủ. Nên chỉnh lại giờ Windows. (dải vàng) | Đồng hồ máy sai quá 2 phút; máy đã tự dùng giờ máy chủ, không lệnh nào bị từ chối | Cứ bán. Khi rảnh: chỉnh giờ Windows, bật "Set time automatically"; tắt máy mà giờ vẫn sai mỗi lần bật thì thay pin CMOS |
+| Giờ máy nhanh hơn máy chủ — máy đã tự dùng giờ máy chủ và gửi lại. Nên chỉnh lại giờ Windows. | Chỉ gặp ở lệnh cũ bị từ chối trước khi máy biết tự dùng giờ máy chủ | Chỉnh giờ Windows; báo quản lý xem lại lệnh đó trong **Cần xử lý** |
 | Máy chủ không nhận thao tác từ địa chỉ trang POS này. Báo quản lý kiểm tra địa chỉ mở POS trong cài đặt máy chủ. | Mở POS bằng địa chỉ lạ | Mở POS đúng địa chỉ quán dùng |
 | Máy gửi quá nhiều yêu cầu cùng lúc nên máy chủ tạm từ chối. Thử lại sau … giây. | Bị giới hạn tần suất | Chờ |
 | Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý. | Lệnh hỏng | Báo quản lý/hỗ trợ kèm mã lỗi |

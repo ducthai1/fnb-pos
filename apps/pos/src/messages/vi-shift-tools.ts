@@ -54,9 +54,14 @@ export const VI_SESSION = {
   signedOut: (name: string) => `${name} đã đăng xuất.`,
 } as const;
 
+export const VI_TILL_CLOCK = {
+  off: (minutes: number) =>
+    `Giờ máy lệch ${minutes} phút — máy đang dùng giờ máy chủ. Nên chỉnh lại giờ Windows.`,
+} as const;
+
 export const VI_SESSION_ERRORS = {
   SYNC_DEVICE_CLOCK_AHEAD:
-    "Đồng hồ của máy nhanh hơn máy chủ quá 2 phút. Chỉnh lại giờ của máy rồi làm lại thao tác.",
+    "Giờ máy nhanh hơn máy chủ — máy đã tự dùng giờ máy chủ và gửi lại. Nên chỉnh lại giờ Windows.",
   API_ORIGIN_NOT_ALLOWED:
     "Máy chủ không nhận thao tác từ địa chỉ trang POS này. Báo quản lý kiểm tra địa chỉ mở POS trong cài đặt máy chủ.",
 } as const;

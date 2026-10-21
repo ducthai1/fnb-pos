@@ -20,6 +20,22 @@ export interface TillSyncStatus {
   readonly needsAttention: number;
   /** After the server was restored from a backup: what the till still sends again. */
   readonly restore?: RestoreState;
+  /** How far the server's clock is ahead of the till's, in ms; null before it is known. */
+  readonly clockOffsetMs?: number | null;
+}
+
+/**
+ * Past this the till's clock is worth fixing: the server sends back a command dated more
+ * than two minutes ahead of its clock. The till dates its commands by the server's clock
+ * either way, so nothing is refused for it; the notice is so someone fixes the PC.
+ */
+export const CLOCK_NOTICE_AFTER_MS = 2 * 60_000;
+
+/** How many minutes the till's clock is off, when that is worth a notice; else null. */
+export function clockOffMinutes(offsetMs: number | null | undefined): number | null {
+  if (offsetMs === null || offsetMs === undefined) return null;
+  if (Math.abs(offsetMs) <= CLOCK_NOTICE_AFTER_MS) return null;
+  return Math.round(Math.abs(offsetMs) / 60_000);
 }
 
 export const INITIAL_SYNC_STATUS: TillSyncStatus = {

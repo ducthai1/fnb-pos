@@ -7,7 +7,7 @@ type Link = "up" | "down" | "erroring";
 
 /** A server that is up, unreachable, or answering 500; counts the pulls it serves. */
 function serverLink() {
-  const state = { link: "up" as Link, pulls: 0 };
+  const state = { link: "up" as Link, pulls: 0, serverTimeMs: undefined as number | undefined };
   const fail = () => {
     if (state.link === "down") throw new SyncTransportError("network", null, "offline");
     if (state.link === "erroring") throw new SyncTransportError("http", 500, "boom");
@@ -23,7 +23,8 @@ function serverLink() {
     async pullChanges(cursor) {
       fail();
       state.pulls += 1;
-      return { changes: [], nextCursor: cursor };
+      const timed = state.serverTimeMs === undefined ? {} : { serverTimeMs: state.serverTimeMs };
+      return { changes: [], nextCursor: cursor, ...timed };
     },
     // This server names no generation, so the till never asks for its device state.
     deviceState: () => Promise.reject(new SyncTransportError("http", 404, "not served")),
@@ -56,6 +57,12 @@ describe("the till's background sync", () => {
     await vi.waitFor(() => expect(sync.current().connection).toBe("offline"));
     server.state.link = "up";
     await vi.waitFor(() => expect(sync.current().connection).toBe("online"));
+  });
+
+  it("shows how far the till's clock is off once a pass heard the server's clock", async () => {
+    const { server, sync } = startLoop(5);
+    server.state.serverTimeMs = -3 * 60_000;
+    await vi.waitFor(() => expect(sync.current().clockOffsetMs).toBe(-3 * 60_000));
   });
 
   it("tells a server answering with an error apart from one that does not answer", async () => {
