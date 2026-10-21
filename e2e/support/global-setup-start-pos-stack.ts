@@ -1,4 +1,5 @@
 import { buildApp } from "@fnb/api/build-app";
+import { scratchMediaDirectory } from "./scratch-media-directory";
 import { syncShop } from "@fnb/api/test-support/sync-shop";
 import { startTestPostgres, testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
@@ -46,7 +47,9 @@ export default async function setup(project: TestProject): Promise<() => Promise
     // with no listener that is an uncaught exception: the run exits 1 after every test passed.
     pool.on("error", () => {});
     stops.push(() => pool.end());
-    const app = buildApp({ pool });
+    const media = scratchMediaDirectory();
+    stops.push(media.remove);
+    const app = buildApp({ pool, mediaDirectory: media.path });
     stops.push(() => app.close());
     const apiOrigin = await app.listen({ host: "127.0.0.1", port: 0 });
     const { shop, brandId } = await syncShop(app, pool);

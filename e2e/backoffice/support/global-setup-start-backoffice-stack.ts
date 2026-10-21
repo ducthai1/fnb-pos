@@ -13,6 +13,7 @@ import {
 } from "../../../apps/api/test/integration/support/backoffice-accounts";
 import { fakePaymentGateway } from "../../../apps/api/test/integration/support/fake-payment-gateway";
 import { staffedShop } from "../../../apps/api/test/integration/support/staffed-shop";
+import { scratchMediaDirectory } from "../../support/scratch-media-directory";
 import { serveBackofficeBuild } from "./serve-backoffice-build";
 
 /** Where the specs find the running stack, and who signs in to the backoffice. */
@@ -58,10 +59,13 @@ export default async function setup(project: TestProject): Promise<() => Promise
     pool.on("error", () => {});
     stops.push(() => pool.end());
     // The test gateway lets a spec bring money in as a bank's notice would.
+    const media = scratchMediaDirectory();
+    stops.push(media.remove);
     const app = buildApp({
       pool,
       paymentSecretKey: randomBytes(32),
       paymentGateways: [...PAYMENT_GATEWAYS, fakePaymentGateway()],
+      mediaDirectory: media.path,
     });
     stops.push(() => app.close());
     const apiOrigin = await app.listen({ host: "127.0.0.1", port: 0 });
