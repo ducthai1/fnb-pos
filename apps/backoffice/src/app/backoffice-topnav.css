@@ -1,0 +1,156 @@
+/* The menu bar of a computer screen (1024px and up): a band of the brand's green under the
+   bar, white headings in a row, each dropping a white list of its pages. The page on
+   screen is underlined at its heading and tinted in the list. */
+
+.bo-topnav {
+  min-width: 0;
+  padding: 0 var(--sp-3);
+  background: var(--c-brand);
+}
+
+.bo-topnav__items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0 var(--sp-1);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-topnav__item {
+  position: relative;
+  display: flex;
+}
+
+.bo-topnav__top {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 48px;
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--c-on-brand);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: 20px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.bo-topnav__top .bo-icon {
+  transition: transform 120ms ease;
+}
+
+.bo-topnav__top:hover,
+.bo-topnav__top[aria-expanded="true"] {
+  background: var(--c-brand-strong);
+}
+
+.bo-topnav__top[aria-expanded="true"] .bo-icon {
+  transform: rotate(180deg);
+}
+
+.bo-topnav__top:focus-visible {
+  outline: 2px solid var(--c-on-brand);
+  outline-offset: -4px;
+}
+
+/* The heading of the page on screen: bolder, with a white bar along its foot. */
+.bo-topnav__top[aria-current] {
+  font-weight: var(--fw-bold);
+}
+
+.bo-topnav__top[aria-current]::after {
+  content: "";
+  position: absolute;
+  right: var(--sp-3);
+  bottom: 0;
+  left: var(--sp-3);
+  height: 4px;
+  border-radius: 2px 2px 0 0;
+  background: var(--c-on-brand);
+}
+
+.bo-topnav__panel {
+  position: absolute;
+  top: calc(100% + var(--sp-1));
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 2 * var(--sp-4)));
+  margin: 0;
+  padding: var(--sp-2);
+  list-style: none;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-menu);
+}
+
+.bo-topnav__panel[hidden] {
+  display: none;
+}
+
+.bo-topnav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 40px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--c-text);
+  font-size: var(--fs-body);
+  line-height: 20px;
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+}
+
+.bo-topnav__link .bo-icon {
+  color: var(--c-text-2);
+}
+
+.bo-topnav__link-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bo-topnav__link:hover {
+  background: var(--c-hover);
+}
+
+.bo-topnav__link:active {
+  background: var(--c-surface-3);
+}
+
+.bo-topnav__link:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-topnav__link[aria-current="page"],
+.bo-topnav__link[aria-current="page"]:hover {
+  background: var(--c-brand-soft);
+  box-shadow: inset 4px 0 0 var(--c-brand);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-topnav__link[aria-current="page"] .bo-icon {
+  color: var(--c-brand);
+}
+
+.bo-topnav__link[aria-current="page"]:focus-visible {
+  box-shadow: inset 4px 0 0 var(--c-brand), var(--ring);
+}

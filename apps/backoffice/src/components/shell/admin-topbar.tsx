@@ -1,11 +1,13 @@
 "use client";
 
 import { LogOut, Menu, X } from "lucide-react";
+import type { ReactNode, RefObject } from "react";
 import type { SignedInUser } from "../../lib/api/auth-api";
 import type { Branch } from "../../lib/api/branch-api";
 import { vi } from "../../messages/vi";
 import { Icon } from "../ui/icon";
 import { BranchPicker } from "./branch-picker";
+import { NAV_DRAWER_ID } from "./nav-drawer";
 
 const T = vi.shell;
 
@@ -15,55 +17,69 @@ export function initialOf(name: string): string {
   return first.toLocaleUpperCase("vi");
 }
 
+/** The button that opens the menu drawer where the screen has no room for the menu bar. */
+export interface MenuButton {
+  ref: RefObject<HTMLButtonElement | null>;
+  open: boolean;
+  onToggle(): void;
+}
+
 /**
- * The bar over every page: the menu button (on a phone), the shop, the branch the pages are
- * about, and who is signed in with the way out.
+ * The bar over every page: the shop, the branch the pages are about, and who is signed in
+ * with the way out; under it the menu bar (`children`) on a computer, or before the shop
+ * the button of the menu drawer (`menuButton`) on a phone or a tablet.
  */
 export function AdminTopbar({
   user,
   branches,
   branchesFailed,
-  navOpen,
-  onToggleNav,
+  menuButton,
   leaving,
   onLogout,
+  children,
 }: {
   user: SignedInUser;
   branches: readonly Branch[] | null;
   branchesFailed: boolean;
-  navOpen: boolean;
-  onToggleNav(): void;
+  menuButton: MenuButton | null;
   leaving: boolean;
   onLogout(): void;
+  children?: ReactNode;
 }) {
   const name = user.displayName ?? user.accountId;
   return (
     <header className="bo-topbar">
-      <button
-        type="button"
-        className="bo-icon-button bo-menu-toggle"
-        aria-expanded={navOpen}
-        aria-controls="bo-sidenav"
-        onClick={onToggleNav}
-      >
-        <Icon of={navOpen ? X : Menu} size={22} />
-        <span className="bo-sr-only">{navOpen ? T.closeMenu : T.openMenu}</span>
-      </button>
-      <span className="bo-topbar__name">
-        <span className="bo-topbar__mark" aria-hidden="true" />
-        <span className="bo-clip">{user.organizationName ?? T.appName}</span>
-      </span>
-      <div className="bo-topbar__branch">
-        <BranchPicker branches={branches} failed={branchesFailed} />
+      <div className="bo-topbar__row">
+        {menuButton && (
+          <button
+            ref={menuButton.ref}
+            type="button"
+            className="bo-icon-button bo-menu-toggle"
+            aria-expanded={menuButton.open}
+            aria-controls={menuButton.open ? NAV_DRAWER_ID : undefined}
+            onClick={menuButton.onToggle}
+          >
+            <Icon of={menuButton.open ? X : Menu} size={22} />
+            <span className="bo-sr-only">{menuButton.open ? T.closeMenu : T.openMenu}</span>
+          </button>
+        )}
+        <span className="bo-topbar__name">
+          <span className="bo-topbar__mark" aria-hidden="true" />
+          <span className="bo-clip">{user.organizationName ?? T.appName}</span>
+        </span>
+        <div className="bo-topbar__branch">
+          <BranchPicker branches={branches} failed={branchesFailed} />
+        </div>
+        <div className="bo-topbar__account" aria-label={T.account} role="group">
+          <span className="bo-avatar" data-initial={initialOf(name)} aria-hidden="true" />
+          <span className="bo-clip bo-topbar__person">{name}</span>
+          <button type="button" className="bo-button bo-button--ghost bo-logout" disabled={leaving} onClick={onLogout}>
+            <Icon of={LogOut} />
+            <span className="bo-logout__label">{leaving ? T.loggingOut : T.logout}</span>
+          </button>
+        </div>
       </div>
-      <div className="bo-topbar__account" aria-label={T.account} role="group">
-        <span className="bo-avatar" data-initial={initialOf(name)} aria-hidden="true" />
-        <span className="bo-clip bo-topbar__person">{name}</span>
-        <button type="button" className="bo-button bo-button--ghost bo-logout" disabled={leaving} onClick={onLogout}>
-          <Icon of={LogOut} />
-          <span className="bo-logout__label">{leaving ? T.loggingOut : T.logout}</span>
-        </button>
-      </div>
+      {children}
     </header>
   );
 }

@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi as mock } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi as mock } from "vitest";
 import type { BackofficeApi } from "../../lib/api/backoffice-api";
 import { vi } from "../../messages/vi";
 import { BRANCHES, fakeBackofficeApi, ok, refused } from "../../test-support/fake-backoffice-api";
+import { forgetScreen, screenOf } from "../../test-support/screen-width";
 import { ApiProvider } from "../app/api-context";
 import { AdminShell } from "./admin-shell";
 import { LoadStateView } from "./load-state-view";
@@ -21,7 +22,7 @@ function renderShell(overrides: Partial<BackofficeApi>, page = <BranchProbe />) 
   const api = fakeBackofficeApi(overrides);
   render(
     <ApiProvider api={api}>
-      <AdminShell renderNav={() => <a href="/devices">nav</a>} onSignedOut={onSignedOut}>
+      <AdminShell renderNav={(layout) => <a href="/devices">{layout}</a>} onSignedOut={onSignedOut}>
         {page}
       </AdminShell>
     </ApiProvider>,
@@ -30,6 +31,7 @@ function renderShell(overrides: Partial<BackofficeApi>, page = <BranchProbe />) 
 }
 
 beforeEach(() => window.localStorage.clear());
+afterEach(forgetScreen);
 
 describe("the frame of every signed-in page", () => {
   it("sends a visitor without a session to sign in and shows nothing of the page", async () => {
@@ -64,25 +66,39 @@ describe("the frame of every signed-in page", () => {
     await mock.waitFor(() => expect(screen.getAllByTestId("branch")[1]?.textContent).toBe("Q1"));
   });
 
-  it("folds the menu behind a button that says whether it is open", async () => {
+  it("folds the menu behind a button that says whether it is open, below a computer's width", async () => {
+    screenOf(800);
     renderShell({});
     const toggle = await screen.findByRole("button", { name: T.openMenu });
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByRole("navigation")).toBeNull();
     fireEvent.click(toggle);
     expect(screen.getByRole("button", { name: T.closeMenu }).getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("navigation", { name: T.navigation }).textContent).toBe("drawer");
   });
 
-  it("narrows the side menu to its icons, says so, and keeps it narrow on the next visit", async () => {
+  it("lays the menu across the top on a computer, with no menu button and nothing beside the page", async () => {
+    screenOf(1280);
     renderShell({});
-    fireEvent.click(await screen.findByRole("button", { name: T.collapseMenu }));
-    const widen = screen.getByRole("button", { name: T.expandMenu });
-    expect(widen.getAttribute("aria-expanded")).toBe("false");
-    expect(document.querySelector(".bo-shell")?.getAttribute("data-nav-collapsed")).toBe("true");
-    expect(window.localStorage.getItem("fnb.backoffice.navCollapsed")).toBe("1");
+    const nav = await screen.findByRole("navigation", { name: T.navigation });
+    expect(nav.textContent).toBe("bar");
+    expect(screen.getByRole("banner").contains(nav)).toBe(true);
+    expect(screen.queryByRole("button", { name: T.openMenu })).toBeNull();
+    expect(screen.getByRole("main").previousElementSibling).toBe(screen.getByRole("banner"));
+  });
+
+  it("swaps the bar for the menu button as the screen narrows, and back, keeping one menu", async () => {
+    screenOf(1280);
     renderShell({});
-    await mock.waitFor(() => expect(screen.getAllByRole("button", { name: T.expandMenu })).toHaveLength(2));
-    fireEvent.click(widen);
-    expect(window.localStorage.getItem("fnb.backoffice.navCollapsed")).toBe("0");
+    await screen.findByRole("navigation");
+    act(() => screenOf(800));
+    fireEvent.click(screen.getByRole("button", { name: T.openMenu }));
+    expect(screen.getAllByRole("navigation").map((nav) => nav.textContent)).toEqual(["drawer"]);
+    act(() => screenOf(1280));
+    expect(screen.getAllByRole("navigation").map((nav) => nav.textContent)).toEqual(["bar"]);
+    act(() => screenOf(800));
+    expect(screen.queryByRole("navigation")).toBeNull();
+    expect(screen.getByRole("button", { name: T.openMenu }).getAttribute("aria-expanded")).toBe("false");
   });
 
   it("shows who is signed in in the bar, with the shop's name", async () => {

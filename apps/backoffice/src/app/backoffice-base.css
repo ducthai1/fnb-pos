@@ -68,10 +68,11 @@ body {
   gap: var(--sp-4);
 }
 
-/* Lists use the whole width; only very wide screens stop, so a row stays readable. */
+/* Pages and their tables take the whole width under the menu bar; only a very wide screen
+   stops them, so a row stays readable. */
 .bo-main > * {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1680px;
 }
 
 .bo-splash {

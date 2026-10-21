@@ -5,7 +5,7 @@ import { vi as messages } from "../../messages/vi";
 import { OWNER, ok } from "../../test-support/fake-backoffice-api";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { HomeScreen } from "./home-screen";
-import { SideNavLinks } from "./side-nav-links";
+import { DrawerNavLinks } from "./drawer-nav-links";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
@@ -20,14 +20,14 @@ const signedInWith = (permissionKeys: typeof OWNER.permissionKeys[number][]) => 
 const linkNames = (container: HTMLElement) =>
   within(container).getAllByRole("link").map((link) => link.textContent);
 
-describe("which pages the menu and the home page offer", () => {
+describe("which pages the menu drawer and the home page offer", () => {
   it("offers the owner every page", async () => {
-    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />);
+    await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />);
     expect(linkNames(document.body)).toEqual([N.home, N.devices, N.staff, N.roles, ...MENU_PAGES, ...REPORT_PAGES, N.floor, N.settings]);
   });
 
   it("leaves out the pages whose key the member's role lacks", async () => {
-    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />, signedInWith(["manage_devices"]));
+    await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />, signedInWith(["manage_devices"]));
     expect(linkNames(document.body)).toEqual([N.home, N.devices, ...MENU_PAGES]);
   });
 
@@ -37,7 +37,7 @@ describe("which pages the menu and the home page offer", () => {
   });
 
   it("puts each page under its group's heading and leaves a group with no page out", async () => {
-    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />, signedInWith(["view_reports"]));
+    await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />, signedInWith(["view_reports"]));
     const G = messages.shell.groups;
     const groupLinks = (heading: string) => linkNames(screen.getByRole("list", { name: heading }));
     expect(groupLinks(G.menu)).toEqual(MENU_PAGES);
@@ -47,12 +47,12 @@ describe("which pages the menu and the home page offer", () => {
   });
 
   it("offers the floor plan and settings only with manage_settings", async () => {
-    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />, signedInWith(["manage_settings"]));
+    await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />, signedInWith(["manage_settings"]));
     expect(linkNames(document.body)).toEqual([N.home, ...MENU_PAGES, N.floor, N.settings]);
   });
 
   it("offers the reports, day close and transfers only with view_reports", async () => {
-    await renderSignedIn(<SideNavLinks onNavigate={() => {}} />, signedInWith(["view_reports"]));
+    await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />, signedInWith(["view_reports"]));
     expect(linkNames(document.body)).toEqual([N.home, ...MENU_PAGES, ...REPORT_PAGES]);
   });
 

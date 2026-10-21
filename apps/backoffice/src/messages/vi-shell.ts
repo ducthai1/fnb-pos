@@ -27,8 +27,6 @@ export const VI_SHELL = {
   openMenu: "Mở menu",
   closeMenu: "Đóng menu",
   navigation: "Các mục quản lý",
-  collapseMenu: "Thu gọn menu",
-  expandMenu: "Mở rộng menu",
   breadcrumb: "Bạn đang ở",
   account: "Tài khoản đang đăng nhập",
   groups: {

@@ -1,29 +1,32 @@
-/* The frame: a bar over everything, a side menu of grouped pages and the content. On a
-   computer the menu narrows to its icons; on a phone (360px) it slides over the content
-   from a button, the branch picker taking a row of its own under the bar. */
+/* The frame: a bar over everything (the shop, the branch, the account; on a computer the
+   menu bar under it, backoffice-topnav.css) and the content across the whole width. Below
+   1024px the menu is a drawer from a button (backoffice-nav-drawer.css); on a phone the
+   branch picker takes a row of its own under the bar. */
 
 .bo-shell {
   position: relative;
   display: grid;
-  grid-template-columns: var(--sidenav-w) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
 }
 
-.bo-shell[data-nav-collapsed="true"] {
-  grid-template-columns: 72px minmax(0, 1fr);
+/* Above the content, so a list dropping from the menu bar covers the page under it. */
+.bo-topbar {
+  position: relative;
+  z-index: 10;
+  min-width: 0;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-line);
 }
 
-.bo-topbar {
-  grid-column: 1 / -1;
+.bo-topbar__row {
   display: flex;
   align-items: center;
   gap: var(--sp-4);
   min-width: 0;
   min-height: var(--topbar-h);
   padding: var(--sp-2) var(--sp-5);
-  background: var(--c-surface);
-  border-bottom: 1px solid var(--c-line);
 }
 
 .bo-topbar__name {
@@ -126,11 +129,6 @@
   min-height: var(--control-dense);
 }
 
-/* Scoped to the bar so the button style, loaded after this file, cannot show it on a computer. */
-.bo-topbar .bo-menu-toggle {
-  display: none;
-}
-
 @media (max-width: 1023px) {
   .bo-topbar__person {
     display: none;
@@ -138,20 +136,11 @@
 }
 
 @media (max-width: 767px) {
-  .bo-shell,
-  .bo-shell[data-nav-collapsed="true"] {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .bo-topbar {
+  .bo-topbar__row {
     flex-wrap: wrap;
     row-gap: var(--sp-2);
     gap: var(--sp-2);
     padding: var(--sp-2) var(--sp-3);
-  }
-
-  .bo-topbar .bo-menu-toggle {
-    display: inline-grid;
   }
 
   .bo-topbar__name {

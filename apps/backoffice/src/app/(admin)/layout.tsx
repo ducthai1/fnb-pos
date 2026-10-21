@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type ReactNode, useCallback } from "react";
 import { AdminShell } from "../../components/shell/admin-shell";
-import { SideNavLinks } from "../../components/shell/side-nav-links";
+import { renderAdminNav } from "../../components/shell/render-admin-nav";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -13,10 +13,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.replace(`/login?next=${encodeURIComponent(here)}`);
   }, [router]);
   return (
-    <AdminShell
-      renderNav={(onNavigate) => <SideNavLinks onNavigate={onNavigate} />}
-      onSignedOut={onSignedOut}
-    >
+    <AdminShell renderNav={renderAdminNav} onSignedOut={onSignedOut}>
       {children}
     </AdminShell>
   );
