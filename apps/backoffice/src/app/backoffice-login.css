@@ -74,3 +74,42 @@
   gap: var(--sp-3);
   line-height: var(--lh-body);
 }
+
+/* The sign-in fields and button in the reference's large measures: 56px boxes with a 12px
+   corner and the label inside along the top, a 56px button. */
+.bo-login .bo-title {
+  font-size: var(--fs-2xl);
+  line-height: 32px;
+  font-weight: var(--fw-semibold);
+}
+
+.bo-login .bo-field {
+  position: relative;
+}
+
+.bo-login .bo-field > span {
+  position: absolute;
+  top: 7px;
+  left: 17px;
+  right: 17px;
+  z-index: 1;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  font-weight: var(--fw-regular);
+  pointer-events: none;
+}
+
+.bo-login .bo-field > .bo-input {
+  min-height: 56px;
+  padding: 24px 15px 6px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.bo-login > .bo-button {
+  min-height: 56px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-lg);
+}

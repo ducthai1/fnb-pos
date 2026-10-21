@@ -180,3 +180,15 @@
   justify-content: center;
   gap: 6px;
 }
+
+/* Over a report the day's tools stay on one line, as a filter bar. */
+@media (min-width: 768px) {
+  .bo-page-head__actions .bo-day-picker {
+    flex-wrap: nowrap;
+  }
+
+  .bo-page-head__actions .bo-day-picker > .bo-button {
+    flex: none;
+    white-space: nowrap;
+  }
+}
