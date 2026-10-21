@@ -4,7 +4,7 @@ import { HOSTILE_NAMES } from "@fnb/pos/test-support/hostile-names";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
 import type { Browser, Page } from "playwright-core";
 import { afterAll, beforeAll, expect, inject, it } from "vitest";
-import { openSection, signedInBackoffice, unexpectedProblems } from "./support/backoffice-in-browser";
+import { asOwner, openSection, signedInBackoffice, unexpectedProblems } from "./support/backoffice-in-browser";
 
 const stack = inject("backofficeStack");
 const T = text.shell;
@@ -114,6 +114,42 @@ it("keeps the bar, every group's list and the drawer inside the screen with the 
     await page.keyboard.press("Escape");
     await expect.poll(() => nav.count()).toBe(0);
     expect(await page.evaluate(() => document.activeElement?.getAttribute("aria-expanded"))).toBe("false");
+  }
+  expect(unexpectedProblems(problems)).toEqual([]);
+  await close();
+});
+
+/** The scroller's box and the widths of the blocks of the page in it, against its content box. */
+const pageWidths = (page: Page) =>
+  page.locator(".bo-main").evaluate((main) => {
+    const style = getComputedStyle(main);
+    const content = main.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight);
+    const box = main.getBoundingClientRect();
+    const widths = [...main.children].map((child) => Math.round(child.getBoundingClientRect().width));
+    return { left: box.left, width: box.width, content, blocks: widths.filter((width) => width > 0) };
+  });
+
+it("gives a page with a wide table the whole width under the bar, up to a very wide screen's stop", async () => {
+  const role = await asOwner(stack, "POST", "/roles", { name: "CaSángBảngRộng", permissionKeys: ["open_drawer"], thresholds: {} });
+  expect(role.status).toBe(201);
+  const roleId = (role.body as { roleId: string }).roleId;
+  const hired = await asOwner(stack, "POST", "/staff", {
+    displayName: HOSTILE_NAMES.staff,
+    roleId,
+    pin: "4826",
+    branchIds: [stack.branchId],
+  });
+  expect(hired.status).toBe(201);
+  const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 1280, height: 800 });
+  await openSection(page, T.nav.staff);
+  await page.getByRole("table").waitFor();
+  for (const width of [1024, 1280, 1920]) {
+    await resize(page, width);
+    const measured = await pageWidths(page);
+    // No column beside the page: the scroller starts at the screen's edge and spans it.
+    expect({ left: measured.left, width: measured.width }, `scroller at ${width}px`).toEqual({ left: 0, width });
+    const expected = Math.round(Math.min(measured.content, 1680));
+    expect(new Set(measured.blocks), `page blocks at ${width}px`).toEqual(new Set([expected]));
   }
   expect(unexpectedProblems(problems)).toEqual([]);
   await close();
