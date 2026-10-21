@@ -40,6 +40,9 @@
   --c-amber: #8a5a00;
   --c-amber-bold: #b7791f;
   --c-amber-soft: #fdf3e1;
+  /* The pre-bill button: a bright amber fill, so its writing is dark */
+  --c-amber-fill: #dd980a;
+  --c-on-amber: #2e1f00;
   --c-danger: #b42841;
   --c-danger-soft: #fdecef;
   --c-on-danger: #ffffff;

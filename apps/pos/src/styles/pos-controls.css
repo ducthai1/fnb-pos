@@ -79,9 +79,9 @@
 
 /* A step before paying that the guests hold in hand: the pre-bill. */
 .pos-button--amber {
-  border-color: var(--c-amber-line);
-  background: var(--c-amber-soft);
-  color: var(--c-amber);
+  border-color: var(--c-amber-fill);
+  background: var(--c-amber-fill);
+  color: var(--c-on-amber);
   font-weight: var(--fw-semibold);
 }
 

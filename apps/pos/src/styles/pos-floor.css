@@ -37,26 +37,33 @@
   color: var(--c-amber);
 }
 
-/* Send and pre-bill side by side, pay across under them, move and leave last. */
+/* Send over pre-bill on the left, pay as tall as both on the right; move and leave under. */
 .pos-table-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "send pay"
+    "bill pay";
   gap: var(--sp-2);
 }
 
 .pos-table-actions > .pos-button {
   min-width: 0;
+  border-radius: var(--r-sm);
   overflow-wrap: anywhere;
 }
 
-.pos-table-actions > .pos-table-actions__pay {
-  grid-column: 1 / -1;
-  order: 1;
+.pos-table-actions > .pos-table-actions__send {
+  grid-area: send;
 }
 
-.pos-table-actions
-  > .pos-button:not(.pos-table-actions__pay, .pos-table-actions__send, .pos-button--amber) {
-  order: 2;
+.pos-table-actions > .pos-button--amber {
+  grid-area: bill;
+}
+
+.pos-table-actions > .pos-table-actions__pay {
+  grid-area: pay;
+  min-height: 88px;
 }
 
 .pos-notice {
