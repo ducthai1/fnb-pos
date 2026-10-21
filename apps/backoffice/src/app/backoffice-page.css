@@ -165,10 +165,11 @@
   cursor: default;
 }
 
-/* A long page's parts as segments that stay over it while it scrolls (editor, settings). */
+/* A long page's parts as segments that stay over it while it scrolls (editor, settings),
+   flush under the bar: sticking counts from inside the main area's top padding. */
 .bo-section-nav {
   position: sticky;
-  top: 0;
+  top: calc(-1 * var(--sp-4));
   z-index: 5;
   display: flex;
   box-shadow: var(--shadow-card);
