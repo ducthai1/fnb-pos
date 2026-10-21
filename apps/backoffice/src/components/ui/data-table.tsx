@@ -41,6 +41,10 @@ export interface Sort {
   readonly direction: SortDirection;
 }
 
+/** From this many columns a table needs the full width: a wide screen keeps its filter as a
+    row over it instead of a card beside it. */
+const WIDE_TABLE = 6;
+
 /**
  * A list of records as a table on a computer and one card per row on a phone, with the
  * same tools everywhere: a search box, filters as segments with their counts, a sort by
@@ -112,7 +116,7 @@ export function DataTable<R>(props: {
     );
 
   return (
-    <div className="bo-data">
+    <div className="bo-data" data-wide={width >= WIDE_TABLE ? "" : undefined}>
       <TableToolbar
         id={id}
         search={search === undefined ? undefined : { label: search.label, typed, onType: setTyped }}

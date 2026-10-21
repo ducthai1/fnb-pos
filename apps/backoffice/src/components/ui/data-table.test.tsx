@@ -147,4 +147,19 @@ describe("a shared table of records", () => {
     fireEvent.click(within(group).getByRole("button", { name: T.count("Đang bật", 2) }));
     expect(shownNames()).toEqual(["Quầy 2", "Bếp"]);
   });
+  it("marks a table of six columns or more as wide, so its filter stays over it", () => {
+    const { container } = render(
+      <DataTable
+        label="Máy"
+        rows={TILLS}
+        rowKey={(till) => till.id}
+        columns={[...COLUMNS, ...COLUMNS.map((column) => ({ ...column, key: `${column.key}2` }))]}
+        empty={<EmptyState icon={Inbox}>Chưa có máy.</EmptyState>}
+      />,
+    );
+    expect(container.querySelector(".bo-data")?.hasAttribute("data-wide")).toBe(true);
+    cleanup();
+    renderTable();
+    expect(document.querySelector(".bo-data")?.hasAttribute("data-wide")).toBe(false);
+  });
 });

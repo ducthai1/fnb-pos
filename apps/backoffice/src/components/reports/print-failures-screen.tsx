@@ -34,13 +34,14 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
     key: "occurredAt",
     label: C.occurredAt,
     // A time and a date on one line ("04:21 21/10/2026"), not cut in the middle of the year.
-    width: "140px",
+    width: "160px",
     cell: (failure) => formatDateTime(failure.occurredAt),
     sortValue: (failure) => failure.occurredAt,
   },
   {
     key: "kind",
     label: C.kind,
+    width: "136px",
     cell: (failure) => (
       <span className="bo-badge" data-tone={failure.kind === "bill" ? "danger" : "warn"}>
         {kindName(failure)}
@@ -70,7 +71,8 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
     key: "attempts",
     label: C.attempts,
     numeric: true,
-    width: "96px",
+    // The heading and its sort mark on one line.
+    width: "144px",
     cell: (failure) => String(failure.attempts),
     sortValue: (failure) => failure.attempts,
   },
