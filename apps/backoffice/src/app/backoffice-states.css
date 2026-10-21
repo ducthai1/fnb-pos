@@ -72,7 +72,7 @@
 }
 
 /* Nothing to list: the table's own white box with the words in its middle, and the way on
-   as the reference's blue 36px button. */
+   as a blue 36px button. */
 .bo-empty {
   margin: 0;
   padding: var(--sp-10) var(--sp-4);

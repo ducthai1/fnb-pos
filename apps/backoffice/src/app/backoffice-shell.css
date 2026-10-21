@@ -116,7 +116,7 @@
   flex: none;
 }
 
-/* The bar's controls are the reference's dense 36px. */
+/* The bar's controls are the dense 36px. */
 .bo-topbar .bo-icon-button,
 .bo-topbar .bo-button {
   width: auto;

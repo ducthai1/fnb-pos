@@ -35,7 +35,7 @@
   width: min(100%, 28px);
   height: var(--h);
   border-radius: 6px 6px 0 0;
-  /* The reference's revenue area: brand green fading toward the axis. */
+  /* Brand green fading toward the axis, so the eye goes to the tops of the bars. */
   background: linear-gradient(to bottom, rgb(11 125 92 / 0.55), rgb(11 125 92 / 0.12));
 }
 

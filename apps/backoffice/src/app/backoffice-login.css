@@ -75,7 +75,7 @@
   line-height: var(--lh-body);
 }
 
-/* The sign-in fields and button in the reference's large measures: 56px boxes with a 12px
+/* The sign-in fields and button in large measures: 56px boxes with a 12px
    corner and the label inside along the top, a 56px button. */
 .bo-login .bo-title {
   font-size: var(--fs-2xl);

@@ -1,6 +1,6 @@
 /* Importing the menu from a products sheet: the file card, the choices, the run bar. */
 
-/* A drop zone, as the reference's upload box: a dashed edge that turns brand green while a
+/* A drop zone: a dashed edge that turns brand green while a
    file is held over it. */
 .bo-import-file {
   flex-direction: row;

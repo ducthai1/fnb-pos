@@ -51,7 +51,7 @@
   padding-block: 8px;
 }
 
-/* A report page on a wide screen, as the reference's reports: a left column with the title,
+/* A report page on a wide screen: a left column with the title,
    its help and the day in a white filter card, the figures and tables on the right. The
    tables stack in the narrower right column. */
 @media (min-width: 1100px) {

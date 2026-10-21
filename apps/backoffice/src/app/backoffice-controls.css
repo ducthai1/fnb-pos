@@ -1,4 +1,4 @@
-/* Cards, fields, buttons, notices and tables, in the reference's admin measures: 44px
+/* Cards, fields, buttons, notices and tables, in one admin measure: 44px
    controls with an 8px corner, white 12px cards lifted by one soft shadow and no edge.
    Inputs use 16px text on a phone so it does not zoom into them. */
 
@@ -102,7 +102,7 @@
   border-color: var(--c-brand);
 }
 
-/* As the reference: the edge turns brand green, with a faint green halo. */
+/* Focus: the edge turns brand green, with a faint green halo. */
 .bo-input:focus-visible {
   outline: none;
   border-color: var(--c-brand);

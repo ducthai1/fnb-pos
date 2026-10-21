@@ -1,7 +1,7 @@
 /* The − n + stepper of a line, and the bar that takes a phone down to its order. */
 
-/* Round − and + outlined in blue either side of the number in its own box, as the reference
-   draws them: a 32px ring drawn in the middle of a full 48px target for the finger. */
+/* Round − and + outlined in blue either side of the number in its own box: a 32px ring
+   drawn in the middle of a full 48px target for the finger. */
 .pos-stepper {
   --ring-ink: var(--c-info);
   --ring-fill: var(--c-surface);

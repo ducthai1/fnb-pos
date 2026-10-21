@@ -46,7 +46,7 @@
   align-items: flex-start;
 }
 
-/* A second step, as the reference's confirm box: a red warning sign before a red title,
+/* A second step, as a confirm box: a red warning sign before a red title,
    the sentence in grey, two 36px buttons on the right, the one that acts filled red. */
 .bo-confirm {
   gap: var(--sp-4);

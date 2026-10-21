@@ -1,4 +1,4 @@
-/* Choices in a row, in the three shapes the reference uses: outlined toggles (a range of
+/* Choices in a row, in three shapes: outlined toggles (a range of
    days), folder tabs over a long form (editor, settings), and radio rows for a list's filter,
    which on a wide screen stand in a white filter card beside the table. A choice may carry a
    shop's name (a category): it wraps, never widens the page. */
@@ -123,7 +123,7 @@
   border: 6px solid var(--c-brand);
 }
 
-/* Wide: the filter is a card on the left (the reference's filter column), the search and
+/* Wide: the filter is a card on the left (a filter column), the search and
    the count over the table on the right. */
 @media (min-width: 1100px) {
   .bo-data:has(> .bo-data__tools > .bo-tabs) {

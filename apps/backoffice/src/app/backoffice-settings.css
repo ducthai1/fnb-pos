@@ -1,6 +1,6 @@
 /* Settings, reports, day close, transfers and the floor plan. */
 
-/* The feature switches as the reference's setup list: one row each, the name on the left
+/* The feature switches as a setup list: one row each, the name on the left
    with where its value comes from under it in grey, the switch at the far right, a soft
    line between rows. The switch is the real checkbox, drawn as a 44x24 track whose knob is
    a radial gradient (a pseudo-element on an input is not drawn). */

@@ -68,7 +68,7 @@ body {
   gap: var(--sp-4);
 }
 
-/* Lists use the whole width, as the reference's admin pages do; only very wide screens stop. */
+/* Lists use the whole width; only very wide screens stop, so a row stays readable. */
 .bo-main > * {
   width: 100%;
   max-width: 1440px;

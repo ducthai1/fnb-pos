@@ -1,4 +1,4 @@
-/* A field in a form card, drawn as the reference's: one 56px box with a 12px corner, its
+/* A field in a form card, drawn as one 56px box with a 12px corner, its
    label small and grey along the top inside the box, what is typed 16/24 under it. Only the
    look moves: the label is still the <label for> before the input, so its name is unchanged.
    Fields outside a card (the day over a report) keep the plain 44px box. */
@@ -37,7 +37,7 @@
   padding-right: 36px;
 }
 
-/* Read only: the reference greys the box. */
+/* Read only: a grey box. */
 .bo-card .bo-field > label + .bo-input:disabled,
 .bo-card .bo-field > label + .bo-input[readonly] {
   background: var(--c-hover);

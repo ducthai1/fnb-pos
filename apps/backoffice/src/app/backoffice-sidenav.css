@@ -84,7 +84,7 @@
   box-shadow: var(--ring);
 }
 
-/* The page you are on: pale blue with blue words, as a chosen item of the reference's menus. */
+/* The page you are on: pale blue with blue words, as a chosen item of a menu. */
 .bo-sidenav__link[aria-current="page"],
 .bo-sidenav__link[aria-current="page"]:hover {
   background: var(--c-pick-soft);

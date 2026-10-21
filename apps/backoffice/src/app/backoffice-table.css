@@ -1,5 +1,5 @@
 /* A table on a computer, one block per row on a phone, each cell labelled by its column.
-   The reference's measures: a pale blue head, 52px rows, 12px 16px cells, 14px words. */
+   Measures: a pale blue head, 52px rows, 12px 16px cells, 14px words. */
 .bo-table {
   width: 100%;
   border-collapse: collapse;

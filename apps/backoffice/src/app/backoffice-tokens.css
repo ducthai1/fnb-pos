@@ -88,17 +88,17 @@
   --shadow-raised: 0 2px 6px rgb(23 20 31 / 0.08), 0 18px 40px -12px rgb(23 20 31 / 0.28);
   --ring: 0 0 0 3px rgb(29 111 184 / 0.35);
 
-  /* The admin language of the reference: a soft line inside cards and under bars, the pale
+  /* The admin language: a soft line inside cards and under bars, the pale
      blue of a chosen row in a list and of a table's head, the grey of a hovered row. */
   --c-line: rgb(210 205 219 / 0.5);
   --c-pick-soft: #e5f4ff;
   --c-head-soft: #edf7ff;
   --c-hover: #f5f5f5;
   --c-on-pick: #005695;
-  /* The reference's pale mint writing on its blue tool buttons (4.8:1 on --c-info). */
+  /* Pale mint writing on the blue tool buttons (4.8:1 on --c-info). */
   --c-on-info-tool: #cffff0;
-  /* The edge of an empty tick box or radio dot: the reference's grey #8c8697, 3.5:1 on white
-     (its lighter #d2cddb would be the box's only outline at 1.5:1). */
+  /* The edge of an empty tick box or radio dot: grey #8c8697, 3.5:1 on white
+     (the lighter #d2cddb would be the box's only outline at 1.5:1). */
   --c-control-edge: #8c8697;
   --shadow-panel: 0 6px 16px 0 rgb(0 0 0 / 0.1);
   --shadow-filter: 0 2px 8px rgb(0 0 0 / 0.08);
