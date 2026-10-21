@@ -22,6 +22,10 @@ quan.example.vn {
 
 	# API: Caddy đặt X-Forwarded-For bằng địa chỉ thật của khách (bỏ giá trị khách tự gửi),
 	# API tin nó vì FNB_TRUSTED_PROXIES=127.0.0.1,::1.
+	# Ảnh món cũng đi đường này: /api/media/product-images/<tenant>/<băm>.<đuôi>, API trả kèm
+	# Cache-Control immutable + ETag (tên = băm nội dung, không bao giờ đổi) nên mỗi máy chỉ
+	# tải một lần. Ảnh tải lên tối đa 1 MB, nằm trong giới hạn 2MB dưới đây. encode không nén
+	# lại ảnh (Caddy chỉ nén kiểu chữ).
 	handle_path /api/* {
 		request_body {
 			max_size 2MB
