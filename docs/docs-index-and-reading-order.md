@@ -19,6 +19,8 @@
 |---|---|
 | [plan.md](plan.md) | tổng quan phase, mốc R1–R4, phụ thuộc |
 | `phase-XX-*.md` | yêu cầu, kiến trúc, rủi ro từng phase |
+| [handbook/README.md](handbook/README.md) | **sổ tay sản phẩm**: từng màn máy quầy, trang quản lý, vận hành — làm gì, ai dùng, các bước, luật, lỗi, mất mạng, chưa làm; viết theo code + test hiện tại, có ảnh |
+| [handbook/discrepancies.md](handbook/discrepancies.md) | chỗ tài liệu cũ (catalog, feature-map, decision-log, chữ trên màn) nói khác code |
 | [feature-map-by-release.md](feature-map-by-release.md) | tính năng hướng tới → luật → task → file test |
 | [logic-catalog-flows-rules-and-design-decisions.md](logic-catalog-flows-rules-and-design-decisions.md) | **luật nghiệp vụ** (nguồn thật của mọi hành vi) |
 | [architecture-and-stack-decision.md](architecture-and-stack-decision.md) | stack, đồng bộ, in ấn, thanh toán, bảo mật |
@@ -31,7 +33,7 @@
 
 | Sự kiện | Cập nhật |
 |---|---|
-| Xong một task | bảng task (trạng thái + ghi chú), feature-map (file test thật), bản đồ code nếu thêm module |
+| Xong một task | bảng task (trạng thái + ghi chú), feature-map (file test thật), bản đồ code nếu thêm module, trang sổ tay của màn đó (cùng commit) |
 | Luật nghiệp vụ đổi | catalog + decision-log (dòng mới) + test tương ứng |
 | Quyết định kỹ thuật mới | decision-log; architecture nếu đổi hình dạng hệ thống |
 | Cuối phiên | mục "Bàn giao phiên trước" của bảng task |

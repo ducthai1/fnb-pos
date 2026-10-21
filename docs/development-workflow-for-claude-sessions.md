@@ -23,8 +23,8 @@
 1. Đánh dấu task `doing` + ngày.
 2. Đọc code liên quan trước khi sửa.
 3. Domain/luật: **viết test trước** (đỏ), rồi code (xanh). UI: viết code, rồi test component/E2E ngay trong cùng đợt.
-4. Gặp chỗ mơ hồ về nghiệp vụ ⇒ hỏi user, đừng đoán. Gặp việc mới ngoài task ⇒ thêm vào mục **Backlog phát sinh** của bảng task, đừng làm luôn.
-5. Muốn đổi một quyết định `đã duyệt` ⇒ dừng, trình user: quyết định cũ, dữ liệu mới, đánh đổi, hỏi giữ/đổi.
+4. Gặp chỗ mơ hồ về nghiệp vụ / UX / kỹ thuật ⇒ làm theo luật 7 của `CLAUDE.md`: tra code + test, empos (chỉ đọc), hệ thống lớn, internet ⇒ tự quyết, ghi decision-log (nguồn + lý do), báo lại. Chỉ hỏi user ở các việc luật 7 liệt kê (tiền thật, tài khoản/khóa thật, deploy thật, thuế/HĐĐT trên dữ liệu thật…). Gặp việc mới ngoài task ⇒ thêm vào mục **Backlog phát sinh** của bảng task, đừng làm luôn.
+5. Muốn đổi một quyết định chủ dự án đã nói rõ ⇒ chỉ khi có bằng chứng mới: thêm dòng mới "thay D-xxx" ghi quyết định cũ, dữ liệu mới, đánh đổi, rồi báo lại.
 
 ## 4. Xong — Definition of Done (đủ hết mới là `done`)
 
@@ -33,6 +33,7 @@
 - [ ] UI mới: test với dữ liệu xấu ở 360px và 800px.
 - [ ] Không còn TODO/FIXME mới trong code mà không có dòng tương ứng trong Backlog.
 - [ ] Cập nhật: trạng thái task + ghi chú; [feature-map](feature-map-by-release.md) (trạng thái, file test thật); bản đồ code nếu thêm module; catalog + decision-log nếu luật đổi.
+- [ ] **Sổ tay sản phẩm** ([`handbook/`](handbook/README.md)) sửa trong **cùng commit** với hành vi: màn/trang mới ⇒ thêm vào `screens` của đúng một trang (thiếu là `scripts/src/handbook/handbook-coverage.test.ts` đỏ); đổi bước, luật, quyền, câu báo lỗi ⇒ sửa trang đó + `tests`/`decisions` ở đầu trang; màn đổi hình ⇒ chụp lại (`pnpm docs:shots:may-quay` / `pnpm docs:shots:backoffice`); sửa xong một chỗ lệch ⇒ xóa dòng của nó trong `handbook/discrepancies.md`.
 - [ ] Commit conventional tiếng Anh, kèm test, chỉ đúng file của task.
 
 ## 5. Cuối phiên — bàn giao
