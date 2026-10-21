@@ -55,6 +55,7 @@
 37. Route test không có giới hạn tần suất; test giới hạn dùng `support/rate-limited-app.ts` (ManualClock + `inject({remoteAddress})`). Test tác động lên MỌI tenant (dọn dẹp…) dùng `support/provisioned-scratch-database.ts` vì DB chung có hàng của các file chạy song song. CLI phải được spawn thật và kiểm đầu ra không chứa mật khẩu.
 38. Kịch bản khôi phục: `ScenarioServer.withShop(appUrl)`, `DatabaseBackup`, `support/restorable-shop.ts` (backup = dừng API + `CREATE DATABASE … TEMPLATE`, restore = drop + chép lại + `renewServerGeneration`); `@fnb/api/test-support/provisioned-scratch-database` đã export. Chrome không khởi động khi TMPDIR quá dài ("Socket path too long") ⇒ trỏ TMPDIR vào một symlink ngắn.
 39. Server giả của POS (`tableCafeServer(…, start)`) nhận `floor`/`openOrders` và THỰC THI `expectedVersion` (trả snapshot kèm lời từ chối STALE) — test hai máy cùng sửa bàn phải giữ ít nhất một lệnh ở trạng thái chờ và có ca HAI nháp chờ liên tiếp (nháp sau trùng version của máy kia).
+40. Ảnh: `page.route` của Playwright tắt bộ nhớ đệm HTTP ⇒ test mất mạng chỉ chứng minh được Cache Storage; mọi API chạy production (stack e2e, entrypoint) cần `FNB_MEDIA_DIR` ghi được; API dev spawn trong test tạo `<repo>/tmp/media`.
 23. zod 3: refine vẫn chạy sau khi check trước đã lỗi ⇒ refine gọi BigInt/parse phải tự chặn đầu vào xấu trước.
 
 ## 3. Cổng (gate) — tất cả kiểm bằng exit code
