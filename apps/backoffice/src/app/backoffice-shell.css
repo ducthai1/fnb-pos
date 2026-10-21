@@ -72,7 +72,8 @@
   min-height: calc(var(--control-dense) - 2px);
   padding-left: 0;
   border: 0;
-  background: transparent;
+  /* The colour only: the chevron is a background image (backoffice-checks.css). */
+  background-color: transparent;
   font-weight: var(--fw-semibold);
   color: var(--c-text);
   text-overflow: ellipsis;
