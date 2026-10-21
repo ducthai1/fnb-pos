@@ -1,5 +1,5 @@
 import type { SyncClient } from "@fnb/sync-client";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useLayoutEffect, useState } from "react";
 import type { TillMenu } from "../features/menu/till-menu";
 import { callNumberOf } from "../features/order/device-order-number";
 import type { CounterOrder } from "../features/order/counter-order";
@@ -36,6 +36,12 @@ export interface CounterCheckoutProps {
   onNextOrder(): void;
   /** What the button after the sale says, when it does not start the next counter order. */
   nextOrderLabel?: string;
+  /**
+   * Whether a step that takes the whole screen (the buyer's form, the finished sale) is up:
+   * the order under the checkout is then not drawn at all, so nothing of it is on the page
+   * twice (its bar's sync badge, its lines).
+   */
+  onWholeScreen(on: boolean): void;
 }
 
 type Step = "paying" | "buyer";
@@ -57,6 +63,11 @@ export function CounterCheckout(props: CounterCheckoutProps) {
   const [paid, setPaid] = useState<PaidOrder | null>(null);
   const [reprinting, setReprinting] = useState(false);
   const account = paymentAccountOf(menu.config);
+  const { onWholeScreen } = props;
+  const wholeScreen = step === "buyer" || paid !== null;
+  // Before paint, so the order and the whole-screen step are never on the page together.
+  useLayoutEffect(() => onWholeScreen(wholeScreen), [onWholeScreen, wholeScreen]);
+  useLayoutEffect(() => () => onWholeScreen(false), [onWholeScreen]);
   const invoicing = useCheckoutInvoice(props, paid?.sale ?? null);
   const addSlip = (slip: PrintedSlip) =>
     setPaid((shown) =>

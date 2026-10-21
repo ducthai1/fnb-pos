@@ -47,6 +47,7 @@ type Phase =
 export function CounterSale(props: CounterSaleProps) {
   const { menu, now, header, session } = props;
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
+  const [wholeScreen, setWholeScreen] = useState(false);
   const { order, chargeProfile } = session;
 
   if (order === null || chargeProfile === null) {
@@ -91,7 +92,7 @@ export function CounterSale(props: CounterSaleProps) {
   const checkout = phase.kind === "checkout" ? phase.priced : null;
   return (
     <>
-      <UnderLayer covered={checkout !== null}>
+      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
         <SaleScreen
           header={
             <>
@@ -132,6 +133,7 @@ export function CounterSale(props: CounterSaleProps) {
           order={order}
           priced={checkout}
           onBackToSale={() => setPhase({ kind: "selling" })}
+          onWholeScreen={setWholeScreen}
           onNextOrder={() => {
             session.startNew();
             setPhase({ kind: "selling" });

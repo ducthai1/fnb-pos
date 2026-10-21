@@ -5,12 +5,6 @@
   display: contents;
 }
 
-/* Under a whole-screen step it is not drawn at all: nothing of it shows twice, not its
-   bar's sync badge, and the step's own screen is the one that scrolls. */
-.pos-under:has(~ .pos-cover) {
-  display: none;
-}
-
 .pos-cover {
   position: fixed;
   inset: 0;

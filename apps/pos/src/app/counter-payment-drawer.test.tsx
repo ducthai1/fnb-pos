@@ -91,4 +91,20 @@ describe("the payment drawer over the counter's order", () => {
       expectedAmountDue: 58_000,
     });
   });
+
+  it("draws the order no more under the finished sale, so nothing of it is on the page twice", async () => {
+    const server = cafeServer();
+    await signedInTill(server);
+    await drawerOverTwoCoffees();
+    expect(document.querySelectorAll("[data-pending]")).toHaveLength(1);
+    tap(T.quickCash(formatVnd(vnd(100_000))));
+    tap(T.finish);
+    await screen.findByRole("heading", { name: text.checkout.done.title });
+    expect(document.querySelector("[data-cart-line]")).toBeNull();
+    // The finished sale has its own bar: the sync badge is on the page once, not twice.
+    expect(document.querySelectorAll("[data-pending]")).toHaveLength(1);
+    tap(text.checkout.done.nextOrder);
+    await screen.findByText(text.sale.orderNumber(2));
+    expect(document.querySelector("[data-covered]")?.hasAttribute("inert")).toBe(false);
+  });
 });

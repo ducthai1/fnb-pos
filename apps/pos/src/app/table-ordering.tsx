@@ -44,6 +44,7 @@ export function TableOrdering(props: TableOrderingProps) {
   const { client, place, menu, now, header, opening, onLeave } = props;
   const session = useTableOrder(client, place, menu, opening, props.onRecorded);
   const [phase, setPhase] = useState<TableOrderPhase>({ kind: "order" });
+  const [wholeScreen, setWholeScreen] = useState(false);
   const { order, kept, sent, commandLines } = session;
   const view = cartView(menu, order, session.recorded().chargeProfile, now, kept, commandLines);
   const lines = view.kind === "priced" ? view.priced.lines : [];
@@ -122,7 +123,7 @@ export function TableOrdering(props: TableOrderingProps) {
   const checkout = phase.kind === "checkout" ? phase.priced : null;
   return (
     <>
-      <UnderLayer covered={checkout !== null}>
+      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
         <TableOrderScreen
           header={header}
           menu={menu}
@@ -183,6 +184,7 @@ export function TableOrdering(props: TableOrderingProps) {
           priced={checkout}
           nextOrderLabel={vi.tables.order.backToFloor}
           onBackToSale={back}
+          onWholeScreen={setWholeScreen}
           onNextOrder={() => onLeave(null)}
         />
       )}
