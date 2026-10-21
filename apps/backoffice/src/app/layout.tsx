@@ -20,6 +20,7 @@ import "./backoffice-day-close.css";
 import "./backoffice-floor-plan.css";
 import "./backoffice-notices.css";
 import "./backoffice-states.css";
+import "./backoffice-tabs.css";
 import "./backoffice-table.css";
 import "./backoffice-data-table.css";
 import "./backoffice-cells.css";

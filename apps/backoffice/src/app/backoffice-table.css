@@ -1,29 +1,33 @@
-/* A table on a computer, one block per row on a phone, each cell labelled by its column. */
+/* A table on a computer, one block per row on a phone, each cell labelled by its column.
+   The reference's measures: a pale blue head, 52px rows, 12px 16px cells, 14px words. */
 .bo-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  font-size: var(--fs-sm);
+  line-height: 20px;
 }
 
 .bo-table th,
 .bo-table td {
-  padding: 10px 12px;
+  height: 52px;
+  padding: 12px 16px;
   text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid var(--c-border-soft);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--c-line);
   overflow-wrap: anywhere;
 }
 
 .bo-table th {
   overflow-wrap: break-word;
-  background: var(--c-surface-2);
-  color: var(--c-text-2);
+  background: var(--c-head-soft);
+  color: var(--c-text);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
 }
 
 .bo-table tbody tr:hover {
-  background: var(--c-surface-2);
+  background: var(--c-hover);
 }
 
 @media (max-width: 767px) {
@@ -49,6 +53,7 @@
   }
 
   .bo-table td {
+    height: auto;
     padding: 4px 0;
     border: 0;
   }

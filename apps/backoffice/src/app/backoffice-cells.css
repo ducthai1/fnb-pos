@@ -35,7 +35,7 @@
   min-width: 0;
   max-width: 100%;
   color: var(--c-text);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-medium);
   text-decoration: none;
 }
 
@@ -48,8 +48,8 @@
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-sm);
   background: var(--c-brand-soft);
   color: var(--c-brand-strong);
@@ -169,7 +169,7 @@
 /* A row's tick box before its first cell, and the box over the table that ticks every row shown. */
 .bo-data__pick {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--sp-3);
   min-width: 0;
 }
@@ -179,7 +179,7 @@
   flex: 0 0 auto;
   width: 18px;
   height: 18px;
-  margin: 3px 0 0;
+  margin: 0;
   accent-color: var(--c-brand);
 }
 

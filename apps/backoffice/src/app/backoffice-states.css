@@ -1,4 +1,4 @@
-/* Small facts and waiting states: status badges, segmented tabs, loading lines. A status is
+/* Small facts and waiting states: status badges, loading lines. A status is
    always written in words; the tone only helps a glance down a table. */
 
 .bo-badge {
@@ -34,40 +34,6 @@
 .bo-badge[data-tone="info"] {
   background: var(--c-info-soft);
   color: var(--c-info);
-}
-
-.bo-tabs {
-  display: inline-flex;
-  flex-wrap: wrap;
-  max-width: 100%;
-  min-width: 0;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--r-md);
-  background: var(--c-surface-3);
-}
-
-/* A segment may carry a shop's name (a category to filter by): it wraps, never widens the page. */
-.bo-tab {
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font: inherit;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-}
-
-.bo-tab[aria-selected="true"],
-.bo-tab[aria-pressed="true"] {
-  background: var(--c-surface);
-  color: var(--c-brand-strong);
-  box-shadow: var(--shadow-card);
 }
 
 /* Waiting for an answer: the words stay, a small spinner goes before them. */

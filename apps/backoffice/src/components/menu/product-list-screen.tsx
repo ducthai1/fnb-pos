@@ -59,6 +59,7 @@ const columnsFor = (categoryName: (id: string | null) => string): readonly DataC
   {
     key: "category",
     label: T.columns.category,
+    width: "24%",
     cell: (product) => categoryName(product.categoryId),
     sortValue: (product) => categoryName(product.categoryId),
   },
@@ -66,12 +67,14 @@ const columnsFor = (categoryName: (id: string | null) => string): readonly DataC
     key: "price",
     label: T.columns.price,
     numeric: true,
+    width: "18%",
     cell: priceOf,
     sortValue: (product) => (product.pricingMode === "open_price" ? null : product.basePrice),
   },
   {
     key: "status",
     label: T.columns.status,
+    width: "20%",
     cell: (product) =>
       product.archivedAt === null ? (
         <span className="bo-badge" data-tone="ok">
