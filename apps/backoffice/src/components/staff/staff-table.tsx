@@ -97,11 +97,12 @@ export function StaffTable({
       cell: (member) => <strong>{member.displayName}</strong>,
       sortValue: (member) => member.displayName,
     },
-    { key: "role", label: T.columns.role, cell: roleName, sortValue: roleName },
+    { key: "role", label: T.columns.role, cell: roleName, sortValue: roleName, width: "16%" },
     {
       key: "branches",
       label: T.columns.branches,
       cell: (member) => member.branchIds.map(branchName).join(", "),
+      width: "16%",
     },
     {
       key: "status",
@@ -112,6 +113,7 @@ export function StaffTable({
         </span>
       ),
       sortValue: (member) => (member.active ? (hasPinTrouble(member) ? 1 : 0) : 2),
+      width: "15%",
     },
   ];
   return (
@@ -127,7 +129,7 @@ export function StaffTable({
         { key: "inactive", label: T.filters.inactive, test: (member) => !member.active },
         { key: "pin", label: T.filters.pinTrouble, test: hasPinTrouble },
       ]}
-      actionsWidth="300px"
+      actionsWidth="32%"
       actions={(member) => (
         <ToolButtons member={member} onOpen={(tool) => onOpen({ staffId: member.id, tool })} />
       )}
