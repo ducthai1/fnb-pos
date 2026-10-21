@@ -1,5 +1,6 @@
-/* Chips: an option, a size, a pick among a few — pill-shaped, a tick when chosen (the choice
-   is also in aria-pressed), a price or a count beside the name in a quieter colour. */
+/* Chips: an option, a size, a pick among a few — outlined boxes, a tick when chosen (the
+   choice is also in aria-pressed), a price or a count beside the name in a quieter colour.
+   Where several may be picked the tick sits in a box, the way a checkbox reads. */
 
 .pos-chips {
   display: flex;
@@ -27,11 +28,12 @@
   min-height: var(--tap);
   padding: var(--sp-2) var(--sp-4);
   border: 1px solid var(--c-border);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-sm);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
-  font-weight: var(--fw-medium);
+  font-size: 0.9375rem;
+  font-weight: var(--fw-regular);
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
@@ -67,8 +69,12 @@
   padding-left: var(--sp-3);
   border-color: var(--c-brand);
   background: var(--c-brand-soft);
-  color: var(--c-brand-strong);
-  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
+.pos-chip[aria-pressed="true"] > .pos-icon {
+  color: var(--c-brand);
 }
 
 .pos-chip[aria-pressed="true"] > .pos-icon {
@@ -78,6 +84,34 @@
 .pos-chip[aria-pressed="true"] .pos-chip__price,
 .pos-chip[aria-pressed="true"] .pos-chip__units {
   color: var(--c-brand-strong);
+}
+
+.pos-chips[data-multi="true"] .pos-chip {
+  padding-left: var(--sp-3);
+}
+
+.pos-chips[data-multi="true"] .pos-chip > .pos-icon {
+  box-sizing: border-box;
+  display: block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  color: transparent;
+}
+
+.pos-chips[data-multi="true"] .pos-chip[aria-pressed="true"] > .pos-icon {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* A ready-made note: grey, no outline, until it is in the note. */
+.pos-chip--note {
+  border-color: transparent;
+  background: var(--c-surface-2);
 }
 
 .pos-chip--size {

@@ -64,7 +64,9 @@
   float: left;
   width: 100%;
   margin-bottom: 0;
-  font-size: var(--fs-lg);
+  font-size: 1.0625rem;
+  font-weight: var(--fw-medium);
+  line-height: 22px;
 }
 
 .pos-choice-group > .pos-group__legend + * {
