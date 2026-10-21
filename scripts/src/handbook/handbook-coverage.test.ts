@@ -1,4 +1,6 @@
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   COUNTER_PART_DIR,
@@ -11,6 +13,7 @@ import {
   readMenuPages,
   readNotDescribed,
   readRoutedPages,
+  missingPictures,
   undescribed,
   unknownScreens,
 } from "./handbook-coverage";
@@ -63,12 +66,26 @@ describe("the handbook covers the product", () => {
   it("points only at test files that exist and decisions the log has", () => {
     expect(brokenReferences(pages, readDecisionIds())).toEqual([]);
   });
+
+  it("shows only pictures whose file is there", () => {
+    expect(missingPictures(HANDBOOK_DIR)).toEqual([]);
+  });
 });
 
 describe("the coverage check itself", () => {
   it("reports a screen no page describes", () => {
     const screens = [...backofficePages, "a-screen-nobody-wrote-about"];
     expect(undescribed(screens, pages, notDescribed)).toEqual(["a-screen-nobody-wrote-about"]);
+  });
+
+  it("reports a picture whose file is missing", () => {
+    const dir = mkdtempSync(join(tmpdir(), "handbook-"));
+    try {
+      writeFileSync(join(dir, "page.md"), "![Màn hình](images/not-taken.webp)\n");
+      expect(missingPictures(dir)).toHaveLength(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("lets the not-described list excuse a screen", () => {

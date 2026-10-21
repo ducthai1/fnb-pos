@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type HandbookFrontMatter, parseFrontMatter } from "./handbook-front-matter";
 
@@ -142,4 +142,24 @@ export function brokenReferences(
       .filter((id) => !decisionIds.has(id))
       .map((id) => `${page.path}: decision ${id} is not in docs/decision-log.md`),
   ]);
+}
+
+/** Pictures (`![…](path)`) of any handbook file whose file is missing, as `file: path`. */
+export function missingPictures(dir: string): string[] {
+  const missing: string[] = [];
+  const walk = (current: string) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".md")) {
+        for (const match of readFileSync(full, "utf8").matchAll(/!\[[^\]]*\]\(([^)\s]+)\)/g)) {
+          const target = match[1] ?? "";
+          if (!existsSync(join(dirname(full), target)))
+            missing.push(`${relative(REPO_ROOT, full)}: ${target}`);
+        }
+      }
+    }
+  };
+  walk(dir);
+  return missing;
 }
