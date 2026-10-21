@@ -150,6 +150,8 @@
   align-items: center;
   gap: var(--sp-2);
   padding-inline: 0;
+  border: 0;
+  background: transparent;
   color: var(--c-text);
   font-size: var(--fs-sm);
   font-weight: var(--fw-regular);
