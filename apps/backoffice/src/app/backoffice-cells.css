@@ -90,8 +90,8 @@
   position: relative;
   display: inline-flex;
   flex: none;
-  width: 48px;
-  height: 28px;
+  width: 44px;
+  height: 24px;
 }
 
 .bo-toggle__input {
@@ -108,7 +108,7 @@
   width: 100%;
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--c-border);
+  background: #bfbfbf;
   transition: background-color 120ms ease;
   pointer-events: none;
 }
@@ -116,12 +116,12 @@
 .bo-toggle__track::before {
   content: "";
   display: block;
-  width: 22px;
-  height: 22px;
-  margin: 3px;
+  width: 20px;
+  height: 20px;
+  margin: 2px;
   border-radius: 50%;
   background: var(--c-surface);
-  box-shadow: 0 1px 2px rgb(23 20 31 / 0.25);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.2);
   transition: transform 120ms ease;
 }
 

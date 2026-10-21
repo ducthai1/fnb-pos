@@ -1,0 +1,47 @@
+/* A row opened on its panel (a member's tools, an import line's reasons), as the reference's
+   expanded rows: the row and its panel framed together by one dark green line, the panel
+   white under it. */
+
+@media (min-width: 768px) {
+  .bo-data__table tr:has(+ .bo-data__panel) > td {
+    border-top: 1px solid var(--c-brand-strong);
+    border-bottom-color: transparent;
+  }
+
+  .bo-data__table tr:has(+ .bo-data__panel) > td:first-child {
+    border-left: 1px solid var(--c-brand-strong);
+  }
+
+  .bo-data__table tr:has(+ .bo-data__panel) > td:last-child {
+    border-right: 1px solid var(--c-brand-strong);
+  }
+
+  .bo-data__table .bo-data__panel > td {
+    border: 1px solid var(--c-brand-strong);
+    border-top: 0;
+    background: var(--c-surface);
+  }
+}
+
+/* A phone shows rows as cards: the opened one is framed the same way. */
+@media (max-width: 767px) {
+  .bo-data__table tr:has(+ .bo-data__panel) {
+    border-color: var(--c-brand-strong);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+  }
+
+  .bo-data__table .bo-data__panel {
+    margin-bottom: var(--sp-2);
+    border: 1px solid var(--c-brand-strong);
+    border-top: 0;
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    background: var(--c-surface);
+  }
+
+  .bo-data__table .bo-data__panel > td {
+    padding: var(--sp-3);
+    background: var(--c-surface);
+  }
+}

@@ -24,6 +24,7 @@ import "./backoffice-states.css";
 import "./backoffice-tabs.css";
 import "./backoffice-table.css";
 import "./backoffice-data-table.css";
+import "./backoffice-row-panel.css";
 import "./backoffice-cells.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
