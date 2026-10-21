@@ -122,11 +122,11 @@ body,
   min-height: var(--tap-lg);
   padding: var(--sp-3) 14px;
   border: 1px solid var(--c-border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
-  font-size: var(--fs-xl);
+  font-size: var(--fs-lg);
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease;
