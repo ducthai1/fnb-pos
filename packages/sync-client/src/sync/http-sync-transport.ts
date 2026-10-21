@@ -1,6 +1,8 @@
 import {
   SERVER_GENERATION_HEADER,
+  SERVER_TIME_HEADER,
   serverGenerationSchema,
+  serverTimeSchema,
   syncChangesPageSchema,
   syncCommandResultSchema,
   syncDeviceStateSchema,
@@ -58,6 +60,15 @@ function generationOf(response: HttpResponse): { serverGeneration?: string } {
   return { serverGeneration: parsed.data };
 }
 
+/** The server's clock the answer names; none from a server older than the header. */
+function serverTimeOf(response: HttpResponse): { serverTimeMs?: number } {
+  const named = response.headers?.[SERVER_TIME_HEADER];
+  if (named === undefined) return {};
+  const parsed = serverTimeSchema.safeParse(named);
+  if (!parsed.success) throw protocolError("the server time is not a number of milliseconds");
+  return { serverTimeMs: parsed.data };
+}
+
 /** The sync endpoints over HTTP, every answer checked against the contracts before use. */
 export function createHttpSyncTransport(options: HttpSyncTransportOptions): SyncTransport {
   const authorization = `Device ${options.deviceToken}`;
@@ -83,11 +94,12 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       });
       const results = (bodyOf(response) as { results?: unknown } | null)?.results;
       if (!Array.isArray(results)) throw protocolError("no results in the answer");
-      return results.map((result): SyncCommandResult => {
+      const checked = results.map((result): SyncCommandResult => {
         const parsed = syncCommandResultSchema.safeParse(result);
         if (!parsed.success) throw protocolError("a result breaks the contract");
         return parsed.data;
       });
+      return { results: checked, ...serverTimeOf(response) };
     },
     async pullChanges(cursor, limit) {
       const query = new URLSearchParams({ cursor, limit: String(limit) });
@@ -98,7 +110,7 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       });
       const parsed = syncChangesPageSchema.safeParse(bodyOf(response));
       if (!parsed.success) throw protocolError("the page breaks the contract");
-      return { ...parsed.data, ...generationOf(response) };
+      return { ...parsed.data, ...generationOf(response), ...serverTimeOf(response) };
     },
     async deviceState() {
       const response = await send({
@@ -127,11 +139,11 @@ export function fetchHttpSend(
       ...(request.body === undefined ? {} : { body: request.body }),
       signal: AbortSignal.timeout(options.timeoutMs ?? 10_000),
     });
-    const generation = response.headers.get(SERVER_GENERATION_HEADER);
-    return {
-      status: response.status,
-      body: await response.text(),
-      headers: generation === null ? {} : { [SERVER_GENERATION_HEADER]: generation },
-    };
+    const headers: Record<string, string> = {};
+    for (const name of [SERVER_GENERATION_HEADER, SERVER_TIME_HEADER]) {
+      const value = response.headers.get(name);
+      if (value !== null) headers[name] = value;
+    }
+    return { status: response.status, body: await response.text(), headers };
   };
 }

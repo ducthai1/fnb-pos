@@ -139,6 +139,36 @@ export const DEVICE_BINDING_CONTRACT: LocalStoreContractGroup = {
       },
     },
     {
+      name: "dates commands by the kept clock offset, and a sent-back one again from the till's reading",
+      async run(harness) {
+        const { store } = await harness.open();
+        const orderId = testId();
+        const tillsReading = "2026-10-20T03:05:00.000Z";
+        assertEqual(await store.clockOffset(), null, "no offset before any answer");
+        const first = await store.enqueue(orderCommand(orderId, { createdAt: tillsReading }));
+        assertEqual(first.command.createdAt, tillsReading, "dated by the till before it knows");
+        await store.saveClockOffset(-5 * 60_000);
+        assertEqual(await store.clockOffset(), -5 * 60_000, "kept offset");
+        const second = await store.enqueue(orderCommand(orderId, { createdAt: tillsReading }));
+        assertEqual(second.command.createdAt, "2026-10-20T03:00:00.000Z", "dated by the server");
+        // Sent back twice: dated from the till's own reading each time, never shifted twice.
+        for (let time = 0; time < 2; time += 1) {
+          assertEqual(await store.retimePending(1, "2026-10-20T03:10:00.000Z"), 2, "retimed");
+          assertEqual(
+            (await store.pendingCommands(10)).map((command) => command.createdAt),
+            ["2026-10-20T03:00:00.000Z", "2026-10-20T03:00:00.000Z"],
+            "dated again",
+          );
+        }
+        await store.retimePending(2, "2026-10-20T02:59:00.000Z");
+        assertEqual(
+          (await store.pendingCommands(10)).map((command) => command.createdAt),
+          ["2026-10-20T03:00:00.000Z", "2026-10-20T02:59:00.000Z"],
+          "never after the server's clock, earlier ones untouched",
+        );
+      },
+    },
+    {
       name: "refuses another till's database, whose numbers would collide on the server",
       async run(harness) {
         const { store } = await harness.open();

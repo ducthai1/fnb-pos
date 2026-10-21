@@ -16,12 +16,17 @@ const envelope = {
   createdAt: local.createdAt,
 };
 
-function transportAnswering(status: number, body: string, staff: string | null = "staff-token") {
+function transportAnswering(
+  status: number,
+  body: string,
+  staff: string | null = "staff-token",
+  headers: Record<string, string> = {},
+) {
   const requests: HttpRequest[] = [];
   const transport = createHttpSyncTransport({
     send: async (request) => {
       requests.push(request);
-      return { status, body };
+      return { status, body, headers };
     },
     deviceToken: "device-token",
     staffSessionToken: () => staff,
@@ -40,7 +45,7 @@ describe("the sync endpoints over HTTP", () => {
   it("pushes as the till and its signed-in staff member, and reads the answers", async () => {
     const result = { commandId: envelope.commandId, status: "accepted" };
     const { transport, requests } = transportAnswering(200, JSON.stringify({ results: [result] }));
-    expect(await transport.pushCommands([envelope])).toEqual([result]);
+    expect(await transport.pushCommands([envelope])).toEqual({ results: [result] });
     expect(requests).toEqual([
       {
         method: "POST",
@@ -66,6 +71,23 @@ describe("the sync endpoints over HTTP", () => {
       method: "GET",
       path: "/sync/changes?cursor=12&limit=500",
       headers: { authorization: "Device device-token" },
+    });
+  });
+
+  it("reads the server's clock off a push and a pull, and refuses one that is not a number", async () => {
+    const timed = { "x-fnb-server-time": "1792468800000" };
+    const pushed = transportAnswering(200, JSON.stringify({ results: [] }), "s", timed);
+    expect(await pushed.transport.pushCommands([envelope])).toEqual({
+      results: [],
+      serverTimeMs: 1_792_468_800_000,
+    });
+    const page = JSON.stringify({ changes: [], nextCursor: "0" });
+    const pulled = transportAnswering(200, page, null, timed);
+    expect((await pulled.transport.pullChanges("0", 10)).serverTimeMs).toBe(1_792_468_800_000);
+    const garbled = transportAnswering(200, page, null, { "x-fnb-server-time": "soon" });
+    expect(await failureOf(garbled.transport.pullChanges("0", 10))).toEqual({
+      kind: "protocol",
+      status: 200,
     });
   });
 
@@ -127,7 +149,10 @@ describe("the sync endpoints over HTTP", () => {
           body,
         });
         response
-          .writeHead(201, { "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b" })
+          .writeHead(201, {
+            "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b",
+            "x-fnb-server-time": "1792468800000",
+          })
           .end("created");
       });
     });
@@ -144,7 +169,10 @@ describe("the sync endpoints over HTTP", () => {
       expect(answer).toEqual({
         status: 201,
         body: "created",
-        headers: { "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b" },
+        headers: {
+          "x-fnb-server-generation": "0192f5a4-7c3e-7d10-8b2a-3f9e1c4d5a6b",
+          "x-fnb-server-time": "1792468800000",
+        },
       });
       expect(seen).toEqual([{ method: "POST", url: "/sync/x", auth: "a", body: "{}" }]);
     } finally {

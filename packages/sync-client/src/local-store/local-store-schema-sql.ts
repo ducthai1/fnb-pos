@@ -47,8 +47,8 @@ export const WRITE_META_SQL =
   "ON CONFLICT (key) DO UPDATE SET value = excluded.value";
 
 export const INSERT_OUTBOX_SQL =
-  "INSERT INTO outbox (command_id, type, entity, entity_id, envelope) VALUES (?, ?, ?, ?, ?) " +
-  "RETURNING device_seq";
+  "INSERT INTO outbox (command_id, type, entity, entity_id, envelope, device_created_at) " +
+  "VALUES (?, ?, ?, ?, ?, ?) RETURNING device_seq";
 export const FIND_OUTBOX_SQL = "SELECT device_seq FROM outbox WHERE command_id = ?";
 export const READ_PENDING_SQL =
   "SELECT device_seq, envelope FROM outbox WHERE status = 'pending' ORDER BY device_seq LIMIT ?";

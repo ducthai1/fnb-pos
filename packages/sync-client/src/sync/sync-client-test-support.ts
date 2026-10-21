@@ -1,14 +1,19 @@
-import type { SyncCommandEnvelope, SyncCommandResult, SyncDeviceState } from "@fnb/contracts";
+import type { SyncCommandEnvelope, SyncDeviceState } from "@fnb/contracts";
 import { testId } from "../local-store/local-store-fixtures";
 import { openNodeSqliteDriver } from "../local-store/node-sqlite-driver";
 import { createSqliteLocalStore } from "../local-store/sqlite-local-store";
 import { type SyncClientOptions, createSyncClient } from "./create-sync-client";
 import type { SyncClock } from "./sync-clock";
-import { type PulledChanges, SyncTransportError, type SyncTransport } from "./sync-transport";
+import {
+  type PulledChanges,
+  type PushedCommands,
+  SyncTransportError,
+  type SyncTransport,
+} from "./sync-transport";
 
 export { answer, change, draft, order, page } from "../local-store/local-store-fixtures";
 
-type PushAnswer = (batch: readonly SyncCommandEnvelope[]) => SyncCommandResult[];
+type PushAnswer = (batch: readonly SyncCommandEnvelope[]) => PushedCommands;
 type PullAnswer = (cursor: string, limit: number) => PulledChanges;
 type DeviceStateAnswer = () => SyncDeviceState;
 

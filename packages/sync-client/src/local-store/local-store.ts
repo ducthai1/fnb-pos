@@ -73,7 +73,11 @@ export interface EnqueuedCommand extends StoreWrite {
 export interface LocalStore {
   /** Ties the database to one till on first use; a database of another till is refused. */
   bindDevice(deviceId: string): Promise<void>;
-  /** Writes the command to the outbox and the optimistic row in one transaction. */
+  /**
+   * Writes the command to the outbox and the optimistic row in one transaction. Its
+   * createdAt is the till's own clock; it goes out dated by the server's (plus the kept
+   * clock offset), and the answer says the instant it was given.
+   */
   enqueue(command: LocalCommand): Promise<EnqueuedCommand>;
   /** The oldest commands still waiting, in deviceSeq order. */
   pendingCommands(limit: number): Promise<SyncCommandEnvelope[]>;
@@ -106,5 +110,17 @@ export interface LocalStore {
   restoreState(): Promise<RestoreState>;
   /** Drops journal rows settled before `settledBefore`; answers how many went. */
   pruneJournal(now: string, settledBefore: string): Promise<number>;
+  /**
+   * How far the server's clock is ahead of the till's, in ms (below 0: the till runs fast),
+   * as last measured; null before any answer named the server's clock.
+   */
+  clockOffset(): Promise<number | null>;
+  /** Keeps a freshly measured offset: commands recorded from now on are dated by it. */
+  saveClockOffset(offsetMs: number): Promise<void>;
+  /**
+   * After the server sent a command back for its date: dates it and every later pending
+   * command again by the kept offset, none after `notAfter` (see till-clock-offset.ts).
+   */
+  retimePending(fromDeviceSeq: number, notAfter: string): Promise<number>;
   close(): Promise<void>;
 }
