@@ -58,7 +58,7 @@ const COLUMNS: readonly DataColumn<Role>[] = [
     numeric: true,
     cell: (role) => String(role.permissionKeys.length),
     sortValue: (role) => role.permissionKeys.length,
-    width: "110px",
+    width: "128px",
   },
 ];
 
