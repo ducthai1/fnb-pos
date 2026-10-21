@@ -414,6 +414,8 @@
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
 
+> 2026-10-21 16:30 — Mọi mục "chờ user / chờ quyết" bên dưới (trừ việc cần tiền thật, khóa thật, kế toán) đã được chốt ở **D-076…D-097** theo luật 7 của `CLAUDE.md`, cùng các chỗ lệch sổ tay tìm ra (`handbook/discrepancies.md`). Việc làm theo các quyết định đó: **đợt 10** (xem Bàn giao).
+
 - 2026-10-20 · **[gấp, trước R1]** Bẫy 12 của spike S2: kết quả `accepted` phải mang ảnh chụp đơn sau khi áp để máy vẫn kéo được khi còn lệnh chờ; cần test hội tụ 2 máy giờ cao điểm (tỉ lệ từ chối ≈ 0). → T04-02/03.
 - 2026-10-20 · Mang các "ratchet test" của spike sang `packages/sync-client` + `apps/api`: không bỏ sót thay đổi khi commit muộn (advisory lock), phân trang qua change_seq 2 chữ số, giao trùng đồng thời, lô đảo thứ tự ⇒ retry, chạy lần 2 trên dữ liệu cũ, trạng thái máy = server (hash), tổng ngày = tổng dòng. → T04-02/03.
 - 2026-10-20 · Kiểm cấu hình nhóm tùy chọn không thể thỏa (min > số option khi không cho trùng, hoặc Σ maxQuantity < min). → T03-02.
