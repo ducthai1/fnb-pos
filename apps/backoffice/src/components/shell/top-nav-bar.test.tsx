@@ -20,7 +20,10 @@ afterEach(() => {
   route.path = "/";
 });
 
-/** The signed-in frame as the app draws it on a computer screen, the menu bar included. */
+/**
+ * The signed-in frame as the app draws it on a computer screen, the menu bar included, once
+ * it has finished loading (the branches in their picker), as a person would wait for it.
+ */
 async function renderBar(path = "/", overrides: Partial<BackofficeApi> = {}) {
   route.path = path;
   screenOf(1280);
@@ -31,7 +34,8 @@ async function renderBar(path = "/", overrides: Partial<BackofficeApi> = {}) {
       </AdminShell>
     </ApiProvider>,
   );
-  return within(await screen.findByRole("navigation", { name: T.navigation }));
+  await screen.findByRole("combobox", { name: T.branchLabel });
+  return within(screen.getByRole("navigation", { name: T.navigation }));
 }
 
 const signedInWith = (permissionKeys: (typeof OWNER.permissionKeys)[number][]) => ({

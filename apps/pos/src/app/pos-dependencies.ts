@@ -1,4 +1,4 @@
-import type { LocalStore, SyncTransport } from "@fnb/sync-client";
+import type { BackoffPolicy, LocalStore, SyncTransport } from "@fnb/sync-client";
 import { BROWSER_STORE_ERROR_CODES, isBrowserStoreError } from "@fnb/sync-client/browser";
 import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSource } from "../features/bootstrap/bootstrap-source";
@@ -21,6 +21,8 @@ export interface PosDependencies {
   readonly floor: FloorSource;
   transportFor(credential: DeviceCredential, staffSessionToken: () => string | null): SyncTransport;
   readonly syncIdleMs: number;
+  /** The wait after failed passes; the sync client's own unless a test needs it short. */
+  readonly syncBackoff?: BackoffPolicy;
   /** The till's printers: the native shell's, or the web build's preview-only stand-in. */
   readonly printer: PrinterPort;
   reload(): void;

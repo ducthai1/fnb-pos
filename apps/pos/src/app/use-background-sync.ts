@@ -84,6 +84,7 @@ export function useBackgroundSync(
         store,
         transport: pushingUnderEachSession(deps, credential, sessions, refused),
         deviceId: credential.deviceId,
+        ...(deps.syncBackoff === undefined ? {} : { backoff: deps.syncBackoff }),
       }),
       sessions,
     );

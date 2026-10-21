@@ -189,6 +189,9 @@ export function fakeDependencies(
       },
     }),
     syncIdleMs: 20,
+    // Real waits: a network down for a few seconds of a slow runner piles up failures, and
+    // the default backoff would then hold the next pass longer than a test waits for it.
+    syncBackoff: { baseMs: 20, maxMs: 100 },
     printer: options.printer ?? previewOnlyPrinter,
     reload: () => {},
   };
