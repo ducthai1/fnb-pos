@@ -62,4 +62,11 @@ describe("archiving a role", () => {
     expect(old.textContent).toContain(K.archivedBadge);
     expect(within(old).queryByRole("button")).toBeNull();
   });
+  it("lists archived roles apart under a filter named for the status", async () => {
+    await openArchive(async () => HELD);
+    const filter = screen.getByRole("group", { name: vi.roles.filterLabel });
+    fireEvent.click(within(filter).getByRole("button", { name: vi.table.count(vi.roles.filters.archived, 1) }));
+    expect(screen.getByText("Ca sáng cũ")).toBeTruthy();
+    expect(screen.queryByText("Ca đêm")).toBeNull();
+  });
 });

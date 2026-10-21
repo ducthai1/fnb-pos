@@ -122,6 +122,7 @@ export function RolesScreen() {
                 test: (role) => role.archivedAt !== null,
               },
             ]}
+            filterLabel={T.filterLabel}
             actionsWidth="150px"
             actions={(role) =>
               role.archivedAt === null && (
