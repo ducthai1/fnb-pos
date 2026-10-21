@@ -23,7 +23,7 @@
   min-height: var(--topbar-h);
   padding: var(--sp-2) var(--sp-5);
   background: var(--c-surface);
-  border-bottom: 1px solid var(--c-border-soft);
+  border-bottom: 1px solid var(--c-line);
 }
 
 .bo-topbar__name {
@@ -58,7 +58,7 @@
   padding-left: var(--sp-3);
   border: 1px solid var(--c-border);
   border-radius: var(--r-sm);
-  background: var(--c-surface-2);
+  background: var(--c-surface);
   color: var(--c-text-2);
 }
 
@@ -69,7 +69,7 @@
 
 .bo-branch-picker__select.bo-input {
   flex: 1;
-  min-height: 38px;
+  min-height: calc(var(--control-dense) - 2px);
   padding-left: 0;
   border: 0;
   background: transparent;
@@ -116,23 +116,13 @@
   flex: none;
 }
 
-.bo-icon-button {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: var(--control-h);
-  height: var(--control-h);
-  padding: 0;
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-sm);
-  background: var(--c-surface);
-  color: var(--c-text);
-  cursor: pointer;
-}
-
-.bo-icon-button:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
+/* The bar's controls are the reference's dense 36px. */
+.bo-topbar .bo-icon-button,
+.bo-topbar .bo-button {
+  width: auto;
+  min-width: var(--control-dense);
+  height: var(--control-dense);
+  min-height: var(--control-dense);
 }
 
 /* Scoped to the bar so the button style, loaded after this file, cannot show it on a computer. */
@@ -188,7 +178,7 @@
   }
 
   .bo-logout.bo-button {
-    width: var(--control-h);
+    width: var(--control-dense);
     padding: 0;
   }
 }

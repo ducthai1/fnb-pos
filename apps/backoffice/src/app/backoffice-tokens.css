@@ -88,7 +88,20 @@
   --shadow-raised: 0 2px 6px rgb(23 20 31 / 0.08), 0 18px 40px -12px rgb(23 20 31 / 0.28);
   --ring: 0 0 0 3px rgb(29 111 184 / 0.35);
 
-  --control-h: 40px;
+  /* The admin language of the reference: a soft line inside cards and under bars, the pale
+     blue of a chosen row in a list and of a table's head, the grey of a hovered row. */
+  --c-line: rgb(210 205 219 / 0.5);
+  --c-pick-soft: #e5f4ff;
+  --c-head-soft: #edf7ff;
+  --c-hover: #f5f5f5;
+  --c-on-pick: #005695;
+  --shadow-panel: 0 6px 16px 0 rgb(0 0 0 / 0.1);
+  --shadow-filter: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-menu: 0 14px 30px -4px rgb(0 0 0 / 0.15);
+  --fs-body: 0.9375rem;
+
+  --control-h: 44px;
+  --control-dense: 36px;
   --topbar-h: 56px;
   --sidenav-w: 240px;
 
