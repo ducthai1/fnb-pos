@@ -20,13 +20,17 @@ export const MINIMUM_SUPPORTED_DOMAIN_VERSION = "0.1.0";
 
 type Outcome =
   | { status: "accepted"; subject: CommandSubject }
-  | { status: "rejected"; code: string; subject: CommandSubject | null };
+  | { status: "rejected"; code: string; subject: CommandSubject | null }
+  | { status: "retry"; code: string };
 
 /**
  * Applies one command inside the caller's transaction (one transaction per command) and
  * returns its answer. The same command id answers what it answered the first time, even a
  * rejection. Commands of a till are taken strictly in device_seq order: one ahead of the
  * next expected is told to retry and nothing is stored, so the till resends from the gap.
+ * One dated ahead of the server's clock is told to retry too, nothing stored, so the till
+ * dates it again by the server's time and sends it under the same id: a payment the
+ * cashier has already taken is never refused for the till's clock.
  * An id another till used first is refused and stored on this till's sequence, so the
  * till moves on to its next command instead of waiting on one it believes applied.
  */
@@ -53,6 +57,9 @@ export async function applySyncCommand(
   const outcome: Outcome = used.takenByAnotherTill
     ? { status: "rejected", code: SYNC_ERROR_CODES.commandIdTaken, subject: null }
     : await outcomeOf({ ...sender, client, command });
+  if (outcome.status === "retry") {
+    return { commandId: command.commandId, status: "retry", code: outcome.code };
+  }
   const snapshot =
     outcome.subject === null ? null : await subjectSnapshotOf(client, device, outcome.subject);
   const result: SyncCommandResult = {
@@ -105,7 +112,7 @@ async function outcomeOf(base: Omit<SyncCommandContext, "time">): Promise<Outcom
     return rejected(SYNC_ERROR_CODES.domainVersionUnsupported);
   }
   const reading = readCommandTime(command.createdAt, base.receivedAt, base.branch);
-  if (!reading.ok) return rejected(reading.code);
+  if (!reading.ok) return { status: "retry", code: reading.code };
   if (reading.time.clampedByMs !== 0) await auditClampedClock(base, reading.time);
   const context: SyncCommandContext = { ...base, time: reading.time };
   await client.query("SAVEPOINT sync_command");

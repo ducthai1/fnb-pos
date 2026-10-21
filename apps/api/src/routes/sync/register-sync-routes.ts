@@ -1,4 +1,4 @@
-import { SERVER_GENERATION_HEADER } from "@fnb/contracts";
+import { SERVER_GENERATION_HEADER, SERVER_TIME_HEADER } from "@fnb/contracts";
 import { readServerGeneration, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
@@ -21,7 +21,8 @@ import {
  * till, who is recorded as their author; pulling changes needs only the till's credential,
  * and shows the till its own branch's changes, never another branch's or tenant's. Every
  * answer names the server's generation, read in the same transaction as what it answers,
- * so a till learns of a restore from the first answer of the restored server.
+ * so a till learns of a restore from the first answer of the restored server. Every answer
+ * also carries the server's clock, read as it is sent, for the till to date its commands by.
  */
 export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): void {
   const { pool, clock } = context;
@@ -50,7 +51,10 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
     if (sender === null) return reply.code(401).send({ code: STAFF_ERROR_CODES.sessionInvalid });
     const { generation, ...syncSender } = sender;
     const results = await applySyncBatch(pool, syncSender, envelopesOf(parsed.data));
-    return reply.header(SERVER_GENERATION_HEADER, generation).send({ results });
+    return reply
+      .header(SERVER_GENERATION_HEADER, generation)
+      .header(SERVER_TIME_HEADER, String(clock.now().getTime()))
+      .send({ results });
   });
 
   app.get("/sync/changes", { onRequest: context.requireDevice }, async (request, reply) => {
@@ -62,7 +66,10 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
       generation: await readServerGeneration(client),
       page: await readChangesPage(client, device.branchId, cursor, limit),
     }));
-    return reply.header(SERVER_GENERATION_HEADER, generation).send(page);
+    return reply
+      .header(SERVER_GENERATION_HEADER, generation)
+      .header(SERVER_TIME_HEADER, String(clock.now().getTime()))
+      .send(page);
   });
 
   // What the server holds of this till, asked by a till that met a new generation: it sends
@@ -74,6 +81,9 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
       serverGeneration: await readServerGeneration(client),
       lastDeviceSeq: await lastDeviceSeqOf(client, device.deviceId),
     }));
-    return reply.header(SERVER_GENERATION_HEADER, state.serverGeneration).send(state);
+    return reply
+      .header(SERVER_GENERATION_HEADER, state.serverGeneration)
+      .header(SERVER_TIME_HEADER, String(clock.now().getTime()))
+      .send(state);
   });
 }
