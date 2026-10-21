@@ -114,6 +114,8 @@ it("gives 20% off with a manager's PIN, voids a cup the bar has, refunds half a 
   await twoOf(page, "L");
   await expect.poll(() => dataOf(page, "amount-due")).toBe("70000");
   const tall = `${DRINK} (L)`;
+  // The line's void and discount are behind its "…".
+  await button(page, text.adjust.tools.lineMenu(tall)).click();
   await button(page, text.adjust.tools.discount(tall)).click();
   await button(page, text.adjust.discount.percentPreset("20%")).click();
   await button(page, text.adjust.discount.confirm).click();
@@ -133,6 +135,8 @@ it("gives 20% off with a manager's PIN, voids a cup the bar has, refunds half a 
   await page.locator("[data-print-status='printed']").first().waitFor();
   await button(page, text.tables.slips.backToOrder).click();
   const small = `${DRINK} (M)`;
+  // The line's void and discount are behind its "…".
+  await button(page, text.adjust.tools.lineMenu(small)).click();
   await button(page, text.adjust.tools.void(small)).click();
   await page.getByRole("heading", { name: text.adjust.void.title }).waitFor();
   await button(page, text.reasons.made_wrong).click();

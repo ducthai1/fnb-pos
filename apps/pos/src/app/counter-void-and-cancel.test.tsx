@@ -19,6 +19,7 @@ describe("cancelling an item on the counter's order", () => {
   it("takes one of two coffees off with the reason, and holds the line as it is", async () => {
     const server = counterWithManager();
     await twoCoffees(server);
+    tap(T.tools.lineMenu(COFFEE));
     tap(T.tools.void(COFFEE));
     await screen.findByRole("heading", { name: T.void.title });
     const confirm = screen.getByRole("button", { name: T.void.confirm(1) });
@@ -47,6 +48,7 @@ describe("cancelling an item on the counter's order", () => {
   it("cannot cancel more than is left on the order", async () => {
     const server = counterWithManager();
     await twoCoffees(server);
+    tap(T.tools.lineMenu(COFFEE));
     tap(T.tools.void(COFFEE));
     await screen.findByRole("heading", { name: T.void.title });
     tap(text.sale.more(COFFEE));

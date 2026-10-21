@@ -11,10 +11,15 @@ export interface ScreenOverflow {
 
 // Measured on the element that scrolls (ScreenFrame), not on the document: the POS never
 // lets the page scroll, so the document would stay its width while the screen overflows.
+// With a drawer or a whole-screen step open over a screen, the one on top is measured: the
+// last scroller that is shown and not inert under it.
 export const measureScreenOverflow = (page: Page): Promise<ScreenOverflow> =>
   page.evaluate(() => {
-    const scroller = document.querySelector<HTMLElement>("[data-scroll-root]");
-    if (scroller === null) throw new Error("no [data-scroll-root] on the screen");
+    const scroller = [...document.querySelectorAll<HTMLElement>("[data-scroll-root]")]
+      .filter((element) => element.closest("[inert]") === null)
+      .filter((element) => element.getClientRects().length > 0)
+      .at(-1);
+    if (scroller === undefined) throw new Error("no [data-scroll-root] on the screen");
     const edge = scroller.getBoundingClientRect();
     const outside = [...scroller.querySelectorAll<HTMLElement>("*")]
       .filter((element) => {

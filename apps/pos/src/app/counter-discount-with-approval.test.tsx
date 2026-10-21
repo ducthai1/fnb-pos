@@ -23,6 +23,7 @@ async function ringUpCoffees(server: ReturnType<typeof counterWithManager>, coun
 }
 
 async function discountCoffee(preset: string) {
+  tap(T.tools.lineMenu(COFFEE));
   tap(T.tools.discount(COFFEE));
   await screen.findByRole("heading", { name: T.discount.titleLine(COFFEE) });
   tap(T.discount.percentPreset(preset));
@@ -98,6 +99,7 @@ describe("a discount on an item at the counter", () => {
     await ringUpCoffees(server, 1);
     await discountCoffee("10%");
     await screen.findByRole("region", { name: text.sale.menuLabel });
+    tap(T.tools.lineMenu(COFFEE));
     tap(T.tools.discount(COFFEE));
     (await screen.findByRole("button", { name: T.discount.remove })).click();
     await screen.findByRole("region", { name: text.sale.menuLabel });

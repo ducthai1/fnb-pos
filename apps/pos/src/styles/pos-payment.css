@@ -1,45 +1,5 @@
-/* Taking the money: what the order comes to and what is still owed on the left, the ways
-   to pay on the right (one column on a phone or a tablet held upright); the finish button
-   stays in the dock at the foot. Every amount is the domain's, the screen only shows it. */
-
-.pos-pay {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  gap: var(--sp-4);
-}
-
-@media (min-width: 900px) {
-  .pos-pay {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  }
-  .pos-pay__summary {
-    position: sticky;
-    top: var(--sp-3);
-  }
-}
-
-@media (min-width: 1024px) {
-  .pos-pay__summary {
-    top: calc(var(--bar-h) + var(--sp-3));
-  }
-}
-
-/* Paid in full: nothing to choose, the summary alone in the middle. */
-.pos-pay > .pos-pay__summary:only-child {
-  box-sizing: border-box;
-  grid-column: 1 / -1;
-  justify-self: center;
-  width: min(100%, 560px);
-}
-
-.pos-pay__summary,
-.pos-pay__methods {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  min-width: 0;
-}
+/* Taking the money: what the order comes to, what is still owed, the change and the cash
+   field. Every amount is the domain's, the screen only shows it. */
 
 .pos-card__title {
   display: flex;

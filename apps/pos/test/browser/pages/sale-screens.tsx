@@ -8,6 +8,7 @@ import { TillHeader } from "../../../src/screens/till/till-header";
 import { HOSTILE_PRODUCT, hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
+import { tid } from "../../../src/test-support/till-fixtures";
 
 // The selling screens with the worst data a shop can enter; see screens-page.tsx.
 
@@ -25,6 +26,21 @@ const header = (
 );
 const profile = { pricesIncludeTax: false, serviceCharge: null };
 
+/** Thirty lines of the worst items: the order column scrolls, the totals stay at its foot. */
+const LONG_ORDER = {
+  ...HOSTILE_ORDER,
+  lines: Array.from({ length: 30 }, (_, index) => ({
+    ...HOSTILE_ORDER.lines[index % HOSTILE_ORDER.lines.length]!,
+    lineId: tid(0x700 + index),
+  })),
+};
+const adjust = {
+  onVoid: () => {},
+  onDiscount: () => {},
+  onDiscountOrder: () => {},
+  onCancelOrder: () => {},
+};
+
 export const SALE_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={header} onOpen={never} />,
   sale: () => (
@@ -35,6 +51,22 @@ export const SALE_SCREENS = {
       order={HOSTILE_ORDER}
       view={cartView(menu, HOSTILE_ORDER, profile, Date.now())}
       saveFailed
+      onPick={() => {}}
+      onQuantity={() => {}}
+      onRemove={() => {}}
+      onServiceType={() => {}}
+      onCheckout={() => {}}
+    />
+  ),
+  "sale-long-cart": () => (
+    <SaleScreen
+      header={header}
+      menu={menu}
+      now={Date.now()}
+      order={LONG_ORDER}
+      view={cartView(menu, LONG_ORDER, profile, Date.now())}
+      adjust={adjust}
+      saveFailed={false}
       onPick={() => {}}
       onQuantity={() => {}}
       onRemove={() => {}}

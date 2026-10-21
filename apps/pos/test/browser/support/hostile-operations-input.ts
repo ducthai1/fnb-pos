@@ -12,6 +12,12 @@ const NINE_DIGITS = formatVnd(vnd(987_654_321));
  * longest reason the contract takes, with nowhere to wrap.
  */
 export async function typeTheWorst(page: Page, name: string) {
+  if (["sale-adjusted", "sale-long-cart"].includes(name)) {
+    // Every line's actions open under it: the longest the order column gets.
+    for (const more of await page.getByRole("button", { name: /^Thao tác món/ }).all()) {
+      await more.click();
+    }
+  }
   if (name === "cash-move") {
     await page.getByLabel(vi.cash.amount).fill("987654321");
     await page.getByLabel(vi.cash.reason).fill(HOSTILE_NAMES.reason);

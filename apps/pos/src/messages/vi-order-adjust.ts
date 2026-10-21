@@ -25,6 +25,7 @@ export const VI_ORDER_ADJUST = {
   tools: {
     void: (name: string) => `Hủy món ${name}`,
     discount: (name: string) => `Giảm giá món ${name}`,
+    lineMenu: (name: string) => `Thao tác món ${name}`,
     voidShort: "Hủy món",
     discountShort: "Giảm giá",
     orderDiscount: "Giảm giá đơn",

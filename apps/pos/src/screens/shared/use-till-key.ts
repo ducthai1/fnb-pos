@@ -1,4 +1,10 @@
-import { useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
+
+/**
+ * Whether the screen's keys are live: false for a screen under the payment drawer, so F9 or
+ * Esc act on the drawer only and never on the order behind it.
+ */
+export const TillKeysLive = createContext(true);
 
 /**
  * A function key of a till's keyboard (F2, F9, Esc…) that acts on the screen showing it, typed
@@ -8,8 +14,9 @@ import { useEffect, useRef } from "react";
 export function useTillKey(key: string, act: () => void, enabled = true): void {
   const latest = useRef(act);
   latest.current = act;
+  const live = useContext(TillKeysLive) && enabled;
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!live) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== key || event.repeat || event.altKey || event.ctrlKey || event.metaKey) {
         return;
@@ -21,5 +28,5 @@ export function useTillKey(key: string, act: () => void, enabled = true): void {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [key, enabled]);
+  }, [key, live]);
 }

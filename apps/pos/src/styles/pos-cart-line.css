@@ -1,0 +1,186 @@
+/* One item of the order in one row: photo, name with its options and note in small type
+   under it, − n + beside it, the amount on the right, the "…" of its other actions. In a
+   narrow order column (a phone, a tablet held upright) the stepper and the "…" go on a
+   second row under the name, so nothing is squeezed and no number can widen the screen. */
+
+.pos-cart__lines {
+  container-type: inline-size;
+}
+
+.pos-cart-line {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding-block: var(--sp-2);
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-cart-line:first-child {
+  padding-top: 0;
+}
+
+.pos-cart-line:last-child {
+  border-bottom: 0;
+}
+
+.pos-cart-line__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "photo name amount"
+    "photo details details"
+    "photo step more";
+  align-items: center;
+}
+
+.pos-cart-line__photo {
+  grid-area: photo;
+  align-self: start;
+  margin-inline-end: var(--sp-2);
+}
+
+.pos-cart-line__name {
+  grid-area: name;
+  align-self: start;
+  padding-top: 2px;
+}
+
+.pos-cart-line__details {
+  grid-area: details;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.pos-cart-line__details:empty {
+  display: none;
+}
+
+.pos-cart-line__step {
+  grid-area: step;
+  justify-self: start;
+  margin-inline-start: -8px;
+}
+
+.pos-cart-line__amount {
+  grid-area: amount;
+  align-self: start;
+  padding: 2px 0 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 20px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-cart-line__more {
+  grid-area: more;
+  justify-self: end;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  color: var(--c-text-2);
+}
+
+/* Room enough beside the name (a till held sideways): name, stepper, amount and "…" on one
+   row, the options and the note under it across the whole line. A huge amount wraps in its
+   own column rather than squeeze the name. */
+@container (min-width: 400px) {
+  .pos-cart-line__row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      "photo name step amount more"
+      "photo details details details details";
+  }
+  .pos-cart-line__step {
+    align-self: start;
+    margin: -6px 0 -6px var(--sp-1);
+  }
+  .pos-cart-line__more {
+    align-self: start;
+    margin-block: -12px;
+  }
+  .pos-cart-line__amount {
+    min-width: 64px;
+    max-width: 6.5rem;
+  }
+}
+
+.pos-cart-line__name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 20px;
+}
+
+/* Options under their item: the tree the bill and the bar ticket print. */
+.pos-cart-line__children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+  line-height: 16px;
+}
+
+/* A note is for whoever makes the drink, so it stands out from the options, still small. */
+.pos-cart-line__note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  margin: 0;
+  color: var(--c-amber);
+  font-size: var(--fs-xs);
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+
+.pos-cart-line__note > .pos-icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+.pos-cart-line__sub {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-cart-line__details > .pos-badge {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.pos-cart-line__tools {
+  padding-inline-start: var(--sp-2);
+}
+
+.pos-cart-line__remove {
+  color: var(--c-danger);
+}
+
+/* The cart's stepper: 28px rings and a smaller number, each still a 44px target. */
+.pos-stepper--compact .pos-stepper__step {
+  min-width: 44px;
+  min-height: 44px;
+  background: radial-gradient(
+    circle,
+    var(--ring-fill) 0 13px,
+    var(--ring-ink) 13px 14px,
+    transparent 14.5px
+  );
+}
+
+.pos-stepper--compact .pos-stepper__value {
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0 var(--sp-1);
+  font-size: var(--fs-md);
+}

@@ -18,6 +18,7 @@ import { vi } from "../messages/vi";
 import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../screens/sale/sale-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
+import { UnderLayer } from "../screens/shared/under-layer";
 import { CounterCheckout } from "./counter-checkout";
 import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 
@@ -46,6 +47,7 @@ type Phase =
 export function CounterSale(props: CounterSaleProps) {
   const { menu, now, header, session } = props;
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
+  const [wholeScreen, setWholeScreen] = useState(false);
   const { order, chargeProfile } = session;
 
   if (order === null || chargeProfile === null) {
@@ -54,21 +56,6 @@ export function CounterSale(props: CounterSaleProps) {
         {header}
         <div className="pos-spinner" aria-hidden="true" />
       </ScreenFrame>
-    );
-  }
-  if (phase.kind === "checkout") {
-    return (
-      <CounterCheckout
-        {...props}
-        session={session}
-        order={order}
-        priced={phase.priced}
-        onBackToSale={() => setPhase({ kind: "selling" })}
-        onNextOrder={() => {
-          session.startNew();
-          setPhase({ kind: "selling" });
-        }}
-      />
     );
   }
   if (phase.kind === "adjusting") {
@@ -102,38 +89,57 @@ export function CounterSale(props: CounterSaleProps) {
       />
     );
   }
+  const checkout = phase.kind === "checkout" ? phase.priced : null;
   return (
-    <SaleScreen
-      header={
-        <>
-          {header}
-          {props.modeSwitch}
-        </>
-      }
-      menu={menu}
-      now={now}
-      order={order}
-      view={cartView(menu, order, chargeProfile, now, session.kept, session.commandLines)}
-      kept={session.kept}
-      commandLines={session.commandLines}
-      adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
-      saveFailed={session.saveFailed}
-      onPick={(product) => {
-        if (needsNoChoice(product)) {
-          session.update((draft) => addCartLine(draft, plainLine(product)));
-        } else setPhase({ kind: "picking", product });
-      }}
-      onQuantity={(lineId, quantity) =>
-        session.update((draft) => setLineQuantity(draft, lineId, quantity))
-      }
-      onRemove={(lineId) => session.update((draft) => removeCartLine(draft, lineId))}
-      onServiceType={(serviceType, tableTag) =>
-        session.update((draft) => setServiceType(draft, serviceType, tableTag))
-      }
-      onCheckout={async () => {
-        const priced = await session.saveAt(Date.now());
-        if (priced !== null) setPhase({ kind: "checkout", priced });
-      }}
-    />
+    <>
+      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
+        <SaleScreen
+          header={
+            <>
+              {header}
+              {props.modeSwitch}
+            </>
+          }
+          menu={menu}
+          now={now}
+          order={order}
+          view={cartView(menu, order, chargeProfile, now, session.kept, session.commandLines)}
+          kept={session.kept}
+          commandLines={session.commandLines}
+          adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
+          saveFailed={session.saveFailed}
+          onPick={(product) => {
+            if (needsNoChoice(product)) {
+              session.update((draft) => addCartLine(draft, plainLine(product)));
+            } else setPhase({ kind: "picking", product });
+          }}
+          onQuantity={(lineId, quantity) =>
+            session.update((draft) => setLineQuantity(draft, lineId, quantity))
+          }
+          onRemove={(lineId) => session.update((draft) => removeCartLine(draft, lineId))}
+          onServiceType={(serviceType, tableTag) =>
+            session.update((draft) => setServiceType(draft, serviceType, tableTag))
+          }
+          onCheckout={async () => {
+            const priced = await session.saveAt(Date.now());
+            if (priced !== null) setPhase({ kind: "checkout", priced });
+          }}
+        />
+      </UnderLayer>
+      {checkout === null ? null : (
+        <CounterCheckout
+          {...props}
+          session={session}
+          order={order}
+          priced={checkout}
+          onBackToSale={() => setPhase({ kind: "selling" })}
+          onWholeScreen={setWholeScreen}
+          onNextOrder={() => {
+            session.startNew();
+            setPhase({ kind: "selling" });
+          }}
+        />
+      )}
+    </>
   );
 }

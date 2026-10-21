@@ -1,11 +1,9 @@
-import type { PosProduct } from "@fnb/contracts";
 import { useState } from "react";
 import type { FloorArea } from "../features/floor/floor-occupancy";
 import type { FloorTableView } from "../features/floor/floor-tables-view";
 import { cartView } from "../features/order/cart-view";
 import { addCartLine, removeCartLine, setLineQuantity } from "../features/order/counter-order";
 import { needsNoChoice, plainLine } from "../features/order/plain-cart-line";
-import type { PricedCounterOrder } from "../features/order/price-counter-order";
 import type { PrintedSlip } from "../features/printing/print-sale-slips";
 import type { TableOrderOpening } from "../features/table-order/table-order-opening";
 import {
@@ -23,8 +21,10 @@ import { TableOrderNotices } from "../screens/table-order/table-order-notices";
 import { TableOrderScreen } from "../screens/table-order/table-order-screen";
 import { TransferTableScreen } from "../screens/table-order/transfer-table-screen";
 import { cancelTicketsScreen } from "../features/table-order/void-cancel-tickets";
+import { UnderLayer } from "../screens/shared/under-layer";
 import { CounterCheckout } from "./counter-checkout";
-import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
+import { OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
+import type { TableOrderPhase } from "./table-order-phase";
 import type { CounterSaleProps } from "./counter-sale";
 
 export interface TableOrderingProps extends Omit<CounterSaleProps, "session" | "modeSwitch"> {
@@ -39,23 +39,12 @@ export interface TableOrderingProps extends Omit<CounterSaleProps, "session" | "
   onLeave(notice: string | null): void;
 }
 
-type Phase =
-  | { readonly kind: "order" | "transfer" | "leaving" }
-  | { readonly kind: "picking"; readonly product: PosProduct }
-  | { readonly kind: "adjusting"; readonly step: AdjustStep }
-  | {
-      readonly kind: "slips";
-      readonly title: string;
-      readonly slips: readonly PrintedSlip[] | null;
-      readonly notice?: string;
-    }
-  | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
-
 /** One table's order: rounds of items, each sent to the kitchen, the pre-bill, the payment. */
 export function TableOrdering(props: TableOrderingProps) {
   const { client, place, menu, now, header, opening, onLeave } = props;
   const session = useTableOrder(client, place, menu, opening, props.onRecorded);
-  const [phase, setPhase] = useState<Phase>({ kind: "order" });
+  const [phase, setPhase] = useState<TableOrderPhase>({ kind: "order" });
+  const [wholeScreen, setWholeScreen] = useState(false);
   const { order, kept, sent, commandLines } = session;
   const view = cartView(menu, order, session.recorded().chargeProfile, now, kept, commandLines);
   const lines = view.kind === "priced" ? view.priced.lines : [];
@@ -83,18 +72,6 @@ export function TableOrdering(props: TableOrderingProps) {
   };
 
   switch (phase.kind) {
-    case "checkout":
-      return (
-        <CounterCheckout
-          {...props}
-          session={session}
-          order={order}
-          priced={phase.priced}
-          nextOrderLabel={vi.tables.order.backToFloor}
-          onBackToSale={back}
-          onNextOrder={() => onLeave(null)}
-        />
-      );
     case "picking":
       return (
         <ModifierPickerScreen
@@ -143,57 +120,74 @@ export function TableOrdering(props: TableOrderingProps) {
       );
   }
   const blocked = session.refusal !== null;
+  const checkout = phase.kind === "checkout" ? phase.priced : null;
   return (
-    <TableOrderScreen
-      header={header}
-      menu={menu}
-      now={now}
-      order={order}
-      view={view}
-      kept={kept}
-      commandLines={commandLines}
-      sentIds={new Set(sent.map((line) => line.lineId))}
-      adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
-      owed={owed.lineIds}
-      saveFailed={session.saveFailed}
-      notices={
-        <TableOrderNotices
-          refusal={session.refusal}
-          preBill={session.preBill}
-          leavingWithUnsent={phase.kind === "leaving" ? owed.units : null}
-          onStay={back}
-          onLeaveAnyway={() => onLeave(null)}
-        />
-      }
-      onPick={(product) => {
-        if (needsNoChoice(product))
-          session.update((draft) => addCartLine(draft, plainLine(product)));
-        else setPhase({ kind: "picking", product });
-      }}
-      onQuantity={(lineId, quantity) =>
-        session.update((draft) => setLineQuantity(draft, lineId, quantity))
-      }
-      onRemove={(lineId) => session.update((draft) => removeCartLine(draft, lineId))}
-      actions={
-        <TableOrderActions
-          owedUnits={owed.units}
-          billable={view.kind === "priced" && order.lines.length > 0}
-          saved={session.recorded().version > 0}
-          blocked={blocked}
-          onSend={() => void showSlips(vi.tables.slips.kitchenTitle, sendRound)}
-          onPreBill={() => void showSlips(vi.tables.slips.preBillTitle, preBill)}
-          onPay={() => {
-            void session.saveAt(Date.now()).then((priced) => {
-              if (priced !== null) setPhase({ kind: "checkout", priced });
-            });
+    <>
+      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
+        <TableOrderScreen
+          header={header}
+          menu={menu}
+          now={now}
+          order={order}
+          view={view}
+          kept={kept}
+          commandLines={commandLines}
+          sentIds={new Set(sent.map((line) => line.lineId))}
+          adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
+          owed={owed.lineIds}
+          saveFailed={session.saveFailed}
+          notices={
+            <TableOrderNotices
+              refusal={session.refusal}
+              preBill={session.preBill}
+              leavingWithUnsent={phase.kind === "leaving" ? owed.units : null}
+              onStay={back}
+              onLeaveAnyway={() => onLeave(null)}
+            />
+          }
+          onPick={(product) => {
+            if (needsNoChoice(product))
+              session.update((draft) => addCartLine(draft, plainLine(product)));
+            else setPhase({ kind: "picking", product });
           }}
-          onTransfer={() => setPhase({ kind: "transfer" })}
-          onBack={() => {
-            if (owed.units > 0 && !blocked) setPhase({ kind: "leaving" });
-            else onLeave(null);
-          }}
+          onQuantity={(lineId, quantity) =>
+            session.update((draft) => setLineQuantity(draft, lineId, quantity))
+          }
+          onRemove={(lineId) => session.update((draft) => removeCartLine(draft, lineId))}
+          actions={
+            <TableOrderActions
+              owedUnits={owed.units}
+              billable={view.kind === "priced" && order.lines.length > 0}
+              saved={session.recorded().version > 0}
+              blocked={blocked}
+              onSend={() => void showSlips(vi.tables.slips.kitchenTitle, sendRound)}
+              onPreBill={() => void showSlips(vi.tables.slips.preBillTitle, preBill)}
+              onPay={() => {
+                void session.saveAt(Date.now()).then((priced) => {
+                  if (priced !== null) setPhase({ kind: "checkout", priced });
+                });
+              }}
+              onTransfer={() => setPhase({ kind: "transfer" })}
+              onBack={() => {
+                if (owed.units > 0 && !blocked) setPhase({ kind: "leaving" });
+                else onLeave(null);
+              }}
+            />
+          }
         />
-      }
-    />
+      </UnderLayer>
+      {checkout === null ? null : (
+        <CounterCheckout
+          {...props}
+          session={session}
+          order={order}
+          priced={checkout}
+          nextOrderLabel={vi.tables.order.backToFloor}
+          onBackToSale={back}
+          onWholeScreen={setWholeScreen}
+          onNextOrder={() => onLeave(null)}
+        />
+      )}
+    </>
   );
 }

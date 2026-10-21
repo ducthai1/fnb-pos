@@ -76,7 +76,8 @@ describe("paying by VietQR at the counter", () => {
     await signedInTill(server);
     const intent = await twoCoffeesOnQr(server);
     tap(Q.cancel);
-    await screen.findByRole("heading", { name: text.checkout.payment.title });
+    // Back on the cash card of the drawer, the QR panel gone.
+    await screen.findByLabelText(text.checkout.payment.cashTyped);
     await waitFor(() => expect(pushedOf(server, "payment.cancel_intent")).toHaveLength(1));
     expect(pushedOf(server, "payment.cancel_intent")[0]?.payload).toEqual({ intentId: intent.id });
     expect(pushedOf(server, "order.pay")).toEqual([]);
@@ -98,7 +99,8 @@ describe("paying by VietQR at the counter", () => {
       await waitFor(() => expect(server.state.calls.pulls).toBeGreaterThan(pulls + 2));
       expect(pushedOf(server, "order.pay")).toEqual([]);
       tap(Q.otherMethod);
-      await screen.findByRole("heading", { name: text.checkout.payment.title });
+      // Back on the cash card of the drawer, the QR panel gone.
+      await screen.findByLabelText(text.checkout.payment.cashTyped);
       // The bank's money is matched for good: nothing to take down, a person settles it.
       expect(pushedOf(server, "payment.cancel_intent")).toEqual([]);
     },

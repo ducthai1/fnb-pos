@@ -33,6 +33,7 @@ async function coffeesAtTheBar(server: ReturnType<typeof tablesWithManager>) {
 }
 
 async function voidOne(reason: string) {
+  tap(T.tools.lineMenu(COFFEE));
   tap(T.tools.void(COFFEE));
   await screen.findByRole("heading", { name: T.void.title });
   expect(screen.getByText(T.void.sent(2))).toBeTruthy();

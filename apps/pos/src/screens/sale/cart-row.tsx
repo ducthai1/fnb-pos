@@ -1,39 +1,28 @@
-import {
-  type OrderLine,
-  QUANTITY_SCALE,
-  formatVnd,
-  negateQuantity,
-  negateVnd,
-  quantityToDecimalString,
-} from "@fnb/domain";
-import { BadgePercent, CircleMinus, MessageSquareText, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
-import { discountAmountOf } from "../../features/order-adjust/describe-discount";
+import { formatVnd } from "@fnb/domain";
+import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
 import { type CartLine, MAX_LINE_QUANTITY } from "../../features/order/counter-order";
 import { type CartView, lineAmountOf } from "../../features/order/cart-view";
+import type { OrderLine } from "@fnb/domain";
 import { vi } from "../../messages/vi";
-import { Icon } from "../shared/icon";
+import { CartLineDetails } from "./cart-line-details";
+import { type LineAdjustments, LineMenuButton, LineTools } from "./cart-line-tools";
 import { ProductMark } from "./product-photo";
 import { QuantityStepper } from "./quantity-stepper";
 
+export type { LineAdjustments } from "./cart-line-tools";
+
 const S = vi.sale;
-const C = vi.adjust.cart;
 
 export interface CartRowActions {
   onQuantity(lineId: string, quantity: number): void;
   onRemove(lineId: string): void;
 }
 
-/** What can be done to a saved item beyond the stepper: void it, discount it. */
-export interface LineAdjustments {
-  onVoid(lineId: string): void;
-  onDiscount(lineId: string): void;
-}
-
 /**
- * One item with its options, note, its discount and what was cancelled of it. `badge` says
- * where it stands with the kitchen; a `locked` one (held as stored) offers no stepper and no
- * remove: taking units off it is a void.
+ * One item in one row: its photo, its name with options and note in small type under it,
+ * the − n + beside it and the amount on the right; the rest (remove, void, discount) behind
+ * the row's "…". `badge` says where it stands with the kitchen; a `locked` one (held as
+ * stored) offers no stepper and no remove: taking units off it is a void.
  */
 export function CartRow(
   props: {
@@ -46,109 +35,75 @@ export function CartRow(
   } & CartRowActions,
 ) {
   const { line, priced } = props;
+  const locked = props.locked === true;
+  const [open, setOpen] = useState(false);
+  const more = useRef<HTMLButtonElement>(null);
+  const toolsId = useId();
   const item = priced.find((candidate) => candidate.id === line.lineId);
-  const under = priced.filter((candidate) => candidate.parentLineId === line.lineId);
-  const children = under.filter((candidate) => candidate.lineType !== "discount");
-  const discounts = under.filter((candidate) => candidate.lineType === "discount");
-  const cancels = priced.filter((candidate) => candidate.reversesLineId === line.lineId);
   const name = item?.nameSnapshot ?? props.view.nameOf(line);
   const photo = props.view.photoOf(line);
   const priceOf = (lineId: string) =>
     props.view.kind === "priced" ? formatVnd(lineAmountOf(props.view.priced, lineId)) : "";
+  const remove = locked ? undefined : () => props.onRemove(line.lineId);
+  const hasTools = remove !== undefined || props.adjust !== undefined;
+  // Esc inside the open actions closes them and puts the focus back on the "…".
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key !== "Escape" || !open) return;
+    event.stopPropagation();
+    setOpen(false);
+    more.current?.focus();
+  };
   return (
-    <li className="pos-cart-line" data-cart-line={line.lineId}>
-      <div className="pos-cart-line__head">
+    <li
+      className="pos-cart-line"
+      data-cart-line={line.lineId}
+      data-locked={locked}
+      onKeyDown={closeOnEscape}
+    >
+      <div className="pos-cart-line__row">
         {/* Only a photo: a line without one keeps the plain layout, no coloured square. */}
         {photo === undefined ? null : (
           <ProductMark className="pos-cart-line__photo" name={name} imageUrl={photo} />
         )}
         <span className="pos-cart-line__name pos-wrap">
           {name}
-          {props.locked === true ? ` ×${line.quantity}` : ""}
+          {locked ? ` ×${line.quantity}` : ""}
         </span>
-        <span className="pos-cart-line__amount">{priceOf(line.lineId)}</span>
-      </div>
-      {children.length === 0 ? null : (
-        <ul className="pos-cart-line__children">
-          {children.map((child) => (
-            <li key={child.id} className="pos-wrap">
-              + {child.nameSnapshot}
-              {child.quantity === QUANTITY_SCALE
-                ? ""
-                : ` ×${quantityToDecimalString(child.quantity)}`}
-            </li>
-          ))}
-        </ul>
-      )}
-      {discounts.length === 0 ? null : (
-        <p className="pos-cart-line__head" data-line-discount={line.lineId}>
-          <span>{C.lineDiscount}</span>
-          <span>{formatVnd(negateVnd(discountAmountOf(discounts)))}</span>
-        </p>
-      )}
-      {cancels.map((cancel) => (
-        <p key={cancel.id} className="pos-cart-line__head">
-          <span>{C.voided(Number(negateQuantity(cancel.quantity) / QUANTITY_SCALE))}</span>
-          <span>{priceOf(cancel.id)}</span>
-        </p>
-      ))}
-      {line.note === null ? null : (
-        <p className="pos-cart-line__note pos-wrap">
-          <Icon of={MessageSquareText} size={16} />
-          <span>
-            {S.note}: {line.note}
-          </span>
-        </p>
-      )}
-      {props.badge}
-      {props.locked === true ? null : (
-        <div className="pos-cart-line__actions">
-          <QuantityStepper
-            label={S.lineQuantity(name)}
-            name={name}
-            value={line.quantity}
-            max={MAX_LINE_QUANTITY}
-            onChange={(next) => props.onQuantity(line.lineId, next)}
-          />
-          <button
-            type="button"
-            className="pos-button pos-button--quiet pos-cart-line__remove"
-            aria-label={S.remove(name)}
-            onClick={() => props.onRemove(line.lineId)}
-          >
-            <Icon of={Trash2} />
-          </button>
+        <div className="pos-cart-line__details">
+          <CartLineDetails line={line} priced={priced} priceOf={priceOf} badge={props.badge} />
         </div>
-      )}
-      {props.adjust === undefined ? null : (
-        <LineTools name={name} lineId={line.lineId} adjust={props.adjust} />
-      )}
+        {locked ? null : (
+          <div className="pos-cart-line__step">
+            <QuantityStepper
+              compact
+              label={S.lineQuantity(name)}
+              name={name}
+              value={line.quantity}
+              max={MAX_LINE_QUANTITY}
+              onChange={(next) => props.onQuantity(line.lineId, next)}
+            />
+          </div>
+        )}
+        <span className="pos-cart-line__amount">{priceOf(line.lineId)}</span>
+        {hasTools ? (
+          <LineMenuButton
+            name={name}
+            open={open}
+            controls={toolsId}
+            buttonRef={more}
+            onToggle={() => setOpen(!open)}
+          />
+        ) : null}
+      </div>
+      {open && hasTools ? (
+        <LineTools
+          id={toolsId}
+          name={name}
+          lineId={line.lineId}
+          onRemove={remove}
+          adjust={props.adjust}
+        />
+      ) : null}
     </li>
-  );
-}
-
-function LineTools(props: { name: string; lineId: string; adjust: LineAdjustments }) {
-  const T = vi.adjust.tools;
-  return (
-    <div className="pos-line-tools">
-      <button
-        type="button"
-        className="pos-button pos-button--quiet pos-button--sm"
-        aria-label={T.void(props.name)}
-        onClick={() => props.adjust.onVoid(props.lineId)}
-      >
-        <Icon of={CircleMinus} />
-        {T.voidShort}
-      </button>
-      <button
-        type="button"
-        className="pos-button pos-button--quiet pos-button--sm"
-        aria-label={T.discount(props.name)}
-        onClick={() => props.adjust.onDiscount(props.lineId)}
-      >
-        <Icon of={BadgePercent} />
-        {T.discountShort}
-      </button>
-    </div>
   );
 }
