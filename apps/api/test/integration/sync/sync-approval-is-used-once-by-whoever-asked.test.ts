@@ -7,7 +7,14 @@ import { buildApp } from "../../../src/build-app";
 import { requestApproval } from "../support/approval-requests";
 import { expectStatus } from "../support/catalog-shop";
 import { startShift } from "../support/staffed-shop";
-import { approve, approvedAt, hireManager, justNow, signInAs } from "../support/sync-approvals";
+import {
+  approve,
+  approvedAt,
+  hireManager,
+  justNow,
+  refundOf,
+  signInAs,
+} from "../support/sync-approvals";
 import { line, pushOnTime, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -83,7 +90,7 @@ describe("an on-the-spot approval relied on by a command", () => {
   });
 
   it("does not cover another action", async () => {
-    const approvalId = await approve(app, s.tillB, managerId, { key: "refund" });
+    const approvalId = await approve(app, s.tillB, managerId, refundOf(newId(), 29_000));
     const result = await pushOne(app, s.tillB, typedPrice(approvalId));
     expect(result).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_FOR_ANOTHER_ACTION" });
   });

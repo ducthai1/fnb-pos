@@ -39,6 +39,15 @@ export type UnlimitedPermissionKey = Exclude<
 
 export type PermissionThresholdKind = "max_rate" | "max_amount";
 
+/**
+ * What an on-the-spot approval of a key is given for: one line of one order, one order, or
+ * one shift. A manager agrees to "this refund of this sale", never to "a refund".
+ */
+export type ApprovalSubjectKind = "order_line" | "order" | "shift";
+
+/** The figure an approval of a key names besides its rate or cash total. */
+export type ApprovalFigureKind = "difference" | "refund_amount" | "voided_quantity";
+
 export interface PermissionDefinition {
   /**
    * Whether someone who holds the key may approve it on the spot for someone who does not
@@ -49,25 +58,28 @@ export interface PermissionDefinition {
   readonly threshold?: PermissionThresholdKind;
   /**
    * The figure an action of this key names, which an approval is given for and must match:
-   * not a cap, just what was agreed to (the close difference a manager accepted).
+   * not a cap, just what was agreed to (the close difference a manager accepted, the money a
+   * refund hands back, the units a void takes back from the kitchen).
    */
-  readonly figure?: "difference";
+  readonly figure?: ApprovalFigureKind;
+  /** What an approval of this key is bound to; none for keys whose use names nothing. */
+  readonly subject?: ApprovalSubjectKind;
 }
 
 export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDefinition>> = {
-  refund: { approvable: true },
-  void_after_sent: { approvable: true },
-  line_discount: { approvable: true, threshold: "max_rate" },
-  order_discount: { approvable: true, threshold: "max_rate" },
+  refund: { approvable: true, figure: "refund_amount", subject: "order" },
+  void_after_sent: { approvable: true, figure: "voided_quantity", subject: "order_line" },
+  line_discount: { approvable: true, threshold: "max_rate", subject: "order_line" },
+  order_discount: { approvable: true, threshold: "max_rate", subject: "order" },
   price_override: { approvable: true },
   open_price: { approvable: true },
   comp_item: { approvable: true },
-  cash_move: { approvable: true, threshold: "max_amount" },
-  open_drawer: { approvable: true },
-  accept_close_difference: { approvable: true, figure: "difference" },
+  cash_move: { approvable: true, threshold: "max_amount", subject: "shift" },
+  open_drawer: { approvable: true, subject: "shift" },
+  accept_close_difference: { approvable: true, figure: "difference", subject: "shift" },
   reopen_paid_order: { approvable: true },
   transfer_table: { approvable: true },
-  close_unpaid_table: { approvable: true },
+  close_unpaid_table: { approvable: true, subject: "order" },
   stock_adjust: { approvable: true },
   // Reports are access to data, not a one-off action: approving one would show the whole
   // report to the person who asked, so they are never lent.

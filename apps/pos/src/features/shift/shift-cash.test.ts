@@ -58,15 +58,17 @@ describe("the shift's cash book as the till counts against it", () => {
     expect(expectedCash(tillShiftLedger(shift, waiting))).toBe(vnd(599_000));
   });
 
-  it("judges a cash move on everything moved through the drawer once it is made", () => {
+  it("judges a cash move on everything moved through the drawer once it is made, in its shift", () => {
     expect(cashMoveActionFor(shift, "lan", "out", vnd(400_000))).toEqual({
       key: "cash_move",
       amount: vnd(550_000),
+      subject: { shiftId: shift.id },
     });
     // Another cashier on the same drawer: the cap is the shift's, as the server judges it.
     expect(cashMoveActionFor(shift, "minh", "in", vnd(10_000))).toEqual({
       key: "cash_move",
       amount: vnd(160_000),
+      subject: { shiftId: shift.id },
     });
   });
 

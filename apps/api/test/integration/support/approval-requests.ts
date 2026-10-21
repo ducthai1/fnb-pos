@@ -2,6 +2,20 @@ import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 
+/**
+ * An action as POST /pos/approvals reads it: money and units as decimal strings, and what
+ * it is for (the order, its line, the shift) as ids.
+ */
+export interface WireAction {
+  key: string;
+  discountRate?: number;
+  amount?: string;
+  difference?: string;
+  refundAmount?: string;
+  voidedQuantity?: string;
+  subject?: { orderId?: string; lineId?: string; shiftId?: string };
+}
+
 /** POST /pos/approvals from a till, as the staff member of `staffToken` asking. */
 export async function requestApproval(
   app: FastifyInstance,

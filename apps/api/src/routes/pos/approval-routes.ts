@@ -6,6 +6,9 @@ import {
   authorize,
   canApprove,
   isPermissionKey,
+  missingApprovalTerm,
+  quantity,
+  quantityToDecimalString,
   vnd,
 } from "@fnb/domain";
 import type { FastifyInstance } from "fastify";
@@ -24,7 +27,15 @@ import { STAFF_ERROR_CODES } from "../../staff/staff-error-codes";
 import { uuidJsonSchema } from "../../http/uuid-schema";
 
 interface ApprovalBody {
-  action: { key: string; discountRate?: number; amount?: string; difference?: string };
+  action: {
+    key: string;
+    discountRate?: number;
+    amount?: string;
+    difference?: string;
+    refundAmount?: string;
+    voidedQuantity?: string;
+    subject?: { orderId?: string; lineId?: string; shiftId?: string };
+  };
   approverStaffId: string;
   approverPin: string;
 }
@@ -45,6 +56,15 @@ const approvalBody = {
         amount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
         // A close difference is signed: counted − expected, short below zero.
         difference: { type: "string", pattern: "^(0|-?[1-9][0-9]{0,18})$" },
+        // What a refund hands back, and the units a void takes back from the kitchen.
+        refundAmount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
+        voidedQuantity: { type: "string", pattern: "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,3})?$" },
+        // What the approval is for; which of these a key needs is the catalog's to say.
+        subject: {
+          type: "object",
+          additionalProperties: false,
+          properties: { orderId: uuidJsonSchema, lineId: uuidJsonSchema, shiftId: uuidJsonSchema },
+        },
       },
     },
     approverStaffId: uuidJsonSchema,
@@ -87,6 +107,13 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
           : { discountRate: sent.discountRate as BasisPoints }),
         ...(sent.amount === undefined ? {} : { amount: vnd(BigInt(sent.amount)) }),
         ...(sent.difference === undefined ? {} : { difference: vnd(BigInt(sent.difference)) }),
+        ...(sent.refundAmount === undefined
+          ? {}
+          : { refundAmount: vnd(BigInt(sent.refundAmount)) }),
+        ...(sent.voidedQuantity === undefined
+          ? {}
+          : { voidedQuantity: quantity(sent.voidedQuantity) }),
+        ...(sent.subject === undefined ? {} : { subject: sent.subject }),
       };
       try {
         // With no grants this only checks the action carries the value its key needs.
@@ -99,11 +126,13 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
       if (!PERMISSION_DEFINITIONS[action.key].approvable) {
         return reply.code(403).send({ code: APPROVAL_ERROR_CODES.notApprovable });
       }
-      // The manager agrees to a figure: an approval naming none would cover any of them.
-      if (
-        PERMISSION_DEFINITIONS[action.key].figure === "difference" &&
-        sent.difference === undefined
-      ) {
+      // The manager agrees to one thing: an approval naming no order (or shift) would
+      // cover the same action on any of them, and one naming no figure any amount.
+      const missing = missingApprovalTerm(action);
+      if (missing === "subject") {
+        return reply.code(400).send({ code: APPROVAL_ERROR_CODES.subjectRequired });
+      }
+      if (missing === "figure") {
         return reply.code(400).send({ code: PERMISSION_ERROR_CODES.invalidAction });
       }
       if (approverStaffId === requester.staffId) {
@@ -132,6 +161,12 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
             discountRate: action.discountRate,
             amount: action.amount,
             difference: action.difference,
+            refundAmount: action.refundAmount,
+            voidedQuantity:
+              action.voidedQuantity === undefined
+                ? undefined
+                : quantityToDecimalString(action.voidedQuantity),
+            subject: action.subject,
           },
           createdAt: now,
         });

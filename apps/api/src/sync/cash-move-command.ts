@@ -25,7 +25,7 @@ async function moveCash(context: SyncCommandContext, payload: CashMovePayload) {
   const kind = payload.kind === "in" ? "cash_in" : "cash_out";
   const spent = await requirePermission(
     context,
-    cashMoveAction(ledger, { kind, amount, staffId }),
+    { ...cashMoveAction(ledger, { kind, amount, staffId }), subject: { shiftId: shift.id } },
     payload.approvalId,
   );
   const inserted = await client.query(

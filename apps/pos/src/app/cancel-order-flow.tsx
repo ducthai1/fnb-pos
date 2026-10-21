@@ -1,6 +1,6 @@
 import {
-  CLOSE_UNPAID_TABLE,
   cancelNeedsManager,
+  closeUnpaidTable,
   cancelOrderCommand,
   kitchenStillHasItems,
 } from "../features/order-adjust/cancel-order-command";
@@ -35,7 +35,7 @@ export function CancelOrderFlow(props: AdjustContext) {
           let approvalId: string | null = null;
           if (cancelNeedsManager(settled, row?.snapshot ?? null)) {
             const said = vi.approval.actions.closeUnpaid(settled.order.deviceOrderNo);
-            const outcome = await gate.require(CLOSE_UNPAID_TABLE, said);
+            const outcome = await gate.require(closeUnpaidTable(orderId), said);
             if (outcome.kind === "denied") return vi.approval.denied;
             const approval = approvalOf(outcome);
             if (approval === undefined) return null;

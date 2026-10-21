@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { approve, hireManager, signInAs } from "../support/sync-approvals";
+import { approve, hireManager, signInAs, voidOfSent } from "../support/sync-approvals";
 import { line, orderIdOf, pay, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { markSent, voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
@@ -91,7 +91,12 @@ describe("order.void_line", () => {
     const alone = await pushOne(app, s.tillA, voidUnits(s.tillA, orderId, coffee.lineId, "1"));
     expect(alone).toMatchObject({ status: "rejected", code: "DOMAIN_ORDER_VOID_NEEDS_APPROVAL" });
     expect(await voidRecordsOf(orderId)).toEqual([]);
-    const approvalId = await approve(app, s.tillA, managerId, { key: "void_after_sent" });
+    const approvalId = await approve(
+      app,
+      s.tillA,
+      managerId,
+      voidOfSent(orderId, coffee.lineId, "1"),
+    );
     const sent = withApproval(voidUnits(s.tillA, orderId, coffee.lineId, "1"), approvalId);
     const approved = await pushOne(app, s.tillA, sent);
     expect(approved.status).toBe("accepted");
@@ -174,7 +179,12 @@ describe("order.void_line", () => {
 
   it("locks a partly cancelled line against draft saves that would change it", async () => {
     const { orderId, coffee } = await twoCoffees("2");
-    const approvalId = await approve(app, s.tillA, managerId, { key: "void_after_sent" });
+    const approvalId = await approve(
+      app,
+      s.tillA,
+      managerId,
+      voidOfSent(orderId, coffee.lineId, "1"),
+    );
     await pushOne(
       app,
       s.tillA,

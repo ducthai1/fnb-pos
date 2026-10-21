@@ -192,10 +192,25 @@ it("gives 20% off with a manager's PIN, voids a cup the bar has, refunds half a 
     expect.objectContaining({ status: "paid", paid: -28_000n, shift_id: shiftId }),
   ]);
   expect((await cashPaymentsOfShift(pool, stack.tenantId, shiftId!)) - before).toBe(-28_000n);
+  // Each approval names what the manager was shown: the sale's item, the table's cup, the
+  // refund of the sale and its payout.
+  const line = { lineId: expect.any(String) };
   expect(await approvalsOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
-    { action_key: "line_discount", payload: { discountRate: 2000 }, used: true },
-    { action_key: "void_after_sent", payload: {}, used: true },
-    { action_key: "refund", payload: {}, used: true },
+    {
+      action_key: "line_discount",
+      payload: { discountRate: 2000, subject: { orderId: sale!.id, ...line } },
+      used: true,
+    },
+    {
+      action_key: "void_after_sent",
+      payload: { voidedQuantity: "1", subject: { orderId: tableOrder!.id, ...line } },
+      used: true,
+    },
+    {
+      action_key: "refund",
+      payload: { refundAmount: "28000", subject: { orderId: sale!.id } },
+      used: true,
+    },
   ]);
   expect(till.problems).toEqual([]);
   await till.close();

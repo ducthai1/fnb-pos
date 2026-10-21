@@ -18,7 +18,8 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * order.apply_discount: a discount on the whole order or on one sold item, built by the
  * domain on the order the server holds. It is judged by the share of the scope all its
  * discounts take off once this one is added, so a cap cannot be passed in small steps;
- * past the staff member's cap it needs a manager's approval of exactly that share.
+ * past the staff member's cap it needs a manager's approval of up to that share, given for
+ * this order (and item).
  */
 async function applyDiscount(context: SyncCommandContext, payload: ApplyDiscountPayload) {
   const { client, device, staffId } = context;
@@ -37,7 +38,11 @@ async function applyDiscount(context: SyncCommandContext, payload: ApplyDiscount
       : buildLineDiscount(stored.order, payload.lineId, payload.discount, nextId);
   const discountRate = projectedDiscountRate(stored.order, lines, scope);
   const key = payload.scope === "order" ? "order_discount" : "line_discount";
-  await requirePermission(context, { key, discountRate }, payload.approvalId);
+  const subject =
+    payload.scope === "order"
+      ? { orderId: payload.orderId }
+      : { orderId: payload.orderId, lineId: payload.lineId };
+  await requirePermission(context, { key, discountRate, subject }, payload.approvalId);
   const after = [...stored.order.lines, ...lines];
   validateLineTree(after, { refundOfOrderId: null });
   const newIds = lines.map((line) => line.id);

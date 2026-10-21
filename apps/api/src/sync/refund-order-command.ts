@@ -5,6 +5,7 @@ import {
   buildRefund,
   compareVnd,
   computeOrderTotals,
+  negateVnd,
   transitionOrder,
   vnd,
 } from "@fnb/domain";
@@ -26,7 +27,7 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * own, paid out at once. The domain's buildRefund works out what they give back from the
  * sale's own amounts (its charge profile, its discounts) after every earlier refund, so
  * refunding a sale bit by bit gives back exactly what it took. The till must pay out that
- * amount to the đồng. Cash paid out leaves the drawer of the shift the till names (or its
+ * amount to the đồng, and an approval it needs is for this sale and that amount. Cash paid out leaves the drawer of the shift the till names (or its
  * own open shift), exactly as a sale's cash goes in, so the shift expects that much less.
  * Returns the refund's order id.
  */
@@ -36,7 +37,6 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
   if ((await readStoredOrder(client, payload.refundOrderId, false)) !== null) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
   }
-  await requirePermission(context, { key: "refund" }, payload.approvalId);
   const built = buildRefund(
     sale.order,
     payload.lines,
@@ -49,6 +49,10 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
   const amounts = refund.refundAmounts;
   if (amounts === null) throw new Error("buildRefund returned a refund without its amounts");
   const { amountDue } = computeOrderTotals(refund, sale.chargeProfile);
+  // A manager approves this refund of this sale for the money it hands back (the refund's
+  // amount due is negative, as its payouts are recorded), as built here.
+  const action = { refundAmount: negateVnd(amountDue), subject: { orderId: sale.order.id } };
+  await requirePermission(context, { key: "refund", ...action }, payload.approvalId);
   const paidOut = addVnd(...payload.payouts.map((payout) => vnd(payout.amount)));
   if (compareVnd(paidOut, amountDue) !== 0) {
     throw new CommandRejection(SYNC_ERROR_CODES.paymentsDoNotMatchAmountDue);

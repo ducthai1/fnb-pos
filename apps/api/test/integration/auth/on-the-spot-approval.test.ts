@@ -16,7 +16,14 @@ import {
 } from "../support/staffed-shop";
 
 const info = inject("testPostgres");
-const FIFTEEN_PERCENT = { key: "line_discount", discountRate: 1_500 };
+const ORDER = "0190a000-0000-7000-8000-00000000000a";
+const LINE = "0190a000-0000-7000-8000-000000000001";
+const SHIFT = "0190a000-0000-7000-8000-0000000000f1";
+const FIFTEEN_PERCENT = {
+  key: "line_discount",
+  discountRate: 1_500,
+  subject: { orderId: ORDER, lineId: LINE },
+};
 
 let pool: pg.Pool;
 let app: FastifyInstance;
@@ -82,7 +89,7 @@ describe("a manager approving a cashier's discount at the till", () => {
         approved_by_staff_id: staff.manager,
         device_id: shop.deviceId,
         branch_id: shop.branchId,
-        payload: { discountRate: 1_500 },
+        payload: { discountRate: 1_500, subject: { orderId: ORDER, lineId: LINE } },
       },
     ]);
     const audit = await withTenant(pool, shop.tenantId, async (client) => {
@@ -98,13 +105,35 @@ describe("a manager approving a cashier's discount at the till", () => {
   });
 
   it("keeps money exact in the log when the approval is for moving cash", async () => {
-    const cash = { key: "cash_move", amount: "1500000" };
+    const cash = { key: "cash_move", amount: "1500000", subject: { shiftId: SHIFT } };
     const answer = await approve(staff.manager, "7391", cash);
     expect(answer.status).toBe(201);
     const row = (await approvalsOf(pool, shop.tenantId)).find(
       (r) => r.id === answer.body.approvalId,
     );
-    expect(row?.payload).toEqual({ amount: "1500000" });
+    expect(row?.payload).toEqual({ amount: "1500000", subject: { shiftId: SHIFT } });
+  });
+
+  it("logs the sale and the money a refund approval is for, and the units of a void", async () => {
+    const refund = { key: "refund", refundAmount: "25000", subject: { orderId: ORDER } };
+    const voided = {
+      key: "void_after_sent",
+      voidedQuantity: "1.5",
+      subject: { orderId: ORDER, lineId: LINE },
+    };
+    const payloads = [];
+    for (const action of [refund, voided]) {
+      const answer = await approve(staff.manager, "7391", action);
+      expect(answer.status).toBe(201);
+      const row = (await approvalsOf(pool, shop.tenantId)).find(
+        (r) => r.id === answer.body.approvalId,
+      );
+      payloads.push(row?.payload);
+    }
+    expect(payloads).toEqual([
+      { refundAmount: "25000", subject: { orderId: ORDER } },
+      { voidedQuantity: "1.5", subject: { orderId: ORDER, lineId: LINE } },
+    ]);
   });
 
   it("refuses a wrong PIN, counting it toward the same lock as starting a shift", async () => {
@@ -121,7 +150,7 @@ describe("a manager approving a cashier's discount at the till", () => {
     expect(await approve(staff.otherCashier, "5172")).toEqual(
       refused(403, "API_APPROVAL_APPROVER_NOT_PERMITTED"),
     );
-    const small = { key: "line_discount", discountRate: 800 };
+    const small = { ...FIFTEEN_PERCENT, discountRate: 800 };
     expect((await approve(staff.otherCashier, "5172", small)).status).toBe(201);
   });
 
@@ -140,7 +169,8 @@ describe("a manager approving a cashier's discount at the till", () => {
       });
     }
     expect(await failedAttempts(staff.owner)).toBe(0);
-    expect((await approve(staff.owner, "3907", { key: "refund" })).status).toBe(201);
+    const refund = { key: "refund", refundAmount: "25000", subject: { orderId: ORDER } };
+    expect((await approve(staff.owner, "3907", refund)).status).toBe(201);
   });
 
   it("refuses an approver of another branch, who is not at this till", async () => {

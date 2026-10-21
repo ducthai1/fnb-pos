@@ -43,7 +43,13 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
       let approval: Approval | null = null;
       if (plan.record.fromSent > 0n && voidNeedsApproval(props.menu)) {
         const said = vi.approval.actions.voidAfterSent(units(plan.record.fromSent), name);
-        const outcome = await gate.require({ key: "void_after_sent" }, said);
+        // The approval covers these units of this line of this order only.
+        const action = {
+          key: "void_after_sent",
+          voidedQuantity: plan.record.fromSent,
+          subject: { orderId: settled.order.orderId, lineId },
+        } as const;
+        const outcome = await gate.require(action, said);
         if (outcome.kind === "denied") return vi.approval.denied;
         const given = approvalOf(outcome);
         if (given === undefined) return null;

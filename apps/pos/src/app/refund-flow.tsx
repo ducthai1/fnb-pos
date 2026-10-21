@@ -83,7 +83,13 @@ export function RefundFlow(props: RefundFlowProps) {
           const refund = plan(selection);
           const amount = formatVnd(refund.payout);
           const said = vi.approval.actions.refund(amount, sale.deviceOrderNo);
-          const outcome = await gate.require({ key: "refund" }, said);
+          // The approval covers this sale and this payout only, as the manager reads them.
+          const action = {
+            key: "refund",
+            refundAmount: refund.payout,
+            subject: { orderId: sale.orderId },
+          } as const;
+          const outcome = await gate.require(action, said);
           if (outcome.kind === "denied") return vi.approval.denied;
           const approval = approvalOf(outcome);
           if (approval === undefined) return null;

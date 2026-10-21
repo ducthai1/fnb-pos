@@ -77,7 +77,11 @@ describe("locking a staff member out while their PIN is being checked", () => {
     const staffToken = String(cashier.body.staffSessionToken);
     const ask = () =>
       requestApproval(app, shop.deviceToken, staffToken, {
-        action: { key: "refund" },
+        action: {
+          key: "refund",
+          refundAmount: "25000",
+          subject: { orderId: "0190a000-0000-7000-8000-00000000000a" },
+        },
         approverStaffId: managerId,
         approverPin: MANAGER_PIN,
       });

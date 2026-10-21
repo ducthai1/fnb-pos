@@ -2,7 +2,7 @@ import { withTenant } from "@fnb/db";
 import type { RoleTemplateKey } from "@fnb/domain";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
-import { requestApproval } from "./approval-requests";
+import { type WireAction, requestApproval } from "./approval-requests";
 import { hire, startShift } from "./staffed-shop";
 import { RECORDED_AT } from "./sync-commands";
 import type { SyncShop, Till } from "./sync-shop";
@@ -32,7 +32,7 @@ export async function approve(
   app: FastifyInstance,
   till: Till,
   managerId: string,
-  action: { key: string; discountRate?: number; amount?: string },
+  action: WireAction,
 ): Promise<string> {
   const answer = await requestApproval(app, till.deviceToken, till.staffToken, {
     action,
@@ -42,6 +42,26 @@ export async function approve(
   if (answer.status !== 201) throw new Error(`approval answered ${answer.status}`);
   return answer.body.approvalId as string;
 }
+
+/** What a manager is shown for cancelling `units` the kitchen has of one line of an order. */
+export const voidOfSent = (orderId: string, lineId: string, units: string): WireAction => ({
+  key: "void_after_sent",
+  voidedQuantity: units,
+  subject: { orderId, lineId },
+});
+
+/** What a manager is shown for cancelling a draft a guest was shown or served. */
+export const closeUnpaid = (orderId: string): WireAction => ({
+  key: "close_unpaid_table",
+  subject: { orderId },
+});
+
+/** What a manager is shown for a refund of sale `orderId` handing `amount` đ back. */
+export const refundOf = (orderId: string, amount: number): WireAction => ({
+  key: "refund",
+  refundAmount: String(amount),
+  subject: { orderId },
+});
 
 /** When the server recorded the approval, in epoch ms. */
 export async function approvedAt(pool: pg.Pool, tenantId: string, approvalId: string) {

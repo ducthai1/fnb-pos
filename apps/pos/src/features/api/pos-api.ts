@@ -15,7 +15,10 @@ export interface StaffSession {
   readonly expiresAt: string;
 }
 
-/** What POST /pos/approvals is asked: an action, with its value as the wire carries it. */
+/**
+ * What POST /pos/approvals is asked: an action, with its values as the wire carries them,
+ * and what it is done to, so the approval covers that order (and line) or shift only.
+ */
 export interface ApprovalRequest {
   readonly action: {
     readonly key: string;
@@ -23,6 +26,15 @@ export interface ApprovalRequest {
     readonly amount?: string;
     /** A close difference, signed (counted − expected), as a decimal string. */
     readonly difference?: string;
+    /** The money a refund hands back, as a decimal string. */
+    readonly refundAmount?: string;
+    /** The units a void takes back from the kitchen, as a decimal quantity. */
+    readonly voidedQuantity?: string;
+    readonly subject?: {
+      readonly orderId?: string;
+      readonly lineId?: string;
+      readonly shiftId?: string;
+    };
   };
   readonly approverStaffId: string;
   readonly approverPin: string;

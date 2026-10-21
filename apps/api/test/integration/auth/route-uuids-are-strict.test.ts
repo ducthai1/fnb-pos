@@ -94,7 +94,11 @@ const ROUTES: [string, Send, number][] = [
     "asking a manager to approve",
     (id) =>
       sender("POST", "/pos/approvals", {
-        action: { key: "order_discount", discountRate: 500 },
+        action: {
+          key: "order_discount",
+          discountRate: 500,
+          subject: { orderId: "0190a000-0000-7000-8000-00000000000a" },
+        },
         approverStaffId: id,
         approverPin: "4826",
       })(asTill()),

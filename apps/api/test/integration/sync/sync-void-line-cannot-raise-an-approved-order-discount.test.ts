@@ -44,7 +44,11 @@ async function fourCoffeesTenPercentOff(till: Till, approved: boolean) {
   const sent = approved
     ? withApproval(
         off,
-        await approve(app, till, managerId, { key: "order_discount", discountRate: 1000 }),
+        await approve(app, till, managerId, {
+          key: "order_discount",
+          discountRate: 1000,
+          subject: { orderId },
+        }),
       )
     : off;
   expect((await pushOne(app, till, sent)).status).toBe("accepted");

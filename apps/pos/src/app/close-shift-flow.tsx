@@ -84,7 +84,10 @@ export function CloseShiftFlow(props: CloseShiftFlowProps) {
           let approvalId: string | null = null;
           if (assessment.needsAcceptance || disagreed !== null) {
             const said = vi.approval.actions.closeDifference(formatVnd(assessment.difference));
-            const action = acceptCloseDifference(assessment.difference);
+            const action = {
+              ...acceptCloseDifference(assessment.difference),
+              subject: { shiftId: book.shift.id },
+            };
             const outcome = await gate.require(action, said);
             if (outcome.kind === "denied") return vi.approval.denied;
             const approval = approvalOf(outcome);

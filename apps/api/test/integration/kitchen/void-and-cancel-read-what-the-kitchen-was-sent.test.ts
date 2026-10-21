@@ -5,7 +5,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { kitchenStation, sentToKitchen, ticketLine } from "../support/kitchen-commands";
-import { approve, hireManager } from "../support/sync-approvals";
+import { approve, hireManager, voidOfSent } from "../support/sync-approvals";
 import { line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { cancel, voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -66,7 +66,12 @@ describe("what a kitchen ticket recorded, as voids and cancels read it", () => {
     const { orderId, coffee } = await coffeesAtTheBar("2");
     const alone = await pushOne(app, till(), voidUnits(till(), orderId, coffee.lineId, "2"));
     expect(alone.code).toBe("DOMAIN_ORDER_VOID_NEEDS_APPROVAL");
-    const approvalId = await approve(app, till(), managerId, { key: "void_after_sent" });
+    const approvalId = await approve(
+      app,
+      till(),
+      managerId,
+      voidOfSent(orderId, coffee.lineId, "1"),
+    );
     const approved = withApproval(voidUnits(till(), orderId, coffee.lineId, "2"), approvalId);
     expect((await pushOne(app, till(), approved)).status).toBe("accepted");
     expect(await voidRecordOf(orderId)).toEqual([{ unsent: "1.000", sent: "1.000" }]);

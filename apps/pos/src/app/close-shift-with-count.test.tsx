@@ -97,6 +97,7 @@ describe("closing the shift on the cashier's count", () => {
     expect(server.state.calls.approvals[0]?.action).toEqual({
       key: "accept_close_difference",
       difference: "-9000",
+      subject: { shiftId: pushedOf(server, "shift.open")[0]?.payload.shiftId },
     });
     expect(pushedOf(server, "shift.close")[0]?.payload).toMatchObject({
       counted: 20_000,
@@ -136,6 +137,7 @@ describe("closing the shift on the cashier's count", () => {
     expect(server.state.calls.approvals[0]?.action).toEqual({
       key: "accept_close_difference",
       difference: "-29000",
+      subject: { shiftId: pushedOf(server, "shift.open")[0]?.payload.shiftId },
     });
   });
 

@@ -86,6 +86,11 @@ describe("authorize rejects an action without the value its key is judged by", (
     ["a negative rate", { key: "line_discount", discountRate: -1 }],
     ["a close difference as a number", { key: "accept_close_difference", difference: -9_000 }],
     ["a plain key carrying a difference", { key: "refund", difference: 0n }],
+    ["a refund amount on another key", { key: "cash_move", amount: 0n, refundAmount: 0n }],
+    ["a negative refund amount", { key: "refund", refundAmount: -1n }],
+    ["a refund amount as a number", { key: "refund", refundAmount: 25_000 }],
+    ["voided units on another key", { key: "refund", voidedQuantity: 1000n }],
+    ["no voided units", { key: "void_after_sent", voidedQuantity: 0n }],
   ])("%s", (_, action) => {
     const grants = [{ key: "line_discount" }, { key: "cash_move" }, { key: "refund" }] as Grant[];
     expect(codeOf(corrupt<PermissionAction>(action), grants)).toBe(

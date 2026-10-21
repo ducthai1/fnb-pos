@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { kitchenStation, sentToKitchen, ticketLine } from "../support/kitchen-commands";
 import { freshTill } from "../support/shift-commands";
-import { approve, hireManager } from "../support/sync-approvals";
+import { approve, closeUnpaid, hireManager, voidOfSent } from "../support/sync-approvals";
 import { line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { cancel, voidUnits, withApproval } from "../support/sync-order-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
@@ -57,7 +57,12 @@ async function servedThenVoidedDraft() {
   const draft = await coffeeDraft();
   const ticket = sentToKitchen(till(), draft.orderId, bar, [ticketLine(draft.coffee.lineId, "1")]);
   expect((await pushOne(app, till(), ticket)).status).toBe("accepted");
-  const voidApproval = await approve(app, till(), managerId, { key: "void_after_sent" });
+  const voidApproval = await approve(
+    app,
+    till(),
+    managerId,
+    voidOfSent(draft.orderId, draft.coffee.lineId, "1"),
+  );
   const voided = withApproval(voidUnits(till(), draft.orderId, draft.coffee.lineId, "1"), voidApproval);
   expect((await pushOne(app, till(), voided)).status).toBe("accepted");
   return draft;
@@ -87,7 +92,7 @@ describe("cancelling a draft", () => {
     const alone = await pushOne(app, till(), cancel(till(), orderId));
     expect(alone).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_REQUIRED" });
     expect(alone.snapshot?.status).toBe("draft");
-    const approvalId = await approve(app, till(), managerId, { key: "close_unpaid_table" });
+    const approvalId = await approve(app, till(), managerId, closeUnpaid(orderId));
     const approved = withApproval(cancel(till(), orderId), approvalId);
     expect((await pushOne(app, till(), approved)).status).toBe("accepted");
     expect(await cancelAuditOf(orderId)).toEqual([
@@ -96,8 +101,8 @@ describe("cancelling a draft", () => {
   });
 
   it("is not covered by an approval for another action", async () => {
-    const { orderId } = await preBilledDraft();
-    const approvalId = await approve(app, till(), managerId, { key: "void_after_sent" });
+    const { orderId, coffee } = await preBilledDraft();
+    const approvalId = await approve(app, till(), managerId, voidOfSent(orderId, coffee.lineId, "1"));
     const refused = await pushOne(app, till(), withApproval(cancel(till(), orderId), approvalId));
     expect(refused.code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
   });

@@ -1,4 +1,11 @@
 export {
+  type ApprovalJudgement,
+  type MissingApprovalTerm,
+  judgeApproval,
+  missingApprovalTerm,
+} from "./approval-coverage";
+export {
+  type ApprovalSubject,
   type AuthorizationResult,
   type PermissionAction,
   authorize,
@@ -7,6 +14,8 @@ export {
 } from "./authorize";
 export {
   type AmountLimitedPermissionKey,
+  type ApprovalFigureKind,
+  type ApprovalSubjectKind,
   type Grant,
   PERMISSION_DEFINITIONS,
   PERMISSION_KEYS,

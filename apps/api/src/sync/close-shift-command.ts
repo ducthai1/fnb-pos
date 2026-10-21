@@ -31,7 +31,7 @@ async function closeShift(context: SyncCommandContext, payload: CloseShiftPayloa
   const spent = assessment.needsAcceptance
     ? await requirePermission(
         context,
-        acceptCloseDifference(assessment.difference),
+        { ...acceptCloseDifference(assessment.difference), subject: { shiftId: shift.id } },
         payload.approvalId,
       )
     : null;

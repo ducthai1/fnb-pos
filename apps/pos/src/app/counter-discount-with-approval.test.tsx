@@ -56,10 +56,16 @@ describe("a discount on an item at the counter", () => {
     await managerApproves();
     await screen.findByRole("region", { name: text.sale.menuLabel });
     expect(amountDue()).toBe("23200");
-    expect(server.state.calls.approvals.map((call) => call.action)).toEqual([
-      { key: "line_discount", discountRate: 2000 },
-    ]);
     await waitFor(() => expect(pushedOf(server, "order.apply_discount")).toHaveLength(1));
+    // The manager approved up to 20% of this coffee of this order, and nothing else.
+    const applied = pushedOf(server, "order.apply_discount")[0]?.payload;
+    expect(server.state.calls.approvals.map((call) => call.action)).toEqual([
+      {
+        key: "line_discount",
+        discountRate: 2000,
+        subject: { orderId: applied?.orderId, lineId: applied?.lineId },
+      },
+    ]);
     expect(pushedOf(server, "order.apply_discount")[0]?.payload).toMatchObject({
       approvalId: server.state.approvals[0]?.approvalId,
       discount: { kind: "percent", rate: 2000 },

@@ -12,6 +12,7 @@ decisions:
   - D-036
   - D-041
   - D-061
+  - D-076
 tests:
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -69,7 +70,7 @@ tests:
 - Ngưỡng thu/chi **cộng dồn trong cả ca**, **mọi nhân viên trên két đó cộng chung**, tính theo độ lớn (thu 400.000 rồi chi 400.000 là 800.000 đ đã qua tay). Không chia nhỏ để lách được.
 - Lý do thu/chi **bắt buộc**, tối đa **200 ký tự**. Số tiền chỉ gồm chữ số, lớn hơn 0.
 - **Mức lệch cho phép** mặc định là **0 đ**: chưa cài thì **mọi** lần lệch (dù 1.000 đ) đều cần quản lý duyệt. Lệch trong mức cho phép (tính cả hai chiều thiếu/thừa) thì tự đóng.
-- Quản lý duyệt **đúng con số lệch**. Nếu máy chủ tính ra con số khác (ví dụ có đơn vừa trả tiền mặt vào ca ở máy khác), máy báo con số của máy chủ và xin duyệt lại cho số đó.
+- Quản lý duyệt **đúng con số lệch của đúng ca đang đóng**; lần duyệt thu/chi két cũng chỉ dùng cho ca đang mở lúc duyệt. Nếu máy chủ tính ra con số khác (ví dụ có đơn vừa trả tiền mặt vào ca ở máy khác), máy báo con số của máy chủ và xin duyệt lại cho số đó.
 - **Được đóng ca khi bàn còn khách**: đơn bàn chưa trả **chuyển sang ca sau** (đơn tính vào ca lúc thanh toán).
 - Ca đã đóng **không sửa được**. Tiền của đơn bán lúc mất mạng tới máy chủ sau khi ca đã đóng vẫn thuộc ca lúc bán (được đánh dấu "ghi sau khi đóng ca").
 

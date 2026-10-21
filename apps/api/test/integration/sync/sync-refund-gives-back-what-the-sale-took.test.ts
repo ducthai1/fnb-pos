@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { approve, hireManager, signInAs } from "../support/sync-approvals";
+import { approve, hireManager, refundOf, signInAs } from "../support/sync-approvals";
 import {
   latestOrders,
   line,
@@ -142,12 +142,32 @@ describe("order.refund", () => {
       refund(s.tillA, sale.orderId, cups(sale.lineId, "1"), -25_666),
     );
     expect(alone).toMatchObject({ status: "rejected", code: "SYNC_APPROVAL_REQUIRED" });
-    const approvalId = await approve(app, s.tillA, managerId, { key: "refund" });
+    const approvalId = await approve(app, s.tillA, managerId, refundOf(sale.orderId, 25_666));
     const sent = withApproval(
       refund(s.tillA, sale.orderId, cups(sale.lineId, "1"), -25_666),
       approvalId,
     );
     expect((await pushOne(app, s.tillA, sent)).status).toBe("accepted");
+  });
+
+  it("takes an approval only for the sale and the money the manager was shown", async () => {
+    // "Hoàn 25.666 đ cho đơn số …": not another sale's refund, nor another amount of this one.
+    const sale = await paidSale();
+    const other = await paidSale();
+    const oneCup = () => refund(s.tillA, sale.orderId, cups(sale.lineId, "1"), -25_666);
+    const forOther = await approve(app, s.tillA, managerId, refundOf(other.orderId, 25_666));
+    expect(await pushOne(app, s.tillA, withApproval(oneCup(), forOther))).toMatchObject({
+      status: "rejected",
+      code: "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT",
+    });
+    const forLess = await approve(app, s.tillA, managerId, refundOf(sale.orderId, 25_000));
+    expect(await pushOne(app, s.tillA, withApproval(oneCup(), forLess))).toMatchObject({
+      status: "rejected",
+      code: "SYNC_APPROVAL_FOR_ANOTHER_ACTION",
+    });
+    // Neither was spent: the one for the other sale still pays out that sale's refund.
+    const theirs = refund(s.tillA, other.orderId, cups(other.lineId, "1"), -25_666);
+    expect((await pushOne(app, s.tillA, withApproval(theirs, forOther))).status).toBe("accepted");
   });
 
   it("refuses a sale that is not paid yet", async () => {

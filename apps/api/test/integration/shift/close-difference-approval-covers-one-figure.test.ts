@@ -36,22 +36,27 @@ afterAll(async () => {
   await pool.end();
 });
 
-const acceptDifference = (till: Till, difference: number) =>
+const acceptDifference = ({ till, shiftId }: OpenTill, difference: number) =>
   approval(
     app,
     till,
-    { key: "accept_close_difference", difference: String(difference) },
+    { key: "accept_close_difference", difference: String(difference), subject: { shiftId } },
     managerId,
     MANAGER_PIN,
   );
 
+interface OpenTill {
+  till: Till;
+  shiftId: string;
+}
+
 /** A till whose shift opened on a 500.000 đ float and sold one coffee (29.000 đ) in cash. */
-async function tillWithSale() {
+async function tillWithSale(): Promise<OpenTill> {
   const till = await freshTill(app, s);
-  await openedShift(app, till, 500_000);
+  const shiftId = await openedShift(app, till, 500_000);
   const orderId = await coffeeDraft(app, s, till);
   expect((await pushOne(app, till, payInShift(till, orderId, 29_000))).status).toBe("accepted");
-  return till;
+  return { till, shiftId };
 }
 
 describe("an approval of a close difference", () => {
@@ -61,12 +66,13 @@ describe("an approval of a close difference", () => {
     ["a smaller shortfall", -9_000],
     ["the same amount over", 20_000],
   ])("is refused when it was given for %s", async (_label, approved) => {
-    const till = await tillWithSale();
-    const other = await acceptDifference(till, approved);
+    const open = await tillWithSale();
+    const { till } = open;
+    const other = await acceptDifference(open, approved);
     const refused = await pushShift(app, till, closeShift(till, 509_000, { approvalId: other }));
     expect(refused.code).toBe("SYNC_APPROVAL_FOR_ANOTHER_ACTION");
     // Refused, it is not spent: the same close with the right figure goes through after.
-    const right = await acceptDifference(till, -20_000);
+    const right = await acceptDifference(open, -20_000);
     const closed = await pushShift(app, till, closeShift(till, 509_000, { approvalId: right }));
     expect(closed.status).toBe("accepted");
   });

@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { approve, hireManager } from "../support/sync-approvals";
+import { approve, closeUnpaid, hireManager, voidOfSent } from "../support/sync-approvals";
 import { line, orderIdOf, pay, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import {
   cancel,
@@ -99,11 +99,16 @@ describe("order.cancel", () => {
     expect((await pushOne(app, s.tillA, cancel(s.tillA, orderId))).code).toBe(
       "SYNC_ORDER_HAS_SENT_ITEMS",
     );
-    const approvalId = await approve(app, s.tillA, managerId, { key: "void_after_sent" });
+    const approvalId = await approve(
+      app,
+      s.tillA,
+      managerId,
+      voidOfSent(orderId, coffee.lineId, "1"),
+    );
     const voided = withApproval(voidUnits(s.tillA, orderId, coffee.lineId, "1"), approvalId);
     expect((await pushOne(app, s.tillA, voided)).status).toBe("accepted");
     // The kitchen was sent part of it: closing the unpaid order is a manager's call too.
-    const closing = await approve(app, s.tillA, managerId, { key: "close_unpaid_table" });
+    const closing = await approve(app, s.tillA, managerId, closeUnpaid(orderId));
     const cancelled = withApproval(cancel(s.tillA, orderId), closing);
     expect((await pushOne(app, s.tillA, cancelled)).status).toBe("accepted");
   });

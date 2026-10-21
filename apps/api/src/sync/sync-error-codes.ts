@@ -41,6 +41,8 @@ export const SYNC_ERROR_CODES = {
   approvalNotForThisStaff: "SYNC_APPROVAL_NOT_FOR_THIS_STAFF",
   /** Approved for another action, or for another rate or amount of the same one. */
   approvalForAnotherAction: "SYNC_APPROVAL_FOR_ANOTHER_ACTION",
+  /** Approved for another order, line or shift, or given without saying which. */
+  approvalForAnotherSubject: "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT",
   approvalExpired: "SYNC_APPROVAL_EXPIRED",
   approvalAlreadyUsed: "SYNC_APPROVAL_ALREADY_USED",
   /** Nobody can lend this permission on the spot. */

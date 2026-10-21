@@ -1,6 +1,6 @@
 import { DomainError } from "../errors";
 import { FULL_RATE } from "../money";
-import type { BasisPoints, Vnd } from "../money";
+import type { BasisPoints, Quantity, Vnd } from "../money";
 import {
   type Grant,
   PERMISSION_DEFINITIONS,
@@ -37,6 +37,22 @@ export interface PermissionAction {
    * and the approval route refuses to grant one that names none.
    */
   readonly difference?: Vnd;
+  /** For refund: the money handed back to the customer, which is what a manager approves. */
+  readonly refundAmount?: Vnd;
+  /** For void_after_sent: the units taken back from the kitchen, which a manager approves. */
+  readonly voidedQuantity?: Quantity;
+  /**
+   * What the action is done to (see PermissionDefinition.subject). It decides nothing here,
+   * but an approval is given for one subject and covers no other (approval-coverage).
+   */
+  readonly subject?: ApprovalSubject;
+}
+
+/** The order (and line) or shift an action is done to; ids as the server stores them. */
+export interface ApprovalSubject {
+  readonly orderId?: string;
+  readonly lineId?: string;
+  readonly shiftId?: string;
 }
 
 /**
@@ -95,12 +111,24 @@ function measuredValue(
       reason,
     });
   };
-  const { discountRate, amount, difference } = action;
-  // Optional here: whether a key is held does not depend on it (a backoffice check asks
-  // just that). An approval for the key must name it, which the approval route enforces.
+  const { discountRate, amount, difference, refundAmount, voidedQuantity } = action;
+  // Optional here: whether a key is held does not depend on them (a backoffice check asks
+  // just that). An approval for the key must name them, which the approval route enforces.
   if (difference !== undefined) {
     if (definition.figure !== "difference") fail("unexpected difference");
     if (typeof difference !== "bigint") fail("difference must be an amount");
+  }
+  if (refundAmount !== undefined) {
+    if (definition.figure !== "refund_amount") fail("unexpected refund amount");
+    if (typeof refundAmount !== "bigint" || refundAmount < 0n) {
+      fail("refund amount must be a non-negative amount");
+    }
+  }
+  if (voidedQuantity !== undefined) {
+    if (definition.figure !== "voided_quantity") fail("unexpected voided quantity");
+    if (typeof voidedQuantity !== "bigint" || voidedQuantity <= 0n) {
+      fail("voided quantity must be positive");
+    }
   }
   if (definition.threshold !== "max_rate" && discountRate !== undefined) fail("unexpected rate");
   if (definition.threshold !== "max_amount" && amount !== undefined) fail("unexpected amount");

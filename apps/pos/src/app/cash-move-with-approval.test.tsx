@@ -56,7 +56,12 @@ describe("cash in and out of the drawer outside a sale", () => {
     );
     await managerApproves();
     await waitFor(() => expect(pushedOf(server, "shift.cash_move")).toHaveLength(2));
-    expect(server.state.calls.approvals[0]?.action).toEqual({ key: "cash_move", amount: "600000" });
+    // The manager approved this shift's total, in this shift only.
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "cash_move",
+      amount: "600000",
+      subject: { shiftId: pushedOf(server, "shift.open")[0]?.payload.shiftId },
+    });
     expect(pushedOf(server, "shift.cash_move")[1]?.payload).toMatchObject({
       kind: "in",
       amount: 200_000,

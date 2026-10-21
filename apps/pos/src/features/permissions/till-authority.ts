@@ -3,6 +3,7 @@ import {
   type Grant,
   type PermissionAction,
   authorize,
+  quantityToDecimalString,
 } from "@fnb/domain";
 import type { ApiResult } from "../api/api-result";
 import type { ApprovalRequest } from "../api/pos-api";
@@ -30,13 +31,22 @@ export interface TillAuthority {
   ): Promise<ApiResult<string>>;
 }
 
-/** The action as the approval route reads it: money as a decimal string, like every amount. */
+/**
+ * The action as the approval route reads it: money as a decimal string, like every amount,
+ * units as a decimal quantity, and the order (and line) or shift it is done to.
+ */
 export function actionOnWire(action: PermissionAction): ApprovalRequest["action"] {
+  const { refundAmount, voidedQuantity, subject } = action;
   return {
     key: action.key,
     ...(action.discountRate === undefined ? {} : { discountRate: action.discountRate }),
     ...(action.amount === undefined ? {} : { amount: action.amount.toString() }),
     ...(action.difference === undefined ? {} : { difference: action.difference.toString() }),
+    ...(refundAmount === undefined ? {} : { refundAmount: refundAmount.toString() }),
+    ...(voidedQuantity === undefined
+      ? {}
+      : { voidedQuantity: quantityToDecimalString(voidedQuantity) }),
+    ...(subject === undefined ? {} : { subject: { ...subject } }),
   };
 }
 

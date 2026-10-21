@@ -72,7 +72,12 @@ describe("refunding a paid sale from the day's history", () => {
       shiftId: shift.shiftId,
       approvalId: server.state.approvals[0]?.approvalId,
     });
-    expect(server.state.calls.approvals[0]?.action).toEqual({ key: "refund" });
+    // The manager approved this payout of this sale, and nothing else.
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "refund",
+      refundAmount: "29000",
+      subject: { orderId: pay.orderId },
+    });
     // The refund's slip says what it is for, its amounts as the domain priced them.
     const slip = document.querySelector('[data-slip-kind="refund"] pre')?.textContent ?? "";
     expect(slip).toContain(R.slipHeading);
