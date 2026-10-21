@@ -39,6 +39,7 @@ export function TableOrderScreen({
             menu={menu}
             now={now}
             inCart={unitsByProduct(cart.order.lines)}
+            orderId={cart.order.orderId}
             onPick={onPick}
           />
           <CartPeek lines={cart.order.lines} view={cart.view} />

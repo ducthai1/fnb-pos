@@ -1,6 +1,7 @@
 import type { PosProduct } from "@fnb/contracts";
 import { Search, X } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
+import { useMenuPlaceState } from "../../features/menu/menu-memory";
 import { productsShown } from "../../features/menu/search-products";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
@@ -17,15 +18,23 @@ export interface MenuPanelProps {
   now: number;
   /** Units of each product on the order, by product id. */
   inCart?: ReadonlyMap<string, number>;
+  /** The order being rung up: back on it the menu is where it was, a new one clears the search. */
+  orderId?: string;
   onPick(product: PosProduct): void;
 }
 
 const NOTHING: ReadonlyMap<string, number> = new Map();
 
 /** Categories, a quick search and the products as tiles of one height; sold-out ones marked. */
-export function MenuPanel({ menu, now, inCart = NOTHING, onPick }: MenuPanelProps) {
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: MenuPanelProps) {
+  const categoryIds = useMemo(
+    () => menu.categories.map((category) => category.id),
+    [menu.categories],
+  );
+  const { categoryId, setCategoryId, query, setQuery, anchor } = useMenuPlaceState(
+    orderId,
+    categoryIds,
+  );
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
   const shown = inCategoryOrder(productsShown(menu.products, categoryId, query), menu.categories);
   const search = useRef<HTMLInputElement>(null);
@@ -34,7 +43,7 @@ export function MenuPanel({ menu, now, inCart = NOTHING, onPick }: MenuPanelProp
     search.current?.select();
   });
   return (
-    <section className="pos-menu" aria-label={vi.sale.menuLabel}>
+    <section ref={anchor} className="pos-menu" aria-label={vi.sale.menuLabel}>
       <CategoryTabs
         categories={menu.categories}
         products={menu.products}

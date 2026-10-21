@@ -37,7 +37,13 @@ export function SaleScreen({
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
       <div className="pos-sale">
         <div className="pos-sale__menu">
-          <MenuPanel menu={menu} now={now} inCart={unitsByProduct(order.lines)} onPick={onPick} />
+          <MenuPanel
+            menu={menu}
+            now={now}
+            inCart={unitsByProduct(order.lines)}
+            orderId={order.orderId}
+            onPick={onPick}
+          />
           <CartPeek lines={order.lines} view={view} />
         </div>
         <CartPanel order={order} view={view} {...cart} />

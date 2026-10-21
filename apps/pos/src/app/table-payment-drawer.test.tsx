@@ -71,4 +71,27 @@ describe("the payment drawer over a table's order", () => {
     await settle();
     expect(paymentsSince(server, before)).toEqual([]);
   });
+
+  it("opens from F9 at a table as at the counter, the round kept on the order first", async () => {
+    const server = tableCafeServer();
+    await tillOnTheFloor(server);
+    await openTable(FLOOR.t1, "1");
+    addCoffees(2);
+    fireEvent.keyDown(window, { key: text.sale.keys.pay });
+    const dialog = await screen.findByRole("dialog", { name: T.title });
+    expect(dialog).toBeTruthy();
+    await settle();
+    const drafts = server.state.pushed.filter((command) => command.type === "order.save_draft");
+    expect(drafts.length).toBeGreaterThan(0);
+    expect(paymentsSince(server, 0)).toEqual([]);
+  });
+
+  it("does nothing on F9 at a table with nothing on its order", async () => {
+    const server = tableCafeServer();
+    await tillOnTheFloor(server);
+    await openTable(FLOOR.t1, "1");
+    fireEvent.keyDown(window, { key: text.sale.keys.pay });
+    await settle();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
 });
