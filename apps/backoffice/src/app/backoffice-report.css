@@ -45,6 +45,12 @@
   }
 }
 
+/* The day's figure tables are long lists of short lines: 40px rows, not the lists' 52. */
+.bo-report-grid .bo-table td {
+  height: 40px;
+  padding-block: 8px;
+}
+
 /* A report page on a wide screen, as the reference's reports: a left column with the title,
    its help and the day in a white filter card, the figures and tables on the right. The
    tables stack in the narrower right column. */
