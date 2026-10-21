@@ -1,32 +1,17 @@
-/* Cards, fields, buttons, notices and tables. Controls are at least 40px tall; inputs use
-   16px text so a phone does not zoom into them. */
+/* Cards, fields, buttons, notices and tables, in one admin measure: 44px
+   controls with an 8px corner, white 12px cards lifted by one soft shadow and no edge.
+   Inputs use 16px text on a phone so it does not zoom into them. */
 
 .bo-card {
   min-width: 0;
-  padding: var(--sp-5);
+  padding: 14px var(--sp-4) var(--sp-4);
   background: var(--c-surface);
-  border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
+  border: 0;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-panel);
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-}
-
-.bo-login {
-  width: 100%;
-  max-width: 420px;
-  padding: var(--sp-8) var(--sp-6);
-  gap: var(--sp-4);
-}
-
-/* The same plain brand square as the bar, above the sign-in title. */
-.bo-login::before {
-  content: "";
-  width: 44px;
-  height: 44px;
-  border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--c-brand-tint), var(--c-brand));
 }
 
 .bo-stack {
@@ -62,7 +47,8 @@
 
 .bo-subtitle {
   margin: 0;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-md);
+  line-height: 24px;
   font-weight: var(--fw-semibold);
 }
 
@@ -101,7 +87,7 @@
   min-height: var(--control-h);
   padding: 8px 12px;
   font: inherit;
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: var(--fw-regular);
   color: var(--c-text);
   background: var(--c-surface);
@@ -112,10 +98,15 @@
     box-shadow 120ms ease;
 }
 
+.bo-input:hover:not(:disabled) {
+  border-color: var(--c-brand);
+}
+
+/* Focus: the edge turns brand green, with a faint green halo. */
 .bo-input:focus-visible {
   outline: none;
-  border-color: var(--c-focus);
-  box-shadow: var(--ring);
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px rgb(11 125 92 / 0.16);
 }
 
 .bo-input[aria-invalid="true"] {
@@ -131,6 +122,8 @@
   max-width: 100%;
   padding: 8px 16px;
   font: inherit;
+  font-size: var(--fs-body);
+  line-height: 20px;
   font-weight: var(--fw-medium);
   color: var(--c-text);
   background: var(--c-surface);
@@ -144,7 +137,8 @@
 }
 
 .bo-button:hover:not(:disabled) {
-  background: var(--c-surface-2);
+  border-color: var(--c-brand);
+  color: var(--c-brand-strong);
 }
 
 .bo-button:focus-visible,
@@ -161,7 +155,9 @@
 }
 
 .bo-button--primary:hover:not(:disabled) {
+  border-color: var(--c-brand-strong);
   background: var(--c-brand-strong);
+  color: var(--c-on-brand);
 }
 
 .bo-button--ghost {
@@ -172,6 +168,12 @@
 .bo-button--danger {
   color: var(--c-danger);
   border-color: var(--c-danger);
+}
+
+.bo-button--danger:hover:not(:disabled) {
+  border-color: var(--c-danger);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
 }
 
 .bo-button--block {

@@ -28,7 +28,7 @@ export function DailySalesScreen() {
   const [loaded, reload] = useApiLoad(load);
 
   return (
-    <section className="bo-stack" aria-labelledby="daily-sales-title">
+    <section className="bo-stack bo-report-page" aria-labelledby="daily-sales-title">
       <PageHeader
         section="/reports/daily-sales"
         title={T.title}

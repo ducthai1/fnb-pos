@@ -37,7 +37,8 @@ export function CashEntry({
             className="pos-quick-cash__key"
             onClick={() => onTake(amount)}
           >
-            <span className="pos-quick-cash__hint">{T.quickCashHint}</span>{" "}
+            {/* The key shows the note alone; a screen reader hears what it is for. */}
+            <span className="pos-sr-only">{T.quickCashHint}</span>{" "}
             <span className="pos-quick-cash__amount">{formatVnd(amount)}</span>
           </button>
         ))}

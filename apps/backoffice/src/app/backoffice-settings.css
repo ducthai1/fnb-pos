@@ -1,9 +1,12 @@
 /* Settings, reports, day close, transfers and the floor plan. */
 
+/* The feature switches as a setup list: one row each, the name on the left
+   with where its value comes from under it in grey, the switch at the far right, a soft
+   line between rows. The switch is the real checkbox, drawn as a 44x24 track whose knob is
+   a radial gradient (a pseudo-element on an input is not drawn). */
 .bo-switch-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: 12px 16px;
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -12,10 +15,54 @@
 .bo-switch {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.bo-switch:last-child {
+  border-bottom: 0;
+}
+
+.bo-switch > .bo-field--inline {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+}
+
+.bo-switch input[type="checkbox"] {
+  appearance: none;
+  order: 2;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  margin: 0;
+  border: 0;
+  border-radius: 12px;
+  background: radial-gradient(circle at 12px 50%, #fff 0 9px, transparent 10px), var(--c-control-edge);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.bo-switch input[type="checkbox"]:checked {
+  background: radial-gradient(circle at 32px 50%, #fff 0 9px, transparent 10px), var(--c-brand);
+}
+
+.bo-switch input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bo-switch input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-switch > .bo-setting-source {
+  color: var(--c-text-2);
 }
 
 .bo-switch[data-refused="true"] {

@@ -9,6 +9,18 @@
   min-width: 0;
 }
 
+/* The title is a heading on the type scale (22/28 semibold), not a poster. */
+.bo-page-head .bo-title {
+  font-size: 1.375rem;
+  line-height: 28px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+}
+
+.bo-page-head__text > .bo-muted {
+  font-size: var(--fs-body);
+}
+
 .bo-page-head__text {
   display: flex;
   flex: 1 1 320px;
@@ -26,9 +38,27 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
   min-width: 0;
   max-width: 100%;
+}
+
+/* The tools of a page, as a bar over a list: dense 36px blue buttons with a
+   white icon and plain 15px words, 4px apart. */
+.bo-page-head__actions > .bo-button {
+  min-height: var(--control-dense);
+  padding: 8px 12px;
+  border-color: var(--c-info);
+  background: var(--c-info);
+  color: var(--c-on-info-tool);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+}
+
+.bo-page-head__actions > .bo-button:hover:not(:disabled) {
+  border-color: var(--c-price);
+  background: var(--c-price);
+  color: var(--c-on-info-tool);
 }
 
 .bo-crumbs {
@@ -40,7 +70,8 @@
   padding: 0;
   list-style: none;
   color: var(--c-text-3);
-  font-size: var(--fs-sm);
+  font-size: 0.8125rem;
+  line-height: 18px;
 }
 
 .bo-crumbs li {
@@ -110,15 +141,35 @@
   flex: 0 1 180px;
 }
 
+.bo-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.bo-icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 .bo-icon-button:disabled {
   opacity: 0.45;
   cursor: default;
 }
 
-/* A long page's parts as segments that stay over it while it scrolls (editor, settings). */
+/* A long page's parts as segments that stay over it while it scrolls (editor, settings),
+   flush under the bar: sticking counts from inside the main area's top padding. */
 .bo-section-nav {
   position: sticky;
-  top: 0;
+  top: calc(-1 * var(--sp-4));
   z-index: 5;
   display: flex;
   box-shadow: var(--shadow-card);
@@ -130,4 +181,16 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+/* Over a report the day's tools stay on one line, as a filter bar. */
+@media (min-width: 768px) {
+  .bo-page-head__actions .bo-day-picker {
+    flex-wrap: nowrap;
+  }
+
+  .bo-page-head__actions .bo-day-picker > .bo-button {
+    flex: none;
+    white-space: nowrap;
+  }
 }

@@ -1,0 +1,80 @@
+/* A field in a form card, drawn as one 56px box with a 12px corner, its
+   label small and grey along the top inside the box, what is typed 16/24 under it. Only the
+   look moves: the label is still the <label for> before the input, so its name is unchanged.
+   Fields outside a card (the day over a report) keep the plain 44px box. */
+
+.bo-card .bo-field:has(> label + .bo-input) {
+  position: relative;
+}
+
+.bo-card .bo-field:has(> label + .bo-input) > label {
+  position: absolute;
+  top: 7px;
+  left: 17px;
+  right: 17px;
+  z-index: 1;
+  overflow: hidden;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  font-weight: var(--fw-regular);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.bo-card .bo-field > label + .bo-input {
+  min-height: 56px;
+  padding: 24px 15px 6px;
+  border-color: var(--c-border);
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+/* A select keeps room at its end for its chevron (backoffice-checks.css). */
+.bo-card .bo-field > label + select.bo-input {
+  padding-right: 36px;
+}
+
+/* Read only: a grey box. */
+.bo-card .bo-field > label + .bo-input:disabled,
+.bo-card .bo-field > label + .bo-input[readonly] {
+  background: var(--c-hover);
+}
+
+.bo-card .bo-field:has(> label + .bo-input[aria-invalid="true"]) > label {
+  color: var(--c-danger);
+}
+
+.bo-card .bo-field > .bo-muted {
+  font-size: var(--fs-xs);
+  line-height: 16px;
+}
+
+/* A button on the same row as such a field stands as tall as its box. */
+.bo-card .bo-row:has(> .bo-field > label + .bo-input) > .bo-button,
+.bo-card.bo-row:has(> .bo-field > label + .bo-input) > .bo-button {
+  min-height: 56px;
+  border-radius: var(--r-md);
+}
+
+/* A group of choices (branches, a scope, a list to pick from) in the same box as a field:
+   its name small and grey inside along the top, not cut into the edge. A floated legend is
+   an ordinary first child, so the group keeps its name. The selection preview draws its own. */
+.bo-fieldset:not(.bo-preview .bo-fieldset) {
+  padding: 6px 15px 12px;
+  border-color: var(--c-border);
+  border-radius: var(--r-md);
+}
+
+.bo-fieldset:not(.bo-preview .bo-fieldset) > legend {
+  float: left;
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+}

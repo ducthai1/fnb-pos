@@ -23,6 +23,7 @@ export function TableToolbar({
   search,
   filters,
   total,
+  filterLabel,
   filterKey,
   onFilter,
   sortable,
@@ -34,6 +35,7 @@ export function TableToolbar({
   search: { label: string; typed: string; onType: (typed: string) => void } | undefined;
   filters: readonly (Choice & { count: number })[];
   total: number;
+  filterLabel: string | undefined;
   filterKey: string | null;
   onFilter: (key: string | null) => void;
   sortable: readonly Choice[];
@@ -93,7 +95,7 @@ export function TableToolbar({
         </div>
       )}
       {filters.length > 0 && (
-        <div className="bo-tabs" role="group" aria-label={T.filter}>
+        <div className="bo-tabs" role="group" aria-label={filterLabel ?? T.filter}>
           {[{ key: null, label: T.all, count: total }, ...filters].map((choice) => (
             <button
               key={choice.key ?? "all"}

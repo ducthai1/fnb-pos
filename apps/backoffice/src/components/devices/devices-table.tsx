@@ -98,6 +98,7 @@ export function DevicesTable({
         rowData={(device) => ({ "data-device-id": device.id })}
         columns={COLUMNS}
         search={{ label: T.search, text: (device) => device.name }}
+        filterLabel={T.columns.status}
         filters={[
           { key: "active", label: T.filters.active, test: (device) => device.revokedAt === null },
           { key: "revoked", label: T.filters.revoked, test: (device) => device.revokedAt !== null },

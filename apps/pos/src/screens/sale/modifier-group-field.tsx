@@ -50,7 +50,8 @@ export function ModifierGroupField(props: ModifierGroupFieldProps) {
       >
         {P.picked(picked, rule.maxSelect)}
       </p>
-      <ul className="pos-chips">
+      {/* Several may be picked: each chip draws a tick box instead of a tick. */}
+      <ul className="pos-chips" data-multi={!single}>
         {group.options.map((option) => {
           const units = unitsOf(choices, option.id);
           return (

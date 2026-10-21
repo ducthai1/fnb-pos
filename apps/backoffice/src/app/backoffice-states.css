@@ -1,4 +1,4 @@
-/* Small facts and waiting states: status badges, segmented tabs, loading lines. A status is
+/* Small facts and waiting states: status badges, loading lines. A status is
    always written in words; the tone only helps a glance down a table. */
 
 .bo-badge {
@@ -36,40 +36,6 @@
   color: var(--c-info);
 }
 
-.bo-tabs {
-  display: inline-flex;
-  flex-wrap: wrap;
-  max-width: 100%;
-  min-width: 0;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--r-md);
-  background: var(--c-surface-3);
-}
-
-/* A segment may carry a shop's name (a category to filter by): it wraps, never widens the page. */
-.bo-tab {
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 0;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font: inherit;
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-}
-
-.bo-tab[aria-selected="true"],
-.bo-tab[aria-pressed="true"] {
-  background: var(--c-surface);
-  color: var(--c-brand-strong);
-  box-shadow: var(--shadow-card);
-}
-
 /* Waiting for an answer: the words stay, a small spinner goes before them. */
 .bo-loading {
   display: inline-flex;
@@ -105,15 +71,33 @@
   }
 }
 
+/* Nothing to list: the table's own white box with the words in its middle, and the way on
+   as a blue 36px button. */
 .bo-empty {
   margin: 0;
-  padding: var(--sp-8) var(--sp-4);
-  border: 1px dashed var(--c-border);
-  border-radius: var(--r-lg);
-  background: var(--c-surface-2);
+  padding: var(--sp-10) var(--sp-4);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
   color: var(--c-text-2);
+  font-size: var(--fs-body);
   text-align: center;
   overflow-wrap: anywhere;
+}
+
+.bo-empty .bo-button {
+  min-height: var(--control-dense);
+  padding: 8px 12px;
+  border-color: var(--c-info);
+  background: var(--c-info);
+  color: var(--c-on-info-tool);
+  font-weight: var(--fw-medium);
+}
+
+.bo-empty .bo-button:hover:not(:disabled) {
+  border-color: var(--c-price);
+  background: var(--c-price);
+  color: var(--c-on-info-tool);
 }
 
 .bo-button--sm {
@@ -142,9 +126,8 @@
   width: 52px;
   height: 52px;
   border-radius: var(--r-pill);
-  background: var(--c-surface);
+  background: var(--c-hover);
   color: var(--c-text-3);
-  box-shadow: var(--shadow-card);
 }
 
 /* A page that could not load, or that the role may not see: a card in the middle that says

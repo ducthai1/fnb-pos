@@ -62,15 +62,16 @@ body {
   min-width: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--sp-6);
+  padding: var(--sp-4) var(--sp-6) var(--sp-6);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--sp-4);
 }
 
+/* Lists use the whole width; only very wide screens stop, so a row stays readable. */
 .bo-main > * {
   width: 100%;
-  max-width: 1160px;
+  max-width: 1440px;
 }
 
 .bo-splash {
@@ -96,5 +97,10 @@ body {
   .bo-main {
     padding: var(--sp-3);
     gap: var(--sp-4);
+  }
+
+  /* The tabs of a long page stick flush under the bar (backoffice-page.css), loaded later. */
+  .bo-main .bo-section-nav {
+    top: calc(-1 * var(--sp-3));
   }
 }

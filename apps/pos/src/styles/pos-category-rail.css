@@ -1,0 +1,87 @@
+/* A tablet or a till: the categories are a white rail of square tiles beside the products,
+   kept in view; the chosen one is filled with the brand colour. */
+@media (min-width: 760px) {
+  .pos-menu {
+    grid-template-columns: 105px minmax(0, 1fr);
+    /* A long list of categories grows the products' row, never the search's. */
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "cats search"
+      "cats grid";
+    column-gap: var(--sp-3);
+  }
+  .pos-categories {
+    grid-area: cats;
+    position: sticky;
+    top: var(--sp-3);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-self: start;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    background: var(--c-surface);
+  }
+  .pos-category {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--sp-2);
+    width: 80px;
+    min-height: 80px;
+    padding: var(--sp-2) var(--sp-1);
+    border: 0;
+    border-radius: var(--r-md);
+    background: transparent;
+    font-size: var(--fs-xs);
+    line-height: 16px;
+    text-align: center;
+  }
+  .pos-category > .pos-icon {
+    width: 36px;
+    height: 36px;
+    stroke-width: 1.5;
+    color: var(--c-text);
+  }
+  .pos-category__name {
+    flex: none;
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  /* A badge on the tile's corner, ringed in the tile's colour so it reads as laid over the
+     icon; on the chosen tile it is white with brand writing, as the count on a product. */
+  .pos-category__count {
+    position: absolute;
+    top: var(--sp-1);
+    right: var(--sp-1);
+    padding: 0 5px;
+    line-height: 16px;
+    box-shadow: 0 0 0 2px var(--c-surface);
+  }
+  .pos-category[aria-selected="true"] {
+    background: var(--c-brand);
+  }
+  .pos-category[aria-selected="true"] .pos-category__count {
+    background: var(--c-surface);
+    color: var(--c-brand-strong);
+    box-shadow: 0 0 0 2px var(--c-brand);
+  }
+  .pos-search {
+    grid-area: search;
+  }
+  .pos-product-grid,
+  .pos-menu__empty {
+    grid-area: grid;
+  }
+}
+
+/* Under the till's bar, which stays in view from this width up. */
+@media (min-width: 1024px) {
+  .pos-categories {
+    top: calc(var(--bar-h) + var(--sp-3));
+  }
+}

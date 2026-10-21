@@ -33,14 +33,16 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
   {
     key: "occurredAt",
     label: C.occurredAt,
-    // A time and a date on one line ("04:21 21/10/2026"), not cut in the middle of the year.
-    width: "140px",
+    // A time and a date on one line ("04:21 21/10/2026") once the table has the room; shares,
+    // not pixels, so a tablet's narrower table is not left 60px for the rest.
+    width: "16%",
     cell: (failure) => formatDateTime(failure.occurredAt),
     sortValue: (failure) => failure.occurredAt,
   },
   {
     key: "kind",
     label: C.kind,
+    width: "13%",
     cell: (failure) => (
       <span className="bo-badge" data-tone={failure.kind === "bill" ? "danger" : "warn"}>
         {kindName(failure)}
@@ -70,7 +72,8 @@ const COLUMNS: readonly DataColumn<Failure>[] = [
     key: "attempts",
     label: C.attempts,
     numeric: true,
-    width: "96px",
+    // The heading and its sort mark on one line.
+    width: "13%",
     cell: (failure) => String(failure.attempts),
     sortValue: (failure) => failure.attempts,
   },
@@ -106,6 +109,7 @@ function PrintFailuresTable({ answer }: { answer: PrintFailures }) {
             ].join(" "),
         }}
         filters={kindFilters(answer.failures)}
+        filterLabel={C.kind}
         initialSort={{ key: "occurredAt", direction: "desc" }}
         empty={<EmptyState icon={PrinterCheck}>{T.empty}</EmptyState>}
       />

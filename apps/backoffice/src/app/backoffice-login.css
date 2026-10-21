@@ -1,3 +1,19 @@
+.bo-login {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--sp-8) var(--sp-6);
+  gap: var(--sp-4);
+}
+
+/* The same plain brand square as the bar, above the sign-in title. */
+.bo-login::before {
+  content: "";
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--c-brand-tint), var(--c-brand));
+}
+
 /* The sign-in page: the form, and beside it on a computer a brand panel saying what the
    backoffice is for, drawn in the brand's colours (no picture of anyone's). */
 
@@ -57,4 +73,43 @@
   align-items: flex-start;
   gap: var(--sp-3);
   line-height: var(--lh-body);
+}
+
+/* The sign-in fields and button in large measures: 56px boxes with a 12px
+   corner and the label inside along the top, a 56px button. */
+.bo-login .bo-title {
+  font-size: var(--fs-2xl);
+  line-height: 32px;
+  font-weight: var(--fw-semibold);
+}
+
+.bo-login .bo-field {
+  position: relative;
+}
+
+.bo-login .bo-field > span {
+  position: absolute;
+  top: 7px;
+  left: 17px;
+  right: 17px;
+  z-index: 1;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  font-weight: var(--fw-regular);
+  pointer-events: none;
+}
+
+.bo-login .bo-field > .bo-input {
+  min-height: 56px;
+  padding: 24px 15px 6px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.bo-login > .bo-button {
+  min-height: 56px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-lg);
 }

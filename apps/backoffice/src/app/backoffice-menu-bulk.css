@@ -4,7 +4,7 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--sp-3) var(--sp-4);
-  border-color: var(--c-brand);
+  border: 1px solid var(--c-brand);
   background: var(--c-brand-soft);
 }
 

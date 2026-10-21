@@ -1,0 +1,124 @@
+/* Choices in a row, in three shapes: outlined toggles (a range of
+   days), folder tabs over a long form (editor, settings), and radio rows for a list's filter,
+   which on a wide screen stand in a white filter card beside the table. A choice may carry a
+   shop's name (a category): it wraps, never widens the page. */
+
+.bo-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
+  gap: var(--sp-2);
+}
+
+.bo-tab {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  min-height: var(--control-dense);
+  padding: 7px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-body);
+  line-height: 20px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+
+.bo-tab:hover {
+  border-color: var(--c-brand);
+}
+
+.bo-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-tab[aria-selected="true"],
+.bo-tab[aria-pressed="true"] {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  font-weight: var(--fw-semibold);
+}
+
+/* Folder tabs: a white strip with a soft line under it; the part in view is a white tab
+   with a soft edge on three sides and blue words. */
+.bo-section-nav.bo-tabs {
+  flex-wrap: wrap;
+  gap: 0;
+  padding: var(--sp-2) var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-line);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: var(--c-surface);
+}
+
+.bo-section-nav .bo-tab {
+  flex: 0 0 auto;
+  min-height: 34px;
+  margin-bottom: -1px;
+  padding: 8px 12px;
+  /* Our own short words: a tab never breaks inside one. */
+  overflow-wrap: normal;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-bottom-color: var(--c-line);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  background: transparent;
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  line-height: 18px;
+  font-weight: var(--fw-semibold);
+}
+
+.bo-section-nav .bo-tab:hover {
+  color: var(--c-on-pick);
+}
+
+.bo-section-nav .bo-tab[aria-pressed="true"] {
+  border-color: var(--c-line);
+  border-bottom-color: var(--c-surface);
+  background: var(--c-surface);
+  color: var(--c-on-pick);
+}
+
+/* A list's filter: a radio dot before each choice, filled with brand green when chosen. */
+.bo-data__tools .bo-tabs {
+  gap: var(--sp-1) var(--sp-4);
+}
+
+.bo-data__tools .bo-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-text);
+  font-weight: var(--fw-regular);
+  text-align: left;
+}
+
+.bo-data__tools .bo-tab::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--c-control-edge);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+}
+
+.bo-data__tools .bo-tab[aria-pressed="true"] {
+  background: transparent;
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
+.bo-data__tools .bo-tab[aria-pressed="true"]::before {
+  border: 6px solid var(--c-brand);
+}

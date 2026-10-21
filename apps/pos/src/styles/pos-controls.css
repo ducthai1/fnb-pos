@@ -12,12 +12,12 @@
   max-width: 100%;
   padding: var(--sp-3) var(--sp-4);
   border: 1px solid var(--c-border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-tight);
   overflow-wrap: anywhere;
   touch-action: manipulation;
@@ -79,9 +79,9 @@
 
 /* A step before paying that the guests hold in hand: the pre-bill. */
 .pos-button--amber {
-  border-color: var(--c-amber-line);
-  background: var(--c-amber-soft);
-  color: var(--c-amber);
+  border-color: var(--c-amber-fill);
+  background: var(--c-amber-fill);
+  color: var(--c-on-amber);
   font-weight: var(--fw-semibold);
 }
 
@@ -121,9 +121,9 @@
 }
 
 .pos-button--lg {
-  min-height: 72px;
-  font-size: var(--fs-xl);
-  border-radius: var(--r-lg);
+  min-height: 60px;
+  font-size: var(--fs-lg);
+  border-radius: var(--r-md);
 }
 
 .pos-button--block {

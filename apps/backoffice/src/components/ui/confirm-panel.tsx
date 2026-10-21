@@ -1,8 +1,10 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import { useId } from "react";
 import { vi } from "../../messages/vi";
 import { ErrorNotice } from "./error-notice";
+import { Icon } from "./icon";
 
 /**
  * A second step for something that cannot be undone from the page (revoking a till,
@@ -31,7 +33,8 @@ export function ConfirmPanel({
   const titleId = useId();
   return (
     <div className="bo-card bo-confirm" role="alertdialog" aria-labelledby={titleId}>
-      <p id={titleId} className="bo-subtitle bo-wrap">
+      <p id={titleId} className="bo-subtitle bo-wrap bo-confirm__title">
+        <Icon of={TriangleAlert} size={20} />
         {title}
       </p>
       <p className="bo-muted">{hint}</p>

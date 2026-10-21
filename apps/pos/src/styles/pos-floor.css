@@ -16,111 +16,6 @@
   min-width: 0;
 }
 
-/* A table, by status: free is plain with a dashed edge; seated is green, pre-billed blue,
-   changed after its pre-bill red. The status is written on it too. */
-.pos-table {
-  --table-line: var(--c-border);
-  --table-fill: var(--c-surface);
-  --table-ink: var(--c-text-2);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-1);
-  width: 100%;
-  height: 100%;
-  min-height: 112px;
-  padding: var(--sp-3);
-  border: 2px solid var(--table-line);
-  border-radius: var(--r-lg);
-  background: var(--table-fill);
-  color: var(--c-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.pos-table:active {
-  transform: scale(0.98);
-}
-
-.pos-table:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
-}
-
-.pos-table__name {
-  max-width: 100%;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
-}
-
-.pos-table__status {
-  max-width: 100%;
-  padding: 2px var(--sp-2);
-  border-radius: var(--r-pill);
-  background: var(--c-surface-3);
-  color: var(--table-ink);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  overflow-wrap: anywhere;
-}
-
-.pos-table__fact {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  max-width: 100%;
-  color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  overflow-wrap: anywhere;
-}
-
-/* Guests sat a long time: the time turns amber and bold, for a waiter to check on them. */
-.pos-table__fact[data-long-seated="true"] {
-  color: var(--c-amber);
-  font-weight: var(--fw-semibold);
-}
-
-.pos-table__amount {
-  max-width: 100%;
-  margin-top: auto;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.pos-table--free {
-  border-style: dashed;
-}
-
-.pos-table--occupied {
-  --table-line: var(--c-brand);
-  --table-fill: var(--c-brand-soft);
-  --table-ink: var(--c-on-brand);
-}
-
-.pos-table--awaiting_payment {
-  --table-line: var(--c-info);
-  --table-fill: var(--c-info-soft);
-  --table-ink: var(--c-on-info);
-}
-
-.pos-table--changed_after_pre_bill {
-  --table-line: var(--c-danger);
-  --table-fill: var(--c-danger-soft);
-  --table-ink: var(--c-on-danger);
-}
-
-.pos-table--occupied .pos-table__status,
-.pos-table--awaiting_payment .pos-table__status,
-.pos-table--changed_after_pre_bill .pos-table__status {
-  background: var(--table-line);
-}
-
 .pos-badge--sent,
 .pos-badge--unsent {
   align-self: flex-start;
@@ -142,26 +37,33 @@
   color: var(--c-amber);
 }
 
-/* Send and pre-bill side by side, pay across under them, move and leave last. */
+/* Send over pre-bill on the left, pay as tall as both on the right; move and leave under. */
 .pos-table-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "send pay"
+    "bill pay";
   gap: var(--sp-2);
 }
 
 .pos-table-actions > .pos-button {
   min-width: 0;
+  border-radius: var(--r-sm);
   overflow-wrap: anywhere;
 }
 
-.pos-table-actions > .pos-table-actions__pay {
-  grid-column: 1 / -1;
-  order: 1;
+.pos-table-actions > .pos-table-actions__send {
+  grid-area: send;
 }
 
-.pos-table-actions
-  > .pos-button:not(.pos-table-actions__pay, .pos-table-actions__send, .pos-button--amber) {
-  order: 2;
+.pos-table-actions > .pos-button--amber {
+  grid-area: bill;
+}
+
+.pos-table-actions > .pos-table-actions__pay {
+  grid-area: pay;
+  min-height: 88px;
 }
 
 .pos-notice {
@@ -173,17 +75,55 @@
   overflow-wrap: anywhere;
 }
 
+/* A second step in place, drawn as the back office's confirm box: an amber warning sign
+   before an amber title, the sentence in grey, the two choices side by side on the right. */
 .pos-confirm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  border-color: var(--pos-warn-text);
-  background: var(--pos-warn-bg);
+  gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  border-color: var(--c-amber-line);
+  border-radius: var(--r-lg);
 }
 
-.pos-confirm h2 {
+.pos-confirm__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   margin: 0;
-  font-size: 1.25rem;
+  color: var(--c-amber);
+  font-size: var(--fs-lg);
+  line-height: 26px;
+  font-weight: var(--fw-semibold);
+}
+
+.pos-confirm__title .pos-icon {
+  flex: none;
+}
+
+.pos-confirm > p {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.pos-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+
+.pos-confirm__actions > .pos-button {
+  flex: 0 1 200px;
+  min-width: min(160px, 100%);
+}
+
+@media (max-width: 599px) {
+  .pos-confirm__actions > .pos-button {
+    flex-basis: 100%;
+  }
 }
 
 .pos-floor-area {

@@ -33,7 +33,7 @@ export function DayCloseScreen() {
   const [loaded, reload, refresh] = useApiLoad(load);
 
   return (
-    <section className="bo-stack" aria-labelledby="day-close-title">
+    <section className="bo-stack bo-report-page" aria-labelledby="day-close-title">
       <PageHeader
         section="/day-close"
         title={T.title}

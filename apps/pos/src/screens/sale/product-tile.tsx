@@ -18,8 +18,9 @@ export interface ProductTileProps {
 }
 
 /**
- * One product: a coloured mark where a photo would be, its name (two lines, the rest cut),
- * its price. Every tile is the same height so the grid reads in rows.
+ * One product: its category's colour where a photo would be, then a white body with its name
+ * (two lines, the rest cut) and its price. Every tile is the same height so the grid reads
+ * in rows.
  */
 export function ProductTile({ menu, product, tone, inCart, now, onPick }: ProductTileProps) {
   const soldOut = isSoldOut(menu.availability.get(product.id), COUNTER_CHANNEL, now);
@@ -35,9 +36,11 @@ export function ProductTile({ menu, product, tone, inCart, now, onPick }: Produc
       onClick={() => onPick(product)}
     >
       <span className="pos-product__thumb" data-initial={productMark(product.name)} aria-hidden />
-      <span className="pos-product__name">{product.name}</span>
-      <span className="pos-product__price" data-no-price={price === null}>
-        {price === null ? vi.sale.noPrice : formatVnd(price)}
+      <span className="pos-product__body">
+        <span className="pos-product__name">{product.name}</span>
+        <span className="pos-product__price" data-no-price={price === null}>
+          {price === null ? vi.sale.noPrice : formatVnd(price)}
+        </span>
       </span>
       {/* After the name, so the tile is still named by it first; drawn over the mark. */}
       {soldOut ? <span className="pos-product__flag">{vi.sale.soldOut}</span> : null}

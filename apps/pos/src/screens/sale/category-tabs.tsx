@@ -1,5 +1,7 @@
 import type { PosCategory, PosProduct } from "@fnb/contracts";
 import { vi } from "../../messages/vi";
+import { Icon } from "../shared/icon";
+import { categoryIcon } from "./category-icon";
 
 export interface CategoryTabsProps {
   categories: readonly PosCategory[];
@@ -10,8 +12,9 @@ export interface CategoryTabsProps {
 }
 
 /**
- * The menu's categories, each with its colour and how many products it holds: a row that
- * wraps on a phone or a tablet, a column beside the products on a till held sideways.
+ * The menu's categories, each with an icon guessed from its name and how many products it
+ * holds: a row of chips that wraps on a phone or a tablet, a column of square tiles beside
+ * the products on a till held sideways.
  */
 export function CategoryTabs({ categories, products, tones, chosen, onChoose }: CategoryTabsProps) {
   const counts = new Map<string, number>();
@@ -30,7 +33,7 @@ export function CategoryTabs({ categories, products, tones, chosen, onChoose }: 
       data-tone={tone}
       onClick={() => onChoose(id)}
     >
-      <span className="pos-category__dot" aria-hidden />
+      <Icon of={categoryIcon(id === null ? null : name)} size={24} />
       <span className="pos-category__name">{name}</span>
       <span className="pos-category__count" aria-hidden>
         {count}

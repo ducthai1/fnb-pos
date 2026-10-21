@@ -61,6 +61,7 @@ export const VI_ROLES = {
   search: "Tìm theo tên vai trò",
   columns: { name: "Vai trò", permissions: "Quyền", count: "Số quyền" },
   filters: { current: "Đang dùng", archived: "Đã lưu trữ" },
+  filterLabel: "Trạng thái",
   empty: "Chưa có vai trò nào.",
   editLabel: (name: string) => `Sửa vai trò ${name}`,
   add: "Thêm vai trò",

@@ -23,9 +23,23 @@
 @media (min-width: 1024px) {
   .pos-sale {
     grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+    gap: var(--sp-3);
   }
   .pos-cart {
     top: calc(var(--bar-h) + var(--sp-3));
+  }
+}
+
+/* A wide till: the order gets room for long names beside four columns of products. */
+@media (min-width: 1280px) {
+  .pos-sale {
+    grid-template-columns: minmax(0, 1fr) 460px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .pos-sale {
+    grid-template-columns: minmax(0, 1fr) 537px;
   }
 }
 
@@ -41,11 +55,9 @@
   flex-direction: column;
   gap: var(--sp-3);
   min-width: 0;
-  padding: var(--sp-4) var(--sp-4) 0;
-  border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-3) 0;
+  border-radius: var(--r-md);
   background: var(--c-surface);
-  box-shadow: var(--shadow-card);
 }
 
 .pos-cart__number {
@@ -55,7 +67,9 @@
   justify-content: space-between;
   gap: var(--sp-2);
   margin: 0;
-  font-size: var(--fs-lg);
+  color: var(--c-brand);
+  font-size: var(--fs-md);
+  line-height: 24px;
 }
 
 .pos-cart__lines:empty {
@@ -69,10 +83,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  margin-inline: calc(-1 * var(--sp-4));
-  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  margin-inline: calc(-1 * var(--sp-3));
+  padding: var(--sp-3);
   border-top: 1px solid var(--c-border-soft);
-  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  border-radius: 0 0 var(--r-md) var(--r-md);
   background: var(--c-surface);
   box-shadow: var(--shadow-dock);
 }
@@ -102,12 +116,16 @@
 
 .pos-cart-line__name {
   flex: 1 1 auto;
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 20px;
 }
 
 .pos-cart-line__amount {
   flex: 0 0 auto;
+  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
+  line-height: 20px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -117,7 +135,8 @@
   padding: 0 0 0 var(--sp-4);
   list-style: none;
   color: var(--c-text-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
+  line-height: 16px;
 }
 
 /* A note is for whoever makes the drink, so it stands out from the options. */
@@ -147,39 +166,4 @@
 
 .pos-cart-line__remove {
   color: var(--c-danger);
-}
-
-/* The names are short and ours; an amount too long for a narrow cart wraps under itself
-   instead of pushing over its name ("Cần thu" hidden under 215.932.943.880 đ at 800px). */
-.pos-totals {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--sp-1) var(--sp-3);
-  margin: 0;
-  color: var(--c-text-2);
-}
-
-.pos-totals dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-  text-align: right;
-  color: var(--c-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.pos-totals .pos-totals__due {
-  align-self: baseline;
-  color: var(--c-text);
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-}
-
-.pos-totals dd.pos-totals__due {
-  color: var(--c-brand-strong);
-}
-
-.pos-cart__checkout {
-  width: 100%;
-  min-height: 64px;
-  font-size: var(--fs-xl);
 }

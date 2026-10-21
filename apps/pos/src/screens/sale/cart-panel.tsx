@@ -1,5 +1,5 @@
 import type { OrderLine } from "@fnb/domain";
-import { ArrowRight, BadgePercent, Ban, ShoppingBag } from "lucide-react";
+import { BadgePercent, Ban, ShoppingBag, ShoppingCart } from "lucide-react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CounterOrder } from "../../features/order/counter-order";
 import type { CartView } from "../../features/order/cart-view";
@@ -78,8 +78,8 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
           disabled={!payable}
           onClick={on.onCheckout}
         >
+          <Icon of={ShoppingCart} size={24} />
           {S.checkout}
-          <Icon of={ArrowRight} size={24} />
           <kbd className="pos-kbd pos-kbd--on-brand" aria-hidden>
             {S.keys.pay}
           </kbd>
