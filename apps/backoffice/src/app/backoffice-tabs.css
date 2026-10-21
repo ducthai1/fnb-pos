@@ -108,7 +108,7 @@
   flex: none;
   width: 20px;
   height: 20px;
-  border: 1.5px solid var(--c-border);
+  border: 1.5px solid var(--c-control-edge);
   border-radius: var(--r-pill);
   background: var(--c-surface);
 }

@@ -10,7 +10,7 @@ input[type="radio"] {
   display: inline-grid;
   place-items: center;
   margin: 0;
-  border: 1.5px solid var(--c-border);
+  border: 1.5px solid var(--c-control-edge);
   background: var(--c-surface) center / 14px 14px no-repeat;
   cursor: pointer;
   transition:
