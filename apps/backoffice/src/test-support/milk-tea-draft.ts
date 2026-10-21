@@ -40,6 +40,7 @@ export function milkTeaDraft(): ProductDraft {
     trackStock: false,
     earnsPoints: true,
     printCupLabel: true,
+    photo: null,
     variants: [
       { id: TEA.sizeM, name: "M", price: "" },
       { id: TEA.sizeL, name: "L", price: "45.000" },

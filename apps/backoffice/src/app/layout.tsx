@@ -31,6 +31,7 @@ import "./backoffice-row-panel.css";
 import "./backoffice-cells.css";
 import "./backoffice-people.css";
 import "./backoffice-menu.css";
+import "./backoffice-product-photo.css";
 import "./backoffice-menu-import.css";
 import "./backoffice-menu-bulk.css";
 import "./backoffice-settings.css";

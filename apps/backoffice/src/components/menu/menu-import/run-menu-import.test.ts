@@ -106,9 +106,10 @@ describe("running a menu import", () => {
     expect([...products.values()].map((product) => product.name)).toEqual(["Một"]);
   });
 
-  it("updates a matched product from its current version, keeping its sizes and options", async () => {
+  it("updates a matched product from its current version, keeping its sizes, options and photo", async () => {
     const { api, products, putProduct } = withCategories();
     const id = "0199a000-0000-7000-8000-0000000000a1";
+    const photo = `${"ab".repeat(32)}.webp`;
     await api.putProduct(id, {
       version: null,
       brandId: BRAND,
@@ -125,6 +126,7 @@ describe("running a menu import", () => {
       variants: [{ id: "0199a000-0000-7000-8000-0000000000c1", name: "L", price: 40_000 }],
       modifierGroups: [],
       combo: null,
+      imageKey: photo,
     });
     const summary = {
       id,
@@ -155,6 +157,9 @@ describe("running a menu import", () => {
       basePrice: 35_000,
     });
     expect(products.get(id)?.variants).toHaveLength(1);
+    // The file carries no photo and the import names none: the product keeps its own.
+    expect(putProduct.mock.calls[1]?.[1]).not.toHaveProperty("imageKey");
+    expect(products.get(id)?.imageKey).toBe(photo);
   });
 
   it("fails the lines of a category it could not create, and goes on with the others", async () => {

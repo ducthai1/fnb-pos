@@ -9,6 +9,8 @@ import { ok, refused } from "./fake-backoffice-api";
  * checked and bumped on every save (a stale one is a 409), archived without being deleted.
  * Calls are recorded, so a test can say what was sent.
  */
+export const FAKE_TENANT = "0190a000-0000-7000-8000-0000000000e1";
+
 export function fakeCatalog(categories: Category[] = []) {
   const products = new Map<string, ProductDocument>();
 
@@ -16,11 +18,16 @@ export function fakeCatalog(categories: Category[] = []) {
     const stored = products.get(id);
     if (stored === undefined && body.version !== null) return refused(404, "API_CATALOG_PRODUCT_NOT_FOUND");
     if (stored !== undefined && stored.version !== body.version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+    const { imageKey, ...rest } = body;
+    // Left out, the stored photo stays; null takes it off; a name is a photo uploaded before.
+    const photo = imageKey === undefined ? (stored?.imageKey ?? null) : imageKey;
     const saved: ProductDocument = {
-      ...body,
+      ...rest,
       id,
       version: (stored?.version ?? 0) + 1,
       archivedAt: stored?.archivedAt ?? null,
+      imageKey: photo,
+      imageUrl: photo === null ? null : `/media/product-images/${FAKE_TENANT}/${photo}`,
     };
     products.set(id, saved);
     return ok(saved);
