@@ -2,7 +2,7 @@ import { formatVnd, vnd } from "@fnb/domain";
 import type { ReactElement } from "react";
 import { cartView } from "../../src/features/order/cart-view";
 import { REFUND_METHODS } from "../../src/features/refund/refund-command";
-import { planRefund } from "../../src/features/refund/refund-plan";
+import { planRefund, refundableLines } from "../../src/features/refund/refund-plan";
 import { refundSlip } from "../../src/features/refund/refund-slip";
 import { shiftCloseSlip } from "../../src/features/shift/shift-close-slip";
 import { readStoredShift } from "../../src/features/shift/stored-shift";
@@ -17,10 +17,10 @@ import { SaleScreen } from "../../src/screens/sale/sale-screen";
 import { CashMoveScreen } from "../../src/screens/shift/cash-move-screen";
 import { CloseShiftScreen } from "../../src/screens/shift/close-shift-screen";
 import { RoundSlipsScreen } from "../../src/screens/table-order/round-slips-screen";
-import { ADJUSTED, REFUND_LINES, dayHistory } from "./pretty-adjusted-order";
+import { ADJUSTED, dayHistory } from "./pretty-adjusted-order";
 import { PROFILE } from "./pretty-menu";
 import { ORDER, PRICED, STAFF, menu, now } from "./pretty-order";
-import { tillHeader } from "./pretty-selling-screens";
+import { tillBar, tillHeader } from "./pretty-selling-screens";
 
 // Voids, discounts, the drawer, closing the shift, the day's orders and refunds at the
 // sample café, for the handbook's pictures.
@@ -51,6 +51,35 @@ const shift = readStoredShift({
   close: null,
 })!;
 const itemName = "Trà sữa trân châu";
+// One of the two milk teas comes back.
+const refund = planRefund({
+  sale,
+  refunds: [],
+  selection: new Map([[sale.lines.find((l) => l.parentLineId === null)!.id, 1]]),
+  refundOrderId: "0199f000-0000-7000-8000-00000000f001",
+  businessDate: "2026-10-21",
+});
+const refundJob = refundSlip({
+  menu,
+  sale,
+  refund,
+  refundNo: 3,
+  method: REFUND_METHODS.cash,
+  cashierName: STAFF.cashier,
+  at: now,
+});
+const closeJob = shiftCloseSlip({
+  menu,
+  shift,
+  assessment: {
+    expectedCash: figures.expectedCash,
+    countedCash: vnd(1_790_000),
+    difference: vnd(-9_000),
+    needsAcceptance: false,
+  },
+  staffName: STAFF.cashier,
+  at: now,
+});
 
 export const OPERATIONS_SCREENS = {
   // The till shows the sheet in place of the screen that asked for it.
@@ -89,7 +118,11 @@ export const OPERATIONS_SCREENS = {
     <DiscountScreen
       header={header}
       title={vi.adjust.discount.titleLine(itemName)}
-      preview={() => ({ discount: vnd(18_000), amountDue: vnd(Number(PRICED.totals.amountDue) - 18_000) })}
+      // A share of the two milk teas (100.000 đ), or the amount typed.
+      preview={(input) => {
+        const off = input.kind === "percent" ? (100_000 * input.rate) / 10_000 : Number(input.amount);
+        return { discount: vnd(off), amountDue: vnd(Number(PRICED.totals.amountDue) - off) };
+      }}
       onConfirm={never}
       onRemove={never}
       onBack={nothing}
@@ -135,41 +168,30 @@ export const OPERATIONS_SCREENS = {
     <RefundScreen
       header={null}
       orderNo={ORDER.deviceOrderNo}
-      lines={REFUND_LINES}
-      preview={() => ({ payout: vnd(35_000) })}
+      lines={refundableLines(sale, [])}
+      preview={() => ({ payout: refund.payout })}
       onConfirm={never}
       onBack={nothing}
     />
   ),
+  // The layout test shows both slips on one screen; the till shows each after its own step.
   "refund-and-close-slips": () => (
     <RoundSlipsScreen
-      header={null}
+      header={header}
       title={vi.refund.doneTitle}
-      notice={vi.refund.done(formatVnd(vnd(35_000)), ORDER.deviceOrderNo)}
-      slips={[
-        refundSlip({
-          menu,
-          sale,
-          refund: planRefund({
-            sale,
-            refunds: [],
-            selection: new Map([[sale.lines.find((l) => l.parentLineId === null)!.id, 1]]),
-            refundOrderId: "0199f000-0000-7000-8000-00000000f001",
-            businessDate: "2026-10-21",
-          }),
-          refundNo: 3,
-          method: REFUND_METHODS.cash,
-          cashierName: STAFF.cashier,
-          at: now,
-        }),
-        shiftCloseSlip({
-          menu,
-          shift,
-          assessment: { expectedCash: figures.expectedCash, countedCash: vnd(1_790_000), difference: vnd(-9_000), needsAcceptance: false },
-          staffName: STAFF.cashier,
-          at: now,
-        }),
-      ].map((job) => ({ job, outcome: { status: "preview_only" as const } }))}
+      notice={vi.refund.done(formatVnd(refund.payout), ORDER.deviceOrderNo)}
+      backLabel={vi.refund.backToHistory}
+      slips={[{ job: refundJob, outcome: { status: "preview_only" } }]}
+      onBack={nothing}
+    />
+  ),
+  "close-shift-slip": () => (
+    <RoundSlipsScreen
+      header={tillBar()}
+      title={vi.closeShift.doneTitle}
+      notice={vi.closeShift.done(formatVnd(vnd(-9_000)))}
+      backLabel={vi.closeShift.openNext}
+      slips={[{ job: closeJob, outcome: { status: "preview_only" } }]}
       onBack={nothing}
     />
   ),

@@ -27,21 +27,26 @@ const never = () => new Promise<never>(() => {});
 const nothing = () => {};
 const ONLINE: TillSyncStatus = { connection: "online", pending: 0, needsAttention: 0 };
 
-/** The bar on top of a signed-in till, and below it the selling modes and the tools. */
+/** The bar on top of every screen of a signed-in till. */
+export const tillBar = (status: TillSyncStatus = ONLINE) => (
+  <TillHeader
+    branchName={SHOP.branch}
+    brandName={SHOP.brand}
+    deviceName={SHOP.device}
+    staffName={STAFF.cashier}
+    shiftDate="2026-10-21"
+    status={status}
+    onOpenNeedsAttention={nothing}
+    onSwitchStaff={nothing}
+    onSignOut={nothing}
+  />
+);
+
+/** The bar, and below it the selling modes and the till's tools. */
 export function tillHeader(mode: "counter" | "tables", status: TillSyncStatus = ONLINE): ReactNode {
   return (
     <>
-      <TillHeader
-        branchName={SHOP.branch}
-        brandName={SHOP.brand}
-        deviceName={SHOP.device}
-        staffName={STAFF.cashier}
-        shiftDate="2026-10-21"
-        status={status}
-        onOpenNeedsAttention={nothing}
-        onSwitchStaff={nothing}
-        onSignOut={nothing}
-      />
+      {tillBar(status)}
       <div className="pos-navbar">
         <SellingModeSwitch mode={mode} onChange={nothing} />
         <TillTools onOpen={nothing} />

@@ -9,11 +9,17 @@ export interface HandbookShot {
   readonly taps?: readonly (readonly [string, number])[];
 }
 
-/** The drawer counted note by note: 1.790.000 đ at the close, 500.000 đ at the open. */
+/** Taps that fill a screen in: the drawer counted note by note, a discount, a refund. */
 const TAPS: Readonly<Record<string, readonly (readonly [string, number])[]>> = {
   "open-shift": [
     ["+ 200.000", 2],
     ["+ 100.000", 1],
+  ],
+  discount: [["Giảm 20%", 1]],
+  "void-line": [["Pha/làm sai món", 1]],
+  refund: [
+    ["Thêm một Trà sữa trân châu", 1],
+    ["Khách trả lại món", 1],
   ],
   "close-shift": [
     ["+ 500.000", 3],
@@ -53,6 +59,7 @@ const TILL = [
   "order-history",
   "refund",
   "refund-and-close-slips",
+  "close-shift-slip",
   "needs-attention",
   "sale-offline",
 ];

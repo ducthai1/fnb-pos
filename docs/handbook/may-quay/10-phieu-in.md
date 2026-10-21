@@ -51,18 +51,22 @@ Phiếu tự ra theo thao tác; không cần quyền riêng. In lại hóa đơn
 
 > Bản xem trước — máy này chưa nối máy in, phiếu chưa được in.
 
-Thu ngân đọc phiếu trên màn (hoặc xoay màn cho pha chế xem). Tem ly hiện **không dấu** (đúng như máy in tem sẽ in); các phiếu khác hiện đầy đủ tiếng Việt.
+Thu ngân đọc phiếu trên màn (hoặc xoay màn cho pha chế xem). Tem ly hiện **không dấu** (đúng như máy in tem sẽ in); các phiếu khác hiện đầy đủ tiếng Việt. Phiếu giữ đúng cột như trên giấy 80 mm, nên ô phiếu hẹp hơn tờ giấy thì cột số tiền bên phải bị khuất: **kéo ngang trong ô phiếu** để xem hết.
 
 1. **Sau khi thanh toán đơn quầy**: màn **Đã thanh toán** xếp các phiếu: phiếu pha chế, tem dán ly, hóa đơn (xem ảnh ở [04-thanh-toan.md](04-thanh-toan.md)).
 2. **Ở bàn**: bấm **Gửi bếp** hoặc **In tạm tính** ⇒ màn phiếu mở ra (**Phiếu bếp vừa gửi** / **Phiếu tạm tính**); bấm **Quay lại đơn**.
 
    ![Phiếu bếp và phiếu tạm tính của bàn T02](../images/may-quay/table-slips.webp)
 
-3. **Hoàn tiền** và **đóng ca**: phiếu hoàn tiền / phiếu chốt ca hiện ngay sau thao tác.
+3. **Hoàn tiền**: màn **Đã hoàn tiền** hiện phiếu hoàn tiền; bấm **Về lịch sử đơn**.
 
-   ![Phiếu hoàn tiền và phiếu chốt ca](../images/may-quay/refund-and-close-slips.webp)
+   ![Phiếu hoàn tiền](../images/may-quay/refund-and-close-slips.webp)
 
-4. **In lại hóa đơn**: Lịch sử đơn → đơn đã trả → **In lại hóa đơn số …** (xem [08-lich-su-don.md](08-lich-su-don.md)). Đơn đã có hóa đơn điện tử: **In lại bill kèm mã tra cứu** ở màn Đã thanh toán.
+4. **Đóng ca**: màn **Đã đóng ca** hiện phiếu chốt ca (tiền hệ thống, tiền thực tế, chênh lệch, chỗ ký nhận); bấm **Mở ca mới**.
+
+   ![Phiếu chốt ca](../images/may-quay/close-shift-slip.webp)
+
+5. **In lại hóa đơn**: Lịch sử đơn → đơn đã trả → **In lại hóa đơn số …** (xem [08-lich-su-don.md](08-lich-su-don.md)). Đơn đã có hóa đơn điện tử: **In lại bill kèm mã tra cứu** ở màn Đã thanh toán.
 
 ### Khi có máy in (ứng dụng cài — sắp có)
 

@@ -96,7 +96,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
 ### Hủy món (đã gửi bếp)
 
-1. Bấm **⋯** của món → **Hủy món**. Màn ghi **Còn 2 trên đơn · 1 đã gửi bếp**.
+1. Bấm **⋯** của món → **Hủy món**. Màn ghi số còn trên đơn và số đã gửi bếp, ví dụ **Còn 1 trên đơn · 1 đã gửi bếp**.
 
    ![Hủy món](../images/may-quay/void-line.webp)
 
@@ -108,7 +108,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
 1. Món: **⋯** → **Giảm giá**. Cả đơn: nút **Giảm giá đơn**.
 2. Chọn **Theo %** (nút nhanh **5% · 10% · 15% · 20% · 30% · 50%**, hoặc gõ) hoặc **Số tiền** (đồng).
-3. Máy xem trước "Giảm 18.000 ₫ · còn phải trả 159.000 ₫". Bấm **Áp dụng giảm giá**.
+3. Máy xem trước "Giảm 20.000 ₫ · còn phải trả 157.000 ₫". Bấm **Áp dụng giảm giá**.
 
    ![Giảm giá món](../images/may-quay/discount.webp)
 
@@ -128,7 +128,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 1. **Lịch sử đơn** → chọn đơn đã trả → **Hoàn tiền đơn số …** (xem [08-lich-su-don.md](08-lich-su-don.md)).
 2. Chọn số lượng hoàn của từng món (mỗi món ghi **Đã bán 2 · còn hoàn được 2**). Máy tính **số tiền hoàn theo đúng giá đã bán** (đã trừ giảm giá) — thu ngân không gõ số tiền.
 3. Chọn **Hoàn bằng**: **Tiền mặt từ két** (két của ca đang mở giảm đúng số này) hoặc **Chuyển khoản** (máy chỉ ghi lại; thu ngân tự chuyển từ tài khoản cửa hàng; két không đổi).
-4. Chọn **Lý do**: *Khách trả lại món · Pha/làm sai món · Món không đạt · Tính tiền nhầm · Lý do khác*. Bấm **Hoàn 35.000 ₫**.
+4. Chọn **Lý do**: *Khách trả lại món · Pha/làm sai món · Món không đạt · Tính tiền nhầm · Lý do khác*. Bấm **Hoàn 50.000 ₫**.
 
    ![Hoàn tiền](../images/may-quay/refund.webp)
 

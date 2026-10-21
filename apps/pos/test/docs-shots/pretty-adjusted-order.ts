@@ -11,7 +11,6 @@ import { orderHistory } from "../../src/features/history/order-history";
 import { newId } from "../../src/features/ids/new-id";
 import { commandMadeLines, itemTree } from "../../src/features/order/command-made-lines";
 import { tillOrderSnapshot } from "../../src/features/order/order-snapshot-for-till";
-import type { RefundableLine } from "../../src/features/refund/refund-plan";
 import { tid } from "../../src/test-support/till-fixtures";
 import { PROFILE } from "./pretty-menu";
 import { ORDER, PRICED } from "./pretty-order";
@@ -89,7 +88,3 @@ export function dayHistory() {
   return orderHistory(views, "2026-10-21", DEVICE);
 }
 
-/** What the guest of order 27 can give back. */
-export const REFUND_LINES: RefundableLine[] = PRICED.lines
-  .filter((line) => line.parentLineId === null)
-  .map((item) => ({ item, sold: Number(item.quantity), refundable: Number(item.quantity) }));
