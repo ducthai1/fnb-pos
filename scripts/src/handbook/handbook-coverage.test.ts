@@ -81,7 +81,10 @@ describe("the coverage check itself", () => {
   it("reports a picture whose file is missing", () => {
     const dir = mkdtempSync(join(tmpdir(), "handbook-"));
     try {
-      writeFileSync(join(dir, "page.md"), "![Màn hình](images/not-taken.webp)\n");
+      writeFileSync(
+        join(dir, "page.md"),
+        "![Màn hình](images/not-taken.webp)\n\nVí dụ cú pháp: `![tên](đường dẫn)`\n",
+      );
       expect(missingPictures(dir)).toHaveLength(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });

@@ -144,6 +144,12 @@ export function brokenReferences(
   ]);
 }
 
+const PICTURE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
+
+/** The text with fenced blocks and `inline code` removed: a picture written as an example is not one. */
+const withoutCode = (markdown: string) =>
+  markdown.replace(/^```[\s\S]*?^```/gm, "").replace(/`[^`\n]*`/g, "");
+
 /** Pictures (`![…](path)`) of any handbook file whose file is missing, as `file: path`. */
 export function missingPictures(dir: string): string[] {
   const missing: string[] = [];
@@ -152,7 +158,7 @@ export function missingPictures(dir: string): string[] {
       const full = join(current, entry.name);
       if (entry.isDirectory()) walk(full);
       else if (entry.name.endsWith(".md")) {
-        for (const match of readFileSync(full, "utf8").matchAll(/!\[[^\]]*\]\(([^)\s]+)\)/g)) {
+        for (const match of withoutCode(readFileSync(full, "utf8")).matchAll(PICTURE)) {
           const target = match[1] ?? "";
           if (!existsSync(join(dirname(full), target)))
             missing.push(`${relative(REPO_ROOT, full)}: ${target}`);
