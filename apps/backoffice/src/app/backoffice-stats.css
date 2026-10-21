@@ -1,4 +1,6 @@
-/* Figures in cards: the home page, the day's report, the transfers page. */
+/* Figures in cards: the home page, the day's report, the transfers page. The reference's
+   figure card: white, 8px corner, one soft shadow, a 56px tinted circle with the icon, the
+   label 15/20 and the number 22/28 semibold. */
 
 .bo-stats {
   display: grid;
@@ -9,23 +11,22 @@
 
 .bo-stat {
   display: flex;
-  align-items: flex-start;
-  gap: var(--sp-3);
+  align-items: center;
+  gap: var(--sp-2);
   min-width: 0;
   padding: var(--sp-4);
   background: var(--c-surface);
-  border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-panel);
 }
 
 .bo-stat__icon {
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--r-md);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
   background: var(--c-brand-soft);
   color: var(--c-brand-strong);
 }
@@ -50,15 +51,15 @@
 .bo-stat__label {
   margin: 0;
   color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-body);
+  line-height: 20px;
 }
 
 .bo-stat__value {
   margin: 0;
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
+  font-size: 1.375rem;
+  font-weight: var(--fw-semibold);
+  line-height: 28px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -66,10 +67,12 @@
   margin: 0;
   color: var(--c-text-3);
   font-size: var(--fs-xs);
+  line-height: 16px;
 }
 
 .bo-stat--split {
   flex-direction: column;
+  align-items: stretch;
   gap: var(--sp-2);
 }
 
@@ -83,9 +86,15 @@
   color: var(--c-success);
 }
 
+.bo-stat__pair + .bo-stat__pair {
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-line);
+}
+
 .bo-stat__pair strong {
   color: var(--c-text);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -98,13 +107,14 @@
 
   .bo-stat {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--sp-2);
     padding: var(--sp-3);
   }
 
   .bo-stat__icon {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
   }
 
   .bo-stat__value {

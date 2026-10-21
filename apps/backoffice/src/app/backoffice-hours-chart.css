@@ -19,7 +19,7 @@
   height: 180px;
   padding-top: 24px;
   border-bottom: 1px solid var(--c-border);
-  background: repeating-linear-gradient(to top, var(--c-border-soft) 0 1px, transparent 1px 39px);
+  background: repeating-linear-gradient(to top, var(--c-line) 0 1px, transparent 1px 39px);
 }
 
 .bo-hours__col {
@@ -34,8 +34,9 @@
   display: block;
   width: min(100%, 28px);
   height: var(--h);
-  border-radius: 6px 6px 2px 2px;
-  background: var(--c-brand-tint);
+  border-radius: 6px 6px 0 0;
+  /* The reference's revenue area: brand green fading toward the axis. */
+  background: linear-gradient(to bottom, rgb(11 125 92 / 0.55), rgb(11 125 92 / 0.12));
 }
 
 .bo-hours__bar[data-empty] {
@@ -43,7 +44,7 @@
 }
 
 .bo-hours__col[data-busiest] .bo-hours__bar {
-  background: var(--c-brand);
+  background: linear-gradient(to bottom, var(--c-brand), rgb(11 125 92 / 0.35));
 }
 
 /* The busiest hour's amount, over its column; it may run wider than the column. */
@@ -53,10 +54,10 @@
   left: 50%;
   transform: translateX(-50%);
   max-width: 120px;
-  padding: 1px 6px;
-  border-radius: var(--r-pill);
-  background: var(--c-brand-strong);
-  color: var(--c-on-brand);
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--c-text);
+  color: var(--c-text-inverse);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   white-space: nowrap;
