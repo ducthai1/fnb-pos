@@ -59,10 +59,12 @@ Mỗi dòng nhân viên có nút ở cột **Thao tác**:
 | Nút | Làm gì |
 |---|---|
 | **Sửa** | Đổi tên hiển thị và vai trò ("Chưa đổi gì để lưu." nếu không đổi gì) |
-| **Khóa** | Người nghỉ việc / tạm ngưng: **ca đang mở của người này kết thúc ngay**, máy quầy không cho đăng nhập và **ẩn tên khỏi màn PIN**. Mở lại được sau |
-| **Mở lại** | Cho đăng nhập lại bằng PIN; phiên đã kết thúc lúc khóa không sống lại |
+| **Khóa** (với người đang làm) | Người nghỉ việc / tạm ngưng: **ca đang mở của người này kết thúc ngay**, máy quầy không cho đăng nhập và **ẩn tên khỏi màn PIN**. Mở lại được sau |
+| **Mở lại** (thay nút Khóa với người đã khóa) | Cho đăng nhập lại bằng PIN; phiên đã kết thúc lúc khóa không sống lại |
 | **Đặt lại PIN** | Đặt PIN mới (người quên PIN). Xóa luôn số lần nhập sai; **không** đăng xuất người đó khỏi máy đang dùng |
-| **Mở khóa PIN** | Người nhập sai PIN nhiều lần bị khóa: xóa số lần sai, đăng nhập được ngay bằng PIN đúng |
+| **Mở khóa PIN** | Chỉ hiện khi người đó đang bị khóa PIN hoặc đã có lần nhập sai: xóa số lần sai, đăng nhập được ngay bằng PIN đúng |
+
+![Khung xác nhận khóa nhân viên](../images/quan-ly/nhan-vien-khoa.webp)
 
 Lọc **Sai PIN** để thấy ai đang có lần nhập sai hoặc đang bị khóa PIN ("PIN bị khóa đến …", "N lần nhập sai PIN").
 

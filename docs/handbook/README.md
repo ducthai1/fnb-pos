@@ -81,6 +81,7 @@ Rồi các phần: **Dùng để làm gì · Ai dùng, cần quyền gì · Các
    - một trang của trang quản lý (menu `ADMIN_SECTIONS` và mọi `page.tsx`) không thuộc `screens` của trang sổ tay nào, hoặc thuộc hai trang;
    - một màn máy quầy trong `screen-names.ts` không thuộc trang nào (kiểm khi đã có thư mục `may-quay/`);
    - `screens` ghi tên màn không tồn tại; `tests` trỏ tới file không có; `decisions` ghi mã không có trong decision-log;
+   - một ảnh `![…](…)` trỏ tới file ảnh không có;
    - front-matter thiếu trường hay sai `audience`.
 3. **Chụp lại ảnh** sau khi đổi giao diện:
 

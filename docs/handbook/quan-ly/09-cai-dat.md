@@ -73,11 +73,15 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 
 ## Thu tiền và két
 
+![Nhóm Thu tiền và két](../images/quan-ly/cai-dat-thu-tien.webp)
+
 - **Cách tính tiền đơn** (đặt tới tầng chi nhánh): **Giá bán đã gồm VAT** (mặc định bật); **Thu phí dịch vụ**: **Phí dịch vụ (%)**, **Áp cho kênh** (Tại bàn, Mang đi, Quán tự giao, Ứng dụng giao hàng — chọn ít nhất một), **Tính phí trên** tiền hàng trước hoặc sau giảm giá, **Thuế suất VAT của phí (%)**. Đơn mới chép cách tính đang áp dụng lúc mở đơn; đổi cài đặt **không tính lại** đơn đã mở.
 - **Tài khoản nhận chuyển khoản** (chi nhánh): **Ngân hàng** (chọn trong danh sách, hoặc "Ngân hàng khác" rồi nhập **Mã BIN** 6 số), **Số tài khoản**, **Tên chủ tài khoản**. Máy quầy tạo mã VietQR vào tài khoản này. **Chưa đặt thì máy quầy không nhận chuyển khoản.**
 - **Ngưỡng chênh lệch khi đóng ca** (đặt tới tầng máy): tiền đếm được lệch quá số này (thừa hoặc thiếu) thì phải có người duyệt mới đóng ca. Mặc định **0 đ** — lệch bất kỳ đồng nào cũng cần duyệt.
 
 ## Hóa đơn và kết nối
+
+![Nhóm Hóa đơn và kết nối](../images/quan-ly/cai-dat-hoa-don.webp)
 
 - **Hồ sơ hóa đơn điện tử** (chi nhánh): **Xuất hóa đơn cho mọi đơn đã thanh toán**, **Mã số thuế**, **Tên người bán**, **Địa chỉ**, **Ký hiệu mẫu hóa đơn**, **Nhà cung cấp hóa đơn** (mã nhà cung cấp đã kết nối với máy chủ, ví dụ vnpt, viettel, misa), **Quy định áp dụng**, **Khi hoàn tiền** (không xuất hóa đơn riêng / xuất hóa đơn điều chỉnh). Chưa đặt hồ sơ thì chi nhánh không xuất hóa đơn nào.
 - **Bí mật webhook cổng thanh toán** (chỉ ở tầng chi nhánh): chọn **Cổng thanh toán** (SePay, PayOS), dán **Bí mật mới**, bấm **Lưu bí mật**. Cổng thanh toán ký thông báo chuyển khoản bằng bí mật này; có nó máy chủ mới tin được thông báo "đã nhận tiền" để QR tự xác nhận. Bí mật **chỉ ghi, không bao giờ hiện lại**; muốn thay thì nhập bí mật mới.
