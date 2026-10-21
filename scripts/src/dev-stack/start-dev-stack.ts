@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { type DevChildProcess, startDevChild } from "./dev-child-process";
 import { type DevDatabase, startDevDatabase } from "./dev-stack-database";
 import { loadOrGenerateDevStackLogins } from "./dev-stack-generated-logins";
-import { DEV_STACK_PATHS, REPO_ROOT } from "./dev-stack-paths";
+import { DEV_MEDIA_DIRECTORY, DEV_STACK_PATHS, REPO_ROOT } from "./dev-stack-paths";
 import { chooseDevStackPorts } from "./dev-stack-ports";
 import { printDevStackSummary } from "./print-dev-stack-summary";
 import {
@@ -148,6 +148,7 @@ try {
       FNB_PAYMENT_SECRET_KEY: logins.paymentSecretKey,
       FNB_EINVOICE_PROVIDER: "fake",
       FNB_ALLOWED_ORIGINS: origins.join(","),
+      FNB_MEDIA_DIR: DEV_MEDIA_DIRECTORY,
     },
   );
   await waitUntilAnswering(`${at(ports.api)}/health`, api, 60_000);

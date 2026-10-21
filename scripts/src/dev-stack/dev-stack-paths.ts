@@ -6,6 +6,9 @@ export const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 /** Everything the development stack keeps between runs; gitignored, deleted by --reset. */
 export const DEV_STACK_DIRECTORY = join(REPO_ROOT, "tmp", "dev-stack");
 
+/** Product photos of the development API, the default FNB_MEDIA_DIR outside production. */
+export const DEV_MEDIA_DIRECTORY = join(REPO_ROOT, "tmp", "media");
+
 export const DEV_STACK_PATHS = {
   postgresData: join(DEV_STACK_DIRECTORY, "postgres-data"),
   /** Passwords, PINs and keys generated on the first run, with the ids the seed reuses. */

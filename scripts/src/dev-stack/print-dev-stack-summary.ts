@@ -43,7 +43,7 @@ export function printDevStackSummary(
     `  Mã ghép máy quầy (mới, dùng một lần, hết hạn lúc ${vietnamTime(shop.pairingCode.expiresAt)}):`,
     `    ${code.slice(0, 4)}-${code.slice(4)}`,
     "",
-    `  Thực đơn ${shop.productCount} món, ${shop.tableCount} bàn ở 2 khu; ` +
+    `  Thực đơn ${shop.productCount} món (${shop.photoCount} có ảnh), ${shop.tableCount} bàn ở 2 khu; ` +
       "tài khoản nhận tiền và hóa đơn điện tử là GIẢ.",
     "  Thử QR tự xác nhận: pnpm dev:bank-notice <mã nội dung FNB…> <số tiền>",
     "  Làm lại từ đầu (xóa dữ liệu): pnpm dev:stack --reset",
