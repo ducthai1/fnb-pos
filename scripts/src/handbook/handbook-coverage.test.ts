@@ -132,4 +132,14 @@ describe("the coverage check itself", () => {
     });
     expect(parseFrontMatter("# no front matter")).toMatchObject({ ok: false });
   });
+
+  it("reads lists written inline, indented or not", () => {
+    const parsed = parseFrontMatter(
+      '---\ntitle: A\naudience: thu-ngan\nscreens:\n- sale\n  - payment\ndecisions: [D-001, "D-002"]\ntests: []\n---\n',
+    );
+    expect(parsed).toMatchObject({
+      ok: true,
+      value: { screens: ["sale", "payment"], decisions: ["D-001", "D-002"], tests: [] },
+    });
+  });
 });

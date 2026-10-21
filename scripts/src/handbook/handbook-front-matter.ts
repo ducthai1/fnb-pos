@@ -40,7 +40,7 @@ export function parseFrontMatter(
   let open: ListKey | null = null;
   for (const [offset, line] of lines.slice(1, end).entries()) {
     if (line.trim() === "" || line.trim().startsWith("#")) continue;
-    const item = /^\s+-\s+(.*)$/.exec(line);
+    const item = /^\s*-\s+(.*)$/.exec(line);
     if (item !== null) {
       if (open === null)
         return { ok: false, reason: `line ${offset + 2}: list item outside a list` };
