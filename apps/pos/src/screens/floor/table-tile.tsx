@@ -32,6 +32,7 @@ export function TableTile(props: {
     >
       <span className="pos-table__name pos-wrap">{table.name}</span>
       <span className="pos-table__status">{F.status[table.status]}</span>
+      {props.onPlan === true ? null : <span className="pos-table__rule" aria-hidden />}
       {table.seats > 0 && props.onPlan !== true ? (
         <span className="pos-table__fact">
           <Icon of={Users} size={16} />

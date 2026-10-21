@@ -1,0 +1,179 @@
+/* A table, by status: free is white with a thin edge; seated is filled green, pre-billed
+   blue, changed after its pre-bill red, with white writing. The status is written on it too,
+   so the colour only helps a glance across the room. */
+.pos-table {
+  --table-line: var(--c-border);
+  --table-fill: var(--c-surface);
+  --table-text: var(--c-text);
+  --table-quiet: var(--c-text-2);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  width: 100%;
+  height: 100%;
+  min-height: 139px;
+  padding: var(--sp-4);
+  border: 1px solid var(--table-line);
+  border-radius: var(--r-lg);
+  background: var(--table-fill);
+  box-shadow: var(--shadow-card);
+  color: var(--table-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 80ms ease;
+}
+
+.pos-table:active {
+  transform: scale(0.98);
+}
+
+.pos-table:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.pos-table__name {
+  max-width: 100%;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: 24px;
+}
+
+/* The status closes the tile's head, a faint rule under it before the facts. */
+.pos-table__status {
+  max-width: 100%;
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--table-quiet);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+
+.pos-table__rule {
+  align-self: stretch;
+  height: 1px;
+  background: var(--c-border-soft);
+}
+
+.pos-table__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 100%;
+  color: var(--table-quiet);
+  font-size: var(--fs-sm);
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+/* Guests sat a long time: the time is an amber pill, readable on any fill. */
+.pos-table__fact[data-long-seated="true"] {
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-table__amount {
+  max-width: 100%;
+  margin-top: auto;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-table--occupied,
+.pos-table--awaiting_payment,
+.pos-table--changed_after_pre_bill {
+  --table-text: var(--c-on-brand);
+  --table-quiet: var(--c-on-brand);
+}
+
+.pos-table--occupied {
+  --table-line: var(--c-brand);
+  --table-fill: var(--c-brand);
+}
+
+.pos-table--awaiting_payment {
+  --table-line: var(--c-info);
+  --table-fill: var(--c-info);
+}
+
+.pos-table--changed_after_pre_bill {
+  --table-line: var(--c-danger);
+  --table-fill: var(--c-danger);
+}
+
+.pos-table--occupied .pos-table__status,
+.pos-table--awaiting_payment .pos-table__status,
+.pos-table--changed_after_pre_bill .pos-table__status {
+  background: var(--c-on-brand-soft);
+}
+
+.pos-table--occupied .pos-table__rule,
+.pos-table--awaiting_payment .pos-table__rule,
+.pos-table--changed_after_pre_bill .pos-table__rule {
+  background: var(--c-on-brand-soft);
+}
+
+/* The areas: soft green pills, the chosen one filled. */
+.pos-area-tabs > .pos-tab {
+  border-color: transparent;
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-area-tabs > .pos-tab[aria-selected="true"] {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Which tables to show: three radio dots on the bar, not a segmented box. */
+.pos-tabs.pos-radio-tabs[role="group"] {
+  gap: var(--sp-4);
+  padding: 0;
+  background: transparent;
+}
+
+.pos-tabs.pos-radio-tabs[role="group"] > .pos-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-inline: 0;
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.pos-tabs.pos-radio-tabs[role="group"] > .pos-tab::before {
+  content: "";
+  box-sizing: border-box;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+}
+
+.pos-tabs.pos-radio-tabs[role="group"] > .pos-tab[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
+.pos-tabs.pos-radio-tabs[role="group"] > .pos-tab[aria-pressed="true"]::before {
+  border-color: var(--c-brand-tint);
+  background: radial-gradient(circle, var(--c-brand-tint) 0 5px, var(--c-surface) 5.5px);
+}

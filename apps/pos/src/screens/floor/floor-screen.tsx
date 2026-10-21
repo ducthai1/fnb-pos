@@ -78,7 +78,7 @@ export function FloorScreen(props: FloorScreenProps) {
         <EmptyState title={F.noPlan} />
       ) : (
         <>
-          <div className="pos-tabs" role="tablist" aria-label={F.areasLabel}>
+          <div className="pos-tabs pos-area-tabs" role="tablist" aria-label={F.areasLabel}>
             {areas.map((area) => (
               <button
                 key={area.id}
@@ -93,7 +93,7 @@ export function FloorScreen(props: FloorScreenProps) {
             ))}
           </div>
           <div className="pos-floor-bar">
-            <div className="pos-tabs" role="group" aria-label={F.filterLabel}>
+            <div className="pos-tabs pos-radio-tabs" role="group" aria-label={F.filterLabel}>
               {(Object.keys(F.filters) as Filter[]).map((key) =>
                 choice(key, filter, F.filters[key], setFilter),
               )}
