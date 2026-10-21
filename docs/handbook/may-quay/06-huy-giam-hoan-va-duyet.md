@@ -21,6 +21,7 @@ decisions:
   - D-057
   - D-061
   - D-063
+  - D-076
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -34,6 +35,8 @@ tests:
   - apps/pos/src/messages/order-adjust-sentences.test.ts
   - packages/domain/src/permissions/authorize-cumulative-limits.test.ts
   - packages/domain/src/permissions/role-templates.test.ts
+  - packages/domain/src/permissions/approval-coverage.test.ts
+  - apps/api/test/integration/auth/on-the-spot-approval-refuses-bad-requests.test.ts
   - apps/api/test/integration/auth/on-the-spot-approval.test.ts
   - apps/api/test/integration/auth/manager-approval-is-logged.test.ts
   - apps/api/test/integration/sync/sync-apply-discount-judges-the-cumulative-rate.test.ts
@@ -49,7 +52,7 @@ tests:
 
 ## Dùng để làm gì
 
-Những thao tác làm **bớt tiền** của quán đều đi qua một luồng chung: máy xem người đang đứng quầy có được tự làm không; nếu vượt quyền, một người có quyền (thường là quản lý) **chọn tên mình và nhập PIN ngay trên máy** để cho phép **đúng một lần** thao tác đó. Mọi lần duyệt được ghi nhật ký (ai xin, ai duyệt, duyệt cái gì).
+Những thao tác làm **bớt tiền** của quán đều đi qua một luồng chung: máy xem người đang đứng quầy có được tự làm không; nếu vượt quyền, một người có quyền (thường là quản lý) **chọn tên mình và nhập PIN ngay trên máy** để cho phép **đúng một lần** thao tác đó, **cho đúng đơn (hoặc ca) và đúng con số** hiện trên màn duyệt. Mọi lần duyệt được ghi nhật ký (ai xin, ai duyệt, duyệt cái gì, cho đơn/ca nào).
 
 | Thao tác | Khi nào dùng | Ở đâu |
 |---|---|---|
@@ -139,8 +142,13 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 - **Ngưỡng tính cộng dồn**, không tính từng lần:
   - Giảm giá: so **tổng phần trăm mọi giảm giá cùng loại** trên món đó (hoặc trên đơn) **sau khi** thêm lần này, **làm tròn lên**. Ví dụ thu ngân giới hạn 10% đã giảm 10% cho một ly, giảm thêm 5% nữa là 15% ⇒ phải xin duyệt; màn duyệt ghi "(tổng giảm sau lần này: 15%)".
   - Thu/chi két: so **tổng số tiền đã thu và đã chi khỏi két trong cả ca** (mọi nhân viên trên két đó cộng chung, lấy độ lớn — rút 400.000 rồi bỏ lại 400.000 là 800.000 đ). Màn duyệt ghi "(két đã thu và chi trong ca, kể cả lần này: …)".
-- **Duyệt dùng một lần**, cho đúng thao tác và đúng con số đã xin. Đơn vừa đổi ở máy khác làm con số khác đi thì phải xin lại.
-- **Hạn duyệt**: thao tác phải được ghi trong **10 phút** sau khi duyệt (cho phép đồng hồ máy chậm 2 phút), và phải tới máy chủ trong **2 giờ**.
+- **Duyệt dùng một lần**, cho đúng thao tác, **đúng chỗ** và **đúng con số** quản lý đã thấy trên màn duyệt:
+  - Đúng chỗ: giảm giá món và hủy món đã gửi bếp gắn với **món đó của đơn đó**; giảm giá đơn, hủy đơn đã in tạm tính / đã gửi bếp, hoàn tiền gắn với **đơn đó**; thu/chi két, chấp nhận lệch két gắn với **ca đó**. Duyệt "Hoàn 25.000 ₫ cho đơn số 12" không dùng được cho đơn khác, kể cả trong 10 phút.
+  - Đúng con số: hoàn tiền đúng **số tiền trả khách**; hủy món đã gửi bếp đúng **số món bếp đã có**; thu/chi két đúng **tổng thu + chi trong ca**; đóng ca đúng **số lệch**. Khác một đồng là phải xin lại.
+  - Riêng giảm giá: duyệt là **tối đa** phần trăm đó cho món/đơn đó. Máy khác thêm món làm tổng giảm tụt từ 20% xuống 19% thì vẫn dùng được, không phải xin lại; cao hơn mức đã duyệt thì phải xin lại.
+  - Máy quầy bản cũ xin duyệt mà không gửi đơn/ca thì máy chủ không nhận (xem bảng lỗi): cập nhật ứng dụng bán hàng.
+- **Hạn duyệt**: thao tác phải được ghi trong **10 phút** sau khi duyệt (cho phép đồng hồ máy chậm 2 phút), và phải tới máy chủ trong **12 giờ** (máy mất mạng cả buổi vẫn giữ được lần duyệt, vì lần duyệt chỉ dùng được cho đúng việc đã duyệt).
+- Quyền của người duyệt được kiểm **lúc duyệt**. Người duyệt bị đổi vai trò hay khóa ngay sau đó thì lần duyệt đã cho vẫn dùng được trong 10 phút: khách đã nhận tiền/giảm giá, từ chối lúc đó không lấy lại được gì.
 - **Không tự duyệt cho mình**. Người duyệt phải có quyền tự làm thao tác đó; danh sách **Ai duyệt?** là mọi nhân viên đang hoạt động của chi nhánh trừ người xin, máy chủ quyết định ai đủ quyền.
 - Hủy món đã gửi bếp **cần duyệt** theo cài đặt chi nhánh `void_after_sent_needs_approval` (mặc định **bật**). Tắt thì ai cũng hủy được món đã gửi bếp.
 - Hủy món **không trả nguyên liệu về kho** (chưa có kho).
@@ -163,6 +171,8 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 | Phiên đứng quầy đã hết hạn. Nhập lại mã PIN để làm tiếp. | Phiên hết hạn giữa chừng | Nhập lại PIN |
 | Lần duyệt đã quá hạn khi thao tác được ghi. / Lần duyệt này đã được dùng rồi … / Quản lý đã duyệt một con số khác với thao tác máy gửi … / Máy chủ không tìm thấy lần duyệt này. / Lần duyệt này dành cho người khác hoặc máy khác. (… Làm lại thao tác và nhờ quản lý duyệt lại.) | Lần duyệt không còn dùng được | Làm lại và xin duyệt lại |
 | Máy chủ cần quản lý duyệt thao tác này mà lệnh không kèm lần duyệt nào. … | Máy chủ đòi duyệt | Làm lại, nhờ quản lý nhập PIN |
+| Lần duyệt này dành cho đơn, món hoặc ca khác với thao tác máy gửi. Làm lại thao tác và nhờ quản lý duyệt lại. | Lần duyệt cho đơn/món/ca khác (hoặc cho từ trước khi duyệt gắn với đơn) | Làm lại và xin duyệt cho đúng đơn |
+| Yêu cầu duyệt không nói rõ đơn hoặc ca nào nên máy chủ không nhận. Cập nhật ứng dụng bán hàng rồi làm lại thao tác. | Máy quầy bản cũ | Cập nhật ứng dụng, làm lại |
 | Hủy món đã gửi bếp cần quản lý duyệt. | — | Xin duyệt |
 | Số lượng hủy nhiều hơn số còn lại trên đơn. | Hủy quá số | Giảm số lượng hủy |
 | Món đang được giảm giá: gỡ giảm giá của món trước rồi mới hủy. | — | Gỡ giảm giá |
