@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { vi as text } from "../messages/vi";
 import {
   bankSettles,
-  money,
   pushedOf,
   qrCafeServer,
   qrPhaseShown,
@@ -61,7 +60,8 @@ describe("a VietQR that runs out, is withdrawn or is refused", () => {
     await waitFor(() => expect(qrPhaseShown()).toBe("withdrawn"));
     expect(screen.getByRole("status").textContent).toBe(Q.phases.withdrawn);
     tap(Q.otherMethod);
-    await screen.findByRole("heading", { name: text.checkout.payment.title });
+    // Back on the cash card of the drawer, the QR panel gone.
+    await screen.findByLabelText(text.checkout.payment.cashTyped);
     expect(pushedOf(server, "payment.cancel_intent")).toEqual([]);
   });
 
@@ -75,14 +75,15 @@ describe("a VietQR that runs out, is withdrawn or is refused", () => {
       "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION",
     );
     tap(Q.cancel);
-    await screen.findByRole("heading", { name: text.checkout.payment.title });
+    // Back on the cash card of the drawer, the QR panel gone.
+    await screen.findByLabelText(text.checkout.payment.cashTyped);
     await waitFor(() => expect(pushedOf(server, "payment.cancel_intent")).toHaveLength(1));
     bankSettles(server, "paid", 58_000);
     const pulls = server.state.calls.pulls;
     await waitFor(() => expect(server.state.calls.pulls).toBeGreaterThan(pulls + 1));
 
     server.state.refuseTypes.set("payment.create_intent", SETTLED_QR);
-    tap(Q.offer(money(58_000)));
+    tap(Q.title);
     await waitFor(() => expect(qrPhaseShown()).toBe("refused"));
     expect(screen.getByRole("status").textContent).toContain(text.errors[SETTLED_QR]);
     expect(pushedOf(server, "order.pay")).toEqual([]);

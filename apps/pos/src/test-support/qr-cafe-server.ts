@@ -58,8 +58,8 @@ export function bankSettles(server: QrServer, status: string, receivedAmount: nu
  */
 export async function twoCoffeesOnQr(server: QrServer, untilPhase: string | null = "waiting") {
   await twoCoffeesToPayment();
-  tap(text.qr.offer(money(58_000)));
-  await screen.findByRole("heading", { name: text.qr.title });
+  // The QR card of the payment drawer draws the QR as soon as it is chosen.
+  tap(text.qr.title);
   await waitFor(() => expect(pushedOf(server, "payment.create_intent")).toHaveLength(1));
   if (untilPhase !== null) await waitFor(() => expect(qrPhaseShown()).toBe(untilPhase));
   const created = pushedOf(server, "payment.create_intent")[0]?.payload;

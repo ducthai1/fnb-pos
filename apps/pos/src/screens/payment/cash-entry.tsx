@@ -1,9 +1,7 @@
 import { type Vnd, formatVnd } from "@fnb/domain";
-import { Banknote } from "lucide-react";
 import { useState } from "react";
 import { cashSuggestions, typedAmount } from "../../features/payment/cash-suggestions";
 import { vi } from "../../messages/vi";
-import { Icon } from "../shared/icon";
 import { CashKeypad } from "./cash-keypad";
 
 const T = vi.checkout.payment;
@@ -24,11 +22,7 @@ export function CashEntry({
   const [typed, setTyped] = useState("");
   const preview = typed === "" ? null : typedAmount(typed);
   return (
-    <section className="pos-card pos-cash" aria-label={T.cash}>
-      <h2 className="pos-card__title">
-        <Icon of={Banknote} size={22} />
-        {T.cash}
-      </h2>
+    <section className="pos-cash" aria-label={T.cash}>
       <div className="pos-quick-cash">
         {cashSuggestions(remaining).map((amount) => (
           <button

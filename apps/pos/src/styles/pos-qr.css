@@ -73,21 +73,6 @@
   color: var(--c-amber);
 }
 
-/* The QR screen's amount: alone in the middle, large, read across the counter. */
-.pos-due--center {
-  flex-direction: column;
-  align-items: center;
-  padding: 0;
-  background: transparent;
-  text-align: center;
-}
-
-.pos-due--center strong {
-  font-size: var(--fs-4xl);
-  font-weight: var(--fw-bold);
-  text-align: center;
-}
-
 .pos-qr-status {
   display: flex;
   align-items: flex-start;

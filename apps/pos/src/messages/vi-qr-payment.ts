@@ -1,9 +1,7 @@
-// The VietQR screen and its offer on the payment screen; vi.ts gathers them under `vi.qr`.
+// The VietQR of the payment drawer; vi.ts gathers them under `vi.qr`.
 
 export const VI_QR_PAYMENT = {
   title: "Chuyển khoản QR",
-  offer: (amount: string) => `Chuyển khoản QR ${amount}`,
-  offerHint: "Khách quét mã bằng app ngân hàng; máy tự xác nhận khi ngân hàng báo tiền về.",
   noAccount:
     "Chưa có tài khoản nhận chuyển khoản nên chưa tạo được QR. Quản lý nhập tài khoản ở trang quản lý (Cài đặt, mục Tài khoản nhận tiền).",
   wholeOrderOnly: "Mã QR nhận đúng cả đơn: bỏ phần tiền mặt đã nhận nếu khách muốn chuyển khoản.",

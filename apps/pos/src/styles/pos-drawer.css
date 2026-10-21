@@ -1,0 +1,153 @@
+/* A drawer over the screen it opened from (payment), and a whole-screen step over it. The
+   screen under stays laid out as it was; it only stops taking touches and keys. */
+
+.pos-under {
+  display: contents;
+}
+
+.pos-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-bg);
+}
+
+.pos-cover > .pos-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.pos-drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.pos-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--c-overlay);
+  animation-name: pos-drawer-fade;
+  animation-duration: 160ms;
+  animation-timing-function: ease-out;
+}
+
+/* A phone: the whole screen, which the amount, the two ways and the keys need anyway. */
+.pos-drawer {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-surface);
+  outline: none;
+  animation-name: pos-drawer-up;
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* A tablet held upright: a sheet from the bottom, the whole width for two columns and the
+   keys within reach of the thumbs; the order stays in sight above it. */
+@media (min-width: 760px) {
+  .pos-drawer {
+    top: auto;
+    max-height: calc(100dvh - var(--sp-10));
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+/* A till held sideways: a panel from the right, the order still readable on the left. */
+@media (min-width: 1024px) {
+  .pos-drawer {
+    inset: var(--sp-4) var(--sp-4) var(--sp-4) auto;
+    width: min(615px, calc(100vw - var(--sp-8)));
+    max-height: none;
+    border-radius: var(--r-lg);
+    animation-name: pos-drawer-in;
+  }
+}
+
+.pos-drawer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-drawer__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding-top: var(--sp-2);
+}
+
+.pos-drawer__title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: 26px;
+}
+
+.pos-drawer__subtitle {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  line-height: 20px;
+}
+
+.pos-drawer__close {
+  flex: none;
+  gap: var(--sp-1);
+}
+
+.pos-drawer__body {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-height: 0;
+  padding: var(--sp-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container-type: inline-size;
+}
+
+.pos-drawer__foot {
+  padding: var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--c-border-soft);
+  box-shadow: var(--shadow-dock);
+}
+
+@keyframes pos-drawer-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pos-drawer-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-drawer-in {
+  from {
+    transform: translateX(48px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-drawer,
+  .pos-drawer-backdrop {
+    animation-duration: 1ms;
+  }
+}

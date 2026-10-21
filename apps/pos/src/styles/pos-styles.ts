@@ -27,6 +27,8 @@ import "./pos-payment.css";
 import "./pos-keypad.css";
 import "./pos-qr.css";
 import "./pos-checkout.css";
+import "./pos-drawer.css";
+import "./pos-pay-drawer.css";
 import "./pos-floor.css";
 import "./pos-table-tile.css";
 import "./pos-floor-plan.css";

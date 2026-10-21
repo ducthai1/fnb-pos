@@ -1,5 +1,5 @@
 import { newId } from "@fnb/db";
-import { formatVnd, vnd } from "@fnb/domain";
+import { vnd } from "@fnb/domain";
 import { parseVietQrPayload } from "@fnb/domain/payment";
 import { vi as text } from "@fnb/pos/messages/vi";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
@@ -36,7 +36,6 @@ afterAll(async () => {
 
 const ids = { bar: newId(), drink: newId() };
 const DRINK = "Bạc xỉu chuyển khoản";
-const money = (amount: number) => formatVnd(vnd(amount));
 
 it("sells a drink by VietQR, which the till closes by itself once the bank's notice arrives", async () => {
   await backoffice(
@@ -68,7 +67,8 @@ it("sells a drink by VietQR, which the till closes by itself once the bank's not
   await expect.poll(() => dataOf(page, "amount-due")).toBe("39000");
   await page.getByRole("button", { name: text.sale.checkout }).click();
   await page.getByRole("heading", { name: text.checkout.payment.title }).waitFor();
-  await page.getByRole("button", { name: text.qr.offer(money(39_000)) }).click();
+  // Choosing the QR card of the payment drawer draws the QR for the whole order.
+  await page.getByRole("button", { name: text.qr.title, exact: true }).click();
   await page.locator('[data-qr-phase="waiting"]').waitFor();
   await expectNoOverflow(page, "qr payment");
 

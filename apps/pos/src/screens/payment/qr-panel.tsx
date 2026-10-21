@@ -6,7 +6,7 @@ import { type QrPhase, countdownText } from "../../features/payment/qr-intent-ph
 import { ORDER_HAS_SETTLED_QR } from "../../features/payment/settled-qr";
 import { messageForCode, vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
-import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { Alert } from "../shared/screen-frame";
 import { QrCodeImage } from "./qr-code-image";
 
 const Q = vi.qr;
@@ -17,8 +17,7 @@ const STATUS_ICON: Readonly<Record<"info" | "ok" | "warn", LucideIcon>> = {
   warn: TriangleAlert,
 };
 
-export interface QrPaymentScreenProps {
-  header: ReactNode;
+export interface QrPanelProps {
   amount: Vnd;
   account: PaymentAccount;
   /** The QR drawn on the till, null until it is recorded. */
@@ -27,9 +26,9 @@ export interface QrPaymentScreenProps {
   /** A problem on the till itself: the QR could not be drawn, the payment not recorded. */
   error: string | null;
   busy: boolean;
-  onCancel(): void;
+  /** Takes the QR down and goes back to cash: "Hủy QR" and "Thu cách khác" both do. */
+  onLeave(): void;
   onRenew(): void;
-  onOtherMethod(): void;
   onRetryPay(): void;
   onCloseWithSettledQr(): void;
 }
@@ -57,9 +56,10 @@ function statusOf(phase: QrPhase): { text: string; tone: "info" | "ok" | "warn" 
 
 /**
  * The VietQR for the whole amount due, its transfer content and its time left, and what the
- * bank's notice did to it. Nothing here confirms a transfer: only the server's match does.
+ * bank's notice did to it, in the payment drawer. Nothing here confirms a transfer: only the
+ * server's match does.
  */
-export function QrPaymentScreen(props: QrPaymentScreenProps) {
+export function QrPanel(props: QrPanelProps) {
   const { amount, account, qr, phase, busy } = props;
   const status = statusOf(phase);
   const button = (label: string, onClick: () => void, primary = false) => (
@@ -73,11 +73,11 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
       {label}
     </button>
   );
-  const other = button(Q.otherMethod, props.onOtherMethod);
+  const other = button(Q.otherMethod, props.onLeave);
   const renew = button(Q.renew, props.onRenew, true);
   const actions: Record<QrPhase["kind"], ReactNode[]> = {
-    drawing: [button(Q.cancel, props.onCancel)],
-    waiting: [button(Q.cancel, props.onCancel)],
+    drawing: [button(Q.cancel, props.onLeave)],
+    waiting: [button(Q.cancel, props.onLeave)],
     paid: props.error === null ? [] : [button(Q.retryPay, props.onRetryPay, true)],
     short: [other],
     over: [other],
@@ -90,19 +90,7 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
   };
   const actionRow = actions[phase.kind];
   return (
-    <ScreenFrame
-      title={Q.title}
-      dock={
-        actionRow.length === 0 ? undefined : (
-          <div className="pos-actions pos-actions--split">{actionRow}</div>
-        )
-      }
-    >
-      {props.header}
-      <p className="pos-due pos-due--center">
-        <span className="pos-due__label">{Q.amount}</span>
-        <strong data-qr-amount={String(amount)}>{formatVnd(amount)}</strong>
-      </p>
+    <section className="pos-qr-panel" aria-label={Q.title}>
       <p
         className={`pos-qr-status pos-qr-status--${status.tone}`}
         role="status"
@@ -115,11 +103,17 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
         <p className="pos-hint pos-wrap">{Q.phases.gapHint}</p>
       ) : null}
       {phase.kind === "waiting" && qr !== null ? (
-        <section className="pos-card pos-qr" aria-label={Q.title}>
+        <div className="pos-card pos-qr">
           <div className="pos-qr__frame">
             <QrCodeImage text={qr.payload} label={Q.imageLabel(formatVnd(amount))} />
           </div>
           <dl className="pos-qr__facts">
+            <div className="pos-qr__fact">
+              <dt>{Q.amount}</dt>
+              <dd className="pos-qr__amount" data-qr-amount={String(amount)}>
+                {formatVnd(amount)}
+              </dd>
+            </div>
             <div className="pos-qr__fact pos-qr__fact--code">
               <dt>{Q.content}</dt>
               <dd className="pos-qr__code" data-qr-content={qr.contentCode}>
@@ -142,9 +136,12 @@ export function QrPaymentScreen(props: QrPaymentScreenProps) {
               </dd>
             </div>
           </dl>
-        </section>
+        </div>
       ) : null}
       <Alert message={props.error} />
-    </ScreenFrame>
+      {actionRow.length === 0 ? null : (
+        <div className="pos-actions pos-actions--split">{actionRow}</div>
+      )}
+    </section>
   );
 }

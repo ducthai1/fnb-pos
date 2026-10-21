@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { vi as text } from "../messages/vi";
-import { SHOP_ACCOUNT, bankSettles, money } from "../test-support/qr-cafe-server";
+import { SHOP_ACCOUNT, bankSettles } from "../test-support/qr-cafe-server";
 import {
   FLOOR,
   addCoffees,
@@ -21,8 +21,7 @@ describe("paying for a table by VietQR", () => {
     addCoffees(2);
     tap(text.tables.order.pay);
     await screen.findByRole("heading", { name: text.checkout.payment.title });
-    tap(text.qr.offer(money(58_000)));
-    await screen.findByRole("heading", { name: text.qr.title });
+    tap(text.qr.title);
     await waitFor(() => expect(pushedOf(server, "payment.create_intent")).toHaveLength(1));
     const intent = pushedOf(server, "payment.create_intent")[0]?.payload;
     bankSettles(server, "paid", 58_000);
@@ -43,7 +42,9 @@ describe("paying for a table by VietQR", () => {
     addCoffees(1);
     tap(text.tables.order.pay);
     await screen.findByRole("heading", { name: text.checkout.payment.title });
-    expect(screen.queryByRole("button", { name: text.qr.offer(money(29_000)) })).toBeNull();
+    tap(text.qr.title);
     expect(screen.getByText(text.qr.noAccount)).toBeTruthy();
+    expect(document.querySelector("[data-qr-phase]")).toBeNull();
+    expect(pushedOf(server, "payment.create_intent")).toEqual([]);
   });
 });

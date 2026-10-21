@@ -31,6 +31,7 @@ export const VI_CHECKOUT = {
     clearTyped: "Xóa hết số đã gõ",
     typedPreview: (amount: string) => `Sẽ nhận ${amount}`,
     summary: "Số tiền của đơn",
+    ways: "Cách trả",
     removeTender: (method: string, amount: string) => `Bỏ ${method} ${amount}`,
     back: "Quay lại đơn",
     finish: "Hoàn tất thanh toán",
