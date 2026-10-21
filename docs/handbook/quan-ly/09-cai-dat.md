@@ -48,7 +48,7 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
    - **Một máy của chi nhánh** — chọn máy ở ô **Máy**.
    Tầng hẹp hơn đặt riêng thì thắng tầng rộng hơn.
 3. Mỗi mục ghi giá trị đang áp dụng lấy từ đâu: **Mặc định hệ thống / Lấy từ thương hiệu / Lấy từ chi nhánh / Đặt riêng cho máy**. Mục đã đặt ở tầng đang chọn có chữ **Đặt ở tầng này** và nút **Dùng lại giá trị của tầng trên** để bỏ giá trị riêng.
-4. Ba nhóm (tab): **Tính năng**, **Thu tiền và két**, **Hóa đơn và kết nối**. Sửa rồi bấm **Lưu** của từng khung.
+4. Ba nhóm (tab): **Tính năng**, **Thu tiền và két**, **Hóa đơn và kết nối**. Công tắc được lưu **ngay khi bấm**; các khung có ô nhập (cách tính tiền, tài khoản, hồ sơ hóa đơn…) thì sửa rồi bấm nút lưu của khung đó.
 5. Mục không đặt được ở tầng đang chọn hiện "Không sửa ở tầng này: đặt ở chi nhánh hoặc thương hiệu."
 
 ## Công tắc tính năng
