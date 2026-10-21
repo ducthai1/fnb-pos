@@ -8,6 +8,7 @@ const PRODUCTION = {
   FNB_DATABASE_URL: "postgresql://fnb_app:pw@127.0.0.1:5432/fnb",
   FNB_EINVOICE_PROVIDER: "none",
   FNB_ALLOWED_ORIGINS: "https://quan.example.vn",
+  FNB_MEDIA_DIR: "/var/lib/fnb/media",
   FNB_PAYMENT_SECRET_KEY: randomBytes(32).toString("base64"),
   FNB_TRUSTED_PROXIES: "127.0.0.1,::1",
 };
