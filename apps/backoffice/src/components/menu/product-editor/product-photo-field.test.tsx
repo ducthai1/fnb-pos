@@ -61,6 +61,13 @@ describe("the product photo field", () => {
     expect(catalog.products.get(TEA.product)?.imageUrl).toBe(URL);
   });
 
+  it("takes a photo dropped on the field the same way", async () => {
+    const { uploadProductImage, field } = await editTea(stored);
+    fireEvent.drop(field, { dataTransfer: { files: [photoFile("image/webp")] } });
+    await within(field).findByRole("img");
+    expect(uploadProductImage).toHaveBeenCalledWith(SHRUNK);
+  });
+
   it("refuses a file that is not a photo before shrinking or sending, saying so under the field", async () => {
     const { uploadProductImage, shrink, field, pick } = await editTea(stored);
     pick(photoFile("image/svg+xml"));
