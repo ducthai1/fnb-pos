@@ -1,4 +1,5 @@
 import { vi as text } from "@fnb/backoffice/messages/vi";
+import { ADMIN_SECTIONS } from "@fnb/backoffice/navigation/admin-sections";
 import { measureScreenOverflow } from "@fnb/pos/test-support/measure-screen-overflow";
 import type { Browser, Page } from "playwright-core";
 import { expect } from "vitest";
@@ -44,11 +45,24 @@ export async function signedInBackoffice(
   return { page, problems, close: () => context.close() };
 }
 
-/** Goes to a section by the side menu, opening it first where it folds (a phone). */
+/** The width from which the backoffice shows its menu as a bar across the top. */
+const WIDE_SCREEN_FROM = 1024;
+
+/**
+ * Goes to a page by the menu, as a person would: below a computer's width from the drawer
+ * behind the menu button, on a computer from the list its group's heading drops.
+ */
 export async function openSection(page: Page, label: string) {
-  const toggle = page.getByRole("button", { name: text.shell.openMenu });
-  if (await toggle.isVisible()) await toggle.click();
-  await page.getByRole("navigation").getByRole("link", { name: label, exact: true }).click();
+  const nav = page.getByRole("navigation");
+  // By the width, not by what shows: the page swaps the bar for the button only once it
+  // hears the screen change, a moment after a resize.
+  if ((page.viewportSize()?.width ?? 1280) < WIDE_SCREEN_FROM) {
+    await page.getByRole("button", { name: text.shell.openMenu }).click();
+  } else {
+    const section = ADMIN_SECTIONS.find((entry) => entry.label === label);
+    if (section !== undefined) await nav.getByRole("button", { name: text.shell.groups[section.group], exact: true }).click();
+  }
+  await nav.getByRole("link", { name: label, exact: true }).click();
 }
 
 /**
