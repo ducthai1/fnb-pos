@@ -97,7 +97,7 @@
   width: 20px;
   height: 20px;
   padding: 1px;
-  border: 1px solid var(--c-border);
+  border: 1.5px solid var(--c-control-edge);
   border-radius: 4px;
   color: transparent;
 }

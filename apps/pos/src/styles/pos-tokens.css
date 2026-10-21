@@ -73,6 +73,9 @@
   --c-on-brand-soft: rgb(255 255 255 / 0.22);
   /* Initials drawn on a category colour: there to tell tiles apart, not to be read first */
   --c-on-cat: rgb(255 255 255 / 0.7);
+  /* The edge of an empty tick box or radio dot: grey #8c8697, 3.5:1 on white
+     (the lighter #d2cddb would be the box's only outline at 1.5:1). */
+  --c-control-edge: #8c8697;
 
   /* The thin edge of a tinted notice, the meaning's own colour at low strength */
   --c-danger-line: rgb(180 40 65 / 0.18);

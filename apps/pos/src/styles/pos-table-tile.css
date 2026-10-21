@@ -163,7 +163,7 @@
   flex: none;
   width: 20px;
   height: 20px;
-  border: 1px solid var(--c-border);
+  border: 1.5px solid var(--c-control-edge);
   border-radius: var(--r-pill);
   background: var(--c-surface);
 }
@@ -176,6 +176,6 @@
 }
 
 .pos-tabs.pos-radio-tabs[role="group"] > .pos-tab[aria-pressed="true"]::before {
-  border-color: var(--c-brand-tint);
-  background: radial-gradient(circle, var(--c-brand-tint) 0 5px, var(--c-surface) 5.5px);
+  /* A thick brand ring, as the back office's chosen filter. */
+  border: 6px solid var(--c-brand);
 }
