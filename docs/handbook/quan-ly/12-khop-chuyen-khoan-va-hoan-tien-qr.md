@@ -43,8 +43,8 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 
 ### Khớp tay một chuyển khoản
 
-2. Ở **Giao dịch chưa khớp** chọn giao dịch (số tiền · “nội dung” · giờ).
-3. Ở **Mã QR đang chờ tiền** chọn mã QR của đơn (mã · số tiền · hạn · trạng thái: đang chờ, đã hết hạn, trả thiếu…).
+2. Ở ô chọn **Giao dịch chưa khớp** chọn giao dịch (số tiền · “nội dung” · giờ).
+3. Ở ô chọn **Mã QR đang chờ tiền** chọn mã QR của đơn (mã · số tiền · hạn · trạng thái: đang chờ, đã hết hạn, trả thiếu…).
 4. Bấm **Khớp giao dịch với mã QR**, xác nhận: "Đơn của mã QR sẽ được tính là đã nhận số tiền của giao dịch. Không hủy được thao tác này."
 5. Trang báo "Đã khớp với mã QR …". Máy quầy thấy đơn đã nhận tiền ở lần đồng bộ kế tiếp.
 
@@ -71,12 +71,12 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 | Màn hình báo | Làm gì |
 |---|---|
 | Chọn một giao dịch và một mã QR để khớp. | Chọn đủ hai bên |
-| Giao dịch này đã được khớp với mã QR khác, hoặc là tiền chuyển ra. Làm mới danh sách. | Bấm **Làm mới** |
+| Giao dịch này đã được khớp với mã QR khác, hoặc là tiền chuyển ra. Làm mới danh sách. | Tải lại trang |
 | Mã QR này đã được trả hoặc đã hủy, không nhận thêm giao dịch. | Chọn mã khác; tiền thừa sẽ nằm ở "cần hoàn" |
 | Giao dịch vào tài khoản của chi nhánh khác với mã QR này. | Đổi chi nhánh đang xem |
 | Đơn của mã QR này đã trả bằng cách khác, đã hủy, hoặc đã có QR khác nhận đủ tiền. Không khớp được: tiền này cần hoàn lại cho khách. | Hoàn tiền cho khách |
 | Chọn hoàn bằng tiền mặt hay chuyển khoản lại. / Ghi chú hoàn cho ai, vì sao. | Điền đủ |
-| Tiền của mã QR này không phải tiền cần hoàn: … Làm mới danh sách. | Máy quầy còn có thể dùng tiền đó; làm mới |
+| Tiền của mã QR này không phải tiền cần hoàn: … Làm mới danh sách. | Máy quầy còn có thể dùng tiền đó; tải lại trang |
 | Tiền của mã QR này đã được ghi là đã hoàn cho khách. Làm mới danh sách. | Người khác vừa ghi; không ghi lại |
 | Khớp tay cần quyền quản lý cài đặt. / Ghi đã hoàn tiền cần quyền quản lý cài đặt. | Nhờ chủ quán |
 
