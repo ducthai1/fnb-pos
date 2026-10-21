@@ -138,3 +138,22 @@ input[type="radio"] {
   background: var(--c-brand-soft);
   color: var(--c-brand-strong);
 }
+
+/* A record's short facts as a wrapping row of badges (a role's permissions). */
+.bo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A role's keys: quiet grey tags, not status pills. */
+.bo-chips > .bo-badge {
+  min-height: 22px;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: var(--c-surface-2);
+  font-weight: var(--fw-medium);
+}
