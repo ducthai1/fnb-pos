@@ -37,7 +37,7 @@ const COLUMNS: readonly DataColumn<Role>[] = [
       </span>
     ),
     sortValue: (role) => role.name,
-    width: "24%",
+    width: "20%",
   },
   {
     key: "permissions",
@@ -122,7 +122,7 @@ export function RolesScreen() {
                 test: (role) => role.archivedAt !== null,
               },
             ]}
-            actionsWidth="200px"
+            actionsWidth="150px"
             actions={(role) =>
               role.archivedAt === null && (
                 <div>

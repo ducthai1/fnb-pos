@@ -4,9 +4,9 @@
   position: relative;
   width: 100%;
   overflow: hidden;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--c-line);
   border-radius: var(--r-md);
-  background-color: var(--c-surface-2);
+  background-color: var(--c-bg);
   background-image: radial-gradient(var(--c-border) 1px, transparent 1px);
   background-size: 16px 16px;
   touch-action: none;
@@ -22,9 +22,11 @@
   min-width: 0;
   padding: 2px;
   overflow: hidden;
-  border: 2px solid var(--c-brand);
-  border-radius: var(--r-sm);
+  /* A free table as the till draws it: a white tile with a thin edge and the card shadow. */
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
   background: var(--c-surface);
+  box-shadow: var(--shadow-card);
   color: var(--c-text);
   font: inherit;
   font-size: var(--fs-xs);
