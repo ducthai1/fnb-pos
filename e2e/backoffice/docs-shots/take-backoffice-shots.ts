@@ -56,6 +56,7 @@ const SHOTS: readonly Shot[] = [
   },
   { name: "danh-muc", path: () => "/menu/categories" },
   { name: "het-mon", path: () => "/menu/availability" },
+  { name: "het-mon-dien-thoai", path: () => "/menu/availability", viewport: PHONE },
   { name: "nhap-excel", path: () => "/menu/import" },
   { name: "nhan-vien", path: () => "/staff" },
   { name: "nhan-vien-khoa", path: () => "/staff", act: click(text.staffTools.lockLabel("Lan")) },

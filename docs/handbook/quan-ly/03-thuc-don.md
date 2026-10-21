@@ -91,6 +91,10 @@ Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin 
 2. Tắt công tắc **Còn bán** của món vừa hết. Trên máy quầy của chi nhánh đó món mờ đi, không bán được; chi nhánh khác không bị ảnh hưởng.
 3. Có hàng lại thì bật lại. Lọc nhanh bằng **Còn bán / Đang hết**.
 
+Trang này dùng tiện trên điện thoại khi đang đứng quầy:
+
+![Hết món trên điện thoại](../images/quan-ly/het-mon-dien-thoai.webp)
+
 ## Luật và giới hạn
 
 - Tên món tối đa **120 ký tự**; tên danh mục tối đa 120 ký tự.
