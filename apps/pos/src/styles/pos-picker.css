@@ -30,10 +30,15 @@
   min-width: 0;
 }
 
+/* The tile's coloured band on its own: a square of the category's colour, initials on it. */
 .pos-picker-head .pos-picker-head__mark {
   flex: none;
   width: 64px;
   height: 56px;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--r-md);
+  background: var(--cat);
   font-size: var(--fs-xl);
 }
 
@@ -46,7 +51,7 @@
 }
 
 .pos-picker-head__facts strong {
-  color: var(--c-brand-strong);
+  color: var(--c-price);
   font-size: var(--fs-lg);
   font-variant-numeric: tabular-nums;
 }
