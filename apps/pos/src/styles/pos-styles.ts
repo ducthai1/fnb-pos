@@ -18,6 +18,7 @@ import "./pos-product-tiles.css";
 import "./pos-product-photos.css";
 import "./pos-category-rail.css";
 import "./pos-order.css";
+import "./pos-cart-line.css";
 import "./pos-cart-totals.css";
 import "./pos-cart-controls.css";
 import "./pos-picker.css";

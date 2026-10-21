@@ -42,8 +42,12 @@ describe.each([360, 800, 1280])("the POS screens at %ipx wide with hostile names
       // The long name is really on screen, so the test is measuring the hard case.
       expect(overflow.text).toContain(HOSTILE_NAMES.staff);
     }
-    if (["sale", "modifier-picker"].includes(name)) {
+    if (["sale", "sale-long-cart", "modifier-picker"].includes(name)) {
       expect(overflow.text).toContain(HOSTILE_MENU_NAMES.product);
+    }
+    if (name === "sale-long-cart") {
+      expect(overflow.text).toContain(vi.sale.removeShort);
+      expect(overflow.text).toContain(vi.adjust.tools.discountShort);
     }
     if (name === "qr-payment") expect(overflow.text).toContain(HOSTILE_NAMES.staff);
     if (name === "payment") expect(overflow.text).toContain(HOSTILE_NAMES.branch);

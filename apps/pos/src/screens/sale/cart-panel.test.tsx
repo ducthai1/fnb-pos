@@ -65,6 +65,7 @@ describe("the cart with the worst order a shop can ring up", () => {
       "disabled",
       true,
     );
+    fireEvent.click(screen.getByRole("button", { name: text.adjust.tools.lineMenu("Cà phê sữa") }));
     fireEvent.click(screen.getByRole("button", { name: text.sale.remove("Cà phê sữa") }));
     expect(calls.removed).toEqual([HOSTILE_ORDER.lines[1]?.lineId]);
   });

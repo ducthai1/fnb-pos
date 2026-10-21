@@ -28,6 +28,7 @@ export const VI_SALE = {
   less: (name: string) => `Bớt một ${name}`,
   more: (name: string) => `Thêm một ${name}`,
   remove: (name: string) => `Xóa ${name}`,
+  removeShort: "Xóa món",
   lineQuantity: (name: string) => `Số lượng ${name}`,
   note: "Ghi chú",
   subtotal: "Tạm tính",

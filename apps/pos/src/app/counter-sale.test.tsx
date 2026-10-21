@@ -76,6 +76,8 @@ describe("ringing up at the counter", () => {
         tableTag: "12",
       }),
     );
+    // Taking a line off is behind its "…", with its other actions.
+    tap(text.adjust.tools.lineMenu("Cà phê sữa"));
     tap(text.sale.remove("Cà phê sữa"));
     await waitFor(() => expect(drafts(server).at(-1)?.payload).toMatchObject({ lines: [] }));
     expect(screen.getByText(text.sale.cartEmpty)).toBeTruthy();

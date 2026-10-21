@@ -10,6 +10,8 @@ export interface QuantityStepperProps {
   max: number;
   /** 1 unless nothing is a choice too (how many of an item to refund). */
   min?: number;
+  /** Smaller rings for a row of the cart, the finger's target still the full height. */
+  compact?: boolean;
   onChange(value: number): void;
 }
 
@@ -20,10 +22,15 @@ export function QuantityStepper({
   value,
   max,
   min = 1,
+  compact = false,
   onChange,
 }: QuantityStepperProps) {
   return (
-    <div className="pos-stepper" role="group" aria-label={label}>
+    <div
+      className={compact ? "pos-stepper pos-stepper--compact" : "pos-stepper"}
+      role="group"
+      aria-label={label}
+    >
       <button
         type="button"
         className="pos-button pos-stepper__step"
