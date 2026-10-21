@@ -1,6 +1,6 @@
-/* A till held sideways: the categories are a white rail of square tiles beside the products,
+/* A tablet or a till: the categories are a white rail of square tiles beside the products,
    kept in view; the chosen one is filled with the brand colour. */
-@media (min-width: 1024px) {
+@media (min-width: 760px) {
   .pos-menu {
     grid-template-columns: 105px minmax(0, 1fr);
     /* A long list of categories grows the products' row, never the search's. */
@@ -13,7 +13,7 @@
   .pos-categories {
     grid-area: cats;
     position: sticky;
-    top: calc(var(--bar-h) + var(--sp-3));
+    top: var(--sp-3);
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: center;
@@ -68,5 +68,12 @@
   .pos-product-grid,
   .pos-menu__empty {
     grid-area: grid;
+  }
+}
+
+/* Under the till's bar, which stays in view from this width up. */
+@media (min-width: 1024px) {
+  .pos-categories {
+    top: calc(var(--bar-h) + var(--sp-3));
   }
 }
