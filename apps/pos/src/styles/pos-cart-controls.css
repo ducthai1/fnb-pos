@@ -1,25 +1,48 @@
 /* The − n + stepper of a line, and the bar that takes a phone down to its order. */
 
+/* Round − and + outlined in blue either side of the number in its own box, as the reference
+   draws them: a 32px ring drawn in the middle of a full 48px target for the finger. */
 .pos-stepper {
+  --ring-ink: var(--c-info);
+  --ring-fill: var(--c-surface);
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-1);
-  padding: 2px;
-  border-radius: var(--r-md);
-  background: var(--c-surface-2);
+  gap: 0;
 }
 
 .pos-stepper .pos-stepper__step {
   min-width: var(--tap);
   min-height: var(--tap);
   padding: 0;
-  border-color: var(--c-border-soft);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: radial-gradient(
+    circle,
+    var(--ring-fill) 0 15px,
+    var(--ring-ink) 15px 16px,
+    transparent 16.5px
+  );
+  color: var(--ring-ink);
+}
+
+.pos-stepper .pos-stepper__step:active:not(:disabled) {
+  --ring-fill: var(--c-info-soft);
+}
+
+.pos-stepper .pos-stepper__step:disabled {
+  --ring-ink: var(--c-text-3);
 }
 
 .pos-stepper__value {
-  min-width: 3ch;
-  text-align: center;
-  font-size: var(--fs-xl);
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
 }
