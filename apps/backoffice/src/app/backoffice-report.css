@@ -44,3 +44,74 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* A report page on a wide screen, as the reference's reports: a left column with the title,
+   its help and the day in a white filter card, the figures and tables on the right. The
+   tables stack in the narrower right column. */
+@media (min-width: 1100px) {
+  .bo-report-page {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-4);
+  }
+
+  .bo-report-page > .bo-page-head {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--sp-3);
+  }
+
+  /* Its text block is a row's flexible part elsewhere; in this column it takes its height. */
+  .bo-report-page > .bo-page-head > .bo-page-head__text {
+    flex: none;
+  }
+
+  .bo-report-page > .bo-page-head .bo-title {
+    font-size: var(--fs-xl);
+    line-height: 30px;
+    font-weight: var(--fw-bold);
+  }
+
+  .bo-report-page > :not(.bo-page-head) {
+    grid-column: 2;
+  }
+
+  .bo-report-page .bo-page-head__actions {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--r-sm);
+    background: var(--c-surface);
+    box-shadow: var(--shadow-filter);
+  }
+
+  .bo-report-page .bo-page-head__actions .bo-day-picker {
+    flex-wrap: wrap;
+  }
+
+  .bo-report-page .bo-day-picker > .bo-field {
+    flex: 1 1 100px;
+  }
+
+  .bo-report-page .bo-day-picker > .bo-icon-button {
+    width: var(--control-dense);
+  }
+
+  .bo-report-page .bo-day-picker > .bo-button {
+    flex: 1 1 100%;
+  }
+
+  .bo-report-page .bo-report-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bo-report-page .bo-report-grid__summary,
+  .bo-report-page .bo-report-grid__side {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
