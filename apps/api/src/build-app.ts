@@ -14,6 +14,7 @@ import { allowedOriginsHook } from "./http/allowed-origins-hook";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
 import { webhookSecretBox } from "./payments/webhook-secret-box";
+import { diskProductImageStore } from "./media/product-image-store";
 import { requirePermissionHook } from "./permissions/require-permission";
 import { registerLoginRoute } from "./routes/auth/login-route";
 import { registerSessionRoutes } from "./routes/auth/session-routes";
@@ -21,6 +22,7 @@ import { registerBranchListRoute } from "./routes/branches/branch-list-route";
 import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceListRoute } from "./routes/devices/device-list-route";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
+import { registerProductImageRoutes } from "./routes/media/product-image-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerEInvoiceProfileRoutes } from "./routes/einvoice/einvoice-profile-routes";
 import { registerFloorRoutes } from "./routes/floor/register-floor-routes";
@@ -84,6 +86,8 @@ export interface AppDependencies {
    * learns only API_INTERNAL, so this is the one trace a server fault leaves.
    */
   onServerError?: (report: ServerErrorReport) => void;
+  /** Where product photos are kept, a directory per tenant; without it uploads answer 503. */
+  mediaDirectory?: string;
 }
 
 /**
@@ -94,7 +98,7 @@ export interface AppDependencies {
  * Trusting a client-supplied tenant id would turn row level security into a formality.
  */
 export function buildApp(dependencies: AppDependencies): FastifyInstance {
-  const { pool, clock, policy } = dependencies;
+  const { pool, clock, policy, mediaDirectory } = dependencies;
   const app = Fastify({ logger: false });
   const resolvedClock = clock ?? systemClock;
   const sessionCookies = sessionCookieJar({ secure: dependencies.secureCookies ?? true });
@@ -107,6 +111,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
     requireSession: backofficeSessionHook(pool, resolvedClock, sessionCookies),
     requireDevice: deviceAuthHook(pool),
     requirePermission: requirePermissionHook(pool),
+    productImages: mediaDirectory === undefined ? null : diskProductImageStore(mediaDirectory),
   };
 
   app.decorateRequest("auth", null);
@@ -133,8 +138,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
     return reply.code(500).send({ code: AUTH_ERROR_CODES.internal });
   });
 
-  // Readiness: answers 503 while the database is unreachable, so a load balancer stops
-  // routing here instead of every request failing.
+  // Readiness: 503 while the database is unreachable, so a load balancer routes elsewhere.
   app.get("/health", async (_request, reply) => {
     try {
       await pool.query("SELECT 1");
@@ -161,6 +165,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerApprovalRoutes(app, context);
   registerPosBootstrapRoute(app, context);
   registerCatalogRoutes(app, context);
+  registerProductImageRoutes(app, context);
   registerFloorRoutes(app, context);
   registerSyncRoutes(app, context);
   registerPrintFailureRoutes(app, context);

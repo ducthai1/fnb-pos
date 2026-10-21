@@ -1,3 +1,5 @@
+import { constants } from "node:fs";
+import { access, mkdir } from "node:fs/promises";
 import pg from "pg";
 import { type AppDependencies, buildApp } from "../build-app";
 import { FakeEInvoiceProvider } from "../einvoice/providers/fake-einvoice-provider";
@@ -32,6 +34,7 @@ export async function startServer(
   pool.on("error", (error) => logError(`database connection lost: ${maskSecrets(error.message)}`));
   try {
     await refusePrivilegedRole(pool);
+    await prepareMediaDirectory(config.mediaDirectory);
     const app = buildApp({
       ...dependenciesOf(config, pool, log),
       // Every 500, with its route and masked message, so a fault in production leaves a trace.
@@ -69,7 +72,11 @@ export async function startServer(
 }
 
 function dependenciesOf(config: ServerConfig, pool: pg.Pool, log: ServerLog): AppDependencies {
-  const dependencies: AppDependencies = { pool, secureCookies: config.secureCookies };
+  const dependencies: AppDependencies = {
+    pool,
+    secureCookies: config.secureCookies,
+    mediaDirectory: config.mediaDirectory,
+  };
   if (config.paymentSecretKey !== null) dependencies.paymentSecretKey = config.paymentSecretKey;
   if (config.allowedOrigins !== null) dependencies.allowedOrigins = config.allowedOrigins;
   if (config.einvoiceProvider === "fake") {
@@ -91,5 +98,15 @@ async function refusePrivilegedRole(pool: pg.Pool): Promise<void> {
     throw new Error(
       "the database role bypasses row level security; connect as the app role (fnb_app)",
     );
+  }
+}
+
+/** Photos are written while the shop works; a directory the API cannot write stops it now. */
+async function prepareMediaDirectory(directory: string): Promise<void> {
+  try {
+    await mkdir(directory, { recursive: true, mode: 0o750 });
+    await access(directory, constants.W_OK);
+  } catch {
+    throw new Error("FNB_MEDIA_DIR cannot be created or written by the API's user");
   }
 }

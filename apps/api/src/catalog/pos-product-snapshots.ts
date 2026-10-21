@@ -1,11 +1,14 @@
 import type { PosProductWire } from "@fnb/contracts";
 import type pg from "pg";
+import { productImageUrl } from "../media/product-image-store";
 import type { Unversioned } from "./pos-menu-snapshots";
 import { amountOf } from "./product-document";
 import { readProductArrangements } from "./read-product-arrangement";
 
 interface ProductRow {
   id: string;
+  tenant_id: string;
+  image_key: string | null;
   brand_id: string;
   category_id: string | null;
   station_id: string | null;
@@ -35,7 +38,7 @@ export async function readPosProducts(
   const byBrand = "brandId" in scope;
   const products = await client.query<ProductRow>(
     "SELECT id, brand_id, category_id, station_id, kind, name, base_price, pricing_mode, " +
-      "tax_rate_bp, track_stock, earns_points, print_cup_label FROM product " +
+      "tax_rate_bp, track_stock, earns_points, print_cup_label, tenant_id, image_key FROM product " +
       `WHERE ${byBrand ? "brand_id = $1" : "id = ANY($1::uuid[])"} AND archived_at IS NULL ` +
       "ORDER BY name, id",
     [byBrand ? scope.brandId : scope.productIds],
@@ -67,6 +70,8 @@ export async function readPosProducts(
       trackStock: row.track_stock,
       earnsPoints: row.earns_points,
       printCupLabel: row.print_cup_label,
+      // Left out without a photo: a till that predates photos reads every such copy.
+      ...(row.image_key === null ? {} : { imageUrl: productImageUrl(row.tenant_id, row.image_key) }),
       variants: variants.rows
         .filter((variant) => variant.product_id === row.id)
         .map((variant) => ({

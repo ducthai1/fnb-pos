@@ -1,9 +1,12 @@
 import type pg from "pg";
+import { productImageUrl } from "../media/product-image-store";
 import { type ProductDocument, amountOf } from "./product-document";
 import { readProductArrangement } from "./read-product-arrangement";
 
 interface ProductRow {
   id: string;
+  tenant_id: string;
+  image_key: string | null;
   version: number;
   archived_at: Date | null;
   brand_id: string;
@@ -48,6 +51,8 @@ export async function readProductDocument(
     trackStock: row.track_stock,
     earnsPoints: row.earns_points,
     printCupLabel: row.print_cup_label,
+    imageKey: row.image_key,
+    imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),
     variants: variants.rows.map((variant) => ({
       id: variant.id,
       name: variant.name,

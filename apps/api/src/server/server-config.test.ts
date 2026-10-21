@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { DEVELOPMENT_MEDIA_DIRECTORY } from "./media-environment";
 import { readServerConfig } from "./server-config";
 
 const PASSWORD = "s3cret-Pa55word";
@@ -12,6 +13,7 @@ const production = {
   FNB_DATABASE_URL: DATABASE_URL,
   FNB_EINVOICE_PROVIDER: "none",
   FNB_ALLOWED_ORIGINS: "https://pos.example.vn,https://admin.example.vn",
+  FNB_MEDIA_DIR: "/var/lib/fnb/media",
 };
 
 function problemsOf(env: Record<string, string>): readonly string[] {
@@ -45,6 +47,7 @@ describe("server configuration", () => {
           trustedProxies: [],
         },
         cleanup: { intervalMillis: 3_600_000, sessionRetentionMillis: 30 * 86_400_000 },
+        mediaDirectory: DEVELOPMENT_MEDIA_DIRECTORY,
       },
     });
   });
@@ -163,6 +166,7 @@ describe("server configuration", () => {
     expect(problemsOf({ FNB_ENV: "production", FNB_DATABASE_URL: DATABASE_URL })).toEqual([
       "FNB_EINVOICE_PROVIDER is required in production: name the provider or none",
       "FNB_ALLOWED_ORIGINS is required in production",
+      "FNB_MEDIA_DIR is required in production: where product photos are kept",
     ]);
   });
 

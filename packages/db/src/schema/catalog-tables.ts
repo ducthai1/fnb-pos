@@ -33,6 +33,8 @@ export const product = pgTable("product", {
   trackStock: boolean("track_stock").notNull().default(false),
   earnsPoints: boolean("earns_points").notNull().default(true),
   printCupLabel: boolean("print_cup_label").notNull().default(false),
+  /** `<sha256>.<jpg|png|webp>` in the tenant's media directory; null without a photo. */
+  imageKey: text("image_key"),
   archivedAt: at("archived_at"),
 });
 

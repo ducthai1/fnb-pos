@@ -76,12 +76,15 @@ export function pearlMilkTeaDocument(
   return { ids, body, url: `/catalog/products/${ids.product}` };
 }
 
-/** What GET answers for a body just saved: the body without its version, plus the stored state. */
+/**
+ * What GET answers for a body just saved: the body without its version, plus the stored
+ * state (no photo unless the body named one).
+ */
 export function storedDocument(
   id: string,
   body: { version: number | null } & Record<string, unknown>,
   version: number,
 ) {
   const rest = Object.fromEntries(Object.entries(body).filter(([key]) => key !== "version"));
-  return { id, version, archivedAt: null, ...rest };
+  return { id, version, archivedAt: null, imageKey: null, imageUrl: null, ...rest };
 }

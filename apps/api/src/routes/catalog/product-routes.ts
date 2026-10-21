@@ -14,6 +14,8 @@ import { amountOf } from "../../catalog/product-document";
 import { checkProductDocument } from "../../catalog/product-document-to-domain";
 import { readProductDocument } from "../../catalog/read-product-document";
 import { writeProductDocument } from "../../catalog/write-product-document";
+import { MEDIA_API_ERROR_CODES } from "../../media/media-api-error-codes";
+import { productImageUrl } from "../../media/product-image-store";
 import { lockTenantChangeFeed } from "../../sync/change-feed";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
@@ -30,6 +32,12 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
       // Checked before the transaction opens: a refused menu never takes a lock.
       const checked = checkProductDocument(id, input);
       const writer = writeContextOf(request, context);
+      // A photo is named only once it is in this tenant's own directory: another tenant's
+      // name, or one never uploaded, would leave every till with a broken tile.
+      const imageKey = input.imageKey ?? null;
+      if (imageKey !== null && !(await context.productImages?.has(writer.tenantId, imageKey))) {
+        throw new CatalogRequestError(404, MEDIA_API_ERROR_CODES.imageNotFound);
+      }
       const { created, document } = await withTenant(
         context.pool,
         writer.tenantId,
@@ -70,7 +78,8 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.brandNotFound);
         }
         const products = await client.query(
-          "SELECT id, name, kind, category_id, base_price, pricing_mode, version, archived_at " +
+          "SELECT id, name, kind, category_id, base_price, pricing_mode, version, archived_at, " +
+            "tenant_id, image_key " +
             "FROM product WHERE brand_id = $1 ORDER BY name, id",
           [brandId],
         );
@@ -86,6 +95,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           pricingMode: row.pricing_mode,
           version: row.version,
           archivedAt: row.archived_at === null ? null : row.archived_at.toISOString(),
+          imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),
         })),
       );
     }),

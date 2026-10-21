@@ -1,6 +1,7 @@
 import type { ModifierGroupVariantRule } from "@fnb/domain";
 import { z } from "zod";
 import { countSchema, idSchema, nameSchema } from "../catalog/catalog-schema-parts";
+import { productImageUrlSchema } from "../catalog/product-image-schemas";
 import { moneySchema } from "../primitives/money-schema";
 import { rateSchema } from "../primitives/rate-schema";
 import { feedVersionSchema } from "./pos-feed-version-schema";
@@ -78,6 +79,12 @@ export const posProductSchema = z
     trackStock: z.boolean(),
     earnsPoints: z.boolean(),
     printCupLabel: z.boolean(),
+    /**
+     * The photo's address under the API; absent when the product has none. Optional so a
+     * copy stored by a till before photos existed still reads, and the server leaves the key
+     * out for a product without one.
+     */
+    imageUrl: productImageUrlSchema.optional(),
     variants: z.array(
       z.object({ id: idSchema, name: nameSchema, price: moneySchema.nullable() }).strict(),
     ),

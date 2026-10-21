@@ -150,6 +150,7 @@ describe("listing and archiving products", () => {
       pricingMode: "fixed",
       version: 2,
       archivedAt: archived.json().archivedAt,
+      imageUrl: null,
     });
     const read = await expectStatus(shop.call("GET", url), 200);
     expect(read.json()).toMatchObject({ archivedAt: archived.json().archivedAt, version: 2 });

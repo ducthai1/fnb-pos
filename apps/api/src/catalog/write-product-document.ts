@@ -53,6 +53,8 @@ export async function writeProductDocument(
       track_stock: input.trackStock,
       earns_points: input.earnsPoints,
       print_cup_label: input.printCupLabel,
+      // Left out of the body: the stored photo stays.
+      ...(input.imageKey === undefined ? {} : { image_key: input.imageKey }),
     },
   });
   await writeVariants(client, context, checked);
