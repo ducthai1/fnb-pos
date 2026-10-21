@@ -10,8 +10,8 @@ Code do Claude viết qua nhiều phiên. **Trước khi làm bất cứ gì: đ
 4. Server không tin tiền client gửi: tính lại bằng `domain`.
 5. **Test là một phần của tính năng**: gỡ hành vi ra thì test phải đỏ; sửa bug bắt đầu bằng test tái hiện. Không xóa/skip test để qua cổng.
 6. Không ghi mã task / phase / quyết định (`T04-07`, `D-010`…) vào code, test, migration, commit.
-7. Quyết định `đã duyệt` trong `docs/decision-log.md` không tự đảo — hỏi user.
-8. Việc nảy ra ngoài task ⇒ ghi "Backlog phát sinh", không làm luôn. Cuối phiên ghi "Bàn giao phiên trước".
+7. Câu hỏi nghiệp vụ / UX / kỹ thuật **không hỏi chủ dự án** (chốt 2026-10-21): tra code + test, POS tham khảo (empos, chỉ đọc), hệ thống lớn đang chạy (KiotViet, Sapo, iPOS, Toast, Square, Odoo…) và internet → chọn cách đúng, thuận tay, an toàn tiền nhất → làm → ghi `docs/decision-log.md` (nguồn đã tra + lý do) → báo lại. Đảo lựa chọn chủ dự án đã nói rõ chỉ khi có bằng chứng mới. Vẫn hỏi khi: tiêu tiền thật, tài khoản / khóa thật, đổi public/private, deploy thật, xóa dữ liệu không do mình tạo, chép nguyên code của bên khác, luật thuế/HĐĐT áp lên dữ liệu thật.
+8. Việc nảy ra ngoài task ⇒ ghi "Backlog phát sinh", không làm luôn trong task đang dở. Cuối phiên ghi "Bàn giao phiên trước".
 9. Code, comment, commit, tên test: tiếng Anh. Docs và chuỗi hiển thị: tiếng Việt.
 
 ## Lệnh
