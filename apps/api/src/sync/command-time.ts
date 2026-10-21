@@ -5,7 +5,8 @@ const MINUTE = 60_000;
 
 /**
  * How far a till's clock may disagree with the server's. A command cannot have been made
- * after the server received it, so one dated more than two minutes ahead is refused. Up to
+ * after the server received it, so one dated more than two minutes ahead is not taken: it
+ * is sent back to retry, and the till dates it again by the server's clock. Up to
  * two minutes ahead is a clock that drifts a little, forgiven: the command is acted on at
  * the till's own time, the time the till priced it and showed the customer, so a sale made
  * on a fast till at the start of happy hour is not repriced (and its payment refused) by
@@ -44,7 +45,7 @@ export type CommandTimeReading =
       readonly aheadMs: number;
     };
 
-/** The one place a command's time is decided: refused, or the moment to act on. */
+/** The one place a command's time is decided: sent back to retry, or the moment to act on. */
 export function readCommandTime(
   createdAt: string,
   receivedAt: Date,

@@ -7,7 +7,9 @@ import { entitySnapshotSchema, errorCodeSchema } from "./entity-snapshot-schema"
  * - accepted: applied; the snapshot, when there is one, is the row it produced.
  * - rejected: final; it needs a code to tell the cashier why, and may carry the row as the
  *   server has it so the till can put its copy right.
- * - retry: not applied yet and safe to send again (an earlier deviceSeq has not arrived).
+ * - retry: not applied yet, nothing kept, and safe to send again under the same id: an
+ *   earlier deviceSeq has not arrived, or the command is dated ahead of the server's clock
+ *   (the till dates it again by the server time the answer's header carries).
  */
 export const syncCommandResultSchema = z.discriminatedUnion("status", [
   z

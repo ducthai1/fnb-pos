@@ -46,6 +46,9 @@ export const LOCAL_STORE_METHODS = [
   "dropCopiesTheServerLost",
   "restoreState",
   "pruneJournal",
+  "clockOffset",
+  "saveClockOffset",
+  "retimePending",
   "close",
 ] as const satisfies readonly (keyof LocalStore)[];
 

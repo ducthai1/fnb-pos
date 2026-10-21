@@ -75,6 +75,11 @@
   overflow-wrap: anywhere;
 }
 
+.pos-notice[data-tone="warn"] {
+  background: var(--pos-warn-bg);
+  color: var(--pos-warn-text);
+}
+
 /* A second step in place, drawn as the back office's confirm box: an amber warning sign
    before an amber title, the sentence in grey, the two choices side by side on the right. */
 .pos-confirm {

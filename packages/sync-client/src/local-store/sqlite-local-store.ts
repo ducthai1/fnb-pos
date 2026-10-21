@@ -16,6 +16,13 @@ import {
   WRITE_META_SQL,
 } from "./local-store-schema-sql";
 import { ensureJournalColumns, pruneJournal } from "./command-journal";
+import {
+  ensureClockColumns,
+  onServerClock,
+  readClockOffset,
+  retimePending,
+  saveClockOffset,
+} from "./till-clock-offset";
 import { recordCommandResults } from "./record-command-results";
 import {
   adoptServerGeneration,
@@ -45,6 +52,7 @@ const envelopeOf = (row: SqlRow): SyncCommandEnvelope => ({
 export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
   driver.exec(LOCAL_SCHEMA_SQL);
   ensureJournalColumns(driver);
+  ensureClockColumns(driver);
   const views = (entity: string): EntityView[] =>
     driver
       .all(READ_ENTITY_IDS_SQL, [entity])
@@ -61,8 +69,10 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
       }),
 
     enqueue: async (command) => {
-      const { target, ...envelope } = validateLocalCommand(command);
+      const { target, ...recorded } = validateLocalCommand(command);
       return inTransaction(driver, () => {
+        const offset = readClockOffset(driver) ?? 0;
+        const envelope = { ...recorded, createdAt: onServerClock(recorded.createdAt, offset) };
         if (driver.all(FIND_OUTBOX_SQL, [envelope.commandId]).length > 0) {
           throw new SyncClientError(SYNC_CLIENT_ERROR_CODES.commandIdTaken);
         }
@@ -74,6 +84,7 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
           target.entity,
           target.entityId,
           JSON.stringify(envelope),
+          recorded.createdAt,
         ]);
         driver.run(UPSERT_OPTIMISTIC_SQL, [
           target.entity,
@@ -127,6 +138,14 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
     restoreState: async () => readRestoreState(driver),
 
     pruneJournal: async (now, settledBefore) => pruneJournal(driver, { now, settledBefore }),
+
+    clockOffset: async () => readClockOffset(driver),
+
+    saveClockOffset: async (offsetMs) =>
+      inTransaction(driver, () => saveClockOffset(driver, offsetMs)),
+
+    retimePending: async (fromDeviceSeq, notAfter) =>
+      retimePending(driver, fromDeviceSeq, notAfter),
 
     close: async () => driver.close(),
   };

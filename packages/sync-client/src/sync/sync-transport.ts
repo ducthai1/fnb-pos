@@ -23,13 +23,22 @@ export class SyncTransportError extends Error {
   }
 }
 
+/** The server's clock as an answer named it, ms since the epoch: what the till dates by. */
+export interface ServerTimed {
+  readonly serverTimeMs?: number;
+}
+
 /** A pulled page and the generation of the server that sent it, when it names one. */
-export type PulledChanges = SyncChangesPage & { readonly serverGeneration?: string };
+export type PulledChanges = SyncChangesPage & { readonly serverGeneration?: string } & ServerTimed;
+
+/** A push's answers with the server's clock; a transport that cannot read it sends a list. */
+export type PushedCommands =
+  readonly SyncCommandResult[] | (ServerTimed & { readonly results: readonly SyncCommandResult[] });
 
 /** How a till reaches the sync endpoints. Every failure is a SyncTransportError. */
 export interface SyncTransport {
   /** One batch of the till's commands, oldest first; one answer per command it reached. */
-  pushCommands(commands: readonly SyncCommandEnvelope[]): Promise<SyncCommandResult[]>;
+  pushCommands(commands: readonly SyncCommandEnvelope[]): Promise<PushedCommands>;
   /** The changes after `cursor`, at most `limit`, oldest first. */
   pullChanges(cursor: string, limit: number): Promise<PulledChanges>;
   /** What the server holds of this till; asked once the till meets a new generation. */

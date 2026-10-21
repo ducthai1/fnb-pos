@@ -87,16 +87,19 @@ describe("a QR's fifteen minutes run from when the server heard of it", () => {
     expect(intentOf(made)?.expiresAt).toBe(EXPIRES_AT.toISOString());
   });
 
-  it("while a till a day fast is refused before its QR exists, so it is never payable", async () => {
+  it("while a till a day fast is sent back before its QR exists, and re-dated gets fifteen minutes", async () => {
     const orderId = await draftOf39k(app, s);
     const createdAt = new Date(Date.parse(RECORDED_AT) + 24 * 60 * MINUTE).toISOString();
     const sent = createIntent(s.tillA, orderId, 39_000, { createdAt });
     expect(await pushOne(app, s.tillA, sent)).toMatchObject({
-      status: "rejected",
+      status: "retry",
       code: "SYNC_DEVICE_CLOCK_AHEAD",
     });
-    await customerPays(contentCodeOf(sent));
     expect(await statusOf(intentIdOf(sent))).toBeUndefined();
+    // Dated again by the server's clock, a day of the till's clock buys it nothing.
+    const made = await pushOne(app, s.tillA, { ...sent, createdAt: clock.now().toISOString() });
+    expect(made.status).toBe("accepted");
+    expect(intentOf(made)?.expiresAt).toBe(EXPIRES_AT.toISOString());
   });
 
   it("while a transfer that came before a till synced its QR, slow clock or not, still pays it", async () => {

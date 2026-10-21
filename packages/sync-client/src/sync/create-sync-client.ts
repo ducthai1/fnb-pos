@@ -62,6 +62,8 @@ export interface SyncClient {
   pendingCommands(): Promise<SyncCommandEnvelope[]>;
   /** After the server was restored from a backup: what the till still has to send again. */
   restoreState(): Promise<RestoreState>;
+  /** How far the server's clock is ahead of the till's, in ms, as last measured; or null. */
+  clockOffset(): Promise<number | null>;
   /** Called after a write that changed what some rows show; returns the unsubscribe. */
   onChange(listener: ChangeListener): () => void;
 }
@@ -91,6 +93,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     maxPullPages: options.maxPullPages ?? 10,
     emit,
     now: () => new Date(clock.now()).toISOString(),
+    nowMs: () => clock.now(),
   };
   const retentionMs = options.journalRetentionMs ?? DEFAULT_JOURNAL_RETENTION_MS;
   let prunedAt = Number.NEGATIVE_INFINITY;
@@ -148,6 +151,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     pendingCount: () => store.pendingCount(),
     pendingCommands: () => store.pendingCommands(ALL_PENDING),
     restoreState: () => store.restoreState(),
+    clockOffset: () => store.clockOffset(),
     onChange(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

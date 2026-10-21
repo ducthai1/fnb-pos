@@ -57,9 +57,9 @@ describe("who is at the till", () => {
 });
 
 describe("what the till says about the server refusing it for a reason of its own", () => {
-  it("names a till clock running ahead in the sentence the shop was promised", () => {
+  it("names a till clock running ahead as handled, with the fix the shop should still make", () => {
     expect(messageForCode("SYNC_DEVICE_CLOCK_AHEAD")).toBe(
-      "Đồng hồ của máy nhanh hơn máy chủ quá 2 phút. Chỉnh lại giờ của máy rồi làm lại thao tác.",
+      "Giờ máy nhanh hơn máy chủ — máy đã tự dùng giờ máy chủ và gửi lại. Nên chỉnh lại giờ Windows.",
     );
     expect(messageForCode("API_ORIGIN_NOT_ALLOWED")).not.toBe(text.errors.unknown);
   });

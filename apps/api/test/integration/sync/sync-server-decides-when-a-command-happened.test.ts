@@ -75,6 +75,30 @@ const teaDraftAt = (createdAt: string): SyncCommandEnvelope => ({
   createdAt,
 });
 
+/** A push of one command by till A, with the server's clock its answer names. */
+async function pushNamingTheClock(sent: SyncCommandEnvelope) {
+  const response = await app.inject({
+    method: "POST",
+    url: "/sync/commands",
+    headers: {
+      authorization: `Device ${s.tillA.deviceToken}`,
+      "x-staff-session": s.tillA.staffToken,
+    },
+    payload: { commands: [sent] },
+  });
+  expect(response.statusCode).toBe(200);
+  const [result] = response.json().results as { status: string; snapshot?: unknown }[];
+  return { result, serverTime: Number(response.headers["x-fnb-server-time"]) };
+}
+
+const inCommandLog = async (commandId: string) =>
+  rowsOf(
+    pool,
+    s.shop.tenantId,
+    "SELECT count(*)::int AS n FROM applied_command WHERE command_id = $1",
+    [commandId],
+  );
+
 const priceOf = (result: { snapshot?: unknown }) =>
   (result.snapshot as OrderSnapshot).lines[0]?.unitPrice;
 
@@ -88,15 +112,32 @@ const clampsOf = (commandId: string) =>
   );
 
 describe("a command from a till whose clock is off", () => {
-  it("is refused three minutes fast, storing nothing of it, and the till moves on", async () => {
-    const fast = teaDraftAt(fromServer(3 * MINUTE));
-    expect(await pushOne(app, s.tillA, fast)).toMatchObject({
-      status: "rejected",
+  it("is sent back five minutes fast with the server's clock, kept nowhere, and taken re-dated", async () => {
+    const fast = teaDraftAt(fromServer(5 * MINUTE));
+    const first = await pushNamingTheClock(fast);
+    expect(first.result).toEqual({
+      commandId: fast.commandId,
+      status: "retry",
       code: "SYNC_DEVICE_CLOCK_AHEAD",
     });
+    expect(first.serverTime).toBe(SERVER_STARTS_AT.getTime());
     const stored = "SELECT count(*)::int AS n FROM sales_order WHERE id = $1";
     expect(await rowsOf(pool, s.shop.tenantId, stored, [orderIdOf(fast)])).toEqual([{ n: 0 }]);
-    expect((await pushOne(app, s.tillA, teaDraftAt(fromServer(-MINUTE)))).status).toBe("accepted");
+    expect(await inCommandLog(fast.commandId)).toEqual([{ n: 0 }]);
+    // The same command, same id and device_seq, dated again by the server's clock.
+    const redated = { ...fast, createdAt: new Date(first.serverTime).toISOString() };
+    expect((await pushNamingTheClock(redated)).result?.status).toBe("accepted");
+    expect(await inCommandLog(fast.commandId)).toEqual([{ n: 1 }]);
+    expect(await rowsOf(pool, s.shop.tenantId, stored, [orderIdOf(fast)])).toEqual([{ n: 1 }]);
+  });
+
+  it("names the server's clock on every sync answer and the bootstrap", async () => {
+    const device = { authorization: `Device ${s.tillA.deviceToken}` };
+    for (const url of ["/sync/changes?cursor=0&limit=1", "/sync/device-state", "/pos/bootstrap"]) {
+      const response = await app.inject({ method: "GET", url, headers: device });
+      expect(response.statusCode, url).toBe(200);
+      expect(response.headers["x-fnb-server-time"], url).toBe(String(SERVER_STARTS_AT.getTime()));
+    }
   });
 
   it("is taken one minute fast at the till's own time, and not noted", async () => {
@@ -135,9 +176,15 @@ describe("a command from a till whose clock is off", () => {
   });
 
   it("gets no happy-hour price by setting the till's clock to happy hour", async () => {
-    // 15:00 today is five hours ahead of the server: refused.
-    const today = await pushOne(app, s.tillA, teaDraftAt("2026-10-20T08:00:00.000Z"));
-    expect(today).toMatchObject({ status: "rejected", code: "SYNC_DEVICE_CLOCK_AHEAD" });
+    // 15:00 today is five hours ahead of the server: sent back, and re-dated by the
+    // server's clock it is 10:01, no happy hour.
+    const fastForward = teaDraftAt("2026-10-20T08:00:00.000Z");
+    const today = await pushNamingTheClock(fastForward);
+    expect(today.result).toMatchObject({ status: "retry", code: "SYNC_DEVICE_CLOCK_AHEAD" });
+    const redated = { ...fastForward, createdAt: new Date(today.serverTime).toISOString() };
+    const taken = (await pushNamingTheClock(redated)).result;
+    expect(taken?.status).toBe("accepted");
+    expect(priceOf(taken ?? {})).toBe(TEA_M);
     // 15:00 yesterday is held at 12 hours back, 22:01 yesterday: no happy hour then.
     const yesterday = teaDraftAt("2026-10-19T08:00:00.000Z");
     const result = await pushOne(app, s.tillA, yesterday);

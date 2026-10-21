@@ -1,4 +1,4 @@
-import { SERVER_GENERATION_HEADER } from "@fnb/contracts";
+import { SERVER_GENERATION_HEADER, SERVER_TIME_HEADER } from "@fnb/contracts";
 import { readServerGeneration, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
@@ -31,6 +31,9 @@ export function registerPosBootstrapRoute(app: FastifyInstance, context: ApiCont
         body: await readPosBootstrap(client, device, now),
       }),
     );
-    return reply.header(SERVER_GENERATION_HEADER, generation).send(body);
+    return reply
+      .header(SERVER_GENERATION_HEADER, generation)
+      .header(SERVER_TIME_HEADER, String(context.clock.now().getTime()))
+      .send(body);
   });
 }
