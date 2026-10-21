@@ -15,8 +15,13 @@ export function kitchenStillHasItems(settled: AdjustableOrder): boolean {
   );
 }
 
-/** What closing a draft nobody paid for needs, once it is more than a draft on the till. */
-export const CLOSE_UNPAID_TABLE: PermissionAction = { key: "close_unpaid_table" };
+/**
+ * What closing draft `orderId` nobody paid for needs, once it is more than a draft on the
+ * till; an approval of it covers that order only.
+ */
+export function closeUnpaidTable(orderId: string): PermissionAction {
+  return { key: "close_unpaid_table", subject: { orderId } };
+}
 
 /**
  * Whether cancelling needs close_unpaid_table, as the server judges it: the guests were

@@ -66,7 +66,13 @@ describe("cancelling an item the kitchen already has", () => {
       reasonCode: "made_wrong",
       approvalId: server.state.approvals[0]?.approvalId,
     });
-    expect(server.state.calls.approvals[0]?.action).toEqual({ key: "void_after_sent" });
+    // The manager approved one unit of this coffee of this table's order, and nothing else.
+    const voided = pushedOf(server, "order.void_line")[0]?.payload;
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "void_after_sent",
+      voidedQuantity: "1",
+      subject: { orderId: voided?.orderId, lineId: voided?.lineId },
+    });
     const cancel = serverCancelLine(server);
     expect(ticketLines(server)[1]).toEqual([
       { lineId: cancel?.id, kind: "cancel", quantity: "1", note: null },

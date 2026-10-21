@@ -1,4 +1,4 @@
-import { basisPoints, vnd } from "@fnb/domain";
+import { basisPoints, quantity, vnd } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
 import { actionOnWire, tillAuthority } from "./till-authority";
 
@@ -46,5 +46,16 @@ describe("what the staff member at the till may do alone", () => {
       key: "order_discount",
       discountRate: 2000,
     });
+  });
+
+  it("sends what the approval is for: the order, line or shift, the refund's money, the void's units", () => {
+    const orderId = "0199f0ee-0000-7000-8000-00000000c0de";
+    expect(
+      actionOnWire({ key: "refund", refundAmount: vnd(25_000), subject: { orderId } }),
+    ).toEqual({ key: "refund", refundAmount: "25000", subject: { orderId } });
+    const subject = { orderId, lineId: "0199f0ee-0000-7000-8000-00000000beef" };
+    expect(
+      actionOnWire({ key: "void_after_sent", voidedQuantity: quantity("1.5"), subject }),
+    ).toEqual({ key: "void_after_sent", voidedQuantity: "1.5", subject });
   });
 });

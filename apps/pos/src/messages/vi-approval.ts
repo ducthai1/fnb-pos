@@ -45,6 +45,8 @@ export const VI_APPROVAL_ERRORS = {
     "Người này cũng không được tự làm thao tác này nên không duyệt được. Chọn người khác.",
   API_APPROVAL_SELF_APPROVAL: "Không tự duyệt cho mình được. Chọn người khác.",
   API_APPROVAL_NOT_APPROVABLE: "Thao tác này không duyệt hộ được: người có quyền phải tự làm.",
+  API_APPROVAL_SUBJECT_REQUIRED:
+    "Yêu cầu duyệt không nói rõ đơn hoặc ca nào nên máy chủ không nhận. Cập nhật ứng dụng bán hàng rồi làm lại thao tác.",
   API_STAFF_SESSION_INVALID: "Phiên đứng quầy đã hết hạn. Nhập lại mã PIN để làm tiếp.",
   SYNC_APPROVAL_REQUIRED:
     "Máy chủ cần quản lý duyệt thao tác này mà lệnh không kèm lần duyệt nào. Làm lại thao tác và nhờ quản lý nhập PIN.",
@@ -54,6 +56,8 @@ export const VI_APPROVAL_ERRORS = {
     "Lần duyệt này dành cho người khác hoặc máy khác. Làm lại thao tác và nhờ quản lý duyệt lại.",
   SYNC_APPROVAL_FOR_ANOTHER_ACTION:
     "Quản lý đã duyệt một con số khác với thao tác máy gửi (đơn vừa đổi ở máy khác?). Làm lại thao tác và nhờ quản lý duyệt lại.",
+  SYNC_APPROVAL_FOR_ANOTHER_SUBJECT:
+    "Lần duyệt này dành cho đơn, món hoặc ca khác với thao tác máy gửi. Làm lại thao tác và nhờ quản lý duyệt lại.",
   SYNC_APPROVAL_EXPIRED:
     "Lần duyệt đã quá hạn khi thao tác được ghi. Làm lại thao tác và nhờ quản lý duyệt lại.",
   SYNC_APPROVAL_ALREADY_USED:

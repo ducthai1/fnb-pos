@@ -65,7 +65,7 @@ export function tillShiftLedger(
 /**
  * The action a cash move is judged by: everything moved through the shift's drawer once
  * this move is made, as the server judges it, so an approval the till asks for is for the
- * very figure the server will check.
+ * very figure the server will check, in this shift only.
  */
 export function cashMoveActionFor(
   shift: StoredShift,
@@ -74,5 +74,6 @@ export function cashMoveActionFor(
   amount: Vnd,
 ): PermissionAction {
   const ledger = tillShiftLedger(shift, []);
-  return cashMoveAction(ledger, { kind: kind === "in" ? "cash_in" : "cash_out", amount, staffId });
+  const move = { kind: kind === "in" ? "cash_in" : "cash_out", amount, staffId } as const;
+  return { ...cashMoveAction(ledger, move), subject: { shiftId: shift.id } };
 }

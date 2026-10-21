@@ -65,7 +65,10 @@ export function planDiscount(
   if (lines.length === 0) throw new DiscountRoundsToNothingError();
   const discountRate = projectedDiscountRate(order, lines, scope);
   const key = scope.kind === "order" ? "order_discount" : "line_discount";
-  return { scope, input, lines, action: { key, discountRate } };
+  // An approval of it covers up to this rate of this order (and item) only.
+  const { orderId } = settled.order;
+  const subject = scope.kind === "order" ? { orderId } : { orderId, lineId: scope.lineId };
+  return { scope, input, lines, action: { key, discountRate, subject } };
 }
 
 const wireDiscount = (plan: DiscountPlan) => {

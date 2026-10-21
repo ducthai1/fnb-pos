@@ -120,9 +120,15 @@ it("moves cash in and out, closes a short drawer with a manager, the server keep
     { kind: "in", amount: "480000", reason: "Đổi tiền lẻ" },
   ]);
   expect(moves.map((move) => move.approval_id === null)).toEqual([true, false]);
+  // Both approvals are for this shift, and for the figures the manager was shown.
+  const subject = { shiftId: shift!.id };
   expect(await approvalsOfTill(pool, stack.tenantId, till.deviceId)).toEqual([
-    { action_key: "cash_move", payload: { amount: "530000" }, used: true },
-    { action_key: "accept_close_difference", payload: { difference: "-10000" }, used: true },
+    { action_key: "cash_move", payload: { amount: "530000", subject }, used: true },
+    {
+      action_key: "accept_close_difference",
+      payload: { difference: "-10000", subject },
+      used: true,
+    },
   ]);
   expect(till.problems).toEqual([]);
   await till.close();

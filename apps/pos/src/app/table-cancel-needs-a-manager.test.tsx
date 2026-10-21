@@ -36,7 +36,11 @@ describe("cancelling a table's order", () => {
     );
     await managerApproves();
     await waitFor(() => expect(pushedOf(server, "order.cancel")).toHaveLength(1));
-    expect(server.state.calls.approvals[0]?.action).toEqual({ key: "close_unpaid_table" });
+    // The manager approved closing this order, and no other.
+    expect(server.state.calls.approvals[0]?.action).toEqual({
+      key: "close_unpaid_table",
+      subject: { orderId: pushedOf(server, "order.cancel")[0]?.payload.orderId },
+    });
     expect(pushedOf(server, "order.cancel")[0]?.payload).toMatchObject({
       reasonCode: "customer_left",
       approvalId: server.state.approvals[0]?.approvalId,
