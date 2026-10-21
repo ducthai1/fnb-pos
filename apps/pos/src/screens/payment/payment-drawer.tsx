@@ -25,7 +25,7 @@ export interface PaymentDrawerProps {
   amountDue: Vnd;
   /** Whether the branch set an account a VietQR can ask customers to transfer to. */
   qrAccountSet: boolean;
-  /** Who the e-invoice is for, when the branch issues them. */
+  /** Who the e-invoice is for, when the branch issues them; shown on the cash card. */
   invoice?: ReactNode;
   /** The way chosen when the drawer opens. */
   initialWay?: PayWay;
@@ -150,7 +150,9 @@ export function PaymentDrawer(props: PaymentDrawerProps) {
         props.qrPanel(() => setWay("cash"))
       )}
       <Alert message={error} />
-      {props.invoice}
+      {/* Not beside a QR still out: editing the buyer leaves the drawer, and the QR must be
+          taken down before that, so the buyer is set on the cash card first. */}
+      {way === "cash" ? props.invoice : null}
     </SideDrawer>
   );
 }

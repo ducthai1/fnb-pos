@@ -14,11 +14,13 @@ const tap = (name: string) => fireEvent.click(screen.getByRole("button", { name 
 const card = (name: string) => screen.getByRole("button", { name });
 
 function openDrawer(amountDue: Vnd, options: { qrAccountSet?: boolean; leaves?: boolean } = {}) {
+  const invoice = <button type="button">invoice buyer</button>;
   const calls = { paid: [] as (readonly Tender[])[], qr: 0, left: 0, back: 0 };
   render(
     <PaymentDrawer
       amountDue={amountDue}
       qrAccountSet={options.qrAccountSet ?? true}
+      invoice={invoice}
       onQr={() => void calls.qr++}
       onLeaveQr={async () => {
         calls.left++;
@@ -77,7 +79,10 @@ describe("the payment drawer", () => {
     expect(document.querySelector("[data-qr-panel]")).not.toBeNull();
     expect(screen.queryByRole("button", { name: T.finish })).toBeNull();
     expect(screen.queryByLabelText(T.cashTyped)).toBeNull();
+    // Editing the buyer would leave the drawer with the QR still out: not offered beside it.
+    expect(screen.queryByRole("button", { name: "invoice buyer" })).toBeNull();
     await act(async () => tap(T.cash));
+    expect(screen.getByRole("button", { name: "invoice buyer" })).toBeTruthy();
     expect(calls.left).toBe(1);
     expect(card(T.cash).getAttribute("aria-pressed")).toBe("true");
     expect(document.querySelector("[data-qr-panel]")).toBeNull();
