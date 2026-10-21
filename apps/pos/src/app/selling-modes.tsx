@@ -3,6 +3,7 @@ import type { ApiResult } from "../features/api/api-result";
 import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
 import { orderNumbers } from "../features/order/device-order-number";
+import { MenuMemoryProvider, useNewMenuMemory } from "../features/menu/menu-memory";
 import { openingFromStored } from "../features/order/order-opening";
 import { useCounterOrder } from "../features/order/use-counter-order";
 import { type SellingMode, SellingModeSwitch } from "../screens/till/selling-mode-switch";
@@ -31,6 +32,16 @@ export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "m
  * draw order numbers from one source, so they never give out the same one.
  */
 export function SellingModes(props: SellingModesProps) {
+  // Where the cashier was on the menu outlives the screens drawn below: see menu-memory.
+  const memory = useNewMenuMemory();
+  return (
+    <MenuMemoryProvider value={memory}>
+      <SellingScreen {...props} />
+    </MenuMemoryProvider>
+  );
+}
+
+function SellingScreen(props: SellingModesProps) {
   const { client, place, menu } = props;
   const numbers = useMemo(() => orderNumbers(client, place.deviceId), [client, place.deviceId]);
   const counter = useCounterOrder(client, place, menu, numbers);
