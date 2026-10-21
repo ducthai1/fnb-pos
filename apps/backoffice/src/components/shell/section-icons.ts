@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 
-/** The icon of each page of the side menu, by its address. */
+/** The icon of each page of the menu, by its address. */
 export const SECTION_ICONS: Readonly<Record<string, LucideIcon>> = {
   "/": LayoutDashboard,
   "/devices": TabletSmartphone,

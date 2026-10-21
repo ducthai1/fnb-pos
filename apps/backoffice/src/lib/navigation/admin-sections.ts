@@ -1,7 +1,7 @@
 import type { PermissionKey } from "@fnb/domain";
 import { vi } from "../../messages/vi";
 
-/** The headings the side menu groups its pages under, in menu order. */
+/** The headings the menu groups its pages under, in menu order. */
 export const SECTION_GROUPS = ["people", "menu", "sales", "shop"] as const;
 export type SectionGroup = (typeof SECTION_GROUPS)[number];
 
@@ -14,7 +14,7 @@ export interface AdminSection {
 }
 
 /**
- * The pages of the side menu, in menu order. The menu pages only read the catalog, which
+ * The pages of the menu, in menu order. The menu pages only read the catalog, which
  * any member may; changing it is checked where it is changed.
  */
 export const ADMIN_SECTIONS: readonly AdminSection[] = [
@@ -44,6 +44,16 @@ export function sectionOf(href: string): AdminSection | null {
  */
 export function sectionsFor(permissionKeys: readonly PermissionKey[]): readonly AdminSection[] {
   return ADMIN_SECTIONS.filter((section) => section.requires === null || permissionKeys.includes(section.requires));
+}
+
+/** The groups the member has at least one page in, each with those pages, in menu order. */
+export function groupedSectionsFor(
+  permissionKeys: readonly PermissionKey[],
+): readonly { readonly group: SectionGroup; readonly sections: readonly AdminSection[] }[] {
+  const sections = sectionsFor(permissionKeys);
+  return SECTION_GROUPS.map((group) => ({ group, sections: sections.filter((section) => section.group === group) })).filter(
+    (entry) => entry.sections.length > 0,
+  );
 }
 
 /** The section a path belongs to: the longest matching href, so /menu/categories is not /menu. */

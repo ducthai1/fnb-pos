@@ -1,17 +1,15 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SignedInUser } from "../../lib/api/auth-api";
 import type { Branch } from "../../lib/api/branch-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { ErrorNotice } from "../ui/error-notice";
-import { Icon } from "../ui/icon";
 import { AdminTopbar } from "./admin-topbar";
 import { BranchNotice } from "./branch-picker";
-import { rememberedCollapse, rememberCollapse } from "./nav-collapse";
+import { NavDrawer } from "./nav-drawer";
 import {
   type Session,
   SessionContext,
@@ -19,14 +17,18 @@ import {
   rememberBranchId,
   rememberedBranchId,
 } from "./session-context";
+import { useWideScreen } from "./use-wide-screen";
 
 const T = vi.shell;
 
 type Check = { phase: "checking" } | { phase: "failed"; message: string } | { phase: "ready"; user: SignedInUser };
 
+/** Where the menu is drawn: a bar across the top of a computer screen, or a drawer. */
+export type NavLayout = "bar" | "drawer";
+
 export interface AdminShellProps {
-  /** The links of the side menu; `onNavigate` closes the menu on a phone. */
-  renderNav(onNavigate: () => void): ReactNode;
+  /** The pages of the menu, laid out for `layout`; `onNavigate` closes the drawer. */
+  renderNav(layout: NavLayout, onNavigate: () => void): ReactNode;
   /** No session (or it just ended): the app sends the person to the sign-in page. */
   onSignedOut(): void;
   children: ReactNode;
@@ -34,8 +36,8 @@ export interface AdminShellProps {
 
 /**
  * Every signed-in page: checks the session first (GET /auth/me), then shows the bar (shop,
- * branch, account) and the side menu, which narrows to its icons on a computer and folds
- * behind a button on a phone.
+ * branch, account) with the menu across the top on a computer, or behind a button in a
+ * drawer on a phone or a tablet; the page takes the whole width under it.
  */
 export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps) {
   const api = useApi();
@@ -44,8 +46,14 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
   const [branchesError, setBranchesError] = useState<string | null>(null);
   const [branchId, setBranchId] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(rememberedCollapse);
   const [leaving, setLeaving] = useState(false);
+  const wide = useWideScreen();
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeNav = useCallback(() => setNavOpen(false), []);
+  // A drawer left open as the screen widens would show again once it narrows.
+  useEffect(() => {
+    if (wide) setNavOpen(false);
+  }, [wide]);
 
   const checkSession = useCallback(async () => {
     setCheck({ phase: "checking" });
@@ -102,36 +110,29 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
     );
   }
   const { user } = session;
-  const toggleCollapse = () => {
-    setCollapsed(!collapsed);
-    rememberCollapse(!collapsed);
-  };
+  const drawerOpen = navOpen && !wide;
   return (
     <SessionContext.Provider value={session}>
-      <div className="bo-shell" data-nav-open={navOpen} data-nav-collapsed={collapsed}>
+      <div className="bo-shell" data-nav-open={drawerOpen}>
         <AdminTopbar
           user={user}
           branches={branches}
           branchesFailed={branchesError !== null}
-          navOpen={navOpen}
-          onToggleNav={() => setNavOpen((open) => !open)}
+          menuButton={wide ? null : { ref: menuButton, open: drawerOpen, onToggle: () => setNavOpen((open) => !open) }}
           leaving={leaving}
           onLogout={() => void logout()}
-        />
-        <nav id="bo-sidenav" className="bo-sidenav" aria-label={T.navigation}>
-          {renderNav(() => setNavOpen(false))}
-          <button
-            type="button"
-            className="bo-sidenav__collapse"
-            aria-controls="bo-sidenav"
-            aria-expanded={!collapsed}
-            onClick={toggleCollapse}
-          >
-            <Icon of={collapsed ? PanelLeftOpen : PanelLeftClose} size={20} />
-            <span className="bo-sidenav__label">{collapsed ? T.expandMenu : T.collapseMenu}</span>
-          </button>
-        </nav>
-        {navOpen && <div className="bo-shell__backdrop" aria-hidden="true" onClick={() => setNavOpen(false)} />}
+        >
+          {wide && (
+            <nav className="bo-topnav" aria-label={T.navigation}>
+              {renderNav("bar", closeNav)}
+            </nav>
+          )}
+        </AdminTopbar>
+        {drawerOpen && (
+          <NavDrawer menuButton={menuButton} onClose={closeNav}>
+            {renderNav("drawer", closeNav)}
+          </NavDrawer>
+        )}
         <main className="bo-main" data-scroll-root>
           <BranchNotice branches={branches} error={branchesError} />
           {children}
