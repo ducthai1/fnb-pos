@@ -108,7 +108,7 @@
   width: 100%;
   height: 100%;
   border-radius: var(--r-pill);
-  background: #bfbfbf;
+  background: var(--c-control-edge);
   transition: background-color 120ms ease;
   pointer-events: none;
 }
