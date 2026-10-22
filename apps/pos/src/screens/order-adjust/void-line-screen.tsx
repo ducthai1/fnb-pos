@@ -37,6 +37,7 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
 
   return (
     <ScreenFrame
+      enter="sheet"
       title={T.title}
       dock={
         <>

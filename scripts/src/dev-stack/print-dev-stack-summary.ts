@@ -42,6 +42,11 @@ export function printDevStackSummary(
     "",
     `  Mã ghép máy quầy (mới, dùng một lần, hết hạn lúc ${vietnamTime(shop.pairingCode.expiresAt)}):`,
     `    ${code.slice(0, 4)}-${code.slice(4)}`,
+    "  Mở máy quầy và ghép luôn bằng một lần bấm (mã tự điền rồi tự xóa khỏi thanh địa chỉ):",
+    `    ${at(ports.pos)}/?pair=${code.slice(0, 4)}-${code.slice(4)}`,
+    "",
+    "  Xem nhanh các màn mẫu (không phải luồng thật): " +
+      `${at(ports.pos)}/test/docs-shots/docs-screens.html?screen=sale-photos`,
     "",
     `  Thực đơn ${shop.productCount} món (${shop.photoCount} có ảnh), ${shop.tableCount} bàn ở 2 khu; ` +
       "tài khoản nhận tiền và hóa đơn điện tử là GIẢ.",

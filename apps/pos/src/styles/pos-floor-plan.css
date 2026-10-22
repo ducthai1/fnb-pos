@@ -51,6 +51,7 @@
 .pos-plan {
   box-sizing: border-box;
   width: min(100%, calc(var(--plan-w) * 1.6px + 2 * var(--sp-4) + 2px));
+  margin-inline: auto;
   padding: var(--sp-4);
   border: 1px solid var(--c-border-soft);
   border-radius: var(--r-lg);

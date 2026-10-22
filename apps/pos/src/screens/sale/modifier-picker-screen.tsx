@@ -89,6 +89,7 @@ export function ModifierPickerScreen({
 
   return (
     <ScreenFrame
+      enter="sheet"
       title={product.name}
       dock={
         <>

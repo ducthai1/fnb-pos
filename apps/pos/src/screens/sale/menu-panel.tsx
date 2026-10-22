@@ -1,6 +1,6 @@
 import type { PosProduct } from "@fnb/contracts";
 import { Search, X } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMenuPlaceState } from "../../features/menu/menu-memory";
 import { COUNTER_CHANNEL } from "../../features/menu/menu-prices";
 import { isSoldOut } from "../../features/menu/product-availability";
@@ -39,6 +39,14 @@ export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: Menu
     categoryIds,
   );
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
+  // Another category cross-fades the products; the first one shown just appears.
+  const [swap, setSwap] = useState<{ categoryId: typeof categoryId; face: "a" | "b" | null }>({
+    categoryId,
+    face: null,
+  });
+  if (swap.categoryId !== categoryId) {
+    setSwap({ categoryId, face: swap.face === "a" ? "b" : "a" });
+  }
   const best = useBestSellerIds();
   const shown = inCategoryOrder(productsShown(menu.products, categoryId, query), menu.categories);
   const soldOut = shown.filter((product) =>
@@ -95,7 +103,7 @@ export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: Menu
           <EmptyState title={query === "" ? vi.sale.emptyMenu : vi.sale.noMatch} />
         </div>
       ) : (
-        <ul className="pos-product-grid">
+        <ul className="pos-product-grid" data-swap={swap.face ?? undefined}>
           {shown.map((product) => (
             <li key={product.id}>
               <ProductTile

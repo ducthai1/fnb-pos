@@ -49,6 +49,7 @@ export function PosApp({ deps }: { deps: PosDependencies }) {
       return (
         <PairDeviceScreen
           pair={(input) => deps.api.pairDevice(input)}
+          linkedCode={deps.linkedPairingCode ?? null}
           onPaired={async (credential) => {
             await deps.credentials.save(credential);
             setPhase({ kind: "paired", store: phase.store, credential });

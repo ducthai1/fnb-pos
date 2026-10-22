@@ -84,11 +84,12 @@
   --c-success-line: rgb(61 107 56 / 0.22);
   --c-amber-line: rgb(138 90 0 / 0.22);
 
-  /* Type: a soft serif for product names and big sums, like the menu board on the wall;
-     a clear sans for every control. Both draw every Vietnamese mark, bundled with the app. */
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
-  --font-num: "Plus Jakarta Sans", system-ui, sans-serif;
+  /* Type: one sans that draws every Vietnamese mark (Be Vietnam Pro, bundled with the app).
+     Product names, big sums and the order number stand out by weight and size, and every
+     figure is tabular so a total does not shift sideways as it changes. */
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --font-num: var(--font-sans);
   --fs-xs: 0.75rem;
   --fs-sm: 0.875rem;
   --fs-ui: 0.9375rem;
@@ -103,6 +104,7 @@
   --fw-medium: 500;
   --fw-semibold: 600;
   --fw-bold: 700;
+  --fw-heavy: 800;
   --lh-tight: 1.2;
   --lh-snug: 1.3;
   --lh-body: 1.45;
@@ -138,17 +140,24 @@
   --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -6px rgb(127 48 21 / 0.55);
   --shadow-dock: 0 -8px 24px -16px rgb(66 38 20 / 0.3);
 
-  /* Motion: a light spring on a tap, drawers that slide in and leave faster than they came */
+  /* Motion: a light spring on a tap; things arrive in at most 200ms and leave faster than
+     they came, so nothing makes a cashier wait. Only transform and opacity ever move. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --t-tap: 120ms;
-  --t-state: 200ms;
-  --t-drawer-in: 280ms;
-  --t-drawer-out: 190ms;
+  --t-state: 160ms;
+  --t-enter: 180ms;
+  --t-exit: 120ms;
+  --t-drawer-in: 200ms;
+  --t-drawer-out: 140ms;
   --tap-scale: 0.97;
 
   /* Touch: nothing tappable is smaller than this, nothing primary smaller than the second */
   --tap: 48px;
+  /* The gutter beside a screen's content: 16px up to a 1600px till, then growing with the
+     screen (64px at most), so a wide till spreads its content instead of keeping a margin. */
+  --gutter: clamp(var(--sp-4), 4vw - 48px, 64px);
   --tap-lg: 56px;
   --bar-h: 56px;
 
@@ -168,13 +177,27 @@
   --pos-warn-text: var(--c-amber);
 }
 
-/* A till set to reduce motion: every movement lands at once, nothing scales under a finger. */
+/* A till set to reduce motion: every movement lands at once, nothing scales under a finger.
+   The test and handbook pages switch motion off the same way, so a measurement or a picture
+   never lands mid-movement. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --t-tap: 0ms;
     --t-state: 0ms;
+    --t-enter: 0ms;
+    --t-exit: 0ms;
     --t-drawer-in: 0ms;
     --t-drawer-out: 0ms;
     --tap-scale: 1;
   }
+}
+
+:root[data-motion="off"] {
+  --t-tap: 0ms;
+  --t-state: 0ms;
+  --t-enter: 0ms;
+  --t-exit: 0ms;
+  --t-drawer-in: 0ms;
+  --t-drawer-out: 0ms;
+  --tap-scale: 1;
 }

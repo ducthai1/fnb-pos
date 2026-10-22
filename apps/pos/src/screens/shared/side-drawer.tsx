@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { vi } from "../../messages/vi";
 import { Icon } from "./icon";
+import { useLeaveThen } from "./use-leave-motion";
 import { useTillKey } from "./use-till-key";
 
 export interface SideDrawerProps {
@@ -21,7 +22,8 @@ export interface SideDrawerProps {
 /**
  * A panel over the screen it was opened from: from the right on a till, from the bottom on a
  * tablet held upright, the whole screen on a phone. Esc, the close button and a tap beside it
- * close it; focus goes into it on opening and back to where it was on closing.
+ * close it; focus goes into it on opening and back to where it was on closing. It slides in and
+ * out with the till's motion tokens; with motion off it opens and closes at once.
  */
 export function SideDrawer(props: SideDrawerProps) {
   const { closeDisabled = false, onClose } = props;
@@ -31,7 +33,9 @@ export function SideDrawer(props: SideDrawerProps) {
   const [opener] = useState(() =>
     document.activeElement instanceof HTMLElement ? document.activeElement : null,
   );
-  useTillKey(vi.sale.keys.back, onClose, !closeDisabled);
+  // Closing slides the panel back out and fades the backdrop, faster than it came in.
+  const { leaving, leave } = useLeaveThen(onClose, "--t-drawer-out");
+  useTillKey(vi.sale.keys.back, leave, !closeDisabled);
   useEffect(() => {
     panel.current?.focus();
     return () => {
@@ -39,11 +43,11 @@ export function SideDrawer(props: SideDrawerProps) {
     };
   }, [opener]);
   return (
-    <div className="pos-drawer-layer">
+    <div className="pos-drawer-layer" data-leaving={leaving ? "" : undefined}>
       <div
         className="pos-drawer-backdrop"
         aria-hidden
-        onClick={closeDisabled ? undefined : onClose}
+        onClick={closeDisabled ? undefined : leave}
       />
       <section
         ref={panel}
@@ -67,7 +71,7 @@ export function SideDrawer(props: SideDrawerProps) {
             className="pos-button pos-button--quiet pos-drawer__close"
             aria-label={props.closeLabel}
             disabled={closeDisabled}
-            onClick={onClose}
+            onClick={leave}
           >
             <Icon of={X} size={24} />
             <kbd className="pos-kbd" aria-hidden>

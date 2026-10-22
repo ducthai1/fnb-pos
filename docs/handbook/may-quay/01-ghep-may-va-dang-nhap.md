@@ -17,6 +17,7 @@ decisions:
   - D-046
   - D-060
   - D-065
+  - D-101
 tests:
   - apps/pos/src/screens/pair-device/pair-device-screen.test.tsx
   - apps/pos/src/screens/staff-login/staff-login-screen.test.tsx
@@ -56,6 +57,8 @@ tests:
    ![Màn ghép máy](../images/may-quay/pairing.webp)
 
 3. Gõ mã vào ô **Mã ghép máy**. Gõ chữ hoa hay chữ thường, có dấu gạch (`ABCD-EFGH`) hay dấu cách đều được — máy tự bỏ đi.
+
+   Có **đường link ghép máy** (dạng `…/?pair=ABCD-EFGH`, ví dụ lệnh chạy thử in ra) thì chỉ cần mở link: máy tự điền mã, tự bấm **Ghép máy** với tên máy mặc định, và xóa mã khỏi thanh địa chỉ ngay lúc mở (tải lại trang hay lưu dấu trang không còn mã). Máy không lưu mã ở đâu. Mã sai hoặc hết hạn thì màn vẫn hiện lỗi như khi gõ tay, sửa mã rồi bấm lại. Máy đã ghép rồi thì link bị bỏ qua.
 4. Đặt **Tên máy** (mặc định "Máy bán hàng"; nên đặt "Quầy 1", "Quầy 2"… để phân biệt trên báo cáo). Bấm **Ghép máy**.
 5. Máy hiện "Đang tải dữ liệu cửa hàng…" rồi chuyển sang màn chọn nhân viên.
 
@@ -74,7 +77,7 @@ tests:
 
 ## Luật và giới hạn
 
-- **Mã ghép máy**: 8 ký tự, **hiệu lực 10 phút**, **dùng được một lần**. Hết hạn hoặc đã dùng thì xin mã mới.
+- **Mã ghép máy**: 8 ký tự, **hiệu lực 10 phút**, **dùng được một lần**. Hết hạn hoặc đã dùng thì xin mã mới. Mã đi trong đường link cũng vậy: link chỉ giúp khỏi gõ, không làm mã sống lâu hơn.
 - Một địa chỉ mạng chỉ được thử ghép **10 lần mỗi phút**; quá thì máy chủ tạm từ chối.
 - **PIN** gồm **4 đến 6 chữ số**. Máy không giữ PIN; máy chủ kiểm.
 - **Sai PIN 5 lần liền** ⇒ khóa **5 phút**. Mỗi lần bị khóa liên tiếp sau đó, thời gian khóa **gấp đôi** (5 → 10 → 20 phút…), **tối đa 24 giờ**. Chỉ nhập đúng PIN mới đặt lại bộ đếm. Mỗi lần khóa được ghi nhật ký.

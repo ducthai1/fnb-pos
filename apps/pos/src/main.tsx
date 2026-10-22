@@ -8,6 +8,7 @@ import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { API_BASE } from "./features/menu/api-base";
 import { httpFloorSource } from "./features/floor/floor-occupancy";
 import { printerForBuild } from "./features/printing/printer-port";
+import { takePairingCodeFromAddress } from "./screens/pair-device/pairing-link";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-styles";
 
@@ -31,6 +32,8 @@ const deps: PosDependencies = {
   // The web build prints nothing; an end-to-end build may ask for a printer that always takes.
   printer: printerForBuild(import.meta.env.VITE_FNB_SIMULATED_PRINTER),
   reload: () => window.location.reload(),
+  // Taken before the first render, whatever screen comes up: a till already paired ignores it.
+  linkedPairingCode: takePairingCodeFromAddress(window.location, window.history),
 };
 
 const root = document.getElementById("root");

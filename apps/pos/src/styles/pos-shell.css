@@ -7,9 +7,10 @@
   --frame-max: 440px;
 }
 
-/* The selling screens use a till's whole width: more products per row, not wider gutters. */
+/* The selling, table and list screens use the till's whole width, however wide: more
+   products, tables and orders per row, never a block stuck to one side. */
 .pos-screen__inner--wide {
-  --frame-max: 1888px;
+  --frame-max: 100%;
 }
 
 .pos-screen__inner > .pos-topbar {
@@ -82,7 +83,7 @@
 .pos-topbar__brand {
   font-family: var(--font-display);
   font-size: var(--fs-xl);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
 }
 

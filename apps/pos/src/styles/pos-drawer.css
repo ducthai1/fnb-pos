@@ -30,8 +30,8 @@
   inset: 0;
   background: var(--c-overlay);
   animation-name: pos-drawer-fade;
-  animation-duration: 160ms;
-  animation-timing-function: ease-out;
+  animation-duration: var(--t-drawer-in);
+  animation-timing-function: var(--ease-out);
 }
 
 /* A phone: the whole screen, which the amount, the two ways and the keys need anyway. */
@@ -44,8 +44,8 @@
   background: var(--c-surface);
   outline: none;
   animation-name: pos-drawer-up;
-  animation-duration: 220ms;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-duration: var(--t-drawer-in);
+  animation-timing-function: var(--ease-out);
 }
 
 /* A tablet held upright: a sheet from the bottom, the whole width for two columns and the
@@ -145,9 +145,42 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pos-drawer,
-  .pos-drawer-backdrop {
-    animation-duration: 1ms;
+/* Leaving: the panel slides back the way it came and the backdrop fades, faster than they
+   came in; touches already pass to the screen under it. The tokens are 0 with motion off. */
+.pos-drawer-layer[data-leaving] {
+  pointer-events: none;
+}
+
+.pos-drawer-layer[data-leaving] .pos-drawer-backdrop {
+  animation: pos-drawer-fade-out var(--t-drawer-out) var(--ease-in) forwards;
+}
+
+.pos-drawer-layer[data-leaving] .pos-drawer {
+  animation: pos-drawer-down var(--t-drawer-out) var(--ease-in) forwards;
+}
+
+@media (min-width: 1024px) {
+  .pos-drawer-layer[data-leaving] .pos-drawer {
+    animation-name: pos-drawer-out;
+  }
+}
+
+@keyframes pos-drawer-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pos-drawer-down {
+  to {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-drawer-out {
+  to {
+    transform: translateX(48px);
+    opacity: 0;
   }
 }

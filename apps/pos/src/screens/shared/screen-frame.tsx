@@ -19,6 +19,7 @@ export function ScreenFrame({
   width,
   titleHidden = false,
   dock,
+  enter,
   children,
 }: {
   title: string;
@@ -33,10 +34,12 @@ export function ScreenFrame({
   wide?: boolean;
   /** A sign-in or a single form reads best as a narrow column in the middle. */
   width?: ScreenWidth;
+  /** A step over the order rises into place as it opens (see pos-motion.css). */
+  enter?: "sheet";
   children: ReactNode;
 }) {
   return (
-    <main className="pos-screen" data-scroll-root>
+    <main className="pos-screen" data-scroll-root data-enter={enter}>
       <div className={WIDTH_CLASS[width ?? (wide ? "wide" : "normal")]}>
         <h1 className={titleHidden ? "pos-title pos-title--hidden" : "pos-title"}>{title}</h1>
         {children}

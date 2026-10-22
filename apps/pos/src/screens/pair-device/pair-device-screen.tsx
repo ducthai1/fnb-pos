@@ -1,5 +1,5 @@
 import { KeyRound, MonitorSmartphone } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import { vi } from "../../messages/vi";
@@ -17,16 +17,18 @@ export interface PairDeviceScreenProps {
   pair(input: { code: string; deviceName: string }): Promise<ApiResult<DeviceCredential>>;
   /** Keeps the credential; the till moves on once it resolves. */
   onPaired(credential: DeviceCredential): Promise<void>;
+  /** A code that came in a pairing link: filled in and sent once, as if typed. */
+  linkedCode?: string | null;
 }
 
-export function PairDeviceScreen({ pair, onPaired }: PairDeviceScreenProps) {
-  const [code, setCode] = useState("");
+export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDeviceScreenProps) {
+  const [code, setCode] = useState(linkedCode ?? "");
   const [deviceName, setDeviceName] = useState<string>(vi.pairing.deviceNameDefault);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function submit(event?: FormEvent) {
+    event?.preventDefault();
     const typedCode = normalizeTypedCode(code);
     const name = deviceName.trim();
     // A code of the wrong length is refused here: sending it would only spend a request.
@@ -46,6 +48,15 @@ export function PairDeviceScreen({ pair, onPaired }: PairDeviceScreenProps) {
       setError(vi.errors.unknown);
     }
   }
+
+  // A linked code is sent once on arrival; a refusal stays on screen to be corrected by hand.
+  const linkSent = useRef(false);
+  useEffect(() => {
+    if (linkedCode === null || linkSent.current) return;
+    linkSent.current = true;
+    void submit();
+    // Only the code the screen opened with, once: later typing is sent by the button.
+  }, []);
 
   return (
     <ScreenFrame title={vi.pairing.title} width="narrow">

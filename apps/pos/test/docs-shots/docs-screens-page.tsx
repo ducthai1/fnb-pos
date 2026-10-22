@@ -6,6 +6,9 @@ import { OPERATIONS_SCREENS } from "./pretty-operations-screens";
 import { SELLING_SCREENS } from "./pretty-selling-screens";
 import { TABLE_SCREENS } from "./pretty-table-screens";
 
+// Every movement lands at once: a measurement or a picture never catches one half done.
+document.documentElement.dataset.motion = "off";
+
 // The till's screens with the sample café's data, chosen by ?screen=, for the handbook.
 
 const SCREENS: Readonly<Record<string, () => ReactElement>> = {
