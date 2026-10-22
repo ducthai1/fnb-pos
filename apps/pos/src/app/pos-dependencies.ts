@@ -26,6 +26,8 @@ export interface PosDependencies {
   /** The till's printers: the native shell's, or the web build's preview-only stand-in. */
   readonly printer: PrinterPort;
   reload(): void;
+  /** The code of the pairing link the till was opened with, already out of the address bar. */
+  linkedPairingCode?: string | null;
 }
 
 export function blockReasonOf(error: unknown): BlockReason {

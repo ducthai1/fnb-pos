@@ -39,9 +39,10 @@ Người có mã nguồn và Node ≥ 22, pnpm 10 trên máy (Linux hoặc macOS
    - địa chỉ **Máy quầy (POS)**, **Backoffice**, **API** (`…/health`) và cổng Postgres;
    - **email + mật khẩu chủ quán** để đăng nhập trang quản lý;
    - **PIN** của ba nhân viên mẫu: Lan (Thu ngân), Minh (Pha chế), Hùng (Quản lý ca);
-   - **mã ghép máy quầy** mới (dùng một lần, hết hạn sau 10 phút);
+   - **mã ghép máy quầy** mới (dùng một lần, hết hạn sau 10 phút) và **đường link ghép một lần bấm** `http://127.0.0.1:5173/?pair=ABCD-EFGH` (cổng theo địa chỉ POS lệnh in ra): mở link là máy quầy tự điền mã, tự ghép và xóa mã khỏi thanh địa chỉ;
+   - dòng **Xem nhanh các màn mẫu (không phải luồng thật)** `http://127.0.0.1:5173/test/docs-shots/docs-screens.html?screen=sale-photos`: các màn dựng bằng dữ liệu mẫu để chụp sổ tay, bấm vào không bán được — muốn thử thật thì dùng link ghép máy ở trên;
    - số món, số món có ảnh, số bàn.
-4. Mở địa chỉ POS, nhập mã ghép, chọn nhân viên, nhập PIN — bán thử. Mở địa chỉ Backoffice, đăng nhập bằng email chủ quán.
+4. Mở link ghép máy (hoặc mở địa chỉ POS rồi gõ mã ghép), chọn nhân viên, nhập PIN — bán thử. Mở địa chỉ Backoffice, đăng nhập bằng email chủ quán.
 5. **Thử QR tự xác nhận**: trên POS chọn trả bằng chuyển khoản QR, đọc **mã nội dung** dưới mã QR (dạng `FNB…`), rồi ở cửa sổ khác chạy:
 
    ```
