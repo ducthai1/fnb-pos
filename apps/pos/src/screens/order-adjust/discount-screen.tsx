@@ -42,6 +42,7 @@ export function DiscountScreen(props: DiscountScreenProps) {
 
   return (
     <ScreenFrame
+      enter="sheet"
       title={props.title}
       dock={
         <>

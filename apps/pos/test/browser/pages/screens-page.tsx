@@ -19,6 +19,9 @@ import { SALE_SCREENS } from "./sale-screens";
 import { TABLE_SCREENS } from "./table-screens";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
+// Every movement lands at once: a measurement or a picture never catches one half done.
+document.documentElement.dataset.motion = "off";
+
 // Every screen of the POS, chosen by ?screen=, filled with the worst names a shop can type.
 
 const staff = [

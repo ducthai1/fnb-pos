@@ -32,16 +32,16 @@ body,
   -webkit-overflow-scrolling: touch;
 }
 
-/* Three columns: gutters that grow on a wide till and the content between them, so the
-   till's bar can run edge to edge while the content keeps a readable width. */
+/* Three columns: equal gutters and the content between them, so the till's bar can run edge
+   to edge, a form keeps a readable width in the middle and a list grows with the screen. */
 .pos-screen__inner {
   --frame-max: 720px;
   box-sizing: border-box;
   display: grid;
   grid-template-columns:
-    minmax(var(--sp-4), 1fr)
+    minmax(var(--gutter), 1fr)
     minmax(0, var(--frame-max))
-    minmax(var(--sp-4), 1fr);
+    minmax(var(--gutter), 1fr);
   flex: 1 0 auto;
   align-content: start;
   row-gap: var(--sp-4);
@@ -53,12 +53,12 @@ body,
   min-width: 0;
 }
 
-/* Screen titles in the menu board's serif, like the product names and the big sums. */
+/* Screen titles bold in the till's one typeface, like the product names and the big sums. */
 .pos-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--fs-3xl);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-tight);
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;

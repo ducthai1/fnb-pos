@@ -18,6 +18,7 @@ export function CancelOrderScreen(props: {
   const [busy, setBusy] = useState(false);
   return (
     <ScreenFrame
+      enter="sheet"
       title={T.title(props.orderNo)}
       dock={
         <>

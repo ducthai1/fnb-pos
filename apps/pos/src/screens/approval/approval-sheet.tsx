@@ -55,6 +55,7 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
 
   return (
     <ScreenFrame
+      enter="sheet"
       title={A.title}
       width="narrow"
       dock={

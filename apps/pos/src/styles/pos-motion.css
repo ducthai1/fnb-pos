@@ -1,0 +1,93 @@
+/* How the till moves, all from the motion tokens: only transform and opacity, nothing that
+   reflows a screen, at most 200ms in and faster out, and nothing a cashier has to wait for
+   (every control takes touches while it moves). With motion off the tokens are 0, so each
+   movement lands on its end state at once. The drawer's own movement is in pos-drawer.css. */
+
+/* A step over the order (a manager's approval, a product's options, voiding a line,
+   cancelling or discounting the order) rises a little into place, like a sheet laid down. */
+.pos-screen[data-enter="sheet"] > .pos-screen__inner,
+.pos-screen[data-enter="sheet"] > .pos-dock {
+  animation: pos-rise var(--t-enter) var(--ease-out);
+}
+
+/* Notices, refusals and the in-place confirm appear with a short drop, so a change of state
+   is seen without being looked for. */
+.pos-notice,
+.pos-alert,
+.pos-confirm {
+  animation: pos-drop var(--t-enter) var(--ease-out);
+}
+
+/* A line put on the order slides in from where the menu is. */
+.pos-cart-line {
+  animation: pos-line-in var(--t-state) var(--ease-out);
+}
+
+/* Another category: the products cross-fade in place (the two names restart the animation
+   without rebuilding the tiles). */
+.pos-product-grid[data-swap="a"] {
+  animation: pos-swap-a var(--t-state) var(--ease-out);
+}
+
+.pos-product-grid[data-swap="b"] {
+  animation: pos-swap-b var(--t-state) var(--ease-out);
+}
+
+/* Every tappable thing gives under the finger the same way. */
+.pos-table,
+.pos-chip,
+.pos-keypad__key,
+.pos-quick-cash__key,
+.pos-tool,
+.pos-pay-way,
+.pos-stepper__step {
+  transition:
+    transform var(--t-tap) var(--ease-spring),
+    background-color var(--t-state) var(--ease-out),
+    border-color var(--t-tap) var(--ease-out),
+    color var(--t-state) var(--ease-out),
+    box-shadow var(--t-state) var(--ease-out);
+}
+
+.pos-table:active,
+.pos-chip:active,
+.pos-keypad__key:active:not(:disabled),
+.pos-quick-cash__key:active:not(:disabled),
+.pos-tool:active:not(:disabled),
+.pos-pay-way:active:not(:disabled),
+.pos-stepper__step:active:not(:disabled) {
+  transform: scale(var(--tap-scale));
+}
+
+@keyframes pos-rise {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-drop {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-line-in {
+  from {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-swap-a {
+  from {
+    opacity: 0.2;
+  }
+}
+
+@keyframes pos-swap-b {
+  from {
+    opacity: 0.2;
+  }
+}
