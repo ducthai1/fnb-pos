@@ -1,10 +1,79 @@
 "use client";
 
-import { type InputHTMLAttributes, useId } from "react";
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 
 /**
- * A labelled input with its hint and error under it, tied to it for screen readers. The
- * error sits outside the label, so the field keeps its name when the error appears.
+ * True once the step around some fields was asked to go ahead (a confirm's button), for
+ * fields that are not inside a <form> of their own: their errors show from then on.
+ */
+export const FieldAttemptContext = createContext(false);
+
+/**
+ * When a field's error is shown: never while the person has not done anything with it yet,
+ * only once they typed and left it, or once its form was sent (or the step around it was
+ * asked to go ahead). The form clearing the field after it was saved starts it over.
+ */
+export function useShownError(error: string | undefined, value: string, commitsOnChange = false) {
+  const input = useRef<HTMLInputElement>(null);
+  const typed = useRef<string | null>(null);
+  const [left, setLeft] = useState(false);
+  const [sent, setSent] = useState(false);
+  const stepAttempted = useContext(FieldAttemptContext);
+
+  useEffect(() => {
+    const form = input.current?.form;
+    if (form === null || form === undefined) return;
+    const onSubmit = () => setSent(true);
+    form.addEventListener("submit", onSubmit);
+    return () => form.removeEventListener("submit", onSubmit);
+  }, []);
+
+  // Emptied by the page, not by the person (the form saved and starts again): fresh.
+  useEffect(() => {
+    if (value === "" && typed.current !== null && typed.current !== "") {
+      typed.current = null;
+      setLeft(false);
+      setSent(false);
+    }
+  }, [value]);
+
+  const shown = error !== undefined && (left || sent || stepAttempted) ? error : undefined;
+  return {
+    input,
+    shown,
+    onTyped: (next: string) => {
+      typed.current = next;
+      // A date is not typed letter by letter: picking one is the person's whole answer.
+      if (commitsOnChange) setLeft(true);
+    },
+    onLeft: () => {
+      if (typed.current !== null) setLeft(true);
+    },
+  };
+}
+
+/**
+ * A row of fields with the button that sends them: the button stands level with the boxes,
+ * not with the error under a box, so an error appearing never moves it.
+ */
+export function FieldRow({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`bo-field-row ${className ?? ""}`}>{children}</div>;
+}
+
+/**
+ * The one field of the backoffice: a label, the input, a hint and an error under it, tied to
+ * it for screen readers. The error sits outside the label, so the field keeps its name when
+ * the error appears, and it shows only once the person has done something with the field
+ * (useShownError): a field nobody touched is never red.
  */
 export function TextField({
   label,
@@ -25,7 +94,8 @@ export function TextField({
   const inputId = useId();
   const errorId = useId();
   const hintId = useId();
-  const described = [error === undefined ? null : errorId, hint === undefined ? null : hintId]
+  const { input: inputRef, shown, onTyped, onLeft } = useShownError(error, value, input.type === "date");
+  const described = [shown === undefined ? null : errorId, hint === undefined ? null : hintId]
     .filter((id) => id !== null)
     .join(" ");
   return (
@@ -33,19 +103,27 @@ export function TextField({
       <label htmlFor={inputId}>{label}</label>
       <input
         {...input}
+        ref={inputRef}
         id={inputId}
         className="bo-input"
         value={value}
-        aria-invalid={error === undefined ? undefined : true}
+        aria-invalid={shown === undefined ? undefined : true}
         aria-describedby={described === "" ? undefined : described}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          onTyped(event.target.value);
+          onChange(event.target.value);
+        }}
+        onBlur={(event) => {
+          onLeft();
+          input.onBlur?.(event);
+        }}
       />
       {hint !== undefined && (
         <span id={hintId} className="bo-muted">
           {hint}
         </span>
       )}
-      <FieldError id={errorId} message={error} />
+      <FieldError id={errorId} message={shown} />
     </div>
   );
 }

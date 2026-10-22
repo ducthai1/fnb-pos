@@ -102,9 +102,10 @@ describe("a shared table of records", () => {
     expect(screen.queryByRole("button", { name: T.sortColumn("Bật") })).toBeNull();
   });
 
-  it("sorts from the select a phone shows instead of headers", () => {
+  it("sorts from the picker a phone shows instead of headers", () => {
     renderTable();
-    fireEvent.change(screen.getByLabelText(T.sortBy), { target: { value: "sold:desc" } });
+    fireEvent.click(screen.getByRole("combobox", { name: T.sortBy }));
+    fireEvent.click(screen.getByRole("option", { name: `${T.sortBy}: ${T.sortOption("Đã bán", false)}` }));
     expect(shownNames()).toEqual(["Quầy 10", "Bếp", "Quầy 2"]);
   });
 

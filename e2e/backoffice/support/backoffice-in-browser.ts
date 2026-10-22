@@ -41,7 +41,7 @@ export async function signedInBackoffice(
   const organization = page.getByRole("button", { name: text.login.enterOrganization(stack.organizationName) });
   expect(await statusAfter(page, "/auth/login", () => organization.click())).toBe(200);
   // Exists only once the shell checked the session and read the branches.
-  await page.getByLabel(text.shell.branchLabel).waitFor();
+  await page.getByRole("combobox", { name: text.shell.branchLabel }).waitFor();
   return { page, problems, close: () => context.close() };
 }
 

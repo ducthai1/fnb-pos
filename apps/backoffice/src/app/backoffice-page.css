@@ -43,22 +43,21 @@
   max-width: 100%;
 }
 
-/* The tools of a page, as a bar over a list: dense 36px blue buttons with a
-   white icon and plain 15px words, 4px apart. */
-.bo-page-head__actions > .bo-button {
-  min-height: var(--control-dense);
-  padding: 8px 12px;
-  border-color: var(--c-info);
-  background: var(--c-info);
-  color: var(--c-on-info-tool);
-  font-size: var(--fs-body);
-  font-weight: var(--fw-regular);
+/* The tools of a page, as a bar over a list: dense 36px warm-white buttons with an icon,
+   the page's main action the one caramel button among them. */
+.bo-page-head__actions {
+  gap: var(--sp-2);
 }
 
-.bo-page-head__actions > .bo-button:hover:not(:disabled) {
-  border-color: var(--c-price);
-  background: var(--c-price);
-  color: var(--c-on-info-tool);
+.bo-page-head__actions > .bo-button {
+  min-height: var(--control-dense);
+  padding: 8px 14px;
+  font-size: var(--fs-body);
+  box-shadow: var(--shadow-card);
+}
+
+.bo-page-head__actions > .bo-button--primary {
+  box-shadow: var(--shadow-brand);
 }
 
 .bo-crumbs {
@@ -169,7 +168,7 @@
    flush under the bar: sticking counts from inside the main area's top padding. */
 .bo-section-nav {
   position: sticky;
-  top: calc(-1 * var(--sp-4));
+  top: calc(-1 * var(--main-pad-top));
   z-index: 5;
   display: flex;
   box-shadow: var(--shadow-card);

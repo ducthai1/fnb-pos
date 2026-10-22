@@ -85,7 +85,7 @@
   color: var(--c-on-pick);
 }
 
-/* A list's filter: a radio dot before each choice, filled with brand green when chosen. */
+/* A list's filter: a radio dot before each choice, filled with brand caramel when chosen. */
 .bo-data__tools .bo-tabs {
   gap: var(--sp-1) var(--sp-4);
 }

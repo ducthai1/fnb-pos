@@ -18,7 +18,6 @@ export function TableRowEditor({ table, onChanged }: { table: DiningTable; onCha
   const write = useFloorWrite(onChanged);
   const [name, setName] = useState(table.name);
   const [seats, setSeats] = useState(String(table.seats));
-  const [invalid, setInvalid] = useState<{ name?: true; seats?: true }>({});
   const [confirming, setConfirming] = useState(false);
 
   if (table.archivedAt !== null) {
@@ -33,7 +32,6 @@ export function TableRowEditor({ table, onChanged }: { table: DiningTable; onCha
     event.preventDefault();
     const checkedName = floorName(name, TABLE_NAME_MAX);
     const checkedSeats = seatCount(seats);
-    setInvalid({ ...(checkedName === null ? { name: true } : {}), ...(checkedSeats === null ? { seats: true } : {}) });
     if (checkedName === null || checkedSeats === null) return;
     void write.run(() => api.putTable(table.id, editedTableBody(table, checkedName, checkedSeats)), () => vi.common.saved);
   }
@@ -48,12 +46,12 @@ export function TableRowEditor({ table, onChanged }: { table: DiningTable; onCha
 
   return (
     <li className="bo-table-row" data-table-id={table.id}>
-      <form className="bo-row" onSubmit={save} noValidate>
+      <form className="bo-field-row" onSubmit={save} noValidate>
         <TextField
           label={T.tableName}
           value={name}
           disabled={write.busy}
-          error={invalid.name === undefined ? undefined : T.nameInvalid(TABLE_NAME_MAX)}
+          error={floorName(name, TABLE_NAME_MAX) === null ? T.nameInvalid(TABLE_NAME_MAX) : undefined}
           onChange={setName}
         />
         <TextField
@@ -62,7 +60,7 @@ export function TableRowEditor({ table, onChanged }: { table: DiningTable; onCha
           inputMode="numeric"
           className="bo-field--narrow"
           disabled={write.busy}
-          error={invalid.seats === undefined ? undefined : T.seatsInvalid}
+          error={seatCount(seats) === null ? T.seatsInvalid : undefined}
           onChange={setSeats}
         />
         <button type="submit" className="bo-button" disabled={write.busy} aria-label={T.saveTable(table.name)}>

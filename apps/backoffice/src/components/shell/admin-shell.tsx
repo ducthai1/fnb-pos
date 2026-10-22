@@ -21,6 +21,20 @@ import { useWideScreen } from "./use-wide-screen";
 
 const T = vi.shell;
 
+/**
+ * Tells the frame how wide the page's scrollbar is, so the bar over it keeps the same right
+ * edge as the page (both stand in one fluid column, backoffice-shell.css).
+ */
+function watchScrollbar(main: HTMLElement | null) {
+  if (main === null || typeof ResizeObserver === "undefined") return;
+  const frame = main.parentElement;
+  const measure = () => frame?.style.setProperty("--scrollbar-w", `${main.offsetWidth - main.clientWidth}px`);
+  const observer = new ResizeObserver(measure);
+  observer.observe(main);
+  measure();
+  return () => observer.disconnect();
+}
+
 type Check = { phase: "checking" } | { phase: "failed"; message: string } | { phase: "ready"; user: SignedInUser };
 
 /** Where the menu is drawn: a bar across the top of a computer screen, or a drawer. */
@@ -133,7 +147,7 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
             {renderNav("drawer", closeNav)}
           </NavDrawer>
         )}
-        <main className="bo-main" data-scroll-root>
+        <main ref={watchScrollbar} className="bo-main" data-scroll-root>
           <BranchNotice branches={branches} error={branchesError} />
           {children}
         </main>

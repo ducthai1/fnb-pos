@@ -4,7 +4,7 @@ import { Store } from "lucide-react";
 import type { Branch } from "../../lib/api/branch-api";
 import { vi } from "../../messages/vi";
 import { ErrorNotice } from "../ui/error-notice";
-import { Icon } from "../ui/icon";
+import { Listbox } from "../ui/listbox";
 import { useSession } from "./session-context";
 
 const T = vi.shell;
@@ -16,21 +16,15 @@ export function BranchPicker({ branches, failed }: { branches: readonly Branch[]
   if (branches === null) return <p className="bo-muted bo-loading">{T.loading}</p>;
   if (branches.length === 0) return null;
   return (
-    <label className="bo-branch-picker">
-      <Icon of={Store} />
-      <span className="bo-sr-only">{T.branchLabel}</span>
-      <select
-        className="bo-input bo-branch-picker__select"
-        value={session.branch?.id ?? ""}
-        onChange={(event) => session.selectBranch(event.target.value)}
-      >
-        {branches.map((branch) => (
-          <option key={branch.id} value={branch.id}>
-            {branch.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <Listbox
+      className="bo-branch-picker bo-listbox--end"
+      label={T.branchLabel}
+      hideLabel
+      icon={Store}
+      value={session.branch?.id ?? ""}
+      choices={branches.map((branch) => ({ value: branch.id, label: branch.name }))}
+      onChange={(id) => session.selectBranch(id)}
+    />
   );
 }
 

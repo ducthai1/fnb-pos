@@ -105,7 +105,7 @@ async function signIn(page: Page, stack: SampleShopStack) {
   await page.getByLabel(text.login.identifierLabel).fill(stack.owner.email);
   await page.getByLabel(text.login.passwordLabel).fill(stack.owner.password);
   await page.getByRole("button", { name: text.login.submit }).click();
-  await page.getByLabel(text.shell.branchLabel).waitFor();
+  await page.getByRole("combobox", { name: text.shell.branchLabel }).waitFor();
 }
 
 async function main() {

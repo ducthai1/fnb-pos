@@ -1,57 +1,61 @@
-/* Design tokens of the backoffice: the same roles and values as the till (pos-tokens.css),
-   denser for a mouse: controls are 40px, not 56px. Screens use these names only.
+/* Design tokens of the backoffice ("Rang xay", like the till's pos-tokens.css: cream paper,
+   espresso ink, roasted caramel for what is chosen and what moves a task on). The same role
+   names and colours as the till, denser for a mouse (44px controls, not 56px), and one sans
+   family for every heading, figure and line: the owner finds a serif hard to read here.
+   Screens use these names only; a colour written by hand in a screen's CSS is a bug.
 
-   Colour that carries text on it is dark enough for AA (4.5:1) with white text. */
+   Every pair of writing on a fill is noted with its contrast (WCAG 2.2): text ≥ 4.5:1. */
 
 :root {
-  /* Surfaces */
-  --c-bg: #f0f0f4;
-  --c-surface: #ffffff;
-  --c-surface-2: #f3f3f4;
-  --c-surface-3: #ebe7f2;
-  --c-overlay: rgb(23 20 31 / 0.45);
+  /* Surfaces: light kraft paper, cards a warm white on it */
+  --c-bg: #f4ede3;
+  --c-surface: #fffbf5;
+  --c-surface-2: #f8f1e7;
+  --c-surface-3: #efe5d8;
+  --c-overlay: rgb(42 30 23 / 0.52);
 
-  /* Text */
-  --c-text: #35313c;
-  --c-text-2: #5f5a6a;
-  --c-text-3: #756f80;
-  --c-text-inverse: #ffffff;
+  /* Text: espresso ink */
+  --c-text: #2a1e17; /* 15.7:1 on surface, 13.9:1 on bg */
+  --c-text-2: #5a4638; /* 8.6:1 on surface, 7.6:1 on bg */
+  --c-text-3: #73604f; /* 5.8:1 on surface, 5.1:1 on bg, 4.8:1 on surface-3 */
+  --c-text-inverse: #fffbf5;
 
   /* Lines */
-  --c-border: #d2cddb;
-  --c-border-soft: #e9e6ed;
-  --c-focus: #1d6fb8;
+  --c-border: #cdbba5;
+  --c-border-soft: #e3d6c5;
+  --c-focus: #1d5fa8; /* 6.3:1 on surface: the ring is seen on every fill */
 
-  /* Brand: the main action, what is selected, a table in use */
-  --c-brand: #0b7d5c;
-  --c-brand-strong: #075f46;
-  --c-brand-soft: #e3f6ef;
-  --c-brand-tint: #2fb98c;
+  /* Brand: roasted caramel; the main action, what is selected, the page on screen */
+  --c-brand: #9e3f1c; /* white on it 6.6:1; on surface 6.4:1, on bg 5.7:1 */
+  --c-brand-strong: #7f3015; /* on brand-soft 6.9:1, on surface 8.7:1 */
+  --c-brand-soft: #f6dccb;
+  --c-brand-tint: #d9824f; /* marks and bars only, never under writing */
   --c-on-brand: #ffffff;
 
   /* Meanings */
-  --c-info: #1d6fb8;
-  --c-info-soft: #e8f2fc;
-  --c-price: #005695;
+  --c-info: #25598a; /* white on it 7.3:1, on info-soft 6.2:1 */
+  --c-info-soft: #e4edf5;
+  --c-price: #9e3f1c;
   --c-on-info: #ffffff;
-  --c-amber: #8a5a00;
+  --c-amber: #8a5a00; /* 5.8:1 on surface, 5.1:1 on amber-soft */
   --c-amber-bold: #b7791f;
-  --c-amber-soft: #fdf3e1;
-  /* The pre-bill button: a bright amber fill, so its writing is dark */
-  --c-amber-fill: #dd980a;
-  --c-on-amber: #2e1f00;
-  --c-danger: #b42841;
-  --c-danger-soft: #fdecef;
+  --c-amber-soft: #f9ecd0;
+  --c-amber-fill: #e0a43c;
+  --c-on-amber: #2e1f00; /* 7.3:1 on amber-fill */
+  --c-danger: #a3253b; /* 7.1:1 on surface, 5.9:1 on danger-soft; white on it 7.3:1 */
+  --c-danger-strong: #7e1a2c; /* a pressed red button: white on it 10.4:1 */
+  --c-danger-soft: #f9e1e4;
   --c-on-danger: #ffffff;
-  --c-success: #127a53;
-  --c-success-soft: #e4f6ee;
+  --c-success: #3d6b38; /* 6.1:1 on surface, 5.2:1 on success-soft */
+  --c-success-soft: #e3eedb;
 
   /* The thin edge of a tinted notice, the meaning's own colour at low strength */
-  --c-danger-line: rgb(180 40 65 / 0.18);
-  --c-success-line: rgb(18 122 83 / 0.18);
-  --c-amber-line: rgb(138 90 0 / 0.18);
+  --c-danger-line: rgb(163 37 59 / 0.22);
+  --c-success-line: rgb(61 107 56 / 0.22);
+  --c-amber-line: rgb(138 90 0 / 0.22);
 
-  /* Type: one family with every Vietnamese mark drawn, not stacked from fallbacks */
+  /* Type: one family with every Vietnamese mark drawn, bundled with the app, figures of one
+     width wherever sums stand in a column */
   --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-num: "Be Vietnam Pro", system-ui, sans-serif;
   --fs-xs: 0.75rem;
@@ -67,7 +71,7 @@
   --fw-semibold: 600;
   --fw-bold: 700;
   --lh-tight: 1.25;
-  --lh-body: 1.45;
+  --lh-body: 1.5;
 
   /* Space: a 4px grid */
   --sp-1: 4px;
@@ -79,35 +83,71 @@
   --sp-8: 32px;
   --sp-10: 40px;
 
-  /* Shape */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-pill: 999px;
-  --shadow-card: 0 6px 16px -4px rgb(0 0 0 / 0.1);
-  --shadow-raised: 0 2px 6px rgb(23 20 31 / 0.08), 0 18px 40px -12px rgb(23 20 31 / 0.28);
-  --ring: 0 0 0 3px rgb(29 111 184 / 0.35);
+  /* The page's one fluid column: the whole width less a gutter that grows with the screen.
+     The bar's row and every page share it, so their left edges meet at every width. */
+  --gutter: clamp(16px, 2.5vw, 48px);
+  /* The scrollbar of the page's scroller, measured by the shell: the bar keeps the same
+     right edge as the page under it. */
+  --scrollbar-w: 0px;
+  /* The page's space under the bar; a list's sticky head climbs over it to the bar's foot. */
+  --main-pad-top: var(--sp-5);
+  /* A form keeps a readable measure inside its card, however wide the card. */
+  --measure-form: 720px;
 
-  /* The admin language: a soft line inside cards and under bars, the pale
-     blue of a chosen row in a list and of a table's head, the grey of a hovered row. */
-  --c-line: rgb(210 205 219 / 0.5);
-  --c-pick-soft: #e5f4ff;
-  --c-head-soft: #edf7ff;
-  --c-hover: #f5f5f5;
-  --c-on-pick: #005695;
-  /* Pale mint writing on the blue tool buttons (4.8:1 on --c-info). */
-  --c-on-info-tool: #cffff0;
-  /* The edge of an empty tick box or radio dot: grey #8c8697, 3.5:1 on white
-     (the lighter #d2cddb would be the box's only outline at 1.5:1). */
-  --c-control-edge: #8c8697;
-  --shadow-panel: 0 6px 16px 0 rgb(0 0 0 / 0.1);
-  --shadow-filter: 0 2px 8px rgb(0 0 0 / 0.08);
-  --shadow-menu: 0 14px 30px -4px rgb(0 0 0 / 0.15);
+  /* Shape: tight inside, soft outside */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  /* Depth: shadows tinted brown, never black, with a light top edge like thick paper */
+  --shadow-card:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(66 38 20 / 0.08),
+    0 2px 8px -2px rgb(66 38 20 / 0.1);
+  --shadow-panel:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(66 38 20 / 0.05),
+    0 12px 28px -14px rgb(66 38 20 / 0.24);
+  --shadow-raised: 0 4px 12px rgb(42 24 12 / 0.12), 0 24px 64px -16px rgb(42 24 12 / 0.45);
+  --shadow-menu: 0 2px 6px rgb(66 38 20 / 0.08), 0 18px 40px -12px rgb(66 38 20 / 0.32);
+  --shadow-filter: var(--shadow-card);
+  --shadow-press: 0 1px 2px rgb(66 38 20 / 0.14) inset;
+  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -8px rgb(127 48 21 / 0.55);
+  --ring: 0 0 0 3px rgb(29 95 168 / 0.38);
+  /* The halo of a field being typed in: the brand's caramel, faint */
+  --ring-field: 0 0 0 3px rgb(158 63 28 / 0.16);
+  --ring-danger: 0 0 0 3px rgb(163 37 59 / 0.32);
+
+  /* Motion: things that open come in over a short distance and leave faster than they came;
+     only transform and opacity move. Reduced motion (below) stills all of it. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-tap: 120ms;
+  --t-state: 180ms;
+  --t-enter: 220ms;
+  --t-exit: 140ms;
+  --t-drawer-in: 280ms;
+  --t-drawer-out: 190ms;
+  --press-scale: 0.97;
+  --rise: 6px;
+
+  /* The admin language: a soft line inside cards and under bars, the warm tint of a chosen
+     row and of a table's head, the hover of a row. */
+  --c-line: rgb(205 187 165 / 0.55);
+  --c-pick-soft: #f6dccb;
+  --c-head-soft: #f8f1e7;
+  --c-hover: #faf3ea;
+  --c-on-pick: #7f3015; /* 6.9:1 on pick-soft */
+  /* Writing on the blue tool buttons (7.3:1 on --c-info). */
+  --c-on-info-tool: #ffffff;
+  /* The edge of an empty tick box or radio dot: 3.7:1 on surface (a box's only outline) */
+  --c-control-edge: #94806d;
   --fs-body: 0.9375rem;
 
   --control-h: 44px;
   --control-dense: 36px;
-  --topbar-h: 56px;
+  --topbar-h: 64px;
 
   /* The names the pages were first written with, kept so every page takes the new look */
   --bo-bg: var(--c-bg);
@@ -123,4 +163,17 @@
   --bo-ok-bg: var(--c-success-soft);
   --bo-warn: var(--c-amber);
   --bo-warn-bg: var(--c-amber-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-tap: 0ms;
+    --t-state: 0ms;
+    --t-enter: 0ms;
+    --t-exit: 0ms;
+    --t-drawer-in: 0ms;
+    --t-drawer-out: 0ms;
+    --press-scale: 1;
+    --rise: 0px;
+  }
 }

@@ -42,13 +42,13 @@
   margin: 0;
   border: 0;
   border-radius: 12px;
-  background: radial-gradient(circle at 12px 50%, #fff 0 9px, transparent 10px), var(--c-control-edge);
+  background: radial-gradient(circle at 12px 50%, var(--c-surface) 0 9px, transparent 10px), var(--c-control-edge);
   cursor: pointer;
   transition: background 120ms ease;
 }
 
 .bo-switch input[type="checkbox"]:checked {
-  background: radial-gradient(circle at 32px 50%, #fff 0 9px, transparent 10px), var(--c-brand);
+  background: radial-gradient(circle at 32px 50%, var(--c-surface) 0 9px, transparent 10px), var(--c-brand);
 }
 
 .bo-switch input[type="checkbox"]:disabled {

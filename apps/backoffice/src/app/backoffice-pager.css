@@ -1,0 +1,50 @@
+/* The foot of a long list: the rows on screen, the page size, the steps to the next page. */
+
+.bo-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-2) var(--sp-4);
+  min-width: 0;
+  padding-top: var(--sp-1);
+}
+
+.bo-pager__range {
+  margin: 0 auto 0 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
+
+.bo-pager__size {
+  width: 168px;
+}
+
+.bo-pager__size .bo-listbox__button {
+  min-height: var(--control-dense);
+  font-size: var(--fs-sm);
+}
+
+.bo-pager__steps {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.bo-pager__page {
+  min-width: 92px;
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .bo-pager__range {
+    flex: 1 0 100%;
+  }
+
+  .bo-pager__steps {
+    margin-left: auto;
+  }
+}

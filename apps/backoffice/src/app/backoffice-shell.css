@@ -1,7 +1,8 @@
-/* The frame: a bar over everything (the shop, the branch, the account; on a computer the
-   menu bar under it, backoffice-topnav.css) and the content across the whole width. Below
-   1024px the menu is a drawer from a button (backoffice-nav-drawer.css); on a phone the
-   branch picker takes a row of its own under the bar. */
+/* The frame: one bar over everything (the shop, the menu, the branch, the account) and the
+   page under it, both in the same fluid column (--gutter each side), so the bar's first
+   letter and the page's stand on one line at every width. From 1280px the menu sits in the
+   bar; from 1024px to 1279px it takes a second row of the bar; below 1024px it is a drawer
+   from a button (backoffice-nav-drawer.css) and on a phone the branch picker takes a row. */
 
 .bo-shell {
   position: relative;
@@ -9,15 +10,21 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
+  overflow: clip;
 }
 
-/* Above the content, so a list dropping from the menu bar covers the page under it. */
+/* Above the content, so a list dropping from the bar covers the page under it. */
 .bo-topbar {
   position: relative;
   z-index: 10;
   min-width: 0;
-  background: var(--c-surface);
+  background: color-mix(in srgb, var(--c-bg) 82%, var(--c-surface));
   border-bottom: 1px solid var(--c-line);
+}
+
+.bo-topbar__inner {
+  min-width: 0;
+  padding-inline: var(--gutter) calc(var(--gutter) + var(--scrollbar-w));
 }
 
 .bo-topbar__row {
@@ -26,7 +33,6 @@
   gap: var(--sp-4);
   min-width: 0;
   min-height: var(--topbar-h);
-  padding: var(--sp-2) var(--sp-5);
 }
 
 .bo-topbar__name {
@@ -35,55 +41,29 @@
   align-items: center;
   gap: var(--sp-3);
   min-width: 0;
+  color: var(--c-text);
   font-weight: var(--fw-bold);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-xl);
+  letter-spacing: -0.01em;
+  text-decoration: none;
 }
 
-/* The shop's mark before its name: a plain brand square, no logo of anyone's. */
+/* The shop's mark before its name: a caramel tile with a cup, nobody's logo. */
 .bo-topbar__mark {
   flex: none;
-  width: 32px;
-  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
   border-radius: var(--r-sm);
-  background: linear-gradient(135deg, var(--c-brand-tint), var(--c-brand));
+  background: linear-gradient(160deg, var(--c-brand-tint) -30%, var(--c-brand) 70%);
+  color: var(--c-on-brand);
+  box-shadow: var(--shadow-brand);
 }
 
 .bo-topbar__branch {
   flex: 0 1 260px;
   min-width: 0;
-}
-
-.bo-branch-picker {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  min-width: 0;
-  padding-left: var(--sp-3);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-sm);
-  background: var(--c-surface);
-  color: var(--c-text-2);
-}
-
-.bo-branch-picker:focus-within {
-  border-color: var(--c-focus);
-  box-shadow: var(--ring);
-}
-
-.bo-branch-picker__select.bo-input {
-  flex: 1;
-  min-height: calc(var(--control-dense) - 2px);
-  padding-left: 0;
-  border: 0;
-  /* The colour only: the chevron is a background image (backoffice-checks.css). */
-  background-color: transparent;
-  font-weight: var(--fw-semibold);
-  color: var(--c-text);
-  text-overflow: ellipsis;
-}
-
-.bo-branch-picker__select.bo-input:focus-visible {
-  box-shadow: none;
 }
 
 .bo-topbar__account {
@@ -97,16 +77,17 @@
 
 .bo-topbar__person {
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-body);
 }
 
+/* The person's initial: a soft caramel tile, the same corner as the shop's mark. */
 .bo-avatar {
   flex: none;
   display: inline-grid;
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-sm);
   background: var(--c-brand-soft);
   color: var(--c-brand-strong);
   font-weight: var(--fw-bold);
@@ -129,6 +110,96 @@
   min-height: var(--control-dense);
 }
 
+/* One row from 1280px: shop · menu · branch · account, the menu taking what is left. */
+@media (min-width: 1280px) {
+  .bo-topbar__inner {
+    display: grid;
+    /* The menu keeps its whole width; the shop's name and the person's give way ("…"),
+       and the room left over stands between the menu and the branch. */
+    grid-template-columns:
+      minmax(0, auto) max-content minmax(0, 1fr) minmax(120px, 220px)
+      minmax(var(--account-min, 200px), auto);
+    align-items: stretch;
+    column-gap: var(--sp-4);
+  }
+
+  .bo-topbar__row {
+    display: contents;
+  }
+
+  .bo-topbar__name {
+    grid-column: 1;
+    flex: none;
+    max-width: 280px;
+  }
+
+  .bo-topbar__inner > .bo-topnav {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* The headings stand as tall as the bar, so the caramel mark sits on its foot. */
+  .bo-topbar__inner > .bo-topnav .bo-topnav__items {
+    flex-wrap: nowrap;
+  }
+
+  .bo-topbar__inner > .bo-topnav .bo-topnav__item {
+    min-height: var(--topbar-h);
+  }
+
+  .bo-topbar__branch {
+    grid-column: 4;
+    align-self: center;
+    width: 100%;
+  }
+
+  .bo-topbar__account {
+    grid-column: 5;
+    align-self: center;
+    justify-self: end;
+    max-width: 100%;
+  }
+}
+
+/* Below 1600px the menu needs the room: the sign-out keeps its icon, and below 1440px the
+   account its initial; both names are still said. */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .bo-topbar__inner {
+    --account-min: 140px;
+  }
+
+  .bo-topbar .bo-logout__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .bo-topbar .bo-logout.bo-button {
+    width: var(--control-dense);
+    padding: 0;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .bo-topbar__inner {
+    --account-min: 92px;
+  }
+
+  .bo-topbar__person {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 1023px) {
   .bo-topbar__person {
     display: none;
@@ -140,16 +211,17 @@
     flex-wrap: wrap;
     row-gap: var(--sp-2);
     gap: var(--sp-2);
-    padding: var(--sp-2) var(--sp-3);
+    min-height: 0;
+    padding-block: var(--sp-2);
   }
 
   .bo-topbar__name {
-    font-size: var(--fs-md);
+    font-size: var(--fs-lg);
   }
 
   .bo-topbar__mark {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
   }
 
   .bo-topbar__branch {

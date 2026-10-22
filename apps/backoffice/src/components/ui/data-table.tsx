@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, type ReactNode, useId, useState } from "react";
+import { Fragment, type ReactNode, useId, useRef, useState } from "react";
 import { type SortDirection, type SortValue, tableView } from "../../lib/table/table-view";
 import { vi } from "../../messages/vi";
 import { DataTableHead } from "./data-table-head";
 import { pickTools } from "./data-table-pick";
+import { PAGE_SIZES, TablePager, pageOf } from "./table-pager";
 import { TableToolbar } from "./table-toolbar";
 
 const T = vi.table;
@@ -86,10 +87,26 @@ export function DataTable<R>(props: {
     empty,
     selection,
   } = props;
-  const [typed, setTyped] = useState("");
-  const [filterKey, setFilterKey] = useState<string | null>(null);
-  const [sort, setSort] = useState<Sort | null>(props.initialSort ?? null);
+  const [typed, setTypedNow] = useState("");
+  const [filterKey, setFilterKeyNow] = useState<string | null>(null);
+  const [sort, setSortNow] = useState<Sort | null>(props.initialSort ?? null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
   const id = useId();
+  const frame = useRef<HTMLDivElement>(null);
+  // A new search, filter or order starts again from the first page.
+  const setTyped = (text: string) => {
+    setTypedNow(text);
+    setPage(1);
+  };
+  const setFilterKey = (key: string | null) => {
+    setFilterKeyNow(key);
+    setPage(1);
+  };
+  const setSort = (next: Sort | null | ((current: Sort | null) => Sort | null)) => {
+    setSortNow(next);
+    setPage(1);
+  };
 
   if (rows.length === 0) return <div className="bo-empty">{empty}</div>;
   const filter = filters.find((candidate) => candidate.key === filterKey);
@@ -105,6 +122,7 @@ export function DataTable<R>(props: {
       : { sortValue: sortColumn.sortValue, direction: sort?.direction ?? "asc" }),
   });
   const width = columns.length + (actions === undefined ? 0 : 1);
+  const onPage = pageOf(shown, page, pageSize);
   const { allPicked, pickAll, pickOne } = pickTools(selection, shown.map(rowKey));
   const toggleSort = (key: string) =>
     setSort((current) =>
@@ -116,7 +134,7 @@ export function DataTable<R>(props: {
     );
 
   return (
-    <div className="bo-data" data-wide={width >= WIDE_TABLE ? "" : undefined}>
+    <div ref={frame} className="bo-data" data-wide={width >= WIDE_TABLE ? "" : undefined}>
       <TableToolbar
         id={id}
         search={search === undefined ? undefined : { label: search.label, typed, onType: setTyped }}
@@ -154,7 +172,7 @@ export function DataTable<R>(props: {
             hasActions={actions !== undefined}
           />
           <tbody>
-            {shown.map((row) => {
+            {onPage.rows.map((row) => {
               const panel = expanded?.(row);
               return (
                 <Fragment key={rowKey(row)}>
@@ -193,6 +211,20 @@ export function DataTable<R>(props: {
           </tbody>
         </table>
       )}
+      <TablePager
+        page={onPage.page}
+        size={pageSize}
+        total={shown.length}
+        onPage={(next) => {
+          setPage(next);
+          // The new page is read from its top, not from where the last one ended.
+          frame.current?.scrollIntoView?.({ block: "start" });
+        }}
+        onSize={(size) => {
+          setPageSize(size);
+          setPage(1);
+        }}
+      />
     </div>
   );
 }

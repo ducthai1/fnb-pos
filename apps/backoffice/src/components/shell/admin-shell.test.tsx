@@ -52,7 +52,8 @@ describe("the frame of every signed-in page", () => {
   it("shows the first branch, switches branch, and remembers the switch", async () => {
     renderShell({});
     await mock.waitFor(() => expect(screen.getByTestId("branch").textContent).toBe("Q1"));
-    fireEvent.change(screen.getByLabelText(T.branchLabel), { target: { value: BRANCHES[1]?.id } });
+    fireEvent.click(screen.getByRole("combobox", { name: T.branchLabel }));
+    fireEvent.click(screen.getByRole("option", { name: BRANCHES[1]!.name }));
     expect(screen.getByTestId("branch").textContent).toBe("Q3");
     expect(window.localStorage.getItem("fnb.backoffice.branchId")).toBe(BRANCHES[1]?.id);
   });

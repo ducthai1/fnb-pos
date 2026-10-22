@@ -1,0 +1,75 @@
+/* The backoffice's motion, from the tokens' durations and curves (backoffice-tokens.css):
+   what opens comes in over a few pixels and fades up; what closes leaves faster; a press
+   sinks a little. Only transform and opacity move, and reduced motion stills it all (the
+   tokens fall to 0, so nothing below needs its own media query). */
+
+@keyframes bo-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--rise))) scale(0.98);
+  }
+}
+
+@keyframes bo-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The drawer unfolds from the screen's start edge without ever reaching past it. */
+@keyframes bo-unfold-from-start {
+  from {
+    opacity: 0.5;
+    transform: scale(0.96);
+  }
+}
+
+/* The lists that drop from the menu's headings and from a picker fade and rise in each time
+   they show; they leave at once, as a click elsewhere expects (backoffice-listbox.css too). */
+.bo-topnav__panel:not([hidden]) {
+  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+}
+
+/* What appears in the page once asked for: a confirm, a notice, a row's panel, a form. */
+.bo-confirm,
+.bo-notice,
+.bo-data__panel > td > *,
+.bo-row-panel {
+  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+}
+
+/* The menu drawer unfolds from the start edge over a fading veil. */
+.bo-drawer {
+  transform-origin: top left;
+  animation: bo-unfold-from-start var(--t-drawer-in) var(--ease-out) both;
+}
+
+.bo-shell__backdrop {
+  animation: bo-fade-in var(--t-drawer-in) var(--ease-out) both;
+}
+
+/* A press sinks the control a little; it comes back as the finger lifts. */
+.bo-button,
+.bo-icon-button,
+.bo-tab,
+.bo-listbox__button {
+  transition-property: background-color, border-color, color, box-shadow, transform;
+  transition-duration: var(--t-state), var(--t-state), var(--t-state), var(--t-state), var(--t-tap);
+  transition-timing-function: var(--ease-out);
+}
+
+.bo-button:active:not(:disabled),
+.bo-icon-button:active:not(:disabled),
+.bo-tab:active,
+.bo-listbox__button:active {
+  transform: scale(var(--press-scale));
+}
+
+/* A row warms under the pointer and darkens a step as it is pressed. */
+.bo-table tbody tr {
+  transition: background-color var(--t-state) var(--ease-out);
+}
+
+.bo-table tbody tr:active {
+  background: var(--c-surface-3);
+}

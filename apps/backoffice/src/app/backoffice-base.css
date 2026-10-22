@@ -11,11 +11,13 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Clipped, not hidden: a box that is hidden can still be scrolled by a focus or a find on the
+   page, and then the whole frame sits shifted with its left edge cut. Only .bo-main scrolls. */
 html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  overflow: clip;
   background: var(--bo-bg);
 }
 
@@ -60,19 +62,27 @@ body {
 .bo-main {
   grid-row: 2;
   min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--sp-4) var(--sp-6) var(--sp-6);
+  padding: var(--main-pad-top) var(--gutter) var(--sp-8);
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
 }
 
-/* Pages and their tables take the whole width under the menu bar; only a very wide screen
-   stops them, so a row stays readable. */
+/* Pages and their tables take the whole fluid column under the bar, however wide the screen:
+   lists, the overview and the floor plan grow with it; forms keep their measure inside their
+   cards (backoffice-page.css). */
 .bo-main > * {
   width: 100%;
-  max-width: 1680px;
+}
+
+/* Figures of one width wherever sums stand in a column or change in place. */
+.bo-num,
+.bo-table,
+.bo-stat__value {
+  font-variant-numeric: tabular-nums;
 }
 
 .bo-splash {
@@ -96,12 +106,9 @@ body {
 
 @media (max-width: 767px) {
   .bo-main {
-    padding: var(--sp-3);
+    --main-pad-top: var(--sp-3);
+    padding: var(--main-pad-top) var(--gutter) var(--sp-6);
     gap: var(--sp-4);
   }
 
-  /* The tabs of a long page stick flush under the bar (backoffice-page.css), loaded later. */
-  .bo-main .bo-section-nav {
-    top: calc(-1 * var(--sp-3));
-  }
 }

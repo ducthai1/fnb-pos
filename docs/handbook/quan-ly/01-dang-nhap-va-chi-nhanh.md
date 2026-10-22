@@ -7,6 +7,7 @@ decisions:
   - D-026
   - D-032
   - D-050
+  - D-099
 tests:
   - apps/backoffice/src/components/auth/login-form.test.tsx
   - apps/backoffice/src/lib/navigation/safe-return-path.test.ts
@@ -14,6 +15,11 @@ tests:
   - apps/backoffice/src/components/shell/home-and-menu-offer-only-permitted-pages.test.tsx
   - apps/backoffice/src/components/shell/top-nav-bar.test.tsx
   - apps/backoffice/src/components/shell/nav-drawer.test.tsx
+  - apps/backoffice/src/components/ui/listbox.test.tsx
+  - apps/backoffice/src/components/ui/table-pager.test.tsx
+  - apps/backoffice/src/components/ui/text-field.test.tsx
+  - apps/backoffice/src/components/ui/confirm-panel.test.tsx
+  - e2e/backoffice/every-page-fits-and-lines-up.spec.ts
   - apps/api/test/integration/auth/backoffice-login.test.ts
   - apps/api/test/integration/auth/backoffice-session-organizations.test.ts
   - apps/api/test/integration/auth/backoffice-session-lifecycle.test.ts
@@ -49,9 +55,12 @@ Nhân viên đứng quầy **không** đăng nhập ở đây: họ đăng nhậ
 2. Nhập **Email hoặc số điện thoại** và **Mật khẩu**, bấm **Đăng nhập**.
 3. Tài khoản thuộc nhiều tổ chức (ví dụ bạn làm cho hai công ty) thì trang hiện **Chọn tổ chức** — bấm **Vào <tên tổ chức>**. Muốn đổi tài khoản thì bấm **Đăng nhập tài khoản khác**.
 4. Vào được thì trang mở lại đúng trang bạn định mở trước khi bị hỏi đăng nhập (chỉ trang trong cùng trang quản lý; địa chỉ lạ thì về trang Tổng quan).
-5. Ở góc trên, ô **Chi nhánh đang xem** chọn chi nhánh mà mọi trang đang hiện số liệu. Trình duyệt nhớ lựa chọn này cho lần sau (trên đúng máy đó).
-6. Trên máy tính (rộng từ 1024px) menu là thanh ngang với 4 nhóm; bấm tên nhóm để thả danh sách trang. Trên điện thoại bấm nút **Mở menu** để mở ngăn kéo.
-7. Xong việc bấm **Đăng xuất**.
+5. Ở góc trên, nút **Chi nhánh đang xem** (biểu tượng cửa hàng, tên chi nhánh) chọn chi nhánh mà mọi trang đang hiện số liệu: bấm vào để thả danh sách rồi bấm một chi nhánh (chi nhánh đang xem có dấu tích). Dùng bàn phím: Tab tới nút, mũi tên lên/xuống để đi trong danh sách, **Enter** để chọn, **Esc** để đóng không đổi; gõ chữ đầu của tên để nhảy tới chi nhánh đó. Trình duyệt nhớ lựa chọn này cho lần sau (trên đúng máy đó).
+6. Trên máy tính menu nằm ngay trong thanh trên cùng (rộng từ 1280px: tên quán · 4 nhóm · chi nhánh · tài khoản trên một hàng; từ 1024 đến 1279px các nhóm xuống hàng thứ hai của thanh). Nhóm của trang đang mở có gạch màu nâu cam ở chân thanh; bấm tên nhóm để thả danh sách trang, trang đang mở được tô nền. Dưới mỗi tiêu đề trang có dòng **Tổng quan › nhóm › trang** để biết mình đang ở đâu. Trên điện thoại và máy tính bảng bấm nút **Mở menu** để mở ngăn kéo.
+7. Mọi danh sách dài (món, nhân viên, thiết bị…) có ô tìm và bộ lọc ở trên, hiện **25 dòng mỗi trang**; dưới danh sách ghi đang xem dòng nào trong bao nhiêu (ví dụ "1–25 trong 60"), có ô chọn **25 / 50 / 100 dòng / trang** và nút **Trang trước** / **Trang sau**. Hàng tiêu đề của bảng luôn ở trên cùng khi cuộn. Gõ tìm, đổi bộ lọc hay đổi cách sắp xếp thì quay về trang 1. Danh sách không quá 25 dòng thì không có phần chia trang.
+8. Một ô nhập chỉ báo lỗi (chữ đỏ dưới ô, viền đỏ) **sau khi** bạn đã gõ rồi rời ô, hoặc sau khi bấm nút lưu/thêm — không bao giờ đỏ sẵn khi bạn chưa làm gì. Sửa đúng là lỗi tự tắt.
+9. Việc không hoàn tác được (thu hồi máy, khóa nhân viên, lưu trữ vai trò, xóa khu vực/bàn, ngừng bán món, trả lại tiền QR) luôn hỏi lại bằng một khung có dấu cảnh báo: **Hủy** bên trái, nút đỏ đậm làm việc đó bên phải. Nút đỏ chỉ mờ đi khi đang làm ("Đang thu hồi…").
+10. Xong việc bấm **Đăng xuất** (màn rộng 1280–1599px chỉ còn biểu tượng cửa ra, dưới 1440px tên người đăng nhập cũng chỉ còn chữ cái đầu; trình đọc màn hình vẫn đọc đủ tên).
 
 ## Luật và giới hạn
 
