@@ -114,11 +114,12 @@
 @media (min-width: 1280px) {
   .bo-topbar__inner {
     display: grid;
-    /* The menu keeps its whole width; the shop's name and the person's give way ("…"),
-       and the room left over stands between the menu and the branch. */
+    /* The menu keeps its whole width and the shop's name the width it needs, up to its
+       cap; the branch and the person give way first ("…"), and the room left over stands
+       between the menu and the branch. */
     grid-template-columns:
-      minmax(0, auto) max-content minmax(0, 1fr) minmax(120px, 220px) max-content
-      minmax(var(--account-min, 200px), auto);
+      minmax(min-content, max-content) max-content minmax(0, 1fr) minmax(120px, 220px)
+      max-content minmax(var(--account-min, 200px), auto);
     align-items: stretch;
     column-gap: var(--sp-4);
   }
@@ -127,10 +128,12 @@
     display: contents;
   }
 
+  /* As wide as the name, so a short one is never cut; a long one stops at the cap. */
   .bo-topbar__name {
     grid-column: 1;
     flex: none;
-    max-width: 280px;
+    width: max-content;
+    max-width: clamp(160px, 16vw, 300px);
   }
 
   .bo-topbar__inner > .bo-topnav {

@@ -62,7 +62,9 @@ export function SyncStatusBadges({
         data-tone={status.pending === 0 ? "ok" : "info"}
       >
         <Icon of={status.pending === 0 ? CloudCheck : CloudUpload} size={18} />
-        {status.pending === 0 ? vi.sync.allSynced : vi.sync.pending(status.pending)}
+        <span className="pos-badge__words">
+          {status.pending === 0 ? vi.sync.allSynced : vi.sync.pending(status.pending)}
+        </span>
       </span>
     </div>
   );

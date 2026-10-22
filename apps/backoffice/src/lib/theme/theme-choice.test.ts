@@ -1,6 +1,10 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { forgetScheme, schemeOf, schemeTurns } from "../../test-support/color-scheme";
 import {
+  THEME_BAR_COLOUR,
   THEME_BOOT_SCRIPT,
   THEME_CHOICES,
   THEME_KEY,
@@ -18,6 +22,7 @@ afterEach(() => {
   window.localStorage.clear();
   html.removeAttribute("data-theme");
   html.removeAttribute("data-theme-choice");
+  document.querySelector('meta[name="theme-color"]')?.remove();
 });
 
 const refusing = () => {
@@ -111,5 +116,59 @@ describe("the head's script, before the first paint", () => {
     } finally {
       if (storage) Object.defineProperty(window, "localStorage", storage);
     }
+  });
+});
+
+const APP = join(dirname(fileURLToPath(import.meta.url)), "../../app");
+const themeColour = () => document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content;
+
+/** A look's own value of a colour token in backoffice-tokens.css, as red, green and blue. */
+function tokenOf(theme: string, token: string): number[] {
+  const css = readFileSync(join(APP, "backoffice-tokens.css"), "utf8");
+  for (const block of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+    if (!block[1]!.includes(`data-theme="${theme}"`)) continue;
+    const hex = new RegExp(`${token}:\\s*#([0-9a-f]{6})`, "i").exec(block[2]!)?.[1];
+    if (hex !== undefined) return [0, 2, 4].map((at) => Number.parseInt(hex.slice(at, at + 2), 16));
+  }
+  throw new Error(`${token} is not set in ${theme}`);
+}
+
+describe("the browser's theme-color", () => {
+  it("is the colour the bar across the top is drawn in, in every look", () => {
+    const shell = readFileSync(join(APP, "backoffice-shell.css"), "utf8");
+    expect(shell).toMatch(/\.bo-topbar \{[^}]*background: color-mix\(in srgb, var\(--c-bg\) 82%, var\(--c-surface\)\);/);
+    expect(Object.keys(THEME_BAR_COLOUR).sort()).toEqual(["dark", "pastel", "rangxay"]);
+    for (const [theme, colour] of Object.entries(THEME_BAR_COLOUR)) {
+      const bg = tokenOf(theme, "--c-bg");
+      const surface = tokenOf(theme, "--c-surface");
+      const mixed = bg.map((channel, at) => Math.round(channel * 0.82 + surface[at]! * 0.18));
+      expect(colour, theme).toBe(`#${mixed.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`);
+    }
+  });
+
+  it("is set before the first paint to the bar of the look drawn", () => {
+    for (const dark of [false, true]) {
+      schemeOf(dark);
+      for (const kept of [...THEME_CHOICES, "unknown", null]) {
+        if (kept === null) window.localStorage.removeItem(THEME_KEY);
+        else window.localStorage.setItem(THEME_KEY, kept);
+        new Function(THEME_BOOT_SCRIPT)();
+        const theme = resolveTheme(readThemeChoice(() => window.localStorage), dark);
+        expect(themeColour(), `${kept} dark=${dark}`).toBe(THEME_BAR_COLOUR[theme]);
+        expect(document.querySelectorAll('meta[name="theme-color"]')).toHaveLength(1);
+      }
+    }
+  });
+
+  it("follows every new choice, system following the operating system", () => {
+    applyThemeChoice(html, "rangxay", false);
+    expect(themeColour()).toBe(THEME_BAR_COLOUR.rangxay);
+    applyThemeChoice(html, "dark", false);
+    expect(themeColour()).toBe(THEME_BAR_COLOUR.dark);
+    applyThemeChoice(html, "system", false);
+    expect(themeColour()).toBe(THEME_BAR_COLOUR.pastel);
+    applyThemeChoice(html, "system", true);
+    expect(themeColour()).toBe(THEME_BAR_COLOUR.dark);
+    expect(document.querySelectorAll('meta[name="theme-color"]')).toHaveLength(1);
   });
 });

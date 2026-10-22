@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   DARK_SCHEME_QUERY,
   THEME_CHOICES,
+  THEME_BAR_COLOUR,
   THEME_STORAGE_KEY,
   type ThemeHost,
   readThemeChoice,
@@ -155,8 +156,11 @@ describe("applying the theme", () => {
   });
 });
 
-/** Runs index.html's own pre-paint script against a stored value and a device setting. */
-function runBootScript(kept: string | null | "refused", deviceIsDark: boolean): string | null {
+/** Runs index.html's own pre-paint script; the theme it set and the theme-color it gave. */
+function runBootScriptFully(
+  kept: string | null | "refused",
+  deviceIsDark: boolean,
+): { theme: string | null; colour: string | null } {
   const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../../index.html"), "utf8");
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
   expect(scripts).toHaveLength(1);
@@ -168,9 +172,17 @@ function runBootScript(kept: string | null | "refused", deviceIsDark: boolean): 
     },
     matchMedia: (query: string) => ({ matches: query === DARK_SCHEME_QUERY && deviceIsDark }),
   };
-  new Function("window", "document", scripts[0]!)(fakeWindow, { documentElement: root });
-  return root.getAttribute("data-theme");
+  const meta = document.createElement("meta");
+  const fakeDocument = {
+    documentElement: root,
+    querySelector: (selector: string) => (selector === 'meta[name="theme-color"]' ? meta : null),
+  };
+  new Function("window", "document", scripts[0]!)(fakeWindow, fakeDocument);
+  return { theme: root.getAttribute("data-theme"), colour: meta.getAttribute("content") };
 }
+
+const runBootScript = (kept: string | null | "refused", deviceIsDark: boolean) =>
+  runBootScriptFully(kept, deviceIsDark).theme;
 
 describe("the theme set before the first paint", () => {
   it("is the same theme the app applies, for every kept value and device setting", () => {
@@ -188,5 +200,64 @@ describe("the theme set before the first paint", () => {
 
   it("is the soft blue when storage is refused, even on a dark device", () => {
     expect(runBootScript("refused", true)).toBe("pastel");
+  });
+});
+
+const STYLES = join(dirname(fileURLToPath(import.meta.url)), "../../styles");
+
+/** A theme's own value of a colour token in pos-tokens.css. */
+function tokenOf(theme: string, token: string): string | undefined {
+  const css = readFileSync(join(STYLES, "pos-tokens.css"), "utf8");
+  for (const block of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+    if (!block[1]!.includes(`data-theme="${theme}"`)) continue;
+    return new RegExp(`${token}:\\s*(#[0-9a-f]{6})`, "i").exec(block[2]!)?.[1]?.toLowerCase();
+  }
+  return undefined;
+}
+
+describe("the browser's theme-color", () => {
+  it("is the colour the till's bar is drawn in, in every theme", () => {
+    const shell = readFileSync(join(STYLES, "pos-shell.css"), "utf8");
+    expect(/\.pos-topbar \{[^}]*background: var\(--c-bg\);/.exec(shell)).not.toBeNull();
+    expect(Object.keys(THEME_BAR_COLOUR).sort()).toEqual(["dark", "pastel", "rangxay"]);
+    for (const [theme, colour] of Object.entries(THEME_BAR_COLOUR)) {
+      expect(colour, theme).toBe(tokenOf(theme, "--c-bg"));
+    }
+  });
+
+  it("is set before the first paint to the bar of the theme drawn, and starts as the default's", () => {
+    const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../../index.html"), "utf8");
+    expect(html).toContain(`<meta name="theme-color" content="${THEME_BAR_COLOUR.pastel}" />`);
+    for (const kept of [...THEME_CHOICES, null, "neon", "refused"]) {
+      for (const dark of [false, true]) {
+        const { theme, colour } = runBootScriptFully(kept, dark);
+        expect(colour, `${String(kept)} on a ${dark ? "dark" : "light"} device`).toBe(
+          THEME_BAR_COLOUR[theme as keyof typeof THEME_BAR_COLOUR],
+        );
+      }
+    }
+  });
+
+  it("follows a new choice at once, and the device while the choice is to follow it", () => {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = "#0b7d5c";
+    document.head.append(meta);
+    try {
+      const device = fakeDevice(false);
+      const theme = startTillTheme(host(() => memoryStorage({}), device));
+      expect(meta.content).toBe(THEME_BAR_COLOUR.pastel);
+      theme.choose("rangxay");
+      expect(meta.content).toBe(THEME_BAR_COLOUR.rangxay);
+      theme.choose("dark");
+      expect(meta.content).toBe(THEME_BAR_COLOUR.dark);
+      theme.choose("system");
+      expect(meta.content).toBe(THEME_BAR_COLOUR.pastel);
+      device.turn(true);
+      expect(meta.content).toBe(THEME_BAR_COLOUR.dark);
+      theme.stop();
+    } finally {
+      meta.remove();
+    }
   });
 });
