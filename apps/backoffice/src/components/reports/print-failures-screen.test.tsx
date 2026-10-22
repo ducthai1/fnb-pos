@@ -54,8 +54,10 @@ describe("slips the tills could not print", () => {
     await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures });
     await screen.findByText(T.empty);
     const calls = getPrintFailures.mock.calls.length;
-    fireEvent.change(screen.getByLabelText(T.fromLabel), { target: { value: "2026-10-21" } });
+    // "To" first: both start on today, so moving "from" first would make a valid range
+    // (and a call) whenever today is the 21st or later.
     fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "2026-10-19" } });
+    fireEvent.change(screen.getByLabelText(T.fromLabel), { target: { value: "2026-10-21" } });
     expect((await screen.findByRole("alert")).textContent).toBe(T.rangeInvalid);
     expect(getPrintFailures.mock.calls.length).toBe(calls);
     fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "2026-10-22" } });
