@@ -19,10 +19,14 @@ decisions:
   - D-074
   - D-075
   - D-099
+  - D-103
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
   - apps/pos/src/screens/till/till-header.test.tsx
+  - apps/pos/src/screens/till/theme-menu.test.tsx
+  - apps/pos/src/features/theme/till-theme.test.ts
+  - apps/pos/src/features/theme/theme-tokens-contrast.test.ts
   - apps/pos/test/browser/sale-grid-columns-in-chrome.test.ts
   - apps/pos/src/app/menu-keeps-its-place.test.tsx
   - apps/pos/src/screens/sale/sale-screen.test.tsx
@@ -51,14 +55,14 @@ Màn bán hàng là nơi thu ngân ghi món khách gọi: chạm món, chọn si
 
 Màn chia ba phần:
 
-- **Bên trái**: danh mục (Tất cả, Cà phê, Trà sữa…). Mỗi danh mục có **ảnh tròn** của món đầu tiên trong danh mục có ảnh (danh mục chưa có món nào có ảnh thì hiện biểu tượng), tên và số món trong đó, ví dụ **8 món**. Danh mục đang chọn nằm trên nền nâu.
+- **Bên trái**: danh mục (Tất cả, Cà phê, Trà sữa…). Mỗi danh mục có **ảnh tròn** của món đầu tiên trong danh mục có ảnh (danh mục chưa có món nào có ảnh thì hiện biểu tượng), tên và số món trong đó, ví dụ **8 món**. Danh mục đang chọn nằm trên nền màu chính của giao diện (xanh dương ở **Xanh pastel**, nâu ở **Rang xay**).
 - **Giữa**: dòng **Thực đơn · 15 món · 1 hết** (số món đang hiện và số món hết), ô tìm món và các ô món: ảnh, tên (tối đa 2 dòng, dài hơn thì cắt bằng "…"), giá và nút tròn **+**. Máy quầy 1280 px hiện 5 cột món bên cạnh đơn, màn 1920 px khoảng 7 cột, máy tính bảng ít cột hơn.
-  - Số tròn màu nâu ở góc trên ảnh là số ly món đó đang có trong đơn; ô món có viền nâu.
+  - Số tròn màu chính ở góc trên ảnh là số ly món đó đang có trong đơn; ô món có viền cùng màu.
   - Nhãn **Bán chạy** ở góc dưới ảnh: tối đa ba món máy này bán được nhiều nhất (mỗi món từ 5 ly trở lên), tính trên các đơn **đã thanh toán** máy đang giữ; nhãn cập nhật khoảng 20 giây sau khi có đơn mới.
   - Món hết: ảnh xám, con dấu **Hết món** trên ảnh, giá gạch ngang.
 - **Bên phải**: đơn đang bán, trình bày như một tờ phiếu — số đơn và số gọi, **Mang đi / Tại chỗ**, các món (mỗi món một dòng), tổng tiền, **Giảm giá đơn**, **Hủy đơn** và nút **Thanh toán** (máy từ 1280 px ghi luôn số tiền cần thu trên nút).
 
-Trên cùng là một thanh: tên quán và tên máy, **Tại quầy / Bàn** (chỉ hiện khi chi nhánh bật bán theo bàn), tình trạng đồng bộ (xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md)), ba công cụ **Lịch sử đơn**, **Thu/chi két**, **Đóng ca**, rồi người đang đứng quầy, ngày của ca và hai nút **Đổi nhân viên**, **Đăng xuất** (màn hẹp hơn 1600 px chỉ hiện biểu tượng của hai nút này). Máy hẹp hơn 1280 px đưa **Tại quầy / Bàn** và ba công cụ xuống hàng thứ hai của thanh.
+Trên cùng là một thanh: tên quán và tên máy, **Tại quầy / Bàn** (chỉ hiện khi chi nhánh bật bán theo bàn), tình trạng đồng bộ (xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md)), ba công cụ **Lịch sử đơn**, **Thu/chi két**, **Đóng ca**, rồi người đang đứng quầy, ngày của ca, nút bảng màu **Giao diện** (xem "Đổi giao diện" bên dưới) và hai nút **Đổi nhân viên**, **Đăng xuất** (màn hẹp hơn 1600 px chỉ hiện biểu tượng của hai nút này). Máy hẹp hơn 1280 px đưa **Tại quầy / Bàn** và ba công cụ xuống hàng thứ hai của thanh.
 
 ## Ai dùng, cần quyền gì
 
@@ -110,6 +114,20 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
 
 Phím tắt chạy cả khi con trỏ đang ở trong ô nhập, trừ lúc bộ gõ tiếng Việt đang ghép chữ. Phím tắt tắt đi khi nút tương ứng đang mờ (ví dụ đơn trống thì F9 không làm gì).
 
+### Đổi giao diện
+
+1. Bấm nút bảng màu **Giao diện** trên thanh trên cùng (cạnh **Đổi nhân viên**).
+2. Chọn một trong bốn giao diện; giao diện đang dùng có dấu ✓:
+   - **Xanh pastel** — sáng, xanh dương dịu. Mặc định của máy mới.
+   - **Rang xay** — sáng, nâu ấm như quán cà phê.
+   - **Tối** — nền tối, đỡ chói khi quán tối đèn hoặc ca đêm.
+   - **Theo máy** — máy (hệ điều hành) đang để sáng thì dùng Xanh pastel, để tối thì dùng Tối, và tự đổi theo khi máy đổi.
+3. Giao diện đổi **ngay**, không tải lại trang, đơn đang bán giữ nguyên. Bấm ra ngoài hoặc phím **Esc** để đóng danh sách mà không đổi.
+
+![Danh sách giao diện trên thanh của máy quầy](../images/may-quay/theme-menu.webp)
+
+Máy **nhớ** giao diện đã chọn: tắt mở lại, đăng xuất, đổi nhân viên vẫn giữ. Ảnh trong sổ tay này chụp ở giao diện Xanh pastel.
+
 ## Luật và giới hạn
 
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
@@ -123,6 +141,7 @@ Phím tắt chạy cả khi con trỏ đang ở trong ô nhập, trừ lúc bộ
 - **Thực đơn nhớ chỗ đang bán**: danh mục đang chọn giữ nguyên suốt phiên (qua thanh toán, sang bàn, mở công cụ); quay lại cùng một đơn thì giữ cả chữ đang tìm và chỗ đang cuộn; sang đơn mới (khách sau) thì xóa ô tìm và cuộn về đầu, vẫn giữ danh mục.
 - Món đã gửi bếp, đã giảm giá hoặc đã hủy một phần thì **không bớt / xóa** bằng nút −: phải dùng **Hủy món**.
 - Đơn đang có **giảm giá toàn đơn** thì các món đang có trên đơn bị khóa sửa/xóa; gỡ giảm giá đơn trước.
+- **Giao diện là của từng máy** (lưu trong trình duyệt của máy đó), không phải cài đặt của quán: đổi ở máy này không đổi máy khác hay trang quản lý, và không cần quyền gì. Xóa dữ liệu trình duyệt, cửa sổ ẩn danh hoặc trình duyệt chặn lưu thì máy dùng **Xanh pastel**. Giao diện không đổi phiếu in; ảnh món giữ nguyên màu ở mọi giao diện.
 
 ## Khi có lỗi
 
@@ -142,7 +161,7 @@ Phím tắt chạy cả khi con trỏ đang ở trong ô nhập, trừ lúc bộ
 
 ## Mất mạng thì sao
 
-Bán tại quầy **không cần mạng**: thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md).
+Bán tại quầy **không cần mạng**: thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md). Đổi giao diện không cần mạng.
 
 ## Chưa làm / sắp có
 

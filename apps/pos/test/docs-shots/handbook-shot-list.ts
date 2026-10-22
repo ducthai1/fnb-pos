@@ -16,6 +16,7 @@ const TAPS: Readonly<Record<string, readonly (readonly [string, number])[]>> = {
     ["+ 100.000", 1],
   ],
   discount: [["Giảm 20%", 1]],
+  "theme-menu": [["Giao diện", 1]],
   "void-line": [["Pha/làm sai món", 1]],
   refund: [
     ["Thêm một Trà sữa trân châu", 1],
@@ -37,6 +38,7 @@ const TILL = [
   "bootstrap-failed",
   "open-shift",
   "sale",
+  "theme-menu",
   "modifier-picker",
   "payment",
   "qr-payment",

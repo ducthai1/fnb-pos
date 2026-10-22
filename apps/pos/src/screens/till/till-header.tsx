@@ -4,6 +4,7 @@ import { vi } from "../../messages/vi";
 import { SyncStatusBadges } from "../sales-home/sync-status-badges";
 import { Icon } from "../shared/icon";
 import { StaffAvatar } from "../shared/staff-avatar";
+import { ThemeMenu } from "./theme-menu";
 import { useTillBarNav } from "./till-bar-nav";
 
 export interface TillHeaderProps {
@@ -59,6 +60,7 @@ export function TillHeader(props: TillHeaderProps) {
           )}
         </div>
         <div className="pos-topbar__actions">
+          <ThemeMenu />
           <button
             type="button"
             className="pos-button pos-button--quiet pos-button--sm"

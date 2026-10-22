@@ -73,7 +73,7 @@ tests:
    ![Nhập PIN](../images/may-quay/pin-entry.webp)
 
 3. Nếu máy chưa mở ca, màn tiếp theo là **Mở ca** (xem [02-mo-ca.md](02-mo-ca.md)); nếu ca đang mở, vào thẳng màn bán hàng.
-4. Trên thanh trên cùng luôn có tên người đang đứng quầy, ngày của ca và hai nút **Đổi nhân viên** (giao máy cho người khác, không cần đóng ca) và **Đăng xuất**.
+4. Trên thanh trên cùng luôn có tên người đang đứng quầy, ngày của ca, nút bảng màu **Giao diện** (đổi màu của máy — xem [03-ban-tai-quay.md](03-ban-tai-quay.md)) và hai nút **Đổi nhân viên** (giao máy cho người khác, không cần đóng ca) và **Đăng xuất**.
 
 ## Luật và giới hạn
 

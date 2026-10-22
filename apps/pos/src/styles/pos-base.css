@@ -4,7 +4,6 @@
    and radii come from pos-tokens.css; buttons and badges are in pos-controls.css. */
 
 :root {
-  color-scheme: light;
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: var(--lh-body);
