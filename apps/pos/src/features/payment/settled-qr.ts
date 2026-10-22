@@ -46,13 +46,14 @@ export function qrTenderOf(intent: PaymentIntentSnapshot): Tender {
 /**
  * order.pay with the paid QR alone, for an order whose earlier payment the server refused
  * because that QR was paid: the cash handed back, the order is closed with the bank's money.
- * Built from the order as the till shows it, since the counter may have moved on since.
+ * Built from the order as the till shows it, since the counter may have moved on since. It
+ * names the shift it is paid into, as every sale does: the server refuses one that has none.
  */
 export function closeWithSettledQrCommand(
   place: TillPlace,
   order: EntitySnapshot,
   intent: PaymentIntentSnapshot,
-  shiftId: string | null,
+  shiftId: string,
   at: number,
 ): LocalCommand {
   const payment = { method: PAYMENT_METHODS.qrTransfer, amount: intent.amount };
@@ -60,7 +61,7 @@ export function closeWithSettledQrCommand(
     orderId: intent.orderId,
     payments: [{ ...payment, paymentIntentId: intent.id }],
     expectedAmountDue: intent.amount,
-    ...(shiftId === null ? {} : { shiftId }),
+    shiftId,
   };
   const version = typeof order.version === "number" ? order.version + 1 : 1;
   return tillCommand(place, "order.pay", payOrderPayloadSchema, payload, at, {

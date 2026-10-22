@@ -8,7 +8,7 @@ import {
   invoicingShop,
   paidCoffee,
 } from "../support/einvoice-shop";
-import { rowsOf } from "../support/shift-commands";
+import { closeTillShifts, rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE, line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
 import type { SyncShop, Till } from "../support/sync-shop";
 
@@ -74,6 +74,7 @@ describe("the end-of-day batch", () => {
     await paidInTheNightOfThe19th(s, s.tillA);
     await paidCoffee(api.app, s, s.otherBranchTill);
     await api.workFor(s.shop.tenantId);
+    await closeTillShifts(api.app, pool, s);
     const closed = await closeDay(s);
     expect(closed.statusCode).toBe(201);
     const [sent, ...more] = batchesSentFor(s);
@@ -97,6 +98,7 @@ describe("the end-of-day batch", () => {
     const s = await invoicingShop(api, pool);
     await paidCoffee(api.app, s);
     await api.workFor(s.shop.tenantId);
+    await closeTillShifts(api.app, pool, s);
     api.provider.goDown({ code: "TAX_GATEWAY_BUSY" });
     let closed;
     try {
@@ -122,6 +124,7 @@ describe("the end-of-day batch", () => {
     const s = await invoicingShop(api, pool);
     await paidCoffee(api.app, s);
     await api.workFor(s.shop.tenantId);
+    await closeTillShifts(api.app, pool, s);
     api.provider.failNext("submitDailyBatch", { failure: "permanent", code: "BATCH_REJECTED" });
     const closed = await closeDay(s);
     expect(closed.json()).toMatchObject({
@@ -150,6 +153,7 @@ describe("the end-of-day batch", () => {
 
   it("queues no batch for a day without invoices", async () => {
     const s = await invoicingShop(api, pool);
+    await closeTillShifts(api.app, pool, s);
     expect((await closeDay(s)).json()).toMatchObject({ batches: [] });
     expect(batchesSentFor(s)).toEqual([]);
   });

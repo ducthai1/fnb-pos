@@ -10,17 +10,16 @@ import {
   tillPlaceOf,
 } from "../features/bootstrap/bootstrap-source";
 import { useTillStaff } from "../features/bootstrap/use-till-staff";
-import { useSettledQrClosing } from "../features/payment/use-settled-qr-closing";
 import { tillAuthority } from "../features/permissions/till-authority";
 import { TillPermissionsProvider } from "../features/permissions/till-permissions-context";
 import { INITIAL_SYNC_STATUS } from "../features/sync/till-sync-status";
 import { vi } from "../messages/vi";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
-import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
 import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice";
 import { TillClockNotice } from "../screens/sales-home/till-clock-notice";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
+import { NeedsAttentionFlow } from "./needs-attention-flow";
 import type { PosDependencies } from "./pos-dependencies";
 import { StaffedTill } from "./staffed-till";
 import { newTillStaffSessions, signInto } from "./till-staff-sessions";
@@ -66,7 +65,6 @@ export function PairedTill(props: {
   );
   const place = useMemo(() => (snapshot === null ? null : tillPlaceOf(snapshot)), [snapshot]);
   const staff = useTillStaff(snapshot?.staff ?? NO_STAFF, till?.client ?? null);
-  const settledQr = useSettledQrClosing(till?.client ?? null, place, rejected);
 
   const loadBootstrap = useCallback(async () => {
     setBootstrapError(null);
@@ -120,12 +118,12 @@ export function PairedTill(props: {
   }
   if (rejected !== null) {
     return (
-      <NeedsAttentionScreen
+      <NeedsAttentionFlow
+        client={till?.client ?? null}
+        place={place}
+        staffId={signedIn.staff.id}
         rejected={rejected}
-        closable={settledQr.closable}
-        onCloseWithSettledQr={(orderId) => {
-          settledQr.close(orderId).then(() => till?.sync.nudge(), console.error);
-        }}
+        onSent={() => till?.sync.nudge()}
         onBack={() => setRejected(null)}
       />
     );

@@ -21,6 +21,7 @@ export const VI_SYNC_ERRORS = {
     "Mã QR đã đổi trạng thái (đã được trả, đã hết hạn hoặc đã gỡ) nên không làm được thao tác này.",
   SYNC_ORDER_NOT_FOUND: "Máy chủ không tìm thấy đơn này ở chi nhánh của máy.",
   SYNC_NO_OPEN_SHIFT: "Máy chưa mở ca nên không ghi được thao tác này.",
+  SYNC_PAYMENT_NEEDS_SHIFT: "Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại.",
   SYNC_INVALID_PAYLOAD: "Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý.",
   SYNC_EINVOICE_DISABLED: "Chi nhánh chưa bật hóa đơn điện tử nên không ghi được người mua.",
   SYNC_EINVOICE_NOT_FOUND:

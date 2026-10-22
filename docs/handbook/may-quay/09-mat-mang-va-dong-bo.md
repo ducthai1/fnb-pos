@@ -17,6 +17,7 @@ decisions:
   - D-065
   - D-068
   - D-077
+  - D-078
 tests:
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
   - apps/pos/src/screens/sales-home/server-restore-notice.test.tsx
@@ -75,6 +76,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
    ![Cần xử lý](../images/may-quay/needs-attention.webp)
 
 3. Làm theo câu giải thích. Với đơn khách **đã chuyển khoản QR đủ** mà máy lại ghi thu tiền mặt, có nút **Đóng đơn bằng QR đã nhận** ngay trong danh sách (trả lại tiền mặt cho khách trước).
+   - Máy **chưa mở ca** (ca cũ đã đóng, chưa mở ca mới — "Cần xử lý" vẫn mở được từ màn **Mở ca**): nút đổi thành **Mở ca để đóng đơn này**. Bấm vào, máy hiện màn **Mở ca** kèm dòng "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở." Đếm tiền đầu ca như thường lệ rồi bấm **Mở ca**: máy mở ca, đóng đơn vào ca đó và quay lại danh sách. Đổi ý thì bấm **Quay lại danh sách**.
 4. Bấm **Quay lại bán hàng**.
 
 Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người mua hóa đơn · Gửi phiếu pha chế · Tạo mã QR chuyển khoản · Gỡ mã QR chuyển khoản · Mở ca · Báo kết quả in · In tạm tính · Chuyển bàn*.
@@ -89,6 +91,7 @@ Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người m
 - Lệnh **chậm hơn quá 12 giờ** thì máy chủ dùng giờ của mình và ghi nhật ký. Đơn bán đêm lúc mất mạng vẫn giữ đúng **ngày kinh doanh** và **ca** lúc bán.
 - Chỉnh đồng hồ máy cho trùng giờ vàng **không** được giá giờ vàng: giờ của lệnh luôn quy về giờ máy chủ.
 - Lệnh bị từ chối **không tự mất**: nằm trong **Cần xử lý** để người xem lại.
+- Thanh toán luôn thuộc một ca: lệnh thanh toán không nêu ca, tới từ máy không có ca nào đang mở, bị máy chủ từ chối (`SYNC_PAYMENT_NEEDS_SHIFT`). Máy quầy bản hiện tại không gửi lệnh như vậy (chưa mở ca thì không bán được, đóng đơn QR từ "Cần xử lý" thì mở ca trước).
 - Máy giữ nhật ký các lệnh đã gửi **7 ngày** để gửi bù nếu máy chủ phải khôi phục từ bản sao lưu.
 - Một máy gửi quá nhiều yêu cầu trong một phút thì máy chủ tạm từ chối (máy báo số giây phải chờ).
 
@@ -126,6 +129,7 @@ Lệnh gửi lại mà bị từ chối thì vào **Cần xử lý**. Nếu bả
 | Máy gửi quá nhiều yêu cầu cùng lúc nên máy chủ tạm từ chối. Thử lại sau … giây. | Bị giới hạn tần suất | Chờ |
 | Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý. | Lệnh hỏng | Báo quản lý/hỗ trợ kèm mã lỗi |
 | Máy chủ không tìm thấy đơn này ở chi nhánh của máy. | Đơn không có trên máy chủ | Báo quản lý |
+| Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại. | Lệnh thanh toán không thuộc ca nào (máy bản cũ, hoặc ca đã đóng mà lệnh không nêu ca) | Mở ca rồi thu lại; đơn QR đã về tiền thì bấm **Mở ca để đóng đơn này** |
 | Có lỗi xảy ra. Thử lại sau ít phút. | Lỗi máy quầy chưa biết tên | Báo hỗ trợ kèm mã lỗi dưới câu |
 | Các câu về bàn, QR, giảm giá, duyệt… | Xem câu tương ứng ở [04](04-thanh-toan.md), [05](05-ban.md), [06](06-huy-giam-hoan-va-duyet.md) | |
 

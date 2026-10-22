@@ -9,17 +9,21 @@ const NO_CLOSABLE: ReadonlySet<string> = new Set();
 
 /**
  * Commands the server refused for good, each with what it means. An order the server would
- * not take cash for because its QR was paid is closed with that QR right here.
+ * not take cash for because its QR was paid is closed with that QR right here, once the till
+ * has a shift open for the money to go into (the button says so while it has none).
  */
 export function NeedsAttentionScreen({
   rejected,
   closable = NO_CLOSABLE,
+  closeNeedsShift = false,
   onCloseWithSettledQr,
   onBack,
 }: {
   rejected: readonly RejectedCommand[];
   /** Orders that can be closed with the QR the bank paid for them. */
   closable?: ReadonlySet<string>;
+  /** The till has no shift open, so closing one of them opens the shift first. */
+  closeNeedsShift?: boolean;
   onCloseWithSettledQr?: (orderId: string) => void;
   onBack: () => void;
 }) {
@@ -51,7 +55,7 @@ export function NeedsAttentionScreen({
                     className="pos-button pos-button--primary"
                     onClick={() => onCloseWithSettledQr(orderId)}
                   >
-                    {vi.qr.closeWithSettledQr}
+                    {closeNeedsShift ? vi.qr.openShiftToClose : vi.qr.closeWithSettledQr}
                   </button>
                 ) : null}
               </li>

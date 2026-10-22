@@ -30,6 +30,7 @@ export const VI_QR_PAYMENT = {
   otherMethod: "Thu cách khác",
   retryPay: "Hoàn tất bằng chuyển khoản đã nhận",
   closeWithSettledQr: "Đóng đơn bằng QR đã nhận",
+  openShiftToClose: "Mở ca để đóng đơn này",
   noSettledQr: "Máy chưa thấy QR đã được trả của đơn này. Chờ đồng bộ xong rồi thử lại.",
   drawFailed: "Không tạo được mã QR trên máy. Thu cách khác hoặc báo quản lý.",
   failed: "Không lưu được thanh toán trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý.",

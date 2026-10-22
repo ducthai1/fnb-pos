@@ -7,9 +7,10 @@ import { buildApp } from "../../../src/build-app";
 import { signedInMember } from "../support/backoffice-accounts";
 import { ManualClock } from "../support/manual-clock";
 import { SALES_DAY_SYNCED_AT, salesDay } from "../support/sales-day";
-import { BUSINESS_DATE, line, orderIdOf, pay, pushOne, saveDraft } from "../support/sync-commands";
+import { closeTillShifts, payInShift } from "../support/shift-commands";
+import { BUSINESS_DATE, line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
 import { cancel } from "../support/sync-order-commands";
-import { type SyncShop, syncShop } from "../support/sync-shop";
+import { type SyncShop, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
@@ -166,6 +167,7 @@ describe("the daily sales report", () => {
         headers: { cookie: s.shop.managerCookie },
         payload: { businessDate: BUSINESS_DATE },
       });
+    await closeTillShifts(app, pool, s);
     // The day's draft left open holds the close up until someone settles it.
     const held = await closeDay();
     expect(held.json()).toMatchObject({ code: "API_DAY_CLOSE_DRAFTS_OPEN" });
@@ -175,11 +177,11 @@ describe("the daily sales report", () => {
     const closed = await closeDay();
     expect(closed.json().dayClose.summary.report).toEqual(before);
 
+    // Rung up in the till's shift before it closed, synced after the day's close.
     const late = saveDraft(s.tillA, [line(s.menu.coffee.id)]);
     await pushOne(app, s.tillA, late);
-    expect((await pushOne(app, s.tillA, pay(s.tillA, orderIdOf(late), 29_000))).status).toBe(
-      "accepted",
-    );
+    const paid = payInShift(s.tillA, orderIdOf(late), 29_000, shiftOf(s.tillA));
+    expect((await pushOne(app, s.tillA, paid)).status).toBe("accepted");
     expect(await report()).toEqual(before);
     const kept = await app.inject({
       method: "GET",

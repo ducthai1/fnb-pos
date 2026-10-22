@@ -2,14 +2,16 @@ import { newId, withTenant } from "@fnb/db";
 import { VND_DENOMINATIONS } from "@fnb/domain/shift";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
+import { shiftSnapshotOf } from "../../../src/sync/shift-snapshot";
 import type { ShiftSnapshot } from "../../../src/sync/shift-wire-types";
+import { readShift } from "../../../src/sync/stored-shift";
 import type { SyncCommandResult } from "../../../src/sync/sync-wire-types";
 import { type WireAction, requestApproval } from "./approval-requests";
 import { pairDevice } from "./paired-devices";
 import { startShift } from "./staffed-shop";
 import { justNow } from "./sync-approvals";
 import { command, line, orderIdOf, push, pushOne, saveDraft } from "./sync-commands";
-import type { SyncShop, Till } from "./sync-shop";
+import { type SyncShop, type Till, shiftOf } from "./sync-shop";
 
 /** The PIN syncShop gives its cashier. */
 export const CASHIER_PIN = "4826";
@@ -28,6 +30,8 @@ export async function freshTill(
   const staffToken = session.body.staffSessionToken as string;
   return { deviceId, deviceToken, staffToken, staffId, nextSeq: 1, nextOrderNo: 1 };
 }
+
+const SMALLEST_NOTE = Number(VND_DENOMINATIONS[0]);
 
 /** The notes a cashier would count for `amount`, largest first. */
 export function notesFor(amount: number) {
@@ -128,3 +132,36 @@ export async function approval(
 /** Rows read as the app role inside the tenant, for asserting what was stored. */
 export const rowsOf = (pool: pg.Pool, tenantId: string, sql: string, values: unknown[] = []) =>
   withTenant(pool, tenantId, async (client) => (await client.query(sql, values)).rows);
+
+/** What the drawer of a shift should hold now, by the server's cash book. */
+export async function expectedCashOf(pool: pg.Pool, tenantId: string, shiftId: string) {
+  return withTenant(pool, tenantId, async (client) => {
+    const shift = await readShift(client, shiftId, false);
+    if (shift === null) throw new Error(`no shift ${shiftId}`);
+    return (await shiftSnapshotOf(client, shift)).figures.expectedCash;
+  });
+}
+
+/**
+ * The cashiers close the shifts syncShop opened on the branch's two tills, each on a count
+ * that matches its drawer, as they do before a manager closes the day.
+ */
+export async function closeTillShifts(
+  app: FastifyInstance,
+  pool: pg.Pool,
+  s: SyncShop,
+  tills: readonly Till[] = [s.tillA, s.tillB],
+) {
+  for (const till of tills) {
+    const expected = await expectedCashOf(pool, s.shop.tenantId, shiftOf(till));
+    // Change below the smallest note (a service charge can leave some) goes to the safe
+    // first, so the notes counted match the drawer.
+    const odd = expected % SMALLEST_NOTE;
+    if (odd > 0) {
+      const moved = await pushShift(app, till, cashMove(till, "out", odd));
+      if (moved.status !== "accepted") throw new Error(`shift.cash_move answered ${moved.code}`);
+    }
+    const closed = await pushShift(app, till, closeShift(till, expected - odd));
+    if (closed.status !== "accepted") throw new Error(`shift.close answered ${closed.code}`);
+  }
+}

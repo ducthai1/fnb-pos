@@ -24,7 +24,8 @@ let s: SyncShop;
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
   app = buildApp({ pool, clock: new ManualClock(SYNCED_AT) });
-  s = await syncShop(app, pool);
+  // The till opens its own shift, at the time the night began.
+  s = await syncShop(app, pool, { openShifts: false });
 });
 
 afterAll(async () => {

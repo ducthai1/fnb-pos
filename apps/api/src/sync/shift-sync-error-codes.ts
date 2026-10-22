@@ -12,5 +12,7 @@ export const SHIFT_SYNC_ERROR_CODES = {
   shiftAlreadyOpen: "SYNC_SHIFT_ALREADY_OPEN",
   /** A cash move or a close on a till with no open shift. */
   noOpenShift: "SYNC_NO_OPEN_SHIFT",
+  /** A payment that names no shift from a till with none open: its money would be no one's. */
+  paymentNeedsShift: "SYNC_PAYMENT_NEEDS_SHIFT",
   cashMoveIdTaken: "SYNC_CASH_MOVE_ID_TAKEN",
 } as const;

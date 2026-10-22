@@ -1,5 +1,5 @@
 import { buildApp } from "@fnb/api/build-app";
-import { type SyncShop, syncShop } from "@fnb/api/test-support/sync-shop";
+import { type SyncShop, type SyncShopOptions, syncShop } from "@fnb/api/test-support/sync-shop";
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { inject } from "vitest";
@@ -28,14 +28,16 @@ export class ScenarioServer {
   }
 
   /**
-   * A fresh server and a shop with two tills, staff signed in, and a small menu; on the
-   * run's shared database unless the app role's connection string of another is given.
+   * A fresh server and a shop with two tills, staff signed in, their shifts open, and a small
+   * menu; on the run's shared database unless the app role's connection string of another
+   * is given.
    */
   static async withShop(
     connectionString = testConnectionString(inject("testPostgres"), "app"),
+    options: SyncShopOptions = {},
   ): Promise<{ server: ScenarioServer; shop: SyncShop }> {
     const server = new ScenarioServer(connectionString);
-    return { server, shop: await syncShop(server.app, server.pool) };
+    return { server, shop: await syncShop(server.app, server.pool, options) };
   }
 
   private connect(): pg.Pool {

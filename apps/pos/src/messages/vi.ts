@@ -88,6 +88,9 @@ export const vi = {
     hint: "Máy chủ đã từ chối các lệnh dưới đây. Quản lý cần xem lại từng lệnh.",
     empty: "Không có lệnh nào bị từ chối.",
     back: "Quay lại bán hàng",
+    openShiftFirst:
+      "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở.",
+    backToList: "Quay lại danh sách",
     commandLine: (command: string, code: string) => `${command} — ${code}`,
   },
   errors: {

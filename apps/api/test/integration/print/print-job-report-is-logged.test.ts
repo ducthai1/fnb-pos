@@ -5,9 +5,9 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { failedBill, printLogOf, reported } from "../support/print-commands";
-import { coffeeDraft, openedShift } from "../support/shift-commands";
+import { coffeeDraft } from "../support/shift-commands";
 import { pushOne, tillsClock } from "../support/sync-commands";
-import { type SyncShop, syncShop } from "../support/sync-shop";
+import { type SyncShop, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 const AT = "2026-10-20T08:15:00.000+07:00";
@@ -73,7 +73,7 @@ describe("print.job_reported", () => {
   });
 
   it("logs a shift report under the shift it names", async () => {
-    const shiftId = await openedShift(app, s.tillB, 500_000);
+    const shiftId = shiftOf(s.tillB);
     const report = failedBill("", AT, { kind: "shift_report", orderId: undefined, shiftId });
     expect((await pushOne(app, s.tillB, reported(s.tillB, report))).status).toBe("accepted");
     expect(await printLogOf(pool, s.shop.tenantId, report.jobId)).toMatchObject([
@@ -92,7 +92,7 @@ describe("print.job_reported", () => {
         : failedBill("", AT, {
             kind: "shift_report",
             orderId: undefined,
-            shiftId: await openedShift(app, elsewhere, 0),
+            shiftId: shiftOf(elsewhere),
           });
     expect((await pushOne(app, s.tillA, reported(s.tillA, report))).code).toBe(code);
     expect(await printLogOf(pool, s.shop.tenantId, report.jobId)).toEqual([]);

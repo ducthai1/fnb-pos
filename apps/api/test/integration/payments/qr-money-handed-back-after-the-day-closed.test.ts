@@ -11,7 +11,7 @@ import {
   putWebhookSecret,
   sendFakeNotice,
 } from "../support/payment-webhooks";
-import { rowsOf } from "../support/shift-commands";
+import { closeTillShifts, rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE, pay, pushOne } from "../support/sync-commands";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
@@ -49,7 +49,11 @@ async function overpaidShop() {
   return {
     s,
     qr,
-    closeDay: () => as("POST", day, { businessDate: BUSINESS_DATE }),
+    /** The cashiers close their shifts, then the owner closes the day. */
+    closeDay: async () => {
+      await closeTillShifts(app, pool, s);
+      return as("POST", day, { businessDate: BUSINESS_DATE });
+    },
     dayStatus: async () => (await as("GET", `${day}?businessDate=${BUSINESS_DATE}`)).json(),
     handBack: () =>
       as("POST", `/payments/refund-due/${qr.intentId}`, { method: "cash", note: "Trả lại khách" }),

@@ -4,6 +4,7 @@ import type pg from "pg";
 import { expectStatus } from "./catalog-shop";
 import { pairDevice } from "./paired-devices";
 import { type StaffedShop, createStaff, hire, staffedShop, startShift } from "./staffed-shop";
+import { BUSINESS_DATE } from "./sync-commands";
 
 /** A paired till with a staff member signed in, numbering its commands and orders itself. */
 export interface Till {
@@ -13,6 +14,23 @@ export interface Till {
   staffId: string;
   nextSeq: number;
   nextOrderNo: number;
+  /** The cash shift the fixture opened on it, which its payments go into unless they name one. */
+  shiftId?: string;
+}
+
+export interface SyncShopOptions {
+  /**
+   * Whether each till starts with its cash shift open on an empty drawer, as a till that
+   * sells does (the server takes no payment outside a shift). Off for a test about opening
+   * shifts itself.
+   */
+  openShifts?: boolean;
+}
+
+/** The shift syncShop opened on `till`; a test relying on one fails here when it opened none. */
+export function shiftOf(till: Till): string {
+  if (till.shiftId === undefined) throw new Error("the till has no shift opened by syncShop");
+  return till.shiftId;
 }
 
 export interface SyncMenu {
@@ -41,7 +59,7 @@ async function signedInTill(
   deviceId: string,
   token: string,
   staffId: string,
-) {
+): Promise<Till> {
   const shift = await startShift(app, token, staffId, PIN);
   if (shift.status !== 201) throw new Error(`starting a shift answered ${shift.status}`);
   return {
@@ -54,8 +72,34 @@ async function signedInTill(
   };
 }
 
+/**
+ * The till's cash shift, open on an empty drawer for the commands' business day. Written
+ * directly rather than sent as shift.open: a till's outbox numbers its own commands from the
+ * first, and a real till under test (the sync client's) would find that number taken.
+ */
+async function withOpenShift(
+  pool: pg.Pool,
+  tenantId: string,
+  branchId: string,
+  till: Till,
+): Promise<Till> {
+  const shiftId = newId();
+  await withTenant(pool, tenantId, (client) =>
+    client.query(
+      "INSERT INTO shift (id, tenant_id, branch_id, device_id, status, opened_by_staff_id, " +
+        "opening_cash, business_date, created_by) VALUES ($1, $2, $3, $4, 'open', $5, 0, $6, $5)",
+      [shiftId, tenantId, branchId, till.deviceId, till.staffId, BUSINESS_DATE],
+    ),
+  );
+  return { ...till, shiftId };
+}
+
 /** A shop with a small menu and a price list, set up through the backoffice API. */
-export async function syncShop(app: FastifyInstance, pool: pg.Pool): Promise<SyncShop> {
+export async function syncShop(
+  app: FastifyInstance,
+  pool: pg.Pool,
+  options: SyncShopOptions = {},
+): Promise<SyncShop> {
   const shop = await staffedShop(app, pool);
   const brandId = await withTenant(pool, shop.tenantId, async (client) => {
     const { rows } = await client.query("SELECT brand_id FROM branch WHERE id = $1", [
@@ -72,16 +116,22 @@ export async function syncShop(app: FastifyInstance, pool: pg.Pool): Promise<Syn
     ]);
     return rows[0].id as string;
   });
+  const selling = async (branchId: string, till: Till) =>
+    (options.openShifts ?? true) ? withOpenShift(pool, shop.tenantId, branchId, till) : till;
   return {
     shop,
     brandId,
-    tillA: await signedInTill(app, shop.deviceId, shop.deviceToken, cashier),
-    tillB: await signedInTill(app, secondTill.deviceId, secondTill.deviceToken, cashier),
-    otherBranchTill: await signedInTill(
-      app,
-      otherDeviceId,
-      shop.otherBranchDeviceToken,
-      elsewhere.json().staffId,
+    tillA: await selling(
+      shop.branchId,
+      await signedInTill(app, shop.deviceId, shop.deviceToken, cashier),
+    ),
+    tillB: await selling(
+      shop.branchId,
+      await signedInTill(app, secondTill.deviceId, secondTill.deviceToken, cashier),
+    ),
+    otherBranchTill: await selling(
+      shop.otherBranchId,
+      await signedInTill(app, otherDeviceId, shop.otherBranchDeviceToken, elsewhere.json().staffId),
     ),
     menu: await createMenu(app, pool, shop, brandId),
   };

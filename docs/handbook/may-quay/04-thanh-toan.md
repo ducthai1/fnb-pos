@@ -20,6 +20,7 @@ decisions:
   - D-059
   - D-073
   - D-074
+  - D-078
 tests:
   - apps/pos/src/app/counter-checkout.test.tsx
   - apps/pos/src/app/counter-payment-drawer.test.tsx
@@ -39,6 +40,7 @@ tests:
   - apps/api/test/integration/payments/qr-time-runs-on-the-server-clock.test.ts
   - apps/api/test/integration/payments/transfer-code-is-not-reused-within-a-week.test.ts
   - apps/api/test/integration/payments/pay-with-paid-intent.test.ts
+  - apps/api/test/integration/shift/late-offline-order-keeps-its-shift.test.ts
   - e2e/pos/counter-sale-cash.spec.ts
   - e2e/pos/qr-payment-auto-confirm.spec.ts
   - e2e/pos/invoice-with-buyer-tax-code.spec.ts
@@ -109,6 +111,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 - Khách **đã chuyển đủ qua QR** mà thu ngân lại thu tiền mặt / hủy đơn / tạo QR mới: máy chủ từ chối. Trả lại tiền mặt cho khách, rồi bấm **Đóng đơn bằng QR đã nhận**.
 - Tiền chuyển đến **sau khi mã hết hạn**: không tự trả đơn; quản lý khớp tay ở trang quản lý.
 - Chỉ **tiền mặt** đi vào két của ca. Đơn tính vào ca **lúc thanh toán**.
+- **Mọi thanh toán thuộc một ca**, với mọi cách trả (tiền mặt, QR…). Máy chưa mở ca thì không vào được màn bán; máy chủ cũng **từ chối** lệnh thanh toán không nêu ca khi máy đó không có ca nào đang mở (lệnh giả, máy bản cũ), để không có khoản tiền nào nằm ngoài két và ngoài báo cáo ca. Các khoản đã ghi trước đây giữ nguyên.
 - **Thông tin người mua** chỉ lưu trên máy chủ, **không in ra bill**. MST: 10 số, mã chi nhánh 10 số + gạch + 3 số (`0312345678-001`), hoặc 12 số của cá nhân; gõ liền 13 số máy hiểu là mã chi nhánh. Cá nhân phải có **số CCCD (12 số)** hoặc **số điện thoại** (bắt đầu bằng 0 hoặc +84, 10–11 số).
 - Phím **F9** trong ngăn thanh toán là **Hoàn tất thanh toán**; tắt khi chưa đủ tiền.
 
@@ -130,6 +133,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 | Máy chủ không nhận mã QR này. — kèm câu lý do | Máy chủ từ chối mã | Làm theo câu lý do |
 | Khách đã chuyển khoản đủ qua QR của đơn này, nên máy chủ không nhận thu tiền mặt, hủy đơn hay tạo QR mới. Trả lại tiền mặt cho khách (nếu đã thu) rồi đóng đơn bằng QR đã nhận. | Thu hai lần | Trả tiền mặt lại, bấm **Đóng đơn bằng QR đã nhận** |
 | Máy chưa thấy QR đã được trả của đơn này. Chờ đồng bộ xong rồi thử lại. | Máy chưa nhận tin ngân hàng | Chờ vài giây khi có mạng |
+| Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại. (trong **Cần xử lý**) | Máy chủ nhận một lệnh thanh toán không thuộc ca nào: máy không có ca đang mở | Mở ca; đơn QR đã về tiền thì đóng lại bằng nút **Mở ca để đóng đơn này** (xem [09](09-mat-mang-va-dong-bo.md)) |
 | Không tạo được mã QR trên máy. Thu cách khác hoặc báo quản lý. | Lỗi vẽ mã | Thu tiền mặt |
 | Không lưu được thanh toán trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý. | Máy không ghi được | Thử lại |
 | MST gồm 10 chữ số, mã chi nhánh thêm gạch và 3 số (0312345678-001), hoặc 12 số của cá nhân. | MST sai dạng | Sửa MST |
