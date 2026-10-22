@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { freshTill } from "../support/shift-commands";
+import { freshTill, openedShift } from "../support/shift-commands";
 import { approve, hireManager } from "../support/sync-approvals";
 import { line, orderIdOf, pay, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { discount, voidUnits, withApproval } from "../support/sync-order-commands";
@@ -27,6 +27,13 @@ afterAll(async () => {
   await app.close();
   await pool.end();
 });
+
+/** A till of its own for `staffId`, its shift open on an empty drawer, ready to take money. */
+async function sellingTill(staffId?: string) {
+  const till = await freshTill(app, s, staffId);
+  await openedShift(app, till, 0);
+  return till;
+}
 
 /**
  * Four coffees (116.000 đ) with 10% off the whole order (11.600 đ), given on `till` by
@@ -58,7 +65,7 @@ async function fourCoffeesTenPercentOff(till: Till, approved: boolean) {
 describe("order.void_line under an order discount", () => {
   it("is refused when the fixed discount would become a larger share than the cashier may give", async () => {
     // The cashier may give no order discount at all; the manager approved 10% of four coffees.
-    const till = await freshTill(app, s);
+    const till = await sellingTill();
     const { orderId, coffee } = await fourCoffeesTenPercentOff(till, true);
 
     const voided = await pushOne(app, till, voidUnits(till, orderId, coffee.lineId, "3"));
@@ -71,7 +78,7 @@ describe("order.void_line under an order discount", () => {
   });
 
   it("goes through for staff who may give the larger share themselves", async () => {
-    const till = await freshTill(app, s, managerId);
+    const till = await sellingTill(managerId);
     const { orderId, coffee } = await fourCoffeesTenPercentOff(till, false);
 
     const voided = await pushOne(app, till, voidUnits(till, orderId, coffee.lineId, "3"));
@@ -82,7 +89,7 @@ describe("order.void_line under an order discount", () => {
   });
 
   it("goes through for the cashier when no order discount is on the bill", async () => {
-    const till = await freshTill(app, s);
+    const till = await sellingTill();
     const coffee = line(s.menu.coffee.id, { quantity: "4" });
     const draft = saveDraft(till, [coffee]);
     expect((await pushOne(app, till, draft)).status).toBe("accepted");

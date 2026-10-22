@@ -16,7 +16,7 @@ import {
 import { line, orderIdOf, pullAll, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { hireManager } from "../support/sync-approvals";
 import { refund } from "../support/sync-order-commands";
-import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
+import { type SyncShop, type Till, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
@@ -116,8 +116,9 @@ describe("cash paid out for a refund", () => {
   });
 
   it("is refused into a shift of another branch, and nothing is paid out", async () => {
-    const elsewhere = await openedShift(app, s.otherBranchTill, 100_000);
+    const elsewhere = shiftOf(s.otherBranchTill);
     const till = await freshTill(app, s, managerId);
+    await openedShift(app, till, 0);
     const sale = await coffeeSoldForCash(till);
     const refused = await pushOne(app, till, coffeeGivenBack(till, sale, elsewhere));
     expect(refused).toMatchObject({ status: "rejected", code: "SYNC_SHIFT_NOT_FOUND" });

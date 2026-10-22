@@ -80,6 +80,7 @@ describe("what a till starts with", () => {
       payment_account: null,
       einvoice_profile: null,
       payment_wallets: [],
+      shift_close_difference_tolerance: "0",
     });
     expect(q1.config.chargeProfile).toEqual({ pricesIncludeTax: true, serviceCharge: null });
   });

@@ -10,16 +10,19 @@ const definition = (key: string) => {
 };
 
 describe("the keys the settings routes take", () => {
-  it("are every switch, every catalog setting and the drawer tolerance, and nothing else", () => {
+  it("are every switch and every catalog setting, the drawer tolerance among them, and nothing else", () => {
     expect([...CONFIG_KEY_DEFINITIONS.keys()]).toEqual([
       ...FEATURE_FLAG_KEYS,
       ...Object.keys(CONFIG_SETTING_DEFAULTS),
-      CLOSE_DIFFERENCE_TOLERANCE_KEY,
     ]);
+    expect(CONFIG_KEY_DEFINITIONS.get(CLOSE_DIFFERENCE_TOLERANCE_KEY)).toMatchObject({
+      scope: "device",
+      systemDefault: "0",
+    });
   });
 
   it("resolve onto the same defaults the tills run with", () => {
-    expect(systemLayer()).toEqual({ ...configDefaults(), [CLOSE_DIFFERENCE_TOLERANCE_KEY]: "0" });
+    expect(systemLayer()).toEqual(configDefaults());
   });
 
   it("each take their own default back, so a layer can always be set to it", () => {

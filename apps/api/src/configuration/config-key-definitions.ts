@@ -13,10 +13,6 @@ import {
   type FeatureFlagScope,
 } from "@fnb/feature-flags";
 import { z } from "zod";
-import {
-  CLOSE_DIFFERENCE_TOLERANCE_DEFAULT,
-  CLOSE_DIFFERENCE_TOLERANCE_KEY,
-} from "../sync/close-difference-tolerance";
 
 /** What the settings routes know of one key: its kind, how specific it may get, its shape. */
 export interface ConfigKeyDefinition {
@@ -47,6 +43,10 @@ const SETTING_RULES: Readonly<Record<ConfigSettingKey, SettingRule>> = {
   },
   payment_account: { scope: "branch", value: paymentAccountSettingSchema },
   einvoice_profile: { scope: "branch", value: einvoiceProfileSettingSchema },
+  shift_close_difference_tolerance: {
+    scope: "device",
+    value: closeDifferenceToleranceSettingSchema,
+  },
 };
 
 const DEFINITIONS: readonly ConfigKeyDefinition[] = [
@@ -63,13 +63,6 @@ const DEFINITIONS: readonly ConfigKeyDefinition[] = [
     ...rule,
     systemDefault: CONFIG_SETTING_DEFAULTS[key as ConfigSettingKey],
   })),
-  {
-    key: CLOSE_DIFFERENCE_TOLERANCE_KEY,
-    kind: "setting",
-    scope: "device",
-    value: closeDifferenceToleranceSettingSchema,
-    systemDefault: CLOSE_DIFFERENCE_TOLERANCE_DEFAULT,
-  },
 ];
 
 /** Every key the settings routes take, flags first, each in catalog order. */

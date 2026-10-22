@@ -9,9 +9,9 @@ import {
   paidCoffee,
 } from "../support/einvoice-shop";
 import { createRole } from "../support/roles";
-import { closeShift, openedShift, pushShift, rowsOf } from "../support/shift-commands";
+import { closeShift, closeTillShifts, pushShift, rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE } from "../support/sync-commands";
-import { type SyncShop, syncShop } from "../support/sync-shop";
+import { type SyncShop, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
@@ -49,19 +49,21 @@ const closesOf = (s: SyncShop) =>
 describe("closing a business day", () => {
   it("is refused while a cash shift of the day is open, then allowed once it is closed", async () => {
     const s = await invoicingShop(api, pool);
-    const shiftId = await openedShift(api.app, s.tillA, 500_000);
+    await closeTillShifts(api.app, pool, s, [s.tillB]);
     const refused = await closeDay(s);
     expect(refused.statusCode).toBe(409);
-    expect(refused.json()).toEqual({ code: "API_DAY_CLOSE_SHIFTS_OPEN", shiftIds: [shiftId] });
-    expect((await pushShift(api.app, s.tillA, closeShift(s.tillA, 500_000))).status).toBe(
-      "accepted",
-    );
+    expect(refused.json()).toEqual({
+      code: "API_DAY_CLOSE_SHIFTS_OPEN",
+      shiftIds: [shiftOf(s.tillA)],
+    });
+    expect((await pushShift(api.app, s.tillA, closeShift(s.tillA, 0))).status).toBe("accepted");
     expect((await closeDay(s)).statusCode).toBe(201);
   });
 
   it("is refused while invoices of the day are queued, naming them, and closes once they are out", async () => {
     const s = await invoicingShop(api, pool);
     const orderId = await paidCoffee(api.app, s);
+    await closeTillShifts(api.app, pool, s);
     const refused = await closeDay(s);
     expect(refused.statusCode).toBe(409);
     expect(refused.json()).toMatchObject({
@@ -84,6 +86,7 @@ describe("closing a business day", () => {
   it("is refused while the provider fails an invoice of the day for now, naming it", async () => {
     const s = await invoicingShop(api, pool);
     const orderId = await paidCoffee(api.app, s);
+    await closeTillShifts(api.app, pool, s);
     api.provider.failNext("issue", { failure: "temporary", code: "PROVIDER_BUSY" });
     expect(await api.workFor(s.shop.tenantId)).toMatchObject({ retrying: 1 });
     const refused = await closeDay(s);
@@ -97,6 +100,7 @@ describe("closing a business day", () => {
 
   it("happens once: a second close of the day is refused and changes nothing", async () => {
     const s = await invoicingShop(api, pool);
+    await closeTillShifts(api.app, pool, s);
     expect((await closeDay(s)).statusCode).toBe(201);
     const again = await closeDay(s);
     expect([again.statusCode, again.json()]).toEqual([409, { code: "API_DAY_ALREADY_CLOSED" }]);
@@ -114,9 +118,10 @@ describe("closing a business day", () => {
   });
 
   it("is not held up by another branch's open shift, nor by an invoice failed for good", async () => {
+    // The other branch's till keeps the shift syncShop opened on it.
     const s = await invoicingShop(api, pool);
-    await openedShift(api.app, s.otherBranchTill, 100_000);
     const orderId = await paidCoffee(api.app, s);
+    await closeTillShifts(api.app, pool, s);
     api.provider.failNext("issue", { failure: "permanent", code: "SELLER_NOT_REGISTERED" });
     await api.workFor(s.shop.tenantId);
     const closed = await closeDay(s);
@@ -128,10 +133,10 @@ describe("closing a business day", () => {
 
   it("shows where an open day stands, to someone allowed to read reports", async () => {
     const s = await invoicingShop(api, pool);
-    const shiftId = await openedShift(api.app, s.tillA, 200_000);
+    await closeTillShifts(api.app, pool, s, [s.tillB]);
     const open = await dayOf(s);
     expect(open.statusCode).toBe(200);
-    expect(open.json()).toMatchObject({ dayClose: null, openShiftIds: [shiftId] });
+    expect(open.json()).toMatchObject({ dayClose: null, openShiftIds: [shiftOf(s.tillA)] });
   });
 });
 
@@ -147,6 +152,7 @@ describe("who may close a day", () => {
     });
     expect((await dayOf(s, cashier.cookie)).statusCode).toBe(403);
     expect(await closesOf(s)).toEqual([]);
+    await closeTillShifts(api.app, pool, s);
     const manager = await signedInMember(api.app, pool, s.shop.tenantId, {
       roleId: s.shop.roleIds.manager,
     });

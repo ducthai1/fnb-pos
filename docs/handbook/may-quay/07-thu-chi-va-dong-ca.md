@@ -13,6 +13,7 @@ decisions:
   - D-041
   - D-061
   - D-076
+  - D-078
 tests:
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -24,6 +25,7 @@ tests:
   - apps/api/test/integration/shift/cash-refund-is-paid-out-of-the-shift-drawer.test.ts
   - apps/api/test/integration/shift/open-orders-carry-to-next-shift.test.ts
   - apps/api/test/integration/shift/closed-shift-is-immutable.test.ts
+  - apps/api/test/integration/config/config-changes-reach-the-tills-under-their-scope.test.ts
   - e2e/pos/close-shift-with-count.spec.ts
 ---
 
@@ -38,7 +40,7 @@ tests:
 
 - Thu/chi két: quyền `cash_move`. Thu ngân (vai trò mẫu) tự làm được khi **tổng thu + chi trong ca không quá 500.000 đ**; quá thì quản lý duyệt tại chỗ. Quản lý ca, chủ quán không giới hạn.
 - Đóng ca: ai đang đứng quầy cũng đóng được. Két **lệch** quá mức cho phép của quán thì cần người có quyền `accept_close_difference` (quản lý ca, chủ quán) duyệt **đúng số tiền lệch đó**.
-- Chủ quán đặt **mức lệch cho phép** ở cài đặt chi nhánh (`shift_close_difference_tolerance`, tính bằng đồng).
+- Chủ quán đặt **mức lệch cho phép** ở trang quản lý → **Cài đặt** → **Ngưỡng chênh lệch khi đóng ca** (tính bằng đồng; đặt cho cả thương hiệu, chi nhánh hoặc riêng từng máy — xem [09-cai-dat](../quan-ly/09-cai-dat.md)). Máy quầy nhận mức đó qua đồng bộ như mọi cài đặt khác.
 
 ## Các bước
 
@@ -69,7 +71,8 @@ tests:
 - Tiền dự kiến lấy theo **sổ ca của máy chủ** (mọi khoản tiền mặt vào két ca này), **cộng thêm** các khoản máy này chưa gửi được. Thu/chi làm lúc mất mạng được tính ngay.
 - Ngưỡng thu/chi **cộng dồn trong cả ca**, **mọi nhân viên trên két đó cộng chung**, tính theo độ lớn (thu 400.000 rồi chi 400.000 là 800.000 đ đã qua tay). Không chia nhỏ để lách được.
 - Lý do thu/chi **bắt buộc**, tối đa **200 ký tự**. Số tiền chỉ gồm chữ số, lớn hơn 0.
-- **Mức lệch cho phép** mặc định là **0 đ**: chưa cài thì **mọi** lần lệch (dù 1.000 đ) đều cần quản lý duyệt. Lệch trong mức cho phép (tính cả hai chiều thiếu/thừa) thì tự đóng.
+- **Mức lệch cho phép** mặc định là **0 đ**: chưa cài thì **mọi** lần lệch (dù 1.000 đ) đều cần quản lý duyệt. Lệch trong mức cho phép (tính cả hai chiều thiếu/thừa) thì tự đóng: chênh lệch **vẫn được ghi lại** trên ca và phiếu chốt ca, chỉ không cần quản lý xác nhận.
+- Chỉ có **một** mức, cho **tiền mặt**: két chỉ chứa tiền mặt; tiền QR khớp bằng tin ngân hàng (thiếu/thừa xử lý ở trang quản lý), không đếm ở két.
 - Quản lý duyệt **đúng con số lệch của đúng ca đang đóng**; lần duyệt thu/chi két cũng chỉ dùng cho ca đang mở lúc duyệt. Nếu máy chủ tính ra con số khác (ví dụ có đơn vừa trả tiền mặt vào ca ở máy khác), máy báo con số của máy chủ và xin duyệt lại cho số đó.
 - **Được đóng ca khi bàn còn khách**: đơn bàn chưa trả **chuyển sang ca sau** (đơn tính vào ca lúc thanh toán).
 - Ca đã đóng **không sửa được**. Tiền của đơn bán lúc mất mạng tới máy chủ sau khi ca đã đóng vẫn thuộc ca lúc bán (được đánh dấu "ghi sau khi đóng ca").
@@ -87,7 +90,7 @@ tests:
 ## Mất mạng thì sao
 
 - Thu/chi két **làm được** khi mất mạng nếu trong ngưỡng của mình; tiền dự kiến tính ngay.
-- Đóng ca **làm được** khi mất mạng nếu két khớp (hoặc lệch trong mức cho phép); máy dùng sổ ca máy chủ gửi về lần cuối cộng với các khoản máy chưa gửi. Lệch quá mức thì cần mạng để xin duyệt.
+- Đóng ca **làm được** khi mất mạng nếu két khớp (hoặc lệch trong mức cho phép máy nhận được lần cuối); máy dùng sổ ca máy chủ gửi về lần cuối cộng với các khoản máy chưa gửi. Lệch quá mức thì cần mạng để xin duyệt.
 - Nên đóng ca khi có mạng để tiền dự kiến đầy đủ (gồm cả tiền mặt các máy khác ghi vào ca này, nếu có).
 
 ## Chưa làm / sắp có

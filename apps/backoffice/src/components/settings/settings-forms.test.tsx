@@ -159,6 +159,22 @@ describe("the drawer tolerance", () => {
       expect(settings.putSetting).toHaveBeenCalledWith(BRANCH_SCOPE, "shift_close_difference_tolerance", "50000"),
     );
   });
+
+  it("says a difference within it is still recorded, only signed for by nobody", async () => {
+    await openSettings();
+    expect(card("shift_close_difference_tolerance").textContent).toContain(
+      "Lệch trong mức này vẫn được ghi lại, chỉ không cần quản lý xác nhận.",
+    );
+  });
+
+  it.each(["-5.000", "-1", "5.5", "năm nghìn"])("sends nothing for %s, and says why", async (typed) => {
+    const settings = await openSettings();
+    const tolerance = card("shift_close_difference_tolerance");
+    type(tolerance, T.tolerance.label, typed);
+    save(tolerance);
+    expect(await within(tolerance).findByText(vi.common.amountInvalid)).toBeTruthy();
+    expect(settings.putSetting).not.toHaveBeenCalled();
+  });
 });
 
 describe("the gateway's webhook secret", () => {

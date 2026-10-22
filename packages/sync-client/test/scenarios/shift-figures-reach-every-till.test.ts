@@ -28,7 +28,8 @@ let tillA: ScenarioTill;
 let tillB: ScenarioTill;
 
 beforeAll(async () => {
-  ({ server, shop } = await ScenarioServer.withShop());
+  // These scenarios open the tills' shifts themselves.
+  ({ server, shop } = await ScenarioServer.withShop(undefined, { openShifts: false }));
   const clock = virtualClock().clock;
   tillA = new ScenarioTill(server.send, shop.tillA, {
     dir: dir.path,

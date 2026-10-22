@@ -14,8 +14,8 @@ import {
   pushShift,
   rowsOf,
 } from "../support/shift-commands";
-import { pullAll, pushOne, tillsClock } from "../support/sync-commands";
-import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
+import { command, pullAll, pushOne, tillsClock } from "../support/sync-commands";
+import { type SyncShop, type Till, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
@@ -127,7 +127,7 @@ describe("a payment that reaches the server after its shift closed", () => {
 
 describe("the shift a payment names", () => {
   it("must be a shift of the till's own branch", async () => {
-    const elsewhere = await openedShift(app, s.otherBranchTill, 100_000);
+    const elsewhere = shiftOf(s.otherBranchTill);
     const handheld = await freshTill(app, s);
     const orderId = await coffeeDraft(app, s, handheld);
     const refused = await pushOne(app, handheld, payInShift(handheld, orderId, 29_000, elsewhere));
@@ -142,15 +142,41 @@ describe("the shift a payment names", () => {
     expect(refused.code).toBe("SYNC_SHIFT_NOT_FOUND");
   });
 
-  it("defaults to the till's own open shift, and to none on a till without one", async () => {
+  it("defaults to the till's own open shift", async () => {
     const till = await freshTill(app, s);
     const own = await openedShift(app, till, 100_000);
     const inShift = await coffeeDraft(app, s, till);
     await pushOne(app, till, payInShift(till, inShift, 29_000));
     expect(await paymentOf(inShift)).toEqual({ shift_id: own, late: false, order_shift: own });
-    const bare = await freshTill(app, s);
-    const outside = await coffeeDraft(app, s, bare);
-    await pushOne(app, bare, payInShift(bare, outside, 29_000));
-    expect(await paymentOf(outside)).toEqual({ shift_id: null, late: false, order_shift: null });
   });
+
+  it.each([
+    ["cash", "cash"],
+    ["a card", "card"],
+  ])(
+    "is needed: %s payment naming none on a till with no shift open is refused, the order kept a draft",
+    async (_label, method) => {
+      const bare = await freshTill(app, s);
+      const outside = await coffeeDraft(app, s, bare);
+      const payments = [{ method, amount: 29_000 }];
+      const sent = command(bare, "order.pay", {
+        orderId: outside,
+        payments,
+        expectedAmountDue: 29_000,
+      });
+      const refused = await pushOne(app, bare, sent);
+      expect(refused).toMatchObject({ status: "rejected", code: "SYNC_PAYMENT_NEEDS_SHIFT" });
+      expect(refused.snapshot).toMatchObject({ status: "draft", payments: [] });
+      expect(await paymentOf(outside)).toBeUndefined();
+      // The same sale goes through once the till has opened its shift, into that shift.
+      const opened = await openedShift(app, bare, 0);
+      const resent = { ...sent, commandId: newId(), deviceSeq: bare.nextSeq++ };
+      expect((await pushOne(app, bare, resent)).status).toBe("accepted");
+      expect(await paymentOf(outside)).toEqual({
+        shift_id: opened,
+        late: false,
+        order_shift: opened,
+      });
+    },
+  );
 });

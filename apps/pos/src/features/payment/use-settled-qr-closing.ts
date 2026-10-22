@@ -12,10 +12,16 @@ export function orderIdOfRejected(entry: RejectedCommand): string | null {
   return typeof named === "string" ? named : null;
 }
 
+/**
+ * What closing an order with its paid QR came to: sent into the till's open shift, held back
+ * because the till has none open (it must be opened first), or nothing left to close.
+ */
+export type SettledQrClose = "sent" | "needs_shift" | "nothing_to_close";
+
 export interface SettledQrClosing {
   /** Orders still open on the till whose QR the bank paid: each can be closed with it now. */
   readonly closable: ReadonlySet<string>;
-  close(orderId: string): Promise<void>;
+  close(orderId: string): Promise<SettledQrClose>;
 }
 
 async function closableOrders(client: SyncClient, rejected: readonly RejectedCommand[]) {
@@ -60,15 +66,17 @@ export function useSettledQrClosing(
   }, [client, rejected]);
 
   const close = useCallback(
-    async (orderId: string) => {
-      if (client === null || place === null) return;
+    async (orderId: string): Promise<SettledQrClose> => {
+      if (client === null || place === null) return "nothing_to_close";
       const order = await client.snapshot("order", orderId);
       const intent = await paidQrOfOrder(client, orderId);
-      if (order === null || intent === null) return;
+      if (order === null || intent === null) return "nothing_to_close";
       const shift = await unclosedShiftOf(client, place.deviceId);
+      if (shift === null) return "needs_shift";
       await client.enqueue(
-        closeWithSettledQrCommand(place, order.snapshot, intent, shift?.id ?? null, Date.now()),
+        closeWithSettledQrCommand(place, order.snapshot, intent, shift.id, Date.now()),
       );
+      return "sent";
     },
     [client, place],
   );

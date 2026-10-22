@@ -8,7 +8,7 @@ import {
   invoicingShop,
   paidCoffee,
 } from "../support/einvoice-shop";
-import { rowsOf } from "../support/shift-commands";
+import { closeTillShifts, rowsOf } from "../support/shift-commands";
 import { BUSINESS_DATE } from "../support/sync-commands";
 import type { SyncShop } from "../support/sync-shop";
 
@@ -49,6 +49,7 @@ async function batchDueAgain(): Promise<SyncShop> {
   const s = await invoicingShop(api, pool);
   await paidCoffee(api.app, s);
   await api.workFor(s.shop.tenantId);
+  await closeTillShifts(api.app, pool, s);
   api.provider.goDown({ code: "TAX_GATEWAY_BUSY" });
   try {
     const closed = await api.app.inject({

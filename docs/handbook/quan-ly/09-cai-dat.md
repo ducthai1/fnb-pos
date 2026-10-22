@@ -9,6 +9,7 @@ decisions:
   - D-049
   - D-055
   - D-061
+  - D-078
   - D-098
 tests:
   - apps/backoffice/src/components/settings/settings-switches.test.tsx
@@ -80,7 +81,7 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 
 - **Cách tính tiền đơn** (đặt tới tầng chi nhánh): **Giá bán đã gồm VAT** (mặc định bật); **Thu phí dịch vụ**: **Phí dịch vụ (%)**, **Áp cho kênh** (Tại bàn, Mang đi, Quán tự giao, Ứng dụng giao hàng — chọn ít nhất một), **Tính phí trên** tiền hàng trước hoặc sau giảm giá, **Thuế suất VAT của phí (%)**. Đơn mới chép cách tính đang áp dụng lúc mở đơn; đổi cài đặt **không tính lại** đơn đã mở.
 - **Tài khoản nhận chuyển khoản** (chi nhánh): **Ngân hàng** (chọn trong danh sách, hoặc "Ngân hàng khác" rồi nhập **Mã BIN** 6 số), **Số tài khoản**, **Tên chủ tài khoản**. Máy quầy tạo mã VietQR vào tài khoản này. **Chưa đặt thì máy quầy không nhận chuyển khoản.**
-- **Ngưỡng chênh lệch khi đóng ca** (đặt tới tầng máy): tiền đếm được lệch quá số này (thừa hoặc thiếu) thì phải có người duyệt mới đóng ca. Mặc định **0 đ** — lệch bất kỳ đồng nào cũng cần duyệt.
+- **Ngưỡng chênh lệch khi đóng ca** (đặt tới tầng máy): ô **Số tiền chênh lệch tối đa (đ)**, gõ số đồng nguyên (ví dụ `5000` hoặc `5.000`) rồi bấm **Lưu**. Tiền mặt đếm được lệch quá số này (thừa hoặc thiếu) thì phải có quản lý duyệt mới đóng ca. **Lệch trong mức này vẫn được ghi lại, chỉ không cần quản lý xác nhận.** Mặc định **0 đ** — lệch bất kỳ đồng nào cũng cần duyệt; muốn nới thì tự đặt (ví dụ 5.000 đ). Chỉ một mức, cho tiền mặt trong két (tiền QR khớp bằng ngân hàng, không đếm ở két). Máy quầy nhận mức mới ở lần đồng bộ kế tiếp và dùng nó ngay ở màn đóng ca (xem [Thu/chi két và đóng ca](../may-quay/07-thu-chi-va-dong-ca.md)).
 
 ## Hóa đơn và kết nối
 
@@ -97,6 +98,7 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 - Bật một công tắc mà công tắc nó cần đang tắt, hoặc bật hai công tắc loại trừ nhau, bị từ chối ngay — ở **mọi tầng** (kể cả khi xung đột nằm ở một máy hay một chi nhánh khác). Trang nói rõ xung đột ở đâu.
 - Phí dịch vụ: tỉ lệ **> 0 và ≤ 100%**, tối đa 2 chữ số thập phân; thuế suất của phí 0–100%.
 - Số tài khoản 1–19 chữ số hoặc chữ cái không dấu; tên chủ tài khoản tối đa 80 ký tự.
+- Ngưỡng chênh lệch: số đồng nguyên, **không âm** (0 là mặc định); số âm, số lẻ hay chữ bị từ chối ngay trên trang, không gửi đi.
 - Mã số thuế: 10 số, 10 số-3 số, hoặc 12 số. Ký hiệu mẫu như **1C26MAB**: 1 hoặc 2, chữ C, 2 số năm, chữ M, 2 chữ cái in hoa.
 - Quy định áp dụng hiện chỉ có một lựa chọn (`nd254-tt91`), soạn từ nguồn thứ cấp và **chưa đối chiếu công báo** — hỏi kế toán trước khi dùng với dữ liệu thật.
 - Bí mật webhook: 16–256 ký tự, không khoảng trắng, không dấu tiếng Việt; **mỗi chi nhánh một bí mật riêng** cho cùng cổng; được máy chủ mã hóa bằng khóa `FNB_PAYMENT_SECRET_KEY`.
@@ -111,6 +113,7 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 | Cài đặt này không đặt được ở tầng đang chọn. | Chọn tầng rộng hơn |
 | Nhập tỉ lệ lớn hơn 0 và không quá 100, tối đa 2 chữ số thập phân. | Sửa phí dịch vụ |
 | Chọn ít nhất một kênh. | Chọn kênh áp phí |
+| Nhập số tiền là số đồng nguyên, ví dụ 35000 hoặc 35.000. | Ngưỡng chênh lệch gõ sai (số âm, số lẻ, chữ): gõ lại số đồng không âm |
 | Chọn ngân hàng hoặc nhập đủ 6 chữ số mã BIN. | Sửa ngân hàng |
 | Số tài khoản gồm 1 đến 19 chữ số hoặc chữ cái, không dấu. | Sửa số tài khoản |
 | Mã số thuế gồm 10 số, 10 số-3 số, hoặc 12 số. | Sửa MST |

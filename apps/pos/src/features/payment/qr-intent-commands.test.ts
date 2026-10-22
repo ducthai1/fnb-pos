@@ -65,11 +65,19 @@ describe("drawing a VietQR on the till", () => {
       ...readIntentSnapshot(drawQr(PLACE, ACCOUNT, ORDER, AT).command.target.optimistic)!,
     };
     const order = { id: ORDER.orderId, status: "draft", version: 4 };
-    const command = closeWithSettledQrCommand(PLACE, order, { ...paid, status: "paid" }, null, AT);
+    const shiftId = "0199f0aa-0000-7000-8000-00000000a11d";
+    const command = closeWithSettledQrCommand(
+      PLACE,
+      order,
+      { ...paid, status: "paid" },
+      shiftId,
+      AT,
+    );
     expect(payOrderPayloadSchema.parse(command.payload)).toEqual({
       orderId: ORDER.orderId,
       payments: [{ method: "qr_transfer", amount: 129_000, paymentIntentId: paid.id }],
       expectedAmountDue: 129_000,
+      shiftId,
     });
     expect(command.target.optimistic).toMatchObject({ status: "paid", version: 5 });
   });

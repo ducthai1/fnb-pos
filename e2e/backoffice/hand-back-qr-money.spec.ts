@@ -13,7 +13,7 @@ import {
   statusAfter,
   unexpectedProblems,
 } from "./support/backoffice-in-browser";
-import { pairedTillWithCashier, pushAccepted } from "./support/till-over-http";
+import { openShift, pairedTillWithCashier, pushAccepted } from "./support/till-over-http";
 
 const stack = inject("backofficeStack");
 const T = text.transfers;
@@ -73,6 +73,8 @@ async function overpaidQr(): Promise<string> {
     note: null,
   };
   await pushAccepted(stack, till, [
+    // A till takes money only in a shift.
+    openShift(newId()),
     {
       type: "order.save_draft",
       payload: {

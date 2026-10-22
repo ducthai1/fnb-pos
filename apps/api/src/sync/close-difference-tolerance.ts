@@ -1,7 +1,7 @@
 import { closeDifferenceToleranceSettingSchema } from "@fnb/contracts";
 import { readConfigLayersForDevice } from "@fnb/db";
 import { type Vnd, vnd } from "@fnb/domain";
-import { resolveConfig } from "@fnb/feature-flags";
+import { CONFIG_SETTING_DEFAULTS, resolveConfig } from "@fnb/feature-flags";
 import type pg from "pg";
 
 /**
@@ -12,7 +12,8 @@ import type pg from "pg";
 export const CLOSE_DIFFERENCE_TOLERANCE_KEY = "shift_close_difference_tolerance";
 
 // Zero by default: until a shop says how much it tolerates, every difference is looked at.
-export const CLOSE_DIFFERENCE_TOLERANCE_DEFAULT = "0";
+export const CLOSE_DIFFERENCE_TOLERANCE_DEFAULT =
+  CONFIG_SETTING_DEFAULTS[CLOSE_DIFFERENCE_TOLERANCE_KEY];
 const SYSTEM_DEFAULTS = { [CLOSE_DIFFERENCE_TOLERANCE_KEY]: CLOSE_DIFFERENCE_TOLERANCE_DEFAULT };
 
 /** The tolerance that applies to this till; a setting that is not an amount is corrupt data. */

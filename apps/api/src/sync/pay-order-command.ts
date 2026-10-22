@@ -9,6 +9,7 @@ import {
 } from "../payments/qr-transfer-tenders";
 import { paidTimesOf } from "./paid-times";
 import { announceShiftCash, shiftForPayment } from "./payment-shift";
+import { SHIFT_SYNC_ERROR_CODES } from "./shift-sync-error-codes";
 import { readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -39,6 +40,9 @@ async function payOrder(context: SyncCommandContext, payload: PayOrderPayload) {
   const usedIntents = payload.payments.flatMap((p) => p.paymentIntentId ?? []);
   await assertNoPaidQrLeftOut(context, payload.orderId, usedIntents);
   const shift = await shiftForPayment(context, payload.shiftId);
+  // A sale belongs to a shift: its cash to that drawer, its takings to that shift's report.
+  // Taken with none, the money would sit in no drawer and no report.
+  if (shift.shiftId === null) throw new CommandRejection(SHIFT_SYNC_ERROR_CODES.paymentNeedsShift);
   // Payments go in while the order is still a draft: a closed order refuses new rows.
   for (const payment of payload.payments) {
     await client.query(

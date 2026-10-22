@@ -62,7 +62,8 @@ describe("the same batch delivered twice at the same moment", () => {
         ),
       ).toEqual({
         applied: 2,
-        changes: 2,
+        // One per command, and the shift the cash went into, sent out again with it.
+        changes: 3,
         payments: 1,
       });
     },
@@ -100,7 +101,8 @@ describe("a batch that arrives in the wrong order", () => {
       ),
     ).toEqual({
       applied: 3,
-      changes: 3,
+      // One per command, and the shift the cash went into, sent out again with it.
+      changes: 4,
       payments: 1,
     });
   });

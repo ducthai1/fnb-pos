@@ -17,9 +17,9 @@ const entryWith = (code: string) => document.querySelector(`[data-rejected-code=
 /**
  * The cashier took the QR down just as the customer paid it, then took cash: the server
  * keeps the QR paid and refuses the cash, so the order is still open with the bank's money.
+ * Left on the screen that says the sale is done.
  */
-async function cashRefusedOverAPaidQr() {
-  const server = qrCafeServer();
+async function cashTakenOverAPaidQr(server: ReturnType<typeof qrCafeServer>) {
   await signedInTill(server);
   const paid = await twoCoffeesOnQr(server);
   server.state.refuseTypes.set("payment.cancel_intent", "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION");
@@ -33,8 +33,18 @@ async function cashRefusedOverAPaidQr() {
   await screen.findByRole("heading", { name: text.checkout.done.title });
   await waitFor(() => expect(pushedOf(server, "order.pay")).toHaveLength(1));
   server.state.refuseTypes.delete("order.pay");
+  return paid;
+}
+
+const openNeedsAttention = async () => {
   fireEvent.click(await screen.findByRole("link", { name: text.sync.needsAttention(2) }));
   await screen.findByRole("heading", { name: text.needsAttention.title });
+};
+
+async function cashRefusedOverAPaidQr() {
+  const server = qrCafeServer();
+  const paid = await cashTakenOverAPaidQr(server);
+  await openNeedsAttention();
   return { server, paid };
 }
 
@@ -65,6 +75,39 @@ describe("an order the server would not take cash for, because its QR was paid",
     expect(other?.querySelector("button")).toBeNull();
     expect(await screen.findAllByRole("button", { name: text.qr.closeWithSettledQr })).toHaveLength(
       1,
+    );
+  });
+
+  it("opens the shift first on a till that has none open, then closes the order into it", async () => {
+    const server = qrCafeServer();
+    const paid = await cashTakenOverAPaidQr(server);
+    // The shift ends before anyone deals with the order: its drawer holds the empty float.
+    tap(text.checkout.done.nextOrder);
+    fireEvent.click(await screen.findByRole("button", { name: text.closeShift.open }));
+    await screen.findByRole("heading", { name: text.closeShift.title });
+    tap(text.closeShift.confirm);
+    fireEvent.click(await screen.findByRole("button", { name: text.closeShift.openNext }));
+    await screen.findByRole("heading", { name: text.checkout.openShift.title });
+    await openNeedsAttention();
+
+    fireEvent.click(await screen.findByRole("button", { name: text.qr.openShiftToClose }));
+    await screen.findByText(text.needsAttention.openShiftFirst);
+    expect(pushedOf(server, "order.pay")).toHaveLength(1);
+    tap(text.checkout.openShift.open);
+    await waitFor(() => expect(pushedOf(server, "order.pay")).toHaveLength(2));
+    const opened = pushedOf(server, "shift.open")[1];
+    expect(pushedOf(server, "order.pay")[1]?.payload).toMatchObject({
+      payments: [{ method: "qr_transfer", amount: 58_000, paymentIntentId: paid.id }],
+      shiftId: opened?.payload.shiftId,
+    });
+    // Opened before the payment went: the server takes no payment outside a shift.
+    const sent = server.state.pushed.map((command) => command.commandId);
+    expect(sent.indexOf(opened?.commandId ?? "")).toBeLessThan(
+      sent.indexOf(pushedOf(server, "order.pay")[1]?.commandId ?? ""),
+    );
+    await screen.findByRole("heading", { name: text.needsAttention.title });
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: text.qr.openShiftToClose })).toBeNull(),
     );
   });
 });
