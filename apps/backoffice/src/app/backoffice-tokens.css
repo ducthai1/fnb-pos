@@ -1,38 +1,120 @@
-/* Design tokens of the backoffice ("Rang xay", like the till's pos-tokens.css: cream paper,
-   espresso ink, roasted caramel for what is chosen and what moves a task on). The same role
-   names and colours as the till, denser for a mouse (44px controls, not 56px), and one sans
-   family for every heading, figure and line: the owner finds a serif hard to read here.
-   Screens use these names only; a colour written by hand in a screen's CSS is a bug.
+/* Design tokens of the backoffice. Three looks share every name (the till's pos-tokens.css
+   has the same keys and colours): "Xanh pastel", the default, soft blue on cool paper;
+   "Rang xay", cream paper, espresso ink and roasted caramel; "Tối", deep slate with pale
+   blue. The look is chosen per machine (lib/theme/theme-choice.ts) and set as `data-theme`
+   on <html> before the first paint; no attribute is the default look. Sizes, type, space and
+   motion are the same in every look. One sans family for every heading, figure and line: the
+   owner finds a serif hard to read here. Screens use these names only; a colour written by
+   hand in a screen's CSS is a bug.
 
-   Every pair of writing on a fill is noted with its contrast (WCAG 2.2): text ≥ 4.5:1. */
+   Every pair of writing on a fill is noted with its contrast (WCAG 2.2): text ≥ 4.5:1,
+   in every look (backoffice-tokens-contrast.test.ts reads this file and holds it there). */
 
-:root {
-  /* Surfaces: light kraft paper, cards a warm white on it */
+/* Xanh pastel (the default): cool paper, slate ink, a calm cornflower blue for what is
+   chosen and what moves a task on. */
+:root,
+:root[data-theme="pastel"] {
+  color-scheme: light;
+  --c-bg: #f3f7fc;
+  --c-surface: #ffffff;
+  --c-surface-2: #eef4fb;
+  --c-surface-3: #e2ebf6;
+  --c-overlay: rgb(23 34 51 / 0.5);
+
+  --c-text: #1d2939; /* 14.7:1 on surface, 13.7:1 on bg, 12.2:1 on surface-3 */
+  --c-text-2: #435267; /* 8.0:1 on surface, 7.4:1 on bg, 6.6:1 on surface-3 */
+  --c-text-3: #56667c; /* 5.9:1 on surface, 5.4:1 on bg, 4.9:1 on surface-3 */
+  --c-text-inverse: #ffffff; /* 14.7:1 on text */
+
+  --c-border: #bfcfe2;
+  --c-border-soft: #dfe8f3;
+  --c-focus: #1f5bc4; /* 6.3:1 on surface: the ring is seen on every fill */
+
+  --c-brand: #3b6db3; /* white on it 5.2:1; on surface 5.2:1, on bg 4.9:1 */
+  --c-brand-strong: #2c5591; /* on brand-soft 6.0:1, on surface 7.5:1; white on it 7.5:1 */
+  --c-brand-soft: #dce8f8;
+  --c-brand-tint: #9dbde8; /* marks and bars only, never under writing */
+  --c-on-brand: #ffffff;
+
+  --c-info: #22628a; /* white on it 6.6:1, on info-soft 5.6:1, on surface 6.6:1 */
+  --c-info-soft: #e0eef6;
+  --c-price: #2c5591; /* 7.5:1 on surface */
+  --c-on-info: #ffffff;
+  --c-amber: #875700; /* 6.2:1 on surface, 5.5:1 on amber-soft */
+  --c-amber-bold: #b7791f;
+  --c-amber-soft: #fbf0d9;
+  --c-amber-fill: #e3a843;
+  --c-on-amber: #2e1f00; /* 7.6:1 on amber-fill */
+  --c-danger: #b0283f; /* 6.5:1 on surface, 5.4:1 on danger-soft; white on it 6.5:1 */
+  --c-danger-strong: #8a1c30; /* a pressed red button: white on it 9.2:1 */
+  --c-danger-soft: #fbe5e8;
+  --c-on-danger: #ffffff;
+  --c-success: #2c6a48; /* 6.4:1 on surface, 5.5:1 on success-soft */
+  --c-success-soft: #e0f0e6;
+
+  --c-danger-line: rgb(176 40 63 / 0.22);
+  --c-success-line: rgb(44 106 72 / 0.22);
+  --c-amber-line: rgb(135 87 0 / 0.22);
+
+  --c-line: rgb(191 207 226 / 0.6);
+  --c-pick-soft: #dce8f8;
+  --c-head-soft: #eef4fb;
+  --c-hover: #f1f6fd; /* text on it 13.5:1 */
+  --c-on-pick: #2c5591; /* 6.0:1 on pick-soft */
+  /* The sign-in page's panel beside the form: the brand, deepening. */
+  --c-hero-from: #3b6db3;
+  --c-hero-to: #2c5591;
+  --c-on-hero: #ffffff; /* 5.2:1 on hero-from, 7.5:1 on hero-to */
+  --c-on-info-tool: #ffffff; /* 6.6:1 on info */
+  --c-control-edge: #7b8ba1; /* 3.5:1 on surface (a box's only outline) */
+  /* The bars of the hours chart: the brand fading toward the axis, the busiest hour bolder. */
+  --c-bar-top: rgb(59 109 179 / 0.55);
+  --c-bar-foot: rgb(59 109 179 / 0.12);
+  --c-bar-peak-foot: rgb(59 109 179 / 0.35);
+  /* The tick of a ticked box, drawn in on-brand over the brand. */
+  --tick-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* Depth: shadows tinted slate blue, never black, with a light top edge */
+  --shadow-card:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(24 44 74 / 0.07),
+    0 2px 8px -2px rgb(24 44 74 / 0.09);
+  --shadow-panel:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(24 44 74 / 0.05),
+    0 12px 28px -14px rgb(24 44 74 / 0.22);
+  --shadow-raised: 0 4px 12px rgb(18 32 56 / 0.12), 0 24px 64px -16px rgb(18 32 56 / 0.4);
+  --shadow-menu: 0 2px 6px rgb(24 44 74 / 0.08), 0 18px 40px -12px rgb(24 44 74 / 0.3);
+  --shadow-press: 0 1px 2px rgb(24 44 74 / 0.14) inset;
+  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.2) inset, 0 6px 16px -8px rgb(44 85 145 / 0.55);
+  --shadow-knob: 0 2px 4px rgb(24 44 74 / 0.22);
+  --ring: 0 0 0 3px rgb(31 91 196 / 0.45);
+  --ring-field: 0 0 0 3px rgb(59 109 179 / 0.18);
+  --ring-danger: 0 0 0 3px rgb(176 40 63 / 0.32);
+}
+
+/* Rang xay: light kraft paper, cards a warm white on it, espresso ink, roasted caramel. */
+:root[data-theme="rangxay"] {
+  color-scheme: light;
   --c-bg: #f4ede3;
   --c-surface: #fffbf5;
   --c-surface-2: #f8f1e7;
   --c-surface-3: #efe5d8;
   --c-overlay: rgb(42 30 23 / 0.52);
 
-  /* Text: espresso ink */
   --c-text: #2a1e17; /* 15.7:1 on surface, 13.9:1 on bg */
   --c-text-2: #5a4638; /* 8.6:1 on surface, 7.6:1 on bg */
   --c-text-3: #73604f; /* 5.8:1 on surface, 5.1:1 on bg, 4.8:1 on surface-3 */
-  --c-text-inverse: #fffbf5;
+  --c-text-inverse: #fffbf5; /* 15.7:1 on text */
 
-  /* Lines */
   --c-border: #cdbba5;
   --c-border-soft: #e3d6c5;
   --c-focus: #1d5fa8; /* 6.3:1 on surface: the ring is seen on every fill */
 
-  /* Brand: roasted caramel; the main action, what is selected, the page on screen */
   --c-brand: #9e3f1c; /* white on it 6.6:1; on surface 6.4:1, on bg 5.7:1 */
   --c-brand-strong: #7f3015; /* on brand-soft 6.9:1, on surface 8.7:1 */
   --c-brand-soft: #f6dccb;
   --c-brand-tint: #d9824f; /* marks and bars only, never under writing */
   --c-on-brand: #ffffff;
 
-  /* Meanings */
   --c-info: #25598a; /* white on it 7.3:1, on info-soft 6.2:1 */
   --c-info-soft: #e4edf5;
   --c-price: #9e3f1c;
@@ -49,11 +131,119 @@
   --c-success: #3d6b38; /* 6.1:1 on surface, 5.2:1 on success-soft */
   --c-success-soft: #e3eedb;
 
-  /* The thin edge of a tinted notice, the meaning's own colour at low strength */
   --c-danger-line: rgb(163 37 59 / 0.22);
   --c-success-line: rgb(61 107 56 / 0.22);
   --c-amber-line: rgb(138 90 0 / 0.22);
 
+  --c-line: rgb(205 187 165 / 0.55);
+  --c-pick-soft: #f6dccb;
+  --c-head-soft: #f8f1e7;
+  --c-hover: #faf3ea;
+  --c-on-pick: #7f3015; /* 6.9:1 on pick-soft */
+  --c-hero-from: #9e3f1c;
+  --c-hero-to: #7f3015;
+  --c-on-hero: #ffffff; /* 6.6:1 on hero-from, 9.0:1 on hero-to */
+  --c-on-info-tool: #ffffff; /* 7.3:1 on info */
+  --c-control-edge: #94806d; /* 3.7:1 on surface (a box's only outline) */
+  --c-bar-top: rgb(158 63 28 / 0.55);
+  --c-bar-foot: rgb(158 63 28 / 0.12);
+  --c-bar-peak-foot: rgb(158 63 28 / 0.35);
+  --tick-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* Depth: shadows tinted brown, never black, with a light top edge like thick paper */
+  --shadow-card:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(66 38 20 / 0.08),
+    0 2px 8px -2px rgb(66 38 20 / 0.1);
+  --shadow-panel:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(66 38 20 / 0.05),
+    0 12px 28px -14px rgb(66 38 20 / 0.24);
+  --shadow-raised: 0 4px 12px rgb(42 24 12 / 0.12), 0 24px 64px -16px rgb(42 24 12 / 0.45);
+  --shadow-menu: 0 2px 6px rgb(66 38 20 / 0.08), 0 18px 40px -12px rgb(66 38 20 / 0.32);
+  --shadow-press: 0 1px 2px rgb(66 38 20 / 0.14) inset;
+  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -8px rgb(127 48 21 / 0.55);
+  --shadow-knob: 0 2px 4px rgb(66 38 20 / 0.2);
+  --ring: 0 0 0 3px rgb(29 95 168 / 0.38);
+  /* The halo of a field being typed in: the brand's caramel, faint */
+  --ring-field: 0 0 0 3px rgb(158 63 28 / 0.16);
+  --ring-danger: 0 0 0 3px rgb(163 37 59 / 0.32);
+}
+
+/* Tối: deep slate surfaces stepping lighter as they rise, pale ink, a pale blue brand with
+   dark writing on it; the meanings are light tones that read on the dark. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #11161d;
+  --c-surface: #19202a;
+  --c-surface-2: #1e2632;
+  --c-surface-3: #242d3a;
+  --c-overlay: rgb(3 6 10 / 0.62);
+
+  --c-text: #e6ecf3; /* 13.8:1 on surface, 15.3:1 on bg, 11.7:1 on surface-3 */
+  --c-text-2: #b4c0cf; /* 8.9:1 on surface, 9.8:1 on bg, 7.5:1 on surface-3 */
+  --c-text-3: #8f9db0; /* 5.9:1 on surface, 6.6:1 on bg, 5.0:1 on surface-3 */
+  --c-text-inverse: #11161d; /* 15.3:1 on text */
+
+  --c-border: #3a4659;
+  --c-border-soft: #2b3544;
+  --c-focus: #9cc3f5; /* 9.0:1 on surface */
+
+  --c-brand: #8fb6ec; /* on-brand on it 8.4:1; on surface 7.9:1, on bg 8.7:1 */
+  --c-brand-strong: #b3cdf3; /* on brand-soft 7.6:1, on surface 10.1:1; on-brand on it 10.8:1 */
+  --c-brand-soft: #233650;
+  --c-brand-tint: #4f77ad; /* marks and bars only, never under writing */
+  --c-on-brand: #0e1a2c;
+
+  --c-info: #7db9e2; /* on-info on it 8.7:1, on info-soft 6.5:1, on surface 7.7:1 */
+  --c-info-soft: #18303f;
+  --c-price: #b3cdf3; /* 10.1:1 on surface */
+  --c-on-info: #08161f;
+  --c-amber: #e3b55c; /* 8.6:1 on surface, 7.5:1 on amber-soft */
+  --c-amber-bold: #d39a3a;
+  --c-amber-soft: #33291a;
+  --c-amber-fill: #e0a43c;
+  --c-on-amber: #2e1f00; /* 7.3:1 on amber-fill */
+  --c-danger: #f2939f; /* 7.4:1 on surface, 6.7:1 on danger-soft; on-danger on it 8.2:1 */
+  --c-danger-strong: #f7b3bb; /* a pressed red button: on-danger on it 10.6:1 */
+  --c-danger-soft: #3b2026;
+  --c-on-danger: #2a0a10;
+  --c-success: #8fd19e; /* 9.2:1 on surface, 7.7:1 on success-soft */
+  --c-success-soft: #1b3223;
+
+  --c-danger-line: rgb(242 147 159 / 0.3);
+  --c-success-line: rgb(143 209 158 / 0.28);
+  --c-amber-line: rgb(227 181 92 / 0.3);
+
+  --c-line: rgb(58 70 89 / 0.7);
+  --c-pick-soft: #233650;
+  --c-head-soft: #1e2632;
+  --c-hover: #222b37; /* text on it 12.0:1 */
+  --c-on-pick: #b3cdf3; /* 7.6:1 on pick-soft */
+  /* A deep blue panel, not a bright one, on a dark page */
+  --c-hero-from: #233650;
+  --c-hero-to: #1a2940;
+  --c-on-hero: #e6ecf3; /* 10.3:1 on hero-from, 12.3:1 on hero-to */
+  --c-on-info-tool: #08161f; /* 8.7:1 on info */
+  --c-control-edge: #7d8ca1; /* 4.8:1 on surface (a box's only outline) */
+  --c-bar-top: rgb(143 182 236 / 0.7);
+  --c-bar-foot: rgb(143 182 236 / 0.16);
+  --c-bar-peak-foot: rgb(143 182 236 / 0.3);
+  --tick-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%230e1a2c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* Depth on the dark: a faint light top edge and black shadows that only deepen the edge */
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-panel: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 28px -14px rgb(0 0 0 / 0.55);
+  --shadow-raised: 0 4px 12px rgb(0 0 0 / 0.35), 0 24px 64px -16px rgb(0 0 0 / 0.7);
+  --shadow-menu: 0 0 0 1px rgb(255 255 255 / 0.04), 0 18px 40px -12px rgb(0 0 0 / 0.65);
+  --shadow-press: 0 1px 2px rgb(0 0 0 / 0.4) inset;
+  --shadow-brand: 0 6px 16px -8px rgb(0 0 0 / 0.6);
+  --shadow-knob: 0 2px 4px rgb(0 0 0 / 0.45);
+  --ring: 0 0 0 3px rgb(156 195 245 / 0.55);
+  --ring-field: 0 0 0 3px rgb(143 182 236 / 0.22);
+  --ring-danger: 0 0 0 3px rgb(242 147 159 / 0.4);
+}
+
+/* What every look shares. */
+:root {
   /* Type: one family with every Vietnamese mark drawn, bundled with the app, figures of one
      width wherever sums stand in a column */
   --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -101,22 +291,15 @@
   --r-lg: 20px;
   --r-pill: 999px;
 
-  /* Depth: shadows tinted brown, never black, with a light top edge like thick paper */
-  --shadow-card:
-    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(66 38 20 / 0.08),
-    0 2px 8px -2px rgb(66 38 20 / 0.1);
-  --shadow-panel:
-    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(66 38 20 / 0.05),
-    0 12px 28px -14px rgb(66 38 20 / 0.24);
-  --shadow-raised: 0 4px 12px rgb(42 24 12 / 0.12), 0 24px 64px -16px rgb(42 24 12 / 0.45);
-  --shadow-menu: 0 2px 6px rgb(66 38 20 / 0.08), 0 18px 40px -12px rgb(66 38 20 / 0.32);
   --shadow-filter: var(--shadow-card);
-  --shadow-press: 0 1px 2px rgb(66 38 20 / 0.14) inset;
-  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -8px rgb(127 48 21 / 0.55);
-  --ring: 0 0 0 3px rgb(29 95 168 / 0.38);
-  /* The halo of a field being typed in: the brand's caramel, faint */
-  --ring-field: 0 0 0 3px rgb(158 63 28 / 0.16);
-  --ring-danger: 0 0 0 3px rgb(163 37 59 / 0.32);
+
+  /* The swatch of each look in the look picker: its paper and its brand, whatever look is on. */
+  --swatch-pastel-paper: #f3f7fc;
+  --swatch-pastel-ink: #3b6db3;
+  --swatch-rangxay-paper: #f4ede3;
+  --swatch-rangxay-ink: #9e3f1c;
+  --swatch-dark-paper: #19202a;
+  --swatch-dark-ink: #8fb6ec;
 
   /* Motion: things that open come in over a short distance and leave faster than they came;
      only transform and opacity move. Reduced motion (below) stills all of it. */
@@ -132,17 +315,6 @@
   --press-scale: 0.97;
   --rise: 6px;
 
-  /* The admin language: a soft line inside cards and under bars, the warm tint of a chosen
-     row and of a table's head, the hover of a row. */
-  --c-line: rgb(205 187 165 / 0.55);
-  --c-pick-soft: #f6dccb;
-  --c-head-soft: #f8f1e7;
-  --c-hover: #faf3ea;
-  --c-on-pick: #7f3015; /* 6.9:1 on pick-soft */
-  /* Writing on the blue tool buttons (7.3:1 on --c-info). */
-  --c-on-info-tool: #ffffff;
-  /* The edge of an empty tick box or radio dot: 3.7:1 on surface (a box's only outline) */
-  --c-control-edge: #94806d;
   --fs-body: 0.9375rem;
 
   --control-h: 44px;

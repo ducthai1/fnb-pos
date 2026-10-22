@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ApiProvider } from "../components/app/api-context";
+import { ThemeFollower } from "../components/app/theme-follower";
+import { THEME_BOOT_SCRIPT } from "../lib/theme/theme-choice";
 import { vi } from "../messages/vi";
 // Bundled, only the two subsets the shop writes in: Vietnamese (every mark, "đ", "₫") and Latin.
 import "@fontsource/be-vietnam-pro/vietnamese-400.css";
@@ -45,14 +47,21 @@ import "./backoffice-login.css";
 import "./backoffice-motion.css";
 import "./backoffice-listbox.css";
 import "./backoffice-pager.css";
+import "./backoffice-theme-picker.css";
 
 export const metadata: Metadata = { title: vi.shell.appName };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi">
+    // The head's script sets the look on <html> before the first paint; React then finds
+    // attributes the server did not write, which is expected there and only there.
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body>
+        <ThemeFollower />
         <ApiProvider>{children}</ApiProvider>
       </body>
     </html>

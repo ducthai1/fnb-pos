@@ -47,8 +47,8 @@
     gap: var(--sp-4);
     padding: var(--sp-8);
     border-radius: var(--r-lg);
-    background: linear-gradient(150deg, var(--c-brand), var(--c-brand-strong));
-    color: var(--c-on-brand);
+    background: linear-gradient(150deg, var(--c-hero-from), var(--c-hero-to));
+    color: var(--c-on-hero);
     box-shadow: var(--shadow-card);
   }
 }

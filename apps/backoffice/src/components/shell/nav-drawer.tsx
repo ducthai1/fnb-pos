@@ -28,7 +28,9 @@ export function NavDrawer({
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      // Esc that closed a picker inside the drawer (it says so by preventing the default)
+      // leaves the drawer open.
+      if (event.key !== "Escape" || event.defaultPrevented) return;
       onClose();
       menuButton.current?.focus();
     };

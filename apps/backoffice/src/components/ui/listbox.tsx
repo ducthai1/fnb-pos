@@ -1,12 +1,14 @@
 "use client";
 
 import { Check, ChevronDown, type LucideIcon } from "lucide-react";
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Icon } from "./icon";
 
 export interface ListboxChoice {
   readonly value: string;
   readonly label: string;
+  /** Drawn before the label in the list, such as the swatch of a look. */
+  readonly lead?: ReactNode;
 }
 
 /** The choice a key moves to from `at` in a list of `count`, or null for a key that does not move. */
@@ -43,6 +45,7 @@ export function Listbox({
   choices,
   onChange,
   icon,
+  iconOnly = false,
   disabled,
   className,
 }: {
@@ -53,6 +56,8 @@ export function Listbox({
   choices: readonly ListboxChoice[];
   onChange: (value: string) => void;
   icon?: LucideIcon;
+  /** The button is the icon alone (the bar's look picker); the label is its name and tooltip. */
+  iconOnly?: boolean;
   disabled?: boolean;
   className?: string;
 }) {
@@ -134,6 +139,7 @@ export function Listbox({
         aria-expanded={open}
         aria-controls={open ? `${id}-list` : undefined}
         aria-activedescendant={open ? `${id}-option-${active}` : undefined}
+        title={iconOnly ? label : undefined}
         disabled={disabled}
         onClick={() => (open ? setOpen(false) : show(selectedAt))}
         onKeyDown={onKey}
@@ -141,9 +147,13 @@ export function Listbox({
           if (!root.current?.contains(event.relatedTarget as Node | null)) setOpen(false);
         }}
       >
-        {icon !== undefined && <Icon of={icon} size={18} />}
-        <span className="bo-listbox__value bo-clip">{selected?.label ?? ""}</span>
-        <Icon of={ChevronDown} size={18} />
+        {icon !== undefined && <Icon of={icon} size={iconOnly ? 20 : 18} />}
+        {!iconOnly && (
+          <>
+            <span className="bo-listbox__value bo-clip">{selected?.label ?? ""}</span>
+            <Icon of={ChevronDown} size={18} />
+          </>
+        )}
       </button>
       {open && (
         <ul id={`${id}-list`} role="listbox" aria-labelledby={`${id}-label`} className="bo-listbox__popup" tabIndex={-1}>
@@ -160,7 +170,8 @@ export function Listbox({
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => pick(at)}
             >
-              <span className="bo-wrap">{choice.label}</span>
+              {choice.lead}
+              <span className="bo-wrap bo-listbox__text">{choice.label}</span>
               {at === selectedAt && <Icon of={Check} size={16} />}
             </li>
           ))}

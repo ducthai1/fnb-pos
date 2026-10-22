@@ -7,7 +7,8 @@
     "./messages/vi": "./src/messages/vi.ts",
     "./navigation/admin-sections": "./src/lib/navigation/admin-sections.ts",
     "./sheet/write-xlsx-sheet": "./src/lib/sheet/write-xlsx-sheet.ts",
-    "./test-support/hostile-catalog": "./src/test-support/hostile-catalog.ts"
+    "./test-support/hostile-catalog": "./src/test-support/hostile-catalog.ts",
+    "./theme/theme-choice": "./src/lib/theme/theme-choice.ts"
   },
   "scripts": {
     "dev": "next dev",

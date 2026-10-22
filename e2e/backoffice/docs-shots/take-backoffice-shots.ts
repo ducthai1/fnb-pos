@@ -2,14 +2,16 @@ import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { vi as text } from "@fnb/backoffice/messages/vi";
+import { THEME_KEY } from "@fnb/backoffice/theme/theme-choice";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
-import type { Browser, Page } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
 import { sellSampleDay } from "./sample-sales";
 import { type SampleShopStack, startSampleShopStack } from "./sample-shop-stack";
 import { expectLightPage, saveWebpShot } from "./save-webp-shot";
 
 // `pnpm docs:shots:backoffice`: every picture of the handbook's backoffice part, taken again
-// from the sample café on a stack of its own (free ports, throwaway database).
+// from the sample café on a stack of its own (free ports, throwaway database), always in
+// the default look, Xanh pastel, whatever look this machine's browser last kept.
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "../../../docs/handbook/images/quan-ly");
 const WIDE = { width: 1280, height: 860 };
@@ -42,6 +44,15 @@ const click = (name: string) => async (page: Page) => {
 const SHOTS: readonly Shot[] = [
   { name: "tong-quan", path: () => "/" },
   { name: "tong-quan-dien-thoai", path: () => "/", viewport: PHONE },
+  {
+    name: "doi-giao-dien",
+    path: () => "/",
+    act: async (page) => {
+      await page.getByRole("combobox", { name: text.shell.theme.label, exact: true }).click();
+      await page.getByRole("listbox", { name: text.shell.theme.label }).waitFor();
+      await page.waitForTimeout(400);
+    },
+  },
   { name: "mon", path: () => "/menu" },
   { name: "sua-mon", path: (stack) => productPath(stack, "Trà sữa trân châu") },
   {
@@ -84,6 +95,17 @@ async function settle(page: Page) {
   await page.waitForTimeout(400);
 }
 
+/** Every page of `context` opens in Xanh pastel, the look the handbook shows. */
+async function inPastel(context: BrowserContext) {
+  await context.addInitScript((key) => {
+    try {
+      window.localStorage.setItem(key, "pastel");
+    } catch {
+      // A browser without storage draws the default look, which is pastel too.
+    }
+  }, THEME_KEY);
+}
+
 async function signedInPage(
   browser: Browser,
   stack: SampleShopStack,
@@ -95,6 +117,7 @@ async function signedInPage(
     locale: "vi-VN",
     timezoneId: "Asia/Ho_Chi_Minh",
   });
+  await inPastel(context);
   const page = await context.newPage();
   await page.goto(`${stack.backofficeOrigin}/login`);
   await page.locator("form[data-hydrated]").waitFor();
@@ -106,6 +129,11 @@ async function signIn(page: Page, stack: SampleShopStack) {
   await page.getByLabel(text.login.passwordLabel).fill(stack.owner.password);
   await page.getByRole("button", { name: text.login.submit }).click();
   await page.getByRole("combobox", { name: text.shell.branchLabel }).waitFor();
+}
+
+async function expectPastel(page: Page, name: string) {
+  const theme = await page.evaluate(() => document.documentElement.dataset.theme);
+  if (theme !== "pastel") throw new Error(`${name}: drawn in "${theme}", not in pastel`);
 }
 
 async function main() {
@@ -131,11 +159,13 @@ async function main() {
         timezoneId: "Asia/Ho_Chi_Minh",
         storageState: state,
       });
+      await inPastel(context);
       const page = await context.newPage();
       await page.goto(`${stack.backofficeOrigin}${await shot.path(stack)}`);
       await settle(page);
       await shot.act?.(page);
       await expectLightPage(page, shot.name);
+      await expectPastel(page, shot.name);
       console.log(
         `${shot.name}.webp ${await saveWebpShot(page, join(OUT, `${shot.name}.webp`))} B`,
       );

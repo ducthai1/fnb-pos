@@ -35,8 +35,8 @@
   width: min(100%, 28px);
   height: var(--h);
   border-radius: 6px 6px 0 0;
-  /* Brand caramel fading toward the axis, so the eye goes to the tops of the bars. */
-  background: linear-gradient(to bottom, rgb(158 63 28 / 0.55), rgb(158 63 28 / 0.12));
+  /* The brand fading toward the axis, so the eye goes to the tops of the bars. */
+  background: linear-gradient(to bottom, var(--c-bar-top), var(--c-bar-foot));
 }
 
 .bo-hours__bar[data-empty] {
@@ -44,7 +44,7 @@
 }
 
 .bo-hours__col[data-busiest] .bo-hours__bar {
-  background: linear-gradient(to bottom, var(--c-brand), rgb(158 63 28 / 0.35));
+  background: linear-gradient(to bottom, var(--c-brand), var(--c-bar-peak-foot));
 }
 
 /* The busiest hour's amount, over its column; it may run wider than the column. */

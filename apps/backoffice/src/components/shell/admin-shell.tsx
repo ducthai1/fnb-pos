@@ -17,6 +17,7 @@ import {
   rememberBranchId,
   rememberedBranchId,
 } from "./session-context";
+import { ThemePicker } from "./theme-picker";
 import { useWideScreen } from "./use-wide-screen";
 
 const T = vi.shell;
@@ -145,6 +146,9 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
         {drawerOpen && (
           <NavDrawer menuButton={menuButton} onClose={closeNav}>
             {renderNav("drawer", closeNav)}
+            <div className="bo-drawer__look">
+              <ThemePicker placement="drawer" />
+            </div>
           </NavDrawer>
         )}
         <main ref={watchScrollbar} className="bo-main" data-scroll-root>
