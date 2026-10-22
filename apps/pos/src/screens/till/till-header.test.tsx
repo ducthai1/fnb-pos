@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { vi as text } from "../../messages/vi";
+import { TillBarNav } from "./till-bar-nav";
 import { TillHeader, type TillHeaderProps } from "./till-header";
+import { TillTools } from "./till-tools";
 
 function header(overrides: Partial<TillHeaderProps> = {}) {
   const pressed: string[] = [];
@@ -61,5 +63,26 @@ describe("the till's bar", () => {
     fireEvent.click(screen.getByRole("button", { name: text.sales.switchStaff }));
     fireEvent.click(screen.getByRole("button", { name: text.session.signOut }));
     expect(pressed).toEqual(["switch", "sign-out"]);
+  });
+
+  it("carries the selling screens' tools inside the bar, and only where they are given", () => {
+    const bar = (
+      <TillHeader
+        branchName="Quận 1"
+        staffName="Lan"
+        status={{ connection: "online", pending: 0, needsAttention: 0 }}
+        onOpenNeedsAttention={() => {}}
+        onSwitchStaff={() => {}}
+        onSignOut={() => {}}
+      />
+    );
+    const { unmount } = render(
+      <TillBarNav nav={<TillTools onOpen={() => {}} />}>{bar}</TillBarNav>,
+    );
+    const tools = screen.getByRole("navigation", { name: text.tools.label });
+    expect(screen.getByRole("banner", { name: text.shell.barLabel }).contains(tools)).toBe(true);
+    unmount();
+    render(bar);
+    expect(screen.queryByRole("navigation", { name: text.tools.label })).toBeNull();
   });
 });

@@ -11,7 +11,9 @@ import { TableOrderNotices } from "../../../src/screens/table-order/table-order-
 import { TableOrderScreen } from "../../../src/screens/table-order/table-order-screen";
 import { TransferTableScreen } from "../../../src/screens/table-order/transfer-table-screen";
 import { SellingModeSwitch } from "../../../src/screens/till/selling-mode-switch";
+import { TillBarNav } from "../../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../../src/screens/till/till-header";
+import { TillTools } from "../../../src/screens/till/till-tools";
 import { hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
@@ -28,7 +30,14 @@ const menu = hostileTillMenu();
 const now = Date.now();
 const profile = { pricesIncludeTax: false, serviceCharge: null };
 const header = (
-  <>
+  <TillBarNav
+    nav={
+      <div className="pos-navbar">
+        <SellingModeSwitch mode="tables" onChange={() => {}} />
+        <TillTools onOpen={() => {}} />
+      </div>
+    }
+  >
     <TillHeader
       branchName={HOSTILE_NAMES.branch}
       staffName={HOSTILE_NAMES.staff}
@@ -37,8 +46,7 @@ const header = (
       onSwitchStaff={() => {}}
       onSignOut={() => {}}
     />
-    <SellingModeSwitch mode="tables" onChange={() => {}} />
-  </>
+  </TillBarNav>
 );
 const seat = { id: "table-0", name: HOSTILE_FLOOR_NAMES.table };
 const order = { ...HOSTILE_ORDER, serviceType: "dine_in" as const, tableTag: null, table: seat };

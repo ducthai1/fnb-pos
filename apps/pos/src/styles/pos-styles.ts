@@ -1,9 +1,21 @@
-// Every stylesheet of the till, in cascade order: the font, the tokens, then the controls
+// Every stylesheet of the till, in cascade order: the fonts, the tokens, then the controls
 // and the screens built from them. The app and the layout test page both import this.
-import "@fontsource/be-vietnam-pro/400.css";
-import "@fontsource/be-vietnam-pro/500.css";
-import "@fontsource/be-vietnam-pro/600.css";
-import "@fontsource/be-vietnam-pro/700.css";
+// The fonts ship inside the app (a till must look right offline), and only the subsets a
+// Vietnamese menu needs: Fraunces for product names and big sums, Plus Jakarta Sans for the rest.
+// Fraunces with its optical size axis, so a 15px name and a 32px sum each get their own cut.
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource/plus-jakarta-sans/vietnamese-400.css";
+import "@fontsource/plus-jakarta-sans/latin-ext-400.css";
+import "@fontsource/plus-jakarta-sans/latin-400.css";
+import "@fontsource/plus-jakarta-sans/vietnamese-500.css";
+import "@fontsource/plus-jakarta-sans/latin-ext-500.css";
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/vietnamese-600.css";
+import "@fontsource/plus-jakarta-sans/latin-ext-600.css";
+import "@fontsource/plus-jakarta-sans/latin-600.css";
+import "@fontsource/plus-jakarta-sans/vietnamese-700.css";
+import "@fontsource/plus-jakarta-sans/latin-ext-700.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
 import "./pos-tokens.css";
 import "./pos-base.css";
 import "./pos-controls.css";

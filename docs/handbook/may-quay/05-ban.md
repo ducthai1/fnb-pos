@@ -54,7 +54,7 @@ Cho quán có chỗ ngồi: khách ngồi trước, gọi món nhiều lượt, 
 
 ### Xem sơ đồ bàn
 
-1. Trên thanh thứ hai, bấm **Bàn** (bấm **Tại quầy** để về bán tại quầy — đơn quầy đang dở vẫn còn nguyên).
+1. Trên thanh trên cùng, bấm **Bàn** (bấm **Tại quầy** để về bán tại quầy — đơn quầy đang dở vẫn còn nguyên).
 2. Chọn khu (ví dụ **Trong nhà**, **Sân vườn**). Lọc **Tất cả / Có khách / Bàn trống**. Chọn cách xem **Sơ đồ** (bàn đặt đúng chỗ như vẽ ở trang quản lý) hoặc **Lưới**.
 
    ![Sơ đồ bàn](../images/may-quay/floor-plan.webp)

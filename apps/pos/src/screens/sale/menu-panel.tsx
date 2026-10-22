@@ -2,6 +2,9 @@ import type { PosProduct } from "@fnb/contracts";
 import { Search, X } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { useMenuPlaceState } from "../../features/menu/menu-memory";
+import { COUNTER_CHANNEL } from "../../features/menu/menu-prices";
+import { isSoldOut } from "../../features/menu/product-availability";
+import { useBestSellerIds } from "../../features/menu/use-best-sellers";
 import { productsShown } from "../../features/menu/search-products";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
@@ -36,7 +39,11 @@ export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: Menu
     categoryIds,
   );
   const tones = useMemo(() => categoryTones(menu.categories), [menu.categories]);
+  const best = useBestSellerIds();
   const shown = inCategoryOrder(productsShown(menu.products, categoryId, query), menu.categories);
+  const soldOut = shown.filter((product) =>
+    isSoldOut(menu.availability.get(product.id), COUNTER_CHANNEL, now),
+  ).length;
   const search = useRef<HTMLInputElement>(null);
   useTillKey(vi.sale.keys.search, () => {
     search.current?.focus();
@@ -51,31 +58,37 @@ export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: Menu
         chosen={categoryId}
         onChoose={setCategoryId}
       />
-      <div className="pos-search">
-        <Icon of={Search} />
-        <input
-          ref={search}
-          className="pos-input pos-search__input"
-          type="search"
-          aria-label={vi.sale.search}
-          placeholder={vi.sale.searchPlaceholder}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        {query === "" ? (
-          <kbd className="pos-kbd" aria-hidden>
-            {vi.sale.keys.search}
-          </kbd>
-        ) : (
-          <button
-            type="button"
-            className="pos-search__clear"
-            aria-label={vi.sale.clearSearch}
-            onClick={() => setQuery("")}
-          >
-            <Icon of={X} />
-          </button>
-        )}
+      <div className="pos-menu__head">
+        <h2 className="pos-menu__title">
+          {vi.sale.menuLabel}{" "}
+          <span className="pos-menu__count">{vi.sale.shownCount(shown.length, soldOut)}</span>
+        </h2>
+        <div className="pos-search">
+          <Icon of={Search} />
+          <input
+            ref={search}
+            className="pos-input pos-search__input"
+            type="search"
+            aria-label={vi.sale.search}
+            placeholder={vi.sale.searchPlaceholder}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {query === "" ? (
+            <kbd className="pos-kbd" aria-hidden>
+              {vi.sale.keys.search}
+            </kbd>
+          ) : (
+            <button
+              type="button"
+              className="pos-search__clear"
+              aria-label={vi.sale.clearSearch}
+              onClick={() => setQuery("")}
+            >
+              <Icon of={X} />
+            </button>
+          )}
+        </div>
       </div>
       {shown.length === 0 ? (
         <div className="pos-menu__empty">
@@ -90,6 +103,7 @@ export function MenuPanel({ menu, now, inCart = NOTHING, orderId, onPick }: Menu
                 product={product}
                 tone={product.categoryId === null ? 0 : (tones.get(product.categoryId) ?? 0)}
                 inCart={inCart.get(product.id) ?? 0}
+                bestSeller={best.has(product.id)}
                 now={now}
                 onPick={onPick}
               />

@@ -46,7 +46,7 @@ tests:
 
 ### Thu hoặc chi tiền két
 
-1. Trên thanh thứ hai bấm **Thu/chi két**.
+1. Trên thanh trên cùng bấm **Thu/chi két**.
 2. Chọn **Thu vào két** hoặc **Chi ra khỏi két**, gõ **Số tiền (đồng)**, ghi **Lý do** (ví dụ "đổi tiền lẻ", "trả tiền đá").
 3. Máy hiện trước **Tiền dự kiến trong két sau đó: …**. Bấm **Thu … vào két** / **Chi … khỏi két**.
 
@@ -56,7 +56,7 @@ tests:
 
 ### Đóng ca
 
-1. Bấm **Đóng ca** trên thanh thứ hai.
+1. Bấm **Đóng ca** trên thanh trên cùng.
 2. Đếm tiền trong két theo **từng mệnh giá**: mỗi lần chạm là thêm một tờ, nút **−** để bớt.
 3. Dưới bảng đếm, máy liệt kê: **Tiền đầu ca**, **Thu tiền mặt**, **Hoàn tiền mặt**, **Thu vào két**, **Chi khỏi két**, **Tiền dự kiến**, **Tiền đếm được**, **Chênh lệch**. Dòng cuối màn báo **Khớp với tiền dự kiến.** hoặc **Thiếu / Thừa … so với tiền dự kiến.**
 

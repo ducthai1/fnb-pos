@@ -1,5 +1,7 @@
-/* The order beside the menu: its lines, totals and the pay button. Long names wrap
-   anywhere; columns are minmax(0, …) so no name can widen the screen. */
+/* The order beside the menu, drawn as a slip of paper: its number in the board's serif, how
+   it is served, its lines between dotted rules, then a perforation over the totals and the
+   pay button. Long names wrap anywhere; columns are minmax(0, …) so no name can widen the
+   screen. */
 
 .pos-sale {
   display: grid;
@@ -19,27 +21,37 @@
   }
 }
 
-/* Under the till's bar, which stays in view from this width up. */
+/* Under the till's bar, which stays in view from this width up; the slip runs down to the
+   foot of the screen so the pay button always sits in the same place. */
 @media (min-width: 1024px) {
   .pos-sale {
-    grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
-    gap: var(--sp-3);
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+  .pos-screen__inner:has(> .pos-sale) {
+    padding-bottom: var(--sp-4);
   }
   .pos-cart {
-    top: calc(var(--bar-h) + var(--sp-3));
+    top: calc(var(--bar-h) + var(--sp-4));
+    min-height: calc(100dvh - var(--bar-h) - 2 * var(--sp-4));
   }
 }
 
-/* A wide till: the order gets room for long names beside four columns of products. */
+/* A wide till: the order keeps a slip's width while the menu takes the rest. */
 @media (min-width: 1280px) {
+  .pos-sale {
+    grid-template-columns: minmax(0, 1fr) 416px;
+  }
+}
+
+@media (min-width: 1600px) {
   .pos-sale {
     grid-template-columns: minmax(0, 1fr) 460px;
   }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1800px) {
   .pos-sale {
-    grid-template-columns: minmax(0, 1fr) 537px;
+    grid-template-columns: minmax(0, 1fr) 500px;
   }
 }
 
@@ -51,42 +63,149 @@
 }
 
 .pos-cart {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
   min-width: 0;
-  padding: var(--sp-3) var(--sp-3) 0;
-  border-radius: var(--r-md);
+  padding: var(--sp-4) var(--sp-4) 0;
+  border-radius: var(--r-xl);
   background: var(--c-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+/* The slip's head: the order's number and call number, how it is served on the right. */
+.pos-cart__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  min-width: 0;
 }
 
 .pos-cart__number {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2);
+  min-width: 0;
   margin: 0;
-  color: var(--c-brand);
-  font-size: var(--fs-md);
-  line-height: 24px;
+  color: var(--c-text-2);
+  font-weight: var(--fw-medium);
+  overflow-wrap: anywhere;
+}
+
+/* At the counter the call number goes under the order's number. */
+.pos-cart__head > .pos-cart__number {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-cart__number > strong {
+  color: var(--c-text);
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.pos-cart__call {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+/* Takeaway or dine-in: a sunken pill with the chosen one raised, its name read out from
+   the hidden legend. */
+.pos-cart__head .pos-group {
+  min-width: 0;
+}
+
+.pos-cart__head .pos-group:has(.pos-field) {
+  flex: 1 1 100%;
+}
+
+.pos-cart__head .pos-group__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pos-cart__head .pos-tabs[role="group"] {
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+}
+
+.pos-cart__head .pos-tabs[role="group"] > .pos-tab {
+  min-height: 44px;
+  padding-inline: var(--sp-4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-text-2);
+}
+
+.pos-cart__head .pos-tabs[role="group"] > .pos-tab[aria-pressed="true"] {
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
 }
 
 .pos-cart__lines:empty {
   display: none;
 }
 
-/* The totals and the pay button stay at the foot of the screen while a long order scrolls. */
+/* The totals and the pay button stay at the foot of the screen while a long order scrolls,
+   under a perforation with a notch cut out of each edge, like a slip torn off a pad. */
 .pos-cart__foot {
   position: sticky;
   bottom: 0;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  margin-inline: calc(-1 * var(--sp-3));
-  padding: var(--sp-3);
-  border-top: 1px solid var(--c-border-soft);
-  border-radius: 0 0 var(--r-md) var(--r-md);
+  margin-top: auto;
+  margin-inline: calc(-1 * var(--sp-4));
+  padding: var(--sp-4);
+  border-top: 2px dashed var(--c-border-soft);
+  border-radius: 0 0 var(--r-xl) var(--r-xl);
   background: var(--c-surface);
   box-shadow: var(--shadow-dock);
+}
+
+.pos-cart__foot::before,
+.pos-cart__foot::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-pill);
+  background: var(--c-bg);
+}
+
+.pos-cart__foot::before {
+  left: -9px;
+}
+
+.pos-cart__foot::after {
+  right: -9px;
+}
+
+/* The order's own tools side by side under the totals. */
+.pos-cart__foot > .pos-line-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  gap: var(--sp-2);
+}
+
+.pos-cart__foot > .pos-line-tools > .pos-button {
+  border-color: var(--c-border-soft);
+  background: var(--c-surface-2);
+}
+
+.pos-cart__foot > .pos-line-tools > .pos-button--danger {
+  color: var(--c-danger);
 }

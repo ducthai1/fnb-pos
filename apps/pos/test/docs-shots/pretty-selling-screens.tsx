@@ -1,6 +1,7 @@
 import { posProductSchema } from "@fnb/contracts";
 import { buildVietQrPayload } from "@fnb/domain/payment";
 import type { ReactElement, ReactNode } from "react";
+import { BestSellersContext } from "../../src/features/menu/use-best-sellers";
 import { cartView } from "../../src/features/order/cart-view";
 import { billSlip } from "../../src/features/printing/bill-slip";
 import { cupLabelSlip } from "../../src/features/printing/cup-label-slip";
@@ -15,6 +16,7 @@ import { ModifierPickerScreen } from "../../src/screens/sale/modifier-picker-scr
 import { SaleScreen } from "../../src/screens/sale/sale-screen";
 import { UnderLayer } from "../../src/screens/shared/under-layer";
 import { SellingModeSwitch } from "../../src/screens/till/selling-mode-switch";
+import { TillBarNav } from "../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../src/screens/till/till-header";
 import { TillTools } from "../../src/screens/till/till-tools";
 import type { TillSyncStatus } from "../../src/features/sync/till-sync-status";
@@ -42,35 +44,42 @@ export const tillBar = (status: TillSyncStatus = ONLINE) => (
   />
 );
 
-/** The bar, and below it the selling modes and the till's tools. */
+/** The bar of the selling screens, carrying the selling modes and the till's tools. */
 export function tillHeader(mode: "counter" | "tables", status: TillSyncStatus = ONLINE): ReactNode {
   return (
-    <>
+    <TillBarNav
+      nav={
+        <div className="pos-navbar">
+          <SellingModeSwitch mode={mode} onChange={nothing} />
+          <TillTools onOpen={nothing} />
+        </div>
+      }
+    >
       {tillBar(status)}
-      <div className="pos-navbar">
-        <SellingModeSwitch mode={mode} onChange={nothing} />
-        <TillTools onOpen={nothing} />
-      </div>
-    </>
+    </TillBarNav>
   );
 }
 
 const adjust = { onVoid: nothing, onDiscount: nothing, onDiscountOrder: nothing, onCancelOrder: nothing };
+/** What the sample café sells most of, as the till reads it from its own sales. */
+const BEST_SELLERS: ReadonlySet<string> = new Set([P["Cà phê sữa đá"]!, P["Trà đào cam sả"]!]);
 export const saleScreen = (status?: TillSyncStatus) => (
-  <SaleScreen
-    header={tillHeader("counter", status)}
-    menu={menu}
-    now={now}
-    order={ORDER}
-    view={cartView(menu, ORDER, PROFILE, now)}
-    adjust={adjust}
-    saveFailed={false}
-    onPick={nothing}
-    onQuantity={nothing}
-    onRemove={nothing}
-    onServiceType={nothing}
-    onCheckout={nothing}
-  />
+  <BestSellersContext value={BEST_SELLERS}>
+    <SaleScreen
+      header={tillHeader("counter", status)}
+      menu={menu}
+      now={now}
+      order={ORDER}
+      view={cartView(menu, ORDER, PROFILE, now)}
+      adjust={adjust}
+      saveFailed={false}
+      onPick={nothing}
+      onQuantity={nothing}
+      onRemove={nothing}
+      onServiceType={nothing}
+      onCheckout={nothing}
+    />
+  </BestSellersContext>
 );
 const overTheSale = (drawer: ReactElement) => (
   <>
@@ -117,14 +126,14 @@ const slips = [
 const milkTea = PRODUCTS.find((product) => product.id === P["Trà sữa trân châu"]);
 
 export const SELLING_SCREENS = {
-  "open-shift": () => <OpenShiftScreen header={tillHeader("counter")} onOpen={never} />,
+  "open-shift": () => <OpenShiftScreen header={tillBar()} onOpen={never} />,
   sale: () => saleScreen(),
   "sale-photos": () => saleScreen(),
   // Not one of the layout test's screens: the selling screen of a till that lost the network.
   "sale-offline": () => saleScreen({ connection: "offline", pending: 3, needsAttention: 1 }),
   "modifier-picker": () => (
     <ModifierPickerScreen
-      header={tillHeader("counter")}
+      header={tillBar()}
       menu={menu}
       product={posProductSchema.parse(milkTea)}
       now={now}

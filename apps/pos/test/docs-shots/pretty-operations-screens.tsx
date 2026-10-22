@@ -27,7 +27,9 @@ import { tillBar, tillHeader } from "./pretty-selling-screens";
 
 const never = () => new Promise<never>(() => {});
 const nothing = () => {};
-const header = tillHeader("counter");
+// The tools and the steps over an order draw the plain bar, as on the till; the order
+// itself (sale-adjusted) carries the selling modes and tools in its bar.
+const header = tillBar();
 const adjust = { onVoid: nothing, onDiscount: nothing, onDiscountOrder: nothing, onCancelOrder: nothing };
 const approvers = [STAFF.barista, STAFF.manager].map((displayName, i) => ({ id: `a${i}`, displayName, active: true }));
 const figures = {
@@ -95,7 +97,7 @@ export const OPERATIONS_SCREENS = {
   ),
   "sale-adjusted": () => (
     <SaleScreen
-      header={header}
+      header={tillHeader("counter")}
       menu={menu}
       now={now}
       order={ORDER}

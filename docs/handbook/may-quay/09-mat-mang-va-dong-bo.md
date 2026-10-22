@@ -59,7 +59,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
 | Máy ghi | Nghĩa |
 |---|---|
 | **Đang kiểm tra kết nối** | vừa mở máy, đang thử gọi máy chủ |
-| **Đang kết nối** | có mạng, máy chủ trả lời bình thường |
+| **Đang kết nối** | có mạng, máy chủ trả lời bình thường (máy ngang từ 1024 px không ghi chữ này lên thanh: lúc bình thường chỉ thấy **Đã đồng bộ hết** hoặc số lệnh chờ gửi) |
 | **Mất mạng — vẫn bán được** | không gọi được máy chủ; cứ bán, máy giữ lệnh lại |
 | **Máy chủ đang lỗi — vẫn bán được** | có mạng nhưng máy chủ trả lỗi; cứ bán |
 | **Máy chủ không nhận thao tác từ địa chỉ trang POS này. …** | địa chỉ mở POS không được máy chủ cho phép — báo quản lý |

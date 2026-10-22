@@ -1,17 +1,33 @@
-/* Product tiles: the category's colour where a photo would be, with the product's initials
-   on it; a white body over its lower part holds the name (cut after two lines) and the price.
-   Sold out stays on the grid, greyed and labelled, never hidden: the cashier must see it is
-   sold out, not wonder where it went. */
+/* Product tiles: small paper cards, the photo (or the category's colour with the product's
+   initials) inset at the top, the name in the menu board's serif (cut after two lines) and
+   the price in caramel with a round "+" beside it. Small on purpose: a till held sideways
+   shows five columns beside the open order at 1280px, about seven at 1920px. Sold out stays
+   on the grid, greyed and stamped, never hidden: the cashier must see it is sold out, not
+   wonder where it went. */
 
 .pos-product-grid {
+  /* Grows with the screen: 128px at 1280 (five columns), about 165px at 1920 (seven). */
+  --tile-min: 140px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--tile-min)), 1fr));
   /* Rows as tall as their tiles, even when the categories beside them run longer. */
   align-content: start;
   gap: var(--sp-3);
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (min-width: 760px) {
+  .pos-product-grid {
+    --tile-min: 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pos-product-grid {
+    --tile-min: clamp(124px, 6vw + 50px, 184px);
+  }
 }
 
 .pos-product-grid > li {
@@ -25,23 +41,27 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 140px;
-  padding: 0;
+  min-height: 132px;
+  padding: 6px;
   overflow: hidden;
   border: 0;
-  border-radius: var(--r-lg);
-  background: var(--cat);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
   box-shadow: var(--shadow-card);
   color: var(--c-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 80ms ease;
+  container-type: inline-size;
+  transition:
+    transform var(--t-tap) var(--ease-spring),
+    box-shadow var(--t-state) var(--ease-out);
 }
 
 .pos-product:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(var(--tap-scale));
+  box-shadow: var(--shadow-press);
 }
 
 .pos-product:focus-visible {
@@ -49,56 +69,65 @@
   box-shadow: var(--ring);
 }
 
+/* On the order already: a caramel edge, the count on the photo, the "+" filled. */
+.pos-product:has(.pos-product__count) {
+  box-shadow:
+    0 0 0 2px var(--c-brand),
+    var(--shadow-card);
+}
+
 .pos-product__thumb {
   display: grid;
   flex: none;
   place-items: center;
-  height: 64px;
-  margin-bottom: calc(-1 * var(--sp-4));
-  padding-bottom: var(--sp-4);
   box-sizing: border-box;
+  height: 56px;
+  border-radius: var(--r-sm);
+  background: var(--cat);
   color: var(--c-on-cat);
+  font-family: var(--font-display);
   font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .pos-product__thumb::before {
   content: attr(data-initial);
 }
 
-/* The white body: name on top, price at the foot, at least 92px whatever the name. */
+/* The name on top, the price at the foot, whatever the name. */
 .pos-product__body {
   position: relative;
   display: flex;
-  flex: 1 0 92px;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: var(--sp-1);
-  padding: var(--sp-2);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: var(--c-surface);
+  padding: var(--sp-2) var(--sp-1) 0;
 }
 
 .pos-product__name {
   display: -webkit-box;
-  min-height: 40px;
+  min-height: 38px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  line-height: 20px;
+  font-family: var(--font-display);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  line-height: 19px;
   overflow-wrap: anywhere;
 }
 
+/* Room on the right for the "+", the price on the "+"'s middle line. */
 .pos-product__price {
   margin-top: auto;
+  padding-right: 34px;
   color: var(--c-price);
-  font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
-  line-height: 24px;
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-bold);
+  line-height: 30px;
   overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
 }
@@ -109,52 +138,103 @@
   font-weight: var(--fw-medium);
 }
 
-.pos-product__flag {
+.pos-product__add {
   position: absolute;
-  top: var(--sp-2);
-  left: var(--sp-2);
-  max-width: calc(100% - 2 * var(--sp-2) - 36px);
-  padding: 2px var(--sp-2);
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   border-radius: var(--r-pill);
-  background: var(--c-danger);
-  color: var(--c-on-danger);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  line-height: 16px;
-  overflow-wrap: anywhere;
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out);
 }
 
-/* How many are on the order already, a pill in the coloured corner. */
-.pos-product__count {
+.pos-product:has(.pos-product__count) .pos-product__add {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+/* Sold out: a stamp across the photo, the price struck through. */
+.pos-product__flag {
   position: absolute;
-  top: var(--sp-2);
-  right: var(--sp-2);
-  z-index: 1;
+  top: 34px;
+  inset-inline: 0;
+  width: max-content;
+  max-width: calc(100% - 4 * var(--sp-2));
   box-sizing: border-box;
-  min-width: 28px;
-  padding: 0 var(--sp-2);
-  border-radius: var(--r-pill);
+  margin-inline: auto;
+  padding: 2px var(--sp-2);
+  border: 2px solid var(--c-danger);
+  border-radius: var(--r-xs);
   background: var(--c-surface);
-  color: var(--c-brand-strong);
+  box-shadow: var(--shadow-card);
+  color: var(--c-danger);
+  font-family: var(--font-display);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  line-height: 24px;
+  line-height: 18px;
+  text-align: center;
+  overflow-wrap: anywhere;
+  transform: translateY(-50%) rotate(-6deg);
+}
+
+/* One of the till's best sellers: a paper tag on the photo's lower left corner, clear of
+   the count on its upper corner. */
+.pos-product__hot {
+  position: absolute;
+  top: calc(6px + 56px - 26px);
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  padding: 2px var(--sp-2) 2px 6px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--c-brand-strong);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+/* How many are on the order already, a caramel coin on the photo's corner. */
+.pos-product__count {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  box-sizing: border-box;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand);
+  box-shadow: 0 0 0 2px var(--c-surface);
+  color: var(--c-on-brand);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  line-height: 26px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
 .pos-product:disabled {
-  background: var(--c-surface-3);
+  background: var(--c-surface-2);
   box-shadow: none;
   cursor: not-allowed;
 }
 
 .pos-product:disabled .pos-product__thumb {
+  background: var(--c-surface-3);
   color: var(--c-text-3);
-}
-
-.pos-product:disabled .pos-product__body {
-  background: var(--c-surface-2);
 }
 
 .pos-product:disabled .pos-product__name {
@@ -166,17 +246,8 @@
   text-decoration: line-through;
 }
 
-/* Sold out: the flag takes the mark's place in the middle of the band. */
 .pos-product[data-sold-out="true"] .pos-product__thumb::before {
   content: none;
-}
-
-.pos-product[data-sold-out="true"] .pos-product__flag {
-  top: 14px;
-  left: 50%;
-  max-width: calc(100% - 2 * var(--sp-2));
-  transform: translateX(-50%);
-  white-space: nowrap;
 }
 
 .pos-menu__empty {

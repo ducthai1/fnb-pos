@@ -45,22 +45,24 @@
   --avatar-fg: var(--c-text);
 }
 
-/* Selling modes and the till's tools on one strip, scrolled sideways on a phone. */
+/* Selling modes and the till's tools on one strip; inside the bar on the selling screens. */
 .pos-navbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2) var(--sp-3);
-  padding: var(--sp-1);
-  border-radius: var(--r-md);
-  background: var(--c-surface);
+  min-width: 0;
 }
 
-/* The modes read as the till's main tabs: plain words with an icon, the open one in brand
-   on a soft fill (the fill says it as well as the colour). */
+/* The modes read as the till's main switch: two words with an icon in a sunken pill, the
+   open one raised on paper (the raised card says it as well as the colour). */
 .pos-modes {
   display: inline-flex;
-  gap: 4px;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
 }
 
 .pos-modes .pos-mode {
@@ -68,38 +70,56 @@
   align-items: center;
   gap: var(--sp-2);
   justify-content: center;
-  padding-inline: var(--sp-3);
+  min-height: 44px;
+  padding: 0 14px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   background: transparent;
-  color: var(--c-text);
-  font-size: 0.9375rem;
-  font-weight: var(--fw-medium);
+  color: var(--c-text-2);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out);
 }
 
 .pos-modes .pos-mode[aria-pressed="true"] {
-  background: var(--c-brand-soft);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
+}
+
+.pos-modes .pos-mode[aria-pressed="true"] > .pos-icon {
   color: var(--c-brand);
-  font-weight: var(--fw-semibold);
 }
 
 .pos-till-tools {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
 }
 
 .pos-navbar .pos-till-tools {
   margin-left: auto;
 }
 
+/* The tools are quiet words on the paper: there whenever needed, never louder than selling. */
 .pos-tool {
-  border-color: var(--c-border);
-  border-radius: var(--r-sm);
-  background: var(--c-surface);
-  color: var(--c-text);
-  font-size: 0.9375rem;
-  font-weight: var(--fw-medium);
+  flex: none;
+  gap: 6px;
+  min-height: var(--tap);
+  white-space: nowrap;
+  padding-inline: 10px;
+  border-color: transparent;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-text-2);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
+}
+
+.pos-tool:active:not(:disabled) {
+  background: var(--c-surface-3);
 }
 
 /* Two to four exclusive choices (cash in / out, by percent / by amount): outlined toggles

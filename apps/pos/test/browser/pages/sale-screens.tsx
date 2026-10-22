@@ -1,10 +1,14 @@
 import { posProductSchema } from "@fnb/contracts";
 import type { ReactElement } from "react";
+import { BestSellersContext } from "../../../src/features/menu/use-best-sellers";
 import { cartView } from "../../../src/features/order/cart-view";
 import { OpenShiftScreen } from "../../../src/screens/open-shift/open-shift-screen";
 import { ModifierPickerScreen } from "../../../src/screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../../../src/screens/sale/sale-screen";
+import { SellingModeSwitch } from "../../../src/screens/till/selling-mode-switch";
+import { TillBarNav } from "../../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../../src/screens/till/till-header";
+import { TillTools } from "../../../src/screens/till/till-tools";
 import { HOSTILE_PRODUCT, hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
@@ -23,6 +27,19 @@ const header = (
     onSwitchStaff={() => {}}
     onSignOut={() => {}}
   />
+);
+/** The selling screen's bar, carrying both selling modes and every tool beside the worst names. */
+const sellingHeader = (
+  <TillBarNav
+    nav={
+      <div className="pos-navbar">
+        <SellingModeSwitch mode="counter" onChange={() => {}} />
+        <TillTools onOpen={() => {}} />
+      </div>
+    }
+  >
+    {header}
+  </TillBarNav>
 );
 const profile = { pricesIncludeTax: false, serviceCharge: null };
 
@@ -44,23 +61,26 @@ const adjust = {
 export const SALE_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={header} onOpen={never} />,
   sale: () => (
-    <SaleScreen
-      header={header}
-      menu={menu}
-      now={Date.now()}
-      order={HOSTILE_ORDER}
-      view={cartView(menu, HOSTILE_ORDER, profile, Date.now())}
-      saveFailed
-      onPick={() => {}}
-      onQuantity={() => {}}
-      onRemove={() => {}}
-      onServiceType={() => {}}
-      onCheckout={() => {}}
-    />
+    // The longest name is a best seller too: its tag must not push the tile wider.
+    <BestSellersContext value={new Set([HOSTILE_PRODUCT.id])}>
+      <SaleScreen
+        header={sellingHeader}
+        menu={menu}
+        now={Date.now()}
+        order={HOSTILE_ORDER}
+        view={cartView(menu, HOSTILE_ORDER, profile, Date.now())}
+        saveFailed
+        onPick={() => {}}
+        onQuantity={() => {}}
+        onRemove={() => {}}
+        onServiceType={() => {}}
+        onCheckout={() => {}}
+      />
+    </BestSellersContext>
   ),
   "sale-long-cart": () => (
     <SaleScreen
-      header={header}
+      header={sellingHeader}
       menu={menu}
       now={Date.now()}
       order={LONG_ORDER}

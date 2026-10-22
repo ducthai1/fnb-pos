@@ -23,13 +23,13 @@
   touch-action: manipulation;
   cursor: pointer;
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    transform 80ms ease;
+    background-color var(--t-tap) var(--ease-out),
+    border-color var(--t-tap) var(--ease-out),
+    transform var(--t-tap) var(--ease-spring);
 }
 
 .pos-button:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(var(--tap-scale));
   background: var(--c-surface-3);
 }
 

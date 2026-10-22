@@ -18,8 +18,12 @@ decisions:
   - D-073
   - D-074
   - D-075
+  - D-099
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
+  - apps/pos/src/features/menu/best-sellers.test.ts
+  - apps/pos/src/screens/till/till-header.test.tsx
+  - apps/pos/test/browser/sale-grid-columns-in-chrome.test.ts
   - apps/pos/src/app/menu-keeps-its-place.test.tsx
   - apps/pos/src/screens/sale/sale-screen.test.tsx
   - apps/pos/src/screens/sale/modifier-picker-screen.test.tsx
@@ -47,11 +51,14 @@ Màn bán hàng là nơi thu ngân ghi món khách gọi: chạm món, chọn si
 
 Màn chia ba phần:
 
-- **Bên trái**: danh mục (Tất cả, Cà phê, Trà sữa…) — số nhỏ trên mỗi danh mục là số món trong đó.
-- **Giữa**: ô tìm món và các ô món (ảnh, tên, giá). Số tròn ở góc ảnh là số ly món đó đang có trong đơn.
-- **Bên phải**: đơn đang bán — số đơn, số gọi, kiểu phục vụ, các món, tổng tiền và nút **Thanh toán**.
+- **Bên trái**: danh mục (Tất cả, Cà phê, Trà sữa…). Mỗi danh mục có **ảnh tròn** của món đầu tiên trong danh mục có ảnh (danh mục chưa có món nào có ảnh thì hiện biểu tượng), tên và số món trong đó, ví dụ **8 món**. Danh mục đang chọn nằm trên nền nâu.
+- **Giữa**: dòng **Thực đơn · 15 món · 1 hết** (số món đang hiện và số món hết), ô tìm món và các ô món: ảnh, tên (tối đa 2 dòng, dài hơn thì cắt bằng "…"), giá và nút tròn **+**. Máy quầy 1280 px hiện 5 cột món bên cạnh đơn, màn 1920 px khoảng 7 cột, máy tính bảng ít cột hơn.
+  - Số tròn màu nâu ở góc trên ảnh là số ly món đó đang có trong đơn; ô món có viền nâu.
+  - Nhãn **Bán chạy** ở góc dưới ảnh: tối đa ba món máy này bán được nhiều nhất (mỗi món từ 5 ly trở lên), tính trên các đơn **đã thanh toán** máy đang giữ; nhãn cập nhật khoảng 20 giây sau khi có đơn mới.
+  - Món hết: ảnh xám, con dấu **Hết món** trên ảnh, giá gạch ngang.
+- **Bên phải**: đơn đang bán, trình bày như một tờ phiếu — số đơn và số gọi, **Mang đi / Tại chỗ**, các món (mỗi món một dòng), tổng tiền, **Giảm giá đơn**, **Hủy đơn** và nút **Thanh toán** (máy từ 1280 px ghi luôn số tiền cần thu trên nút).
 
-Trên cùng là tên quán, tên máy, tình trạng kết nối (xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md)), người đang đứng quầy, ngày của ca. Thanh thứ hai có **Tại quầy / Bàn** (chỉ hiện khi chi nhánh bật bán theo bàn) và ba công cụ **Lịch sử đơn**, **Thu/chi két**, **Đóng ca**.
+Trên cùng là một thanh: tên quán và tên máy, **Tại quầy / Bàn** (chỉ hiện khi chi nhánh bật bán theo bàn), tình trạng đồng bộ (xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md)), ba công cụ **Lịch sử đơn**, **Thu/chi két**, **Đóng ca**, rồi người đang đứng quầy, ngày của ca và hai nút **Đổi nhân viên**, **Đăng xuất** (màn hẹp hơn 1600 px chỉ hiện biểu tượng của hai nút này). Máy hẹp hơn 1280 px đưa **Tại quầy / Bàn** và ba công cụ xuống hàng thứ hai của thanh.
 
 ## Ai dùng, cần quyền gì
 
@@ -73,7 +80,7 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - **Số lượng**: số ly giống hệt nhau.
    - **Ghi chú**: gõ tự do, hoặc chạm **Ghi chú nhanh**: *Ít đá · Không đá · Ít đường · Không đường · Đá riêng · Mang về riêng*. Chạm lần nữa vào cùng ghi chú nhanh là bỏ nó ra.
    - Bấm **Thêm vào đơn · 100.000 đ** (số tiền là giá của các ly đó đã gồm tùy chọn). Bấm **Quay lại** hoặc phím **Esc** để thôi.
-4. **Sửa đơn** ở cột bên phải: nút **−** / **+** để bớt / thêm một; bấm nút **⋯** của một món để mở thao tác của món đó (**Xóa món**, **Hủy món**, **Giảm giá** — xem [06](06-huy-giam-hoan-va-duyet.md)).
+4. **Sửa đơn** ở cột bên phải: mỗi món một dòng — nút **−** / **+** ở đầu dòng để bớt / thêm một, rồi tên món, số tiền; tùy chọn hiện thành các nhãn nhỏ dưới tên, ghi chú là nhãn vàng. Bấm nút **⋯** cuối dòng để mở thao tác của món đó (**Xóa món**, **Hủy món**, **Giảm giá** — xem [06](06-huy-giam-hoan-va-duyet.md)); dòng đang mở chuyển nền đậm hơn. Cột đơn hẹp (máy tính bảng dựng đứng, điện thoại) thì nút − / + và ⋯ nằm ở hàng dưới tên.
 5. **Tìm món**: bấm vào ô tìm hoặc phím **F2**, gõ tên — **không dấu cũng được** ("tra sua" tìm ra "Trà sữa", "d" khớp cả "đ"). Máy tìm trong danh mục đang chọn; chọn **Tất cả** để tìm khắp thực đơn.
 6. Bấm **Thanh toán** hoặc phím **F9** — xem [04-thanh-toan.md](04-thanh-toan.md).
 
@@ -107,7 +114,7 @@ Phím tắt chạy cả khi con trỏ đang ở trong ô nhập, trừ lúc bộ
 
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
 - Bảng giá theo giờ (ví dụ giờ vàng) áp theo **giờ của máy lúc bán**.
-- Món **Hết món** (bật ở trang quản lý) hiện mờ, giá gạch ngang, không chạm được. Món **Chưa có giá** cũng không chạm được.
+- Món **Hết món** (bật ở trang quản lý) hiện ảnh xám với con dấu **Hết món**, giá gạch ngang, không chạm được. Món **Chưa có giá** cũng không chạm được. Món hết hoặc chưa có giá không có nút **+** và không mang nhãn **Bán chạy**.
 - Máy quầy **chỉ bán món giá cố định**: combo, món giá nhập tay và món bán theo cân **không hiện** trên máy quầy.
 - **Đơn dài** (nhiều món): cột đơn tự cuộn, phần tổng tiền, **Giảm giá đơn**, **Hủy đơn** và **Thanh toán** luôn đứng yên ở dưới.
 - Số lượng một dòng: tối đa **999**. Ghi chú: tối đa **500 ký tự**. Số bàn ghi tay: tối đa **20 ký tự**.

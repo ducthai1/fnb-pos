@@ -12,13 +12,16 @@ import { vi } from "../../src/messages/vi";
 import { AREAS, TABLES } from "./pretty-floor";
 import { PROFILE } from "./pretty-menu";
 import { ORDER, STAFF, menu, now } from "./pretty-order";
-import { tillHeader } from "./pretty-selling-screens";
+import { tillBar, tillHeader } from "./pretty-selling-screens";
 
 // Serving at the sample café's tables, for the handbook's pictures.
 
 const never = () => new Promise<never>(() => {});
 const nothing = () => {};
-const header = tillHeader("tables");
+// The floor carries the selling modes and tools in its bar; a table's own screens, as on
+// the till, draw the plain bar.
+const floorHeader = tillHeader("tables");
+const header = tillBar();
 const seat = { id: "table-T02", name: "T02" };
 const order = { ...ORDER, serviceType: "dine_in" as const, table: seat };
 const priced = priceCounterOrder(menu, order, PROFILE, now);
@@ -34,7 +37,7 @@ const slips = [
 ].map((job) => ({ job, outcome: { status: "preview_only" as const } }));
 const floor = (view: "plan" | "grid") => (
   <FloorScreen
-    header={header}
+    header={floorHeader}
     areas={AREAS}
     tables={TABLES}
     now={now}

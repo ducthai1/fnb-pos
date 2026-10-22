@@ -21,27 +21,78 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* What is due closes the list under a thin rule, the amount in the brand colour. Both cells
-   stretch to the row and share one line height: the rule is one line, the label sits on the
-   amount's first line. */
+/* What is due closes the list, the amount large in the menu board's serif and in caramel.
+   Both cells stretch to the row: the label sits on the amount's baseline line. */
+.pos-totals dt.pos-totals__due {
+  display: flex;
+  align-items: flex-end;
+}
+
 .pos-totals .pos-totals__due {
-  margin-top: var(--sp-1);
-  padding-top: var(--sp-2);
-  border-top: 1px solid var(--c-border-soft);
+  margin-top: var(--sp-2);
   color: var(--c-text);
   font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
-  line-height: 28px;
+  font-weight: var(--fw-bold);
+  line-height: 36px;
 }
 
 .pos-totals dd.pos-totals__due {
   color: var(--c-brand);
-  font-size: var(--fs-xl);
+  font-family: var(--font-display);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-semibold);
+  line-height: 36px;
+  letter-spacing: -0.01em;
 }
 
+/* The pay button: the main thing the till does, in roasted caramel, the sum on its right. */
 .pos-cart__checkout {
+  justify-content: flex-start;
   width: 100%;
-  min-height: 60px;
-  border-radius: var(--r-sm);
-  font-size: var(--fs-md);
+  min-height: 64px;
+  padding-inline: var(--sp-5);
+  border: 0;
+  border-radius: var(--r-md);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-brand) 90%, var(--c-surface)),
+    var(--c-brand) 55%,
+    var(--c-brand-strong)
+  );
+  box-shadow: var(--shadow-brand);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+.pos-cart__checkout-total {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Short of a wide till the order column is too narrow to repeat the sum on the button: it
+   stands just above, and a size smaller on a phone or a tablet held upright. */
+@media (max-width: 1279px) {
+  .pos-cart__checkout-total {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pos-totals dd.pos-totals__due {
+    font-size: var(--fs-3xl);
+  }
+}
+
+/* With no sum on it (an empty order or a narrow column), the key still sits on the right. */
+.pos-cart__checkout > .pos-kbd {
+  margin-left: auto;
+}
+
+.pos-cart__checkout-total + .pos-kbd {
+  margin-left: 0;
 }
