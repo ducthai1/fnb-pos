@@ -69,6 +69,8 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     putSetting: unexpected("putSetting"),
     clearSetting: unexpected("clearSetting"),
     putWebhookSecret: unexpected("putWebhookSecret"),
+    getWallets: unexpected("getWallets"),
+    putWallet: unexpected("putWallet"),
     getDailySales: unexpected("getDailySales"),
     getPrintFailures: unexpected("getPrintFailures"),
     getDayStatus: unexpected("getDayStatus"),

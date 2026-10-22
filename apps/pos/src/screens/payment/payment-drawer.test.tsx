@@ -161,3 +161,58 @@ describe("the payment drawer", () => {
     expect(calls.paid).toEqual([[]]);
   });
 });
+
+describe("the payment drawer's e-wallet cards", () => {
+  function openWithWallets(options: { offline?: boolean } = {}) {
+    const calls = { wallets: [] as string[], left: 0 };
+    render(
+      <PaymentDrawer
+        amountDue={vnd(58_000)}
+        qrAccountSet
+        onQr={() => undefined}
+        onLeaveQr={async () => true}
+        qrPanel={() => null}
+        qrBusy={false}
+        wallets={["zalopay"]}
+        walletsOffline={options.offline ?? false}
+        onWallet={(wallet) => void calls.wallets.push(wallet)}
+        onLeaveWallet={async () => {
+          calls.left++;
+          return true;
+        }}
+        walletPanel={(wallet) => <p data-wallet-panel-of={wallet}>wallet</p>}
+        onBack={() => undefined}
+        onPaid={async () => undefined}
+      />,
+    );
+    return calls;
+  }
+
+  it("adds a card for each wallet the branch turned on, and asks for the payment on choosing it", async () => {
+    const calls = openWithWallets();
+    expect(card("ZaloPay").getAttribute("aria-pressed")).toBe("false");
+    tap("ZaloPay");
+    expect(calls.wallets).toEqual(["zalopay"]);
+    expect(shown("wallet-panel-of")).toBe("zalopay");
+    tap(T.cash);
+    await act(async () => {});
+    expect(calls.left).toBe(1);
+    expect(card(T.cash).getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("says a wallet needs the network while the till is offline, and asks for nothing", () => {
+    const calls = openWithWallets({ offline: true });
+    tap("ZaloPay");
+    expect(screen.getByText(text.wallet.offline("ZaloPay"))).toBeTruthy();
+    expect(calls.wallets).toEqual([]);
+  });
+
+  it("offers no wallet once cash was taken: the wallet asks for the whole total", () => {
+    const calls = openWithWallets();
+    fireEvent.change(screen.getByLabelText(T.cashTyped), { target: { value: "50.000" } });
+    tap(T.addCash);
+    tap("ZaloPay");
+    expect(screen.getByText(text.wallet.wholeOrderOnly("ZaloPay"))).toBeTruthy();
+    expect(calls.wallets).toEqual([]);
+  });
+});

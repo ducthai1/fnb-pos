@@ -1,3 +1,4 @@
+import { walletsOfSettings } from "@fnb/contracts";
 import type { SyncClient } from "@fnb/sync-client";
 import { type ReactNode, useLayoutEffect, useState } from "react";
 import type { TillMenu } from "../features/menu/till-menu";
@@ -63,6 +64,7 @@ export function CounterCheckout(props: CounterCheckoutProps) {
   const [paid, setPaid] = useState<PaidOrder | null>(null);
   const [reprinting, setReprinting] = useState(false);
   const account = paymentAccountOf(menu.config);
+  const wallets = walletsOfSettings(menu.config.settings);
   const { onWholeScreen } = props;
   const wholeScreen = step === "buyer" || paid !== null;
   // Before paint, so the order and the whole-screen step are never on the page together.
@@ -157,6 +159,7 @@ export function CounterCheckout(props: CounterCheckoutProps) {
       subtitle={`${S.orderNumber(order.deviceOrderNo)} · ${where}`}
       amountDue={priced.totals.amountDue}
       account={account}
+      wallets={wallets}
       invoice={invoiceSlot}
       record={session.record}
       onBack={props.onBackToSale}

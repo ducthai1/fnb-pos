@@ -23,6 +23,24 @@ function problemsOf(env: Record<string, string>): readonly string[] {
 }
 
 describe("server configuration", () => {
+  it("talks to ZaloPay's production in production, its sandbox elsewhere unless told", () => {
+    const configOf = (env: Record<string, string>) => {
+      const result = readServerConfig(env);
+      if (!result.ok) throw new Error(result.problems.join("; "));
+      return result.config;
+    };
+    expect(configOf(development).zaloPayEnvironment).toBe("sandbox");
+    expect(configOf({ ...development, FNB_ZALOPAY_ENV: "production" }).zaloPayEnvironment).toBe(
+      "production",
+    );
+    expect(
+      configOf({ ...development, FNB_PUBLIC_API_URL: "https://pos.example.vn" }).walletCallbackBase,
+    ).toBe("https://pos.example.vn");
+    expect(problemsOf({ ...development, FNB_PUBLIC_API_URL: "http://pos.example.vn" })).toEqual([
+      "FNB_PUBLIC_API_URL must be an https origin",
+    ]);
+  });
+
   it("starts development with the fake invoice provider and secure cookies", () => {
     const result = readServerConfig(development);
     expect(result).toEqual({
@@ -33,6 +51,9 @@ describe("server configuration", () => {
         port: 3000,
         databaseUrl: DATABASE_URL,
         paymentSecretKey: null,
+        zaloPayEnvironment: "sandbox",
+        walletCallbackBase: null,
+        walletPollIntervalMs: 5_000,
         einvoiceProvider: "fake",
         einvoiceWorkerIntervalMs: 5_000,
         secureCookies: true,

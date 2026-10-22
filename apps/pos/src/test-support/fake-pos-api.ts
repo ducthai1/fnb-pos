@@ -101,5 +101,9 @@ export function fakePosApi(state: FakeApiState): PosApi {
       state.approvals.push({ ...request, approvalId, requestedBy });
       return { ok: true, value: approvalId };
     },
+    async createWalletPayment() {
+      if (!state.online) return unreachable();
+      return refusal(409, "API_WALLET_NOT_ENABLED");
+    },
   };
 }

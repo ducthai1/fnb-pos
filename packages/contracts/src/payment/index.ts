@@ -33,3 +33,18 @@ export {
   qrRefundBodySchema,
   qrRefundSchema,
 } from "./qr-refund-schemas";
+export {
+  PAYMENT_WALLETS_SETTING,
+  WALLET_KEYS,
+  type WalletAccountBody,
+  type WalletAccounts,
+  type WalletKey,
+  type WalletPaymentAnswer,
+  type WalletPaymentBody,
+  walletAccountBodySchema,
+  walletAccountsSchema,
+  walletKeySchema,
+  walletPaymentAnswerSchema,
+  walletPaymentBodySchema,
+  walletsOfSettings,
+} from "./wallet-schemas";

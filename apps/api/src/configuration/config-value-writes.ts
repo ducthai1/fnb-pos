@@ -60,6 +60,19 @@ export async function clearConfigValue(
   if (removed.rowCount !== 0) await recordDeviceConfigChanges(client, context.tenantId, scope);
 }
 
+/**
+ * Sends every till of the branch its settings again, after something they are built from
+ * changed outside config_value (a wallet turned on or off).
+ */
+export async function publishBranchDeviceConfigs(
+  client: pg.PoolClient,
+  tenantId: string,
+  branchId: string,
+): Promise<void> {
+  await lockTenantChangeFeed(client, tenantId);
+  await recordDeviceConfigChanges(client, tenantId, { scopeKind: "branch", scopeId: branchId });
+}
+
 /*
  * One copy per till, on its own branch's feed, keyed by the till's device id: each till
  * resolves differently once a till-level value exists. The till list is read after the

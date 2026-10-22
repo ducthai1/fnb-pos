@@ -1,4 +1,14 @@
-import { bigint, boolean, date, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  date,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { newId } from "../ids/new-id";
 import { tenantRowColumns } from "./tenant-row-columns";
 
@@ -26,6 +36,12 @@ export const paymentIntent = pgTable("payment_intent", {
   refundBusinessDate: date("refund_business_date"),
   /** Handed back once its business day was closed: beside that day's report; see 0028. */
   refundedAfterDayClose: boolean("refunded_after_day_close").notNull().default(false),
+  /** A wallet's payment (null for a VietQR): the wallet, its ref, what to scan; see 0032. */
+  wallet: text("wallet"),
+  gatewayRef: text("gateway_ref"),
+  walletQr: text("wallet_qr"),
+  nextQueryAt: at("next_query_at"),
+  queryAttempts: integer("query_attempts").notNull().default(0),
 });
 
 /** A transfer a payment gateway reported; append-only, one row per gateway reference. */
@@ -44,12 +60,14 @@ export const bankTransaction = pgTable("bank_transaction", {
   createdAt: at("created_at").notNull().defaultNow(),
 });
 
-/** The sealed secret a branch's gateway signs its notices with. */
+/** The sealed secret a branch's gateway signs its notices with, or a wallet's sealed keys. */
 export const paymentWebhookEndpoint = pgTable("payment_webhook_endpoint", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
   gateway: text("gateway").notNull(),
   secretCiphertext: text("secret_ciphertext").notNull(),
+  /** A wallet's keys may be kept while the wallet is off; see 0032. */
+  enabled: boolean("enabled").notNull().default(true),
 });
 
 export const paymentTables = { paymentIntent, bankTransaction, paymentWebhookEndpoint };

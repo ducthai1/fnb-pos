@@ -13,6 +13,10 @@ import { startEInvoiceWorker } from "./einvoice/einvoice-worker";
 import { allowedOriginsHook } from "./http/allowed-origins-hook";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
+import { walletsByKey } from "./payments/wallets/wallet-gateway-adapter";
+import type { WalletGatewayAdapter } from "./payments/wallets/wallet-gateway-adapter";
+import { walletGateways } from "./payments/wallets/wallet-gateways";
+import { startWalletPoller } from "./payments/wallets/wallet-status-poller";
 import { webhookSecretBox } from "./payments/webhook-secret-box";
 import { diskProductImageStore } from "./media/product-image-store";
 import { requirePermissionHook } from "./permissions/require-permission";
@@ -27,6 +31,8 @@ import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerEInvoiceProfileRoutes } from "./routes/einvoice/einvoice-profile-routes";
 import { registerFloorRoutes } from "./routes/floor/register-floor-routes";
 import { registerPaymentBackofficeRoutes } from "./routes/payments/payment-backoffice-routes";
+import { registerWalletAccountRoutes } from "./routes/payments/wallet-account-routes";
+import { registerWalletPaymentRoute } from "./routes/pos/wallet-payment-route";
 import { registerApprovalRoutes } from "./routes/pos/approval-routes";
 import { registerPosBootstrapRoute } from "./routes/pos/bootstrap-route";
 import { registerStaffSessionRoutes } from "./routes/pos/staff-session-routes";
@@ -43,6 +49,7 @@ import { registerStaffListRoute } from "./routes/staff/staff-list-route";
 import { registerUpdateStaffRoute } from "./routes/staff/update-staff-route";
 import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
 import { registerPaymentWebhookRoute } from "./routes/webhooks/payment-webhook-route";
+import { registerWalletNoticeRoute } from "./routes/webhooks/wallet-notice-route";
 import { type ServerErrorReport, serverErrorReport } from "./http/server-error-report";
 import { type SecretVerifier, verifySecret } from "./security/secret-hash";
 
@@ -60,6 +67,15 @@ export interface AppDependencies {
   paymentSecretKey?: Buffer;
   /** The gateways notices are taken from; SePay and PayOS unless a test adds its fake. */
   paymentGateways?: readonly PaymentGatewayAdapter[];
+  /** The e-wallets branches may turn on; ZaloPay's sandbox unless the server says otherwise. */
+  wallets?: readonly WalletGatewayAdapter[];
+  /**
+   * The server's public base URL (https://host), for the wallet's notices to come back to.
+   * Without it no notice is asked for and pending wallet payments are settled by asking.
+   */
+  walletCallbackBase?: string;
+  /** Asks the wallets about pending payments in this process while the app is up. */
+  walletPoller?: { intervalMs: number; onError?: (error: unknown) => void };
   /** The invoice providers branches may name; none until a real adapter is written. */
   einvoiceProviders?: readonly EInvoiceProvider[];
   /**
@@ -172,6 +188,8 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerDailySalesRoutes(app, context);
   const payments = {
     gateways: gatewaysByKey(dependencies.paymentGateways ?? PAYMENT_GATEWAYS),
+    wallets: walletsByKey(dependencies.wallets ?? walletGateways("sandbox")),
+    walletCallbackBase: dependencies.walletCallbackBase?.replace(/\/+$/, "") ?? null,
     secretBox:
       dependencies.paymentSecretKey === undefined
         ? null
@@ -179,6 +197,21 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   };
   registerPaymentWebhookRoute(app, context, payments);
   registerPaymentBackofficeRoutes(app, context, payments);
+  registerWalletNoticeRoute(app, context, payments);
+  registerWalletPaymentRoute(app, context, payments);
+  registerWalletAccountRoutes(app, context, payments);
+  const pollerOptions = dependencies.walletPoller;
+  const box = payments.secretBox;
+  if (pollerOptions !== undefined && box !== null) {
+    const deps = { pool, clock: resolvedClock, box, wallets: payments.wallets };
+    let poller: ReturnType<typeof startWalletPoller> | null = null;
+    app.addHook("onReady", async () => {
+      poller = startWalletPoller(deps, pollerOptions);
+    });
+    app.addHook("onClose", async () => {
+      await poller?.stop();
+    });
+  }
   const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
   registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
   registerSettingsRoutes(app, context, einvoiceProviders);

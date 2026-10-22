@@ -1,4 +1,9 @@
-import { type PosDeviceConfigWire, paymentAccountSettingSchema } from "@fnb/contracts";
+import {
+  PAYMENT_WALLETS_SETTING,
+  type PosDeviceConfigWire,
+  WALLET_KEYS,
+  paymentAccountSettingSchema,
+} from "@fnb/contracts";
 import { readConfigLayersForDevice } from "@fnb/db";
 import {
   CONFIG_SETTING_DEFAULTS,
@@ -41,6 +46,7 @@ export async function readDeviceConfigSnapshot(
   if (!paymentAccountSettingSchema.safeParse(settings[PAYMENT_ACCOUNT_KEY]).success) {
     throw new Error("stored payment_account is not a bank account a QR can name");
   }
+  settings[PAYMENT_WALLETS_SETTING] = await walletsTurnedOn(client, deviceId);
   const profile = chargeProfileFromStored(resolve(CHARGE_PROFILE_KEY));
   const rule = profile.serviceCharge;
   return {
@@ -60,4 +66,20 @@ export async function readDeviceConfigSnapshot(
             },
     },
   };
+}
+
+/**
+ * The e-wallets the till's branch turned on with keys saved, in the order tills show them.
+ * Derived from the wallet keys' rows rather than set as a value, so a till can never offer
+ * a wallet the server has no keys to open a payment with.
+ */
+async function walletsTurnedOn(client: pg.PoolClient, deviceId: string): Promise<string[]> {
+  const { rows } = await client.query<{ gateway: string }>(
+    "SELECT e.gateway FROM payment_webhook_endpoint e JOIN device d " +
+      "ON d.tenant_id = e.tenant_id AND d.branch_id = e.branch_id " +
+      "WHERE d.id = $1 AND e.enabled AND e.gateway = ANY ($2::text[])",
+    [deviceId, [...WALLET_KEYS]],
+  );
+  const on = new Set(rows.map((row) => row.gateway));
+  return WALLET_KEYS.filter((key) => on.has(key));
 }

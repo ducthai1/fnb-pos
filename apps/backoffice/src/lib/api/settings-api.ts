@@ -1,8 +1,16 @@
-import { type ConfigScopeKind, type SettingEntry, type SettingsView, settingsViewSchema } from "@fnb/contracts";
+import {
+  type ConfigScopeKind,
+  type SettingEntry,
+  type SettingsView,
+  type WalletAccountBody,
+  type WalletAccounts,
+  settingsViewSchema,
+  walletAccountsSchema,
+} from "@fnb/contracts";
 import { type ApiResult, type FetchLike, noContent, requestJson, resultOf } from "./api-result";
 import { parsedBy } from "./read-json-fields";
 
-export type { ConfigScopeKind, SettingEntry, SettingsView };
+export type { ConfigScopeKind, SettingEntry, SettingsView, WalletAccountBody, WalletAccounts };
 
 /** The brand, branch or till whose switches and settings a page shows. */
 export interface SettingsScope {
@@ -22,6 +30,10 @@ export interface SettingsApi {
    * only: no route reads a secret back, so the page never shows one again.
    */
   putWebhookSecret(branchId: string, gateway: string, secret: string): Promise<ApiResult<true>>;
+  /** `GET /payments/wallets/:branchId`: each e-wallet, on or off, keys saved or not (never the keys). */
+  getWallets(branchId: string): Promise<ApiResult<WalletAccounts>>;
+  /** `PUT /payments/wallets/:branchId/:wallet`, answered 204: on/off, and new keys when given. */
+  putWallet(branchId: string, wallet: string, body: WalletAccountBody): Promise<ApiResult<true>>;
 }
 
 const settingUrl = (base: string, scope: SettingsScope, key: string) =>
@@ -50,6 +62,15 @@ export function httpSettingsApi(base: string, fetchImpl: FetchLike): SettingsApi
     async putWebhookSecret(branchId, gateway, secret) {
       const url = `${base}/payments/webhook-secrets/${encodeURIComponent(branchId)}/${encodeURIComponent(gateway)}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "PUT", body: { secret } }), noContent);
+    },
+    async getWallets(branchId) {
+      const url = `${base}/payments/wallets/${encodeURIComponent(branchId)}`;
+      const answer = await requestJson(fetchImpl, url, { method: "GET" });
+      return resultOf(answer, (body) => parsedBy(walletAccountsSchema, body));
+    },
+    async putWallet(branchId, wallet, body) {
+      const url = `${base}/payments/wallets/${encodeURIComponent(branchId)}/${encodeURIComponent(wallet)}`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "PUT", body }), noContent);
     },
   };
 }

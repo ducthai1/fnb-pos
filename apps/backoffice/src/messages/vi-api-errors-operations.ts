@@ -9,6 +9,8 @@ export const VI_API_ERRORS_OPERATIONS: Readonly<Record<string, string>> = {
   API_EINVOICE_UNKNOWN_PROVIDER:
     "Máy chủ chưa kết nối nhà cung cấp hóa đơn này. Kiểm tra lại mã nhà cung cấp.",
   API_PAYMENT_UNKNOWN_GATEWAY: "Cổng thanh toán này chưa được hỗ trợ.",
+  API_WALLET_KEYS_MISSING: "Ví chưa có khóa: nhập App ID, Key1 và Key2 rồi mới bật được.",
+  API_WALLET_UNKNOWN: "Máy chủ này chưa hỗ trợ ví đó.",
   API_PAYMENTS_NOT_CONFIGURED: "Máy chủ chưa được cấu hình để lưu bí mật cổng thanh toán. Báo hỗ trợ.",
   API_PAYMENT_SECRET_IN_USE:
     "Một chi nhánh khác đã dùng bí mật này cho cùng cổng thanh toán. Mỗi chi nhánh cần bí mật riêng.",
