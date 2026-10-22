@@ -1,4 +1,4 @@
-import type { OrderLine } from "@fnb/domain";
+import { type OrderLine, formatVnd } from "@fnb/domain";
 import { BadgePercent, Ban, ShoppingBag, ShoppingCart } from "lucide-react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CounterOrder } from "../../features/order/counter-order";
@@ -45,13 +45,13 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
   useTillKey(S.keys.pay, on.onCheckout, payable);
   return (
     <section className="pos-cart" aria-label={S.cartLabel}>
-      <p className="pos-cart__number">
-        <strong>{S.orderNumber(order.deviceOrderNo)}</strong>
-        <span className="pos-badge" data-tone="info">
-          {S.callNumber(callNumberOf(order.deviceOrderNo))}
-        </span>
-      </p>
-      <ServiceTypePicker order={order} onChange={on.onServiceType} />
+      <div className="pos-cart__head">
+        <p className="pos-cart__number">
+          <strong>{S.orderNumber(order.deviceOrderNo)}</strong>{" "}
+          <span className="pos-cart__call">{S.callNumber(callNumberOf(order.deviceOrderNo))}</span>
+        </p>
+        <ServiceTypePicker order={order} onChange={on.onServiceType} />
+      </div>
       {order.lines.length === 0 ? <EmptyState icon={ShoppingBag} title={S.cartEmpty} /> : null}
       <ul className="pos-list pos-cart__lines">
         {order.lines.map((line) => (
@@ -80,6 +80,12 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
         >
           <Icon of={ShoppingCart} size={24} />
           {S.checkout}
+          {/* The sum is read out with the totals above; here it is for the eye. */}
+          {priced === null || !payable ? null : (
+            <span className="pos-cart__checkout-total" aria-hidden>
+              {formatVnd(priced.totals.amountDue)}
+            </span>
+          )}
           <kbd className="pos-kbd pos-kbd--on-brand" aria-hidden>
             {S.keys.pay}
           </kbd>

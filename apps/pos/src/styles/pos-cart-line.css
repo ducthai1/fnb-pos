@@ -12,7 +12,15 @@
   flex-direction: column;
   gap: var(--sp-2);
   padding-block: var(--sp-2);
-  border-bottom: 1px solid var(--c-border-soft);
+  border-bottom: 1px dashed var(--c-border);
+}
+
+/* The line whose actions are open is lifted onto a warmer fill, the actions with it. */
+.pos-cart-line:has(.pos-cart-line__more[aria-expanded="true"]) {
+  margin-inline: calc(-1 * var(--sp-2));
+  padding-inline: var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
 }
 
 .pos-cart-line:first-child {
@@ -68,8 +76,8 @@
   grid-area: amount;
   align-self: start;
   padding: 2px 0 0 var(--sp-2);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-bold);
   line-height: 20px;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -85,54 +93,85 @@
   color: var(--c-text-2);
 }
 
-/* Room enough beside the name (a till held sideways): name, stepper, amount and "…" on one
-   row, the options and the note under it across the whole line. A huge amount wraps in its
-   own column rather than squeeze the name. */
-@container (min-width: 400px) {
+/* Room enough beside the name (a till held sideways): one row as on a slip, − n + first,
+   then the name, the amount on the right and the "…"; the options and the note under the
+   name. The small photo is left out on this row: the name is what a cashier checks, and
+   the tiles beside it already show the photos. A huge amount wraps in its own column
+   rather than squeeze the name. */
+@container (min-width: 340px) {
   .pos-cart-line__row {
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "photo name step amount more"
-      "photo details details details details";
+      "step name amount more"
+      ". details details details";
+    column-gap: var(--sp-2);
+  }
+  .pos-cart-line__photo {
+    display: none;
   }
   .pos-cart-line__step {
     align-self: start;
-    margin: -6px 0 -6px var(--sp-1);
+    margin: 0;
   }
-  .pos-cart-line__more {
-    align-self: start;
-    margin-block: -12px;
+  .pos-cart-line__name {
+    align-self: center;
+    padding-top: 0;
   }
   .pos-cart-line__amount {
+    align-self: center;
     min-width: 64px;
-    max-width: 6.5rem;
+    max-width: 7rem;
+    padding: 0;
+  }
+  .pos-cart-line__more {
+    align-self: center;
   }
 }
 
 .pos-cart-line__name {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-ui);
+  font-weight: var(--fw-semibold);
   line-height: 20px;
 }
 
-/* Options under their item: the tree the bill and the bar ticket print. */
+/* Options under their item as small chips: the tree the bill and the bar ticket print. */
 .pos-cart-line__children {
-  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  margin: 2px 0 0;
   padding: 0;
   list-style: none;
   color: var(--c-text-2);
   font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
   line-height: 16px;
 }
 
-/* A note is for whoever makes the drink, so it stands out from the options, still small. */
+.pos-cart-line__children > li {
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 3px var(--sp-2);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+}
+
+/* A note is for whoever makes the drink, so it stands out from the options as a honey chip. */
 .pos-cart-line__note {
   display: flex;
+  align-self: flex-start;
   align-items: flex-start;
   gap: var(--sp-1);
-  margin: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 0;
+  padding: 3px var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--c-amber-soft);
   color: var(--c-amber);
   font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
   line-height: 16px;
   white-space: pre-wrap;
 }
@@ -166,21 +205,33 @@
   color: var(--c-danger);
 }
 
-/* The cart's stepper: 28px rings and a smaller number, each still a 44px target. */
-.pos-stepper--compact .pos-stepper__step {
-  min-width: 44px;
-  min-height: 44px;
-  background: radial-gradient(
-    circle,
-    var(--ring-fill) 0 13px,
-    var(--ring-ink) 13px 14px,
-    transparent 14.5px
-  );
+/* The cart's stepper: − n + in one paper pill, each button still a 44px target. */
+.pos-stepper.pos-stepper--compact {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-pill);
+  background: var(--c-surface);
 }
 
-.pos-stepper--compact .pos-stepper__value {
-  min-width: 34px;
+.pos-stepper.pos-stepper--compact .pos-stepper__step {
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  color: var(--c-text-2);
+}
+
+.pos-stepper.pos-stepper--compact .pos-stepper__step:active:not(:disabled) {
+  background: var(--c-surface-3);
+}
+
+.pos-stepper.pos-stepper--compact .pos-stepper__step:disabled {
+  color: var(--c-border);
+}
+
+.pos-stepper.pos-stepper--compact .pos-stepper__value {
+  min-width: 24px;
   min-height: 30px;
-  padding: 0 var(--sp-1);
+  padding: 0;
+  border: 0;
   font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
 }

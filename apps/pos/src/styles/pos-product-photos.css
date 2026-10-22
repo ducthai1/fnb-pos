@@ -1,8 +1,8 @@
 /* Product photos: on a tile the photo takes the coloured band's place, cropped to a fixed
-   4:3 frame whatever its own shape, with the white body over its foot; once any product on
-   the grid has a photo, every band takes that frame so rows stay even, and products
-   without one show their initials on the taller band. The photo sits under the mark's
-   initials, which come back when it cannot be loaded or drawn. */
+   3:2 frame whatever its own shape (lower than the 4:3 of a photo, so more products fit a
+   screen); once any product on the grid has a photo, every band takes that frame so rows
+   stay even, and products without one show their initials on it. The photo sits under the
+   mark's initials, which come back when it cannot be loaded or drawn. */
 
 .pos-photo {
   position: absolute;
@@ -29,11 +29,21 @@
 
 .pos-product-grid:has(.pos-product__thumb:not([data-photo="none"])) .pos-product__thumb {
   height: auto;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 2;
+}
+
+/* The stamp of a sold-out product in the middle of its photo: 6px of card, then half the
+   photo's height (the tile is its own container, so 100cqw is the photo's width). */
+.pos-product-grid:has(.pos-product__thumb:not([data-photo="none"])) .pos-product__flag {
+  top: calc(6px + 100cqw / 3);
+}
+
+.pos-product-grid:has(.pos-product__thumb:not([data-photo="none"])) .pos-product__hot {
+  top: calc(6px + 100cqw / 1.5 - 26px);
 }
 
 .pos-product:disabled .pos-photo {
-  opacity: 0.55;
+  opacity: 0.6;
   filter: grayscale(1);
 }
 
@@ -43,10 +53,10 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   overflow: hidden;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
   background: var(--c-surface-3);
   color: var(--c-text-2);
   font-size: var(--fs-xs);

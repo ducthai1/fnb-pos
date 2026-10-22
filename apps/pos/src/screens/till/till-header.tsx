@@ -4,6 +4,7 @@ import { vi } from "../../messages/vi";
 import { SyncStatusBadges } from "../sales-home/sync-status-badges";
 import { Icon } from "../shared/icon";
 import { StaffAvatar } from "../shared/staff-avatar";
+import { useTillBarNav } from "./till-bar-nav";
 
 export interface TillHeaderProps {
   branchName: string;
@@ -21,6 +22,7 @@ export interface TillHeaderProps {
 
 /** On every screen of a signed-in till: where, who, which shift, and whether it is in sync. */
 export function TillHeader(props: TillHeaderProps) {
+  const nav = useTillBarNav();
   return (
     <header className="pos-topbar" aria-label={vi.shell.barLabel}>
       <div className="pos-topbar__place">
@@ -38,6 +40,7 @@ export function TillHeader(props: TillHeaderProps) {
           </p>
         </div>
       </div>
+      {nav}
       <SyncStatusBadges status={props.status} onOpenNeedsAttention={props.onOpenNeedsAttention} />
       <div className="pos-topbar__who">
         <StaffAvatar id={props.staffName} name={props.staffName} />

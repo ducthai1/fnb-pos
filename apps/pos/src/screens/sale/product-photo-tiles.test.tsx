@@ -58,4 +58,17 @@ describe("product photos on the till", () => {
     });
     expect(line.querySelector(".pos-cart-line__photo img")?.getAttribute("src")).toBe(`/api${PHOTO}`);
   });
+
+  it("draws a category with the photo of its first product that has one, else its icon", async () => {
+    await tillWithCoffeePhoto();
+    const category = (name: string) => screen.getByRole("tab", { name: new RegExp(`^${name}`) });
+    for (const name of ["Tất cả", "Đồ uống"]) {
+      const photo = category(name).querySelector(".pos-category__photo");
+      expect(photo?.querySelector("img")?.getAttribute("src")).toBe(`/api${PHOTO}`);
+      expect(photo?.getAttribute("data-category-photo")).toBe("shown");
+    }
+    const cakes = category("Bánh").querySelector(".pos-category__photo");
+    expect(cakes?.querySelector("img")).toBeNull();
+    expect(cakes?.querySelector("svg")).not.toBeNull();
+  });
 });

@@ -38,7 +38,7 @@ const marksOf = (page: Page) =>
   );
 
 describe.each([360, 800, 1280])("product photos at %ipx wide", (width) => {
-  it("crops a very tall and a very wide photo to the same 4:3 frame on the tiles", async () => {
+  it("crops a very tall and a very wide photo to the same low 3:2 frame on the tiles", async () => {
     const page = await openScreen("sale-photos", width);
     const tiles = (await marksOf(page)).filter((mark) => mark.markRatio > 1);
     await page.close();
@@ -46,10 +46,10 @@ describe.each([360, 800, 1280])("product photos at %ipx wide", (width) => {
     expect(shown).toHaveLength(2);
     for (const mark of shown) {
       expect(mark).toMatchObject({ drawn: true, imageFits: true });
-      expect(mark.markRatio).toBeCloseTo(4 / 3, 1);
+      expect(mark.markRatio).toBeCloseTo(3 / 2, 1);
     }
     // Every other band takes the same frame, so rows stay even.
-    for (const mark of tiles) expect(mark.markRatio).toBeCloseTo(4 / 3, 1);
+    for (const mark of tiles) expect(mark.markRatio).toBeCloseTo(3 / 2, 1);
   });
 
   it("draws the initials where a photo is gone, on the tile and on the cart line", async () => {

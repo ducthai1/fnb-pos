@@ -29,7 +29,7 @@ Mọi nhân viên đã đăng nhập đều xem được. Hoàn tiền cần quy
 
 ## Các bước
 
-1. Trên thanh thứ hai bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn mới nhất ở trên.
+1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn mới nhất ở trên.
 
    ![Lịch sử đơn](../images/may-quay/order-history.webp)
 

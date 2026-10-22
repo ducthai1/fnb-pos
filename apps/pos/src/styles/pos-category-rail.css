@@ -1,14 +1,15 @@
-/* A tablet or a till: the categories are a white rail of square tiles beside the products,
-   kept in view; the chosen one is filled with the brand colour. */
+/* A tablet or a till: the categories are a column of round photos beside the products, kept
+   in view, each with its name and how many products it holds; the chosen one sits on a
+   caramel card. */
 @media (min-width: 760px) {
   .pos-menu {
-    grid-template-columns: 105px minmax(0, 1fr);
-    /* A long list of categories grows the products' row, never the search's. */
+    grid-template-columns: 96px minmax(0, 1fr);
+    /* A long list of categories grows the products' row, never the head's. */
     grid-template-rows: auto 1fr;
     grid-template-areas:
-      "cats search"
+      "cats head"
       "cats grid";
-    column-gap: var(--sp-3);
+    column-gap: var(--sp-4);
   }
   .pos-categories {
     grid-area: cats;
@@ -16,32 +17,34 @@
     top: var(--sp-3);
     flex-direction: column;
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: stretch;
     align-self: start;
-    gap: var(--sp-3);
-    padding: var(--sp-3);
-    border-radius: var(--r-md);
-    background: var(--c-surface);
+    gap: var(--sp-2);
   }
   .pos-category {
     flex-direction: column;
     justify-content: center;
-    gap: var(--sp-2);
-    width: 80px;
-    min-height: 80px;
-    padding: var(--sp-2) var(--sp-1);
+    gap: 6px;
+    width: 100%;
+    min-height: 112px;
+    padding: var(--sp-2) var(--sp-1) var(--sp-3);
     border: 0;
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
     background: transparent;
-    font-size: var(--fs-xs);
-    line-height: 16px;
+    font-size: var(--fs-sm);
+    line-height: 18px;
     text-align: center;
   }
-  .pos-category > .pos-icon {
-    width: 36px;
-    height: 36px;
-    stroke-width: 1.5;
-    color: var(--c-text);
+  .pos-category__photo {
+    width: 60px;
+    height: 60px;
+    box-shadow:
+      0 0 0 3px var(--c-surface),
+      var(--shadow-card);
+  }
+  .pos-category__photo > .pos-icon {
+    width: 28px;
+    height: 28px;
   }
   .pos-category__name {
     flex: none;
@@ -52,26 +55,21 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
-  /* A badge on the tile's corner, ringed in the tile's colour so it reads as laid over the
-     icon; on the chosen tile it is white with brand writing, as the count on a product. */
   .pos-category__count {
-    position: absolute;
-    top: var(--sp-1);
-    right: var(--sp-1);
-    padding: 0 5px;
-    line-height: 16px;
-    box-shadow: 0 0 0 2px var(--c-surface);
+    margin-top: -4px;
+  }
+  .pos-category:not([aria-selected="true"]):active {
+    background: var(--c-surface-3);
   }
   .pos-category[aria-selected="true"] {
-    background: var(--c-brand);
+    background: linear-gradient(170deg, var(--c-brand), var(--c-brand-strong));
+    box-shadow: var(--shadow-brand);
   }
-  .pos-category[aria-selected="true"] .pos-category__count {
-    background: var(--c-surface);
-    color: var(--c-brand-strong);
-    box-shadow: 0 0 0 2px var(--c-brand);
+  .pos-category[aria-selected="true"] .pos-category__photo {
+    box-shadow: 0 0 0 3px var(--c-surface);
   }
-  .pos-search {
-    grid-area: search;
+  .pos-menu__head {
+    grid-area: head;
   }
   .pos-product-grid,
   .pos-menu__empty {
@@ -82,6 +80,6 @@
 /* Under the till's bar, which stays in view from this width up. */
 @media (min-width: 1024px) {
   .pos-categories {
-    top: calc(var(--bar-h) + var(--sp-3));
+    top: calc(var(--bar-h) + var(--sp-4));
   }
 }

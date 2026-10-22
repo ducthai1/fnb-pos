@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildTillMenu, NO_MENU_COPIES } from "../../features/menu/till-menu";
+import { BestSellersContext } from "../../features/menu/use-best-sellers";
 import { cartView } from "../../features/order/cart-view";
 import type { CounterOrder } from "../../features/order/counter-order";
 import { vi as text } from "../../messages/vi";
@@ -25,23 +26,25 @@ const order = (cups: number): CounterOrder => ({
   })),
 });
 
-function till(cups: number) {
+function till(cups: number, bestSellers: ReadonlySet<string> = new Set()) {
   const onCheckout = vi.fn();
   const shown = order(cups);
   render(
-    <SaleScreen
-      header={null}
-      menu={menu}
-      now={Date.now()}
-      order={shown}
-      view={cartView(menu, shown, profile, Date.now())}
-      saveFailed={false}
-      onPick={() => {}}
-      onQuantity={() => {}}
-      onRemove={() => {}}
-      onServiceType={() => {}}
-      onCheckout={onCheckout}
-    />,
+    <BestSellersContext value={bestSellers}>
+      <SaleScreen
+        header={null}
+        menu={menu}
+        now={Date.now()}
+        order={shown}
+        view={cartView(menu, shown, profile, Date.now())}
+        saveFailed={false}
+        onPick={() => {}}
+        onQuantity={() => {}}
+        onRemove={() => {}}
+        onServiceType={() => {}}
+        onCheckout={onCheckout}
+      />
+    </BestSellersContext>,
   );
   return onCheckout;
 }
@@ -81,5 +84,28 @@ describe("the menu beside the order", () => {
     expect(coffee.querySelector("[data-in-cart]")?.textContent).toBe("2");
     const tea = screen.getByRole("button", { name: /^Trà sữa trân châu/ });
     expect(tea.querySelector("[data-in-cart]")).toBeNull();
+  });
+});
+
+describe("the menu's marks", () => {
+  it("tags the till's best sellers on their tiles, and no other tile", () => {
+    till(0, new Set([MENU.coffee]));
+    const coffee = screen.getByRole("button", { name: /^Cà phê sữa/ });
+    expect(coffee.querySelector("[data-best-seller]")?.textContent).toBe(text.sale.bestSeller);
+    const tea = screen.getByRole("button", { name: /^Trà sữa trân châu/ });
+    expect(tea.querySelector("[data-best-seller]")).toBeNull();
+  });
+
+  it("leaves the tag out of what the tile is called", () => {
+    till(0, new Set([MENU.coffee]));
+    expect(screen.getByRole("button", { name: /^Cà phê sữa/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: new RegExp(text.sale.bestSeller) })).toBeNull();
+  });
+
+  it("says how many products the grid shows beside the menu's title", () => {
+    till(0);
+    const tiles = screen.getAllByRole("listitem").filter((item) => item.closest(".pos-product-grid"));
+    const title = screen.getByRole("heading", { name: new RegExp(`^${text.sale.menuLabel}`) });
+    expect(title.textContent).toContain(text.sale.shownCount(tiles.length, 0));
   });
 });

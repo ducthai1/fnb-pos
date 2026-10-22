@@ -19,6 +19,7 @@ import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../screens/sale/sale-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
 import { UnderLayer } from "../screens/shared/under-layer";
+import { TillBarNav } from "../screens/till/till-bar-nav";
 import { CounterCheckout } from "./counter-checkout";
 import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 
@@ -94,12 +95,7 @@ export function CounterSale(props: CounterSaleProps) {
     <>
       <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
         <SaleScreen
-          header={
-            <>
-              {header}
-              {props.modeSwitch}
-            </>
-          }
+          header={<TillBarNav nav={props.modeSwitch}>{header}</TillBarNav>}
           menu={menu}
           now={now}
           order={order}

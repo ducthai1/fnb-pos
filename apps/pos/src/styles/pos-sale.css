@@ -37,6 +37,39 @@
   min-width: 0;
 }
 
+/* The menu's title like the board on a café's wall, how many products it shows, the search. */
+.pos-menu__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  min-width: 0;
+}
+
+.pos-menu__head > .pos-search {
+  flex: 1 1 260px;
+}
+
+.pos-menu__title {
+  flex: none;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+
+.pos-menu__count {
+  margin-left: var(--sp-1);
+  color: var(--c-text-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
 .pos-categories {
   display: flex;
   flex-wrap: wrap;
@@ -44,7 +77,7 @@
   min-width: 0;
 }
 
-/* A chip on a phone or a tablet: icon, name, count. */
+/* A chip on a phone: a round photo (or the category's icon), the name, how many products. */
 .pos-category {
   position: relative;
   box-sizing: border-box;
@@ -53,29 +86,52 @@
   gap: var(--sp-2);
   max-width: 100%;
   min-height: var(--tap);
-  padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-sm);
+  padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-pill);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
   font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
   transition:
-    background-color 120ms ease,
-    color 120ms ease;
-}
-
-.pos-category > .pos-icon {
-  flex: none;
-  color: var(--c-text-2);
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out),
+    transform var(--t-tap) var(--ease-spring);
 }
 
 .pos-category:focus-visible {
   outline: none;
   box-shadow: var(--ring);
+}
+
+.pos-category:active {
+  transform: scale(var(--tap-scale));
+}
+
+.pos-category__photo {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--cat-soft);
+  color: var(--cat);
+}
+
+.pos-category__photo > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
 }
 
 .pos-category__name {
@@ -86,45 +142,36 @@
 
 .pos-category__count {
   flex: none;
-  min-width: 2ch;
-  padding: 0 6px;
-  border-radius: var(--r-pill);
-  background: var(--c-surface-3);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  line-height: 18px;
-  text-align: center;
+  font-weight: var(--fw-medium);
   font-variant-numeric: tabular-nums;
-}
-
-.pos-category:active {
-  background: var(--c-brand-soft);
+  white-space: nowrap;
 }
 
 .pos-category[aria-selected="true"] {
   border-color: var(--c-brand);
   background: var(--c-brand);
   color: var(--c-on-brand);
-  font-weight: var(--fw-medium);
-}
-
-.pos-category[aria-selected="true"] > .pos-icon {
-  color: var(--c-on-brand);
 }
 
 .pos-category[aria-selected="true"] .pos-category__count {
-  background: var(--c-on-brand-soft);
   color: var(--c-on-brand);
 }
 
-/* One white bar: the search, its icon inside, no box of its own. */
+.pos-category[aria-selected="true"] .pos-category__photo {
+  box-shadow: 0 0 0 2px var(--c-surface);
+}
+
+/* One paper pill: the search, its icon inside, the key that jumps to it on the right. */
 .pos-search {
   position: relative;
   display: flex;
   align-items: center;
-  border-radius: var(--r-sm);
+  min-width: 0;
+  border-radius: var(--r-pill);
   background: var(--c-surface);
+  box-shadow: var(--shadow-card);
   color: var(--c-text-3);
 }
 
@@ -141,11 +188,11 @@
 .pos-search .pos-search__input {
   min-height: var(--tap);
   padding-block: var(--sp-2);
-  padding-inline: 48px 56px;
+  padding-inline: 46px 56px;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   background: transparent;
-  font-size: 0.9375rem;
+  font-size: var(--fs-md);
 }
 
 .pos-search .pos-search__input:focus-visible {
@@ -166,7 +213,7 @@
   width: var(--tap);
   height: var(--tap);
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   background: transparent;
   color: var(--c-text-2);
   cursor: pointer;

@@ -4,6 +4,7 @@ import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
 import { orderNumbers } from "../features/order/device-order-number";
 import { MenuMemoryProvider, useNewMenuMemory } from "../features/menu/menu-memory";
+import { BestSellersContext, useBestSellers } from "../features/menu/use-best-sellers";
 import { openingFromStored } from "../features/order/order-opening";
 import { useCounterOrder } from "../features/order/use-counter-order";
 import { type SellingMode, SellingModeSwitch } from "../screens/till/selling-mode-switch";
@@ -34,9 +35,13 @@ export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "m
 export function SellingModes(props: SellingModesProps) {
   // Where the cashier was on the menu outlives the screens drawn below: see menu-memory.
   const memory = useNewMenuMemory();
+  // The products this till sells most of, marked on their tiles at the counter and at tables.
+  const best = useBestSellers(props.client);
   return (
     <MenuMemoryProvider value={memory}>
-      <SellingScreen {...props} />
+      <BestSellersContext value={best}>
+        <SellingScreen {...props} />
+      </BestSellersContext>
     </MenuMemoryProvider>
   );
 }

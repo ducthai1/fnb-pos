@@ -1,13 +1,15 @@
-/* The till's frame around the screens: the bar along the top (where, who, which shift, sync)
-   and the main navigation under it. The bar sticks to the top of the screen's scroller and
-   runs edge to edge; every name in it keeps to one line and shows the rest as "…". */
+/* The till's frame around the screens: the bar along the top (where, who, which shift, sync
+   and, on the selling screens, the selling modes and the till's tools). It sits on the paper,
+   sticks to the top of the screen's scroller from 1024px and runs edge to edge; every name
+   in it keeps to one line and shows the rest as "…". */
 
 .pos-screen__inner--narrow {
   --frame-max: 440px;
 }
 
+/* The selling screens use a till's whole width: more products per row, not wider gutters. */
 .pos-screen__inner--wide {
-  --frame-max: 1240px;
+  --frame-max: 1888px;
 }
 
 .pos-screen__inner > .pos-topbar {
@@ -37,13 +39,18 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     "place who"
-    "sync sync";
+    "sync sync"
+    "nav nav";
   align-items: center;
   gap: var(--sp-2) var(--sp-3);
   min-height: var(--bar-h);
   padding: var(--sp-2) var(--sp-4);
-  background: var(--c-surface);
+  background: var(--c-bg);
   border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-topbar > .pos-navbar {
+  grid-area: nav;
 }
 
 .pos-topbar__place {
@@ -58,10 +65,11 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-md);
-  background: var(--c-brand);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(160deg, var(--c-brand), var(--c-brand-strong));
+  box-shadow: var(--shadow-brand);
   color: var(--c-on-brand);
 }
 
@@ -72,18 +80,28 @@
 }
 
 .pos-topbar__brand {
-  font-weight: var(--fw-bold);
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-tight);
 }
 
 .pos-topbar__branch {
   color: var(--c-text-2);
-  font-size: var(--fs-sm);
+  font-size: 0.8125rem;
 }
 
 .pos-topbar .pos-badges {
   grid-area: sync;
   min-width: 0;
+}
+
+/* On the bar the sync pills are small facts, not controls. */
+.pos-topbar .pos-badge:not(.pos-badge--attention) {
+  min-height: 32px;
+  padding: 4px var(--sp-3);
+  font-size: 0.8125rem;
+  font-weight: var(--fw-semibold);
 }
 
 .pos-topbar__who {
@@ -94,17 +112,23 @@
   min-width: 0;
 }
 
+.pos-topbar__who .pos-avatar {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+}
+
 .pos-topbar__person {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  max-width: min(220px, 30vw);
+  max-width: min(200px, 30vw);
 }
 
 .pos-signed-in {
   min-width: 0;
   margin: 0;
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-ui);
 }
 
 .pos-topbar__shift {
@@ -125,8 +149,32 @@
   gap: var(--sp-1);
 }
 
-/* On a phone the two staff buttons keep their words for screen readers, show icons only. */
+.pos-topbar__actions .pos-button {
+  color: var(--c-text-2);
+}
+
+/* A phone: the shop on its own row, then who is at the till with the staff buttons on the
+   right, the sync pills and the selling modes and tools. */
 @media (max-width: 559px) {
+  .pos-topbar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "place"
+      "who"
+      "sync"
+      "nav";
+  }
+  .pos-topbar__person {
+    max-width: none;
+  }
+  .pos-topbar__actions {
+    margin-left: auto;
+  }
+}
+
+/* Short of a wide till the two staff buttons keep their words for screen readers and show
+   their icons only. */
+@media (max-width: 1599px) {
   .pos-topbar__actions .pos-button {
     width: var(--tap);
     padding: 0;
@@ -135,9 +183,15 @@
   }
 }
 
-/* A till held sideways: one row, kept in view while the screen scrolls. The sync pills wrap
-   onto a second line only when something is wrong, which is when they should stand out. */
+/* A till held sideways: the bar is kept in view while the screen scrolls; the selling modes
+   and tools take a second row under where and who. */
 @media (min-width: 1024px) {
+  .pos-screen__inner {
+    --bar-h: 120px;
+  }
+  .pos-screen__inner:not(:has(.pos-topbar > .pos-navbar)) {
+    --bar-h: 64px;
+  }
   .pos-screen__inner > .pos-topbar {
     position: sticky;
     top: 0;
@@ -145,34 +199,103 @@
   }
   .pos-topbar {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
     padding-inline: var(--sp-5);
   }
   .pos-topbar__place {
-    flex: 1 1 220px;
-    min-width: 160px;
+    order: 1;
+    flex: 1 1 200px;
+    min-width: 120px;
   }
   .pos-topbar .pos-badges {
-    flex: 1 1 auto;
+    order: 3;
+    flex: 0 0 auto;
+    margin-left: auto;
     justify-content: flex-end;
+  }
+  /* Online is the usual state and the sync pill already says so: the link's own pill shows
+     only when something is off, and is still read out. */
+  .pos-topbar .pos-badge[data-connection="online"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .pos-topbar__who {
+    order: 5;
+    flex: none;
+    padding-left: var(--sp-3);
+    border-left: 1px solid var(--c-border-soft);
+  }
+  .pos-topbar > .pos-navbar {
+    order: 6;
+    flex: 1 1 100%;
   }
   /* Something needs attention: the pills take a row of their own under the bar's names
      instead of stacking one per line beside them, and the bar's height grows with it so
      what sticks under it (the order, the categories) stays clear of it. */
   .pos-screen__inner:has(.pos-topbar .pos-badge--attention) {
-    --bar-h: 116px;
+    --bar-h: 176px;
   }
-  .pos-topbar:has(.pos-badge--attention) {
-    flex-wrap: wrap;
-    align-content: center;
+  .pos-screen__inner:not(:has(.pos-topbar > .pos-navbar)):has(.pos-topbar .pos-badge--attention) {
+    --bar-h: 120px;
   }
   .pos-topbar:has(.pos-badge--attention) .pos-badges {
-    order: 3;
+    order: 10;
     flex: 1 1 100%;
     justify-content: flex-start;
   }
-  .pos-topbar__who {
+}
+
+/* A wide till: one row, as the counter reads it left to right: the shop and how it sells,
+   then the sync state, the tools, and who is at the till. */
+@media (min-width: 1280px) {
+  .pos-screen__inner,
+  .pos-screen__inner:not(:has(.pos-topbar > .pos-navbar)) {
+    --bar-h: 64px;
+  }
+  .pos-screen__inner:has(.pos-topbar .pos-badge--attention),
+  .pos-screen__inner:not(:has(.pos-topbar > .pos-navbar)):has(.pos-topbar .pos-badge--attention) {
+    --bar-h: 120px;
+  }
+  /* One row: the names give way ("…") before anything wraps; only a call for attention
+     takes a second row. */
+  .pos-topbar {
+    flex-wrap: nowrap;
+    column-gap: 10px;
+  }
+  .pos-topbar:has(.pos-badge--attention) {
+    flex-wrap: wrap;
+  }
+  /* With the pills on a row of their own, the shop's names take what the first row leaves. */
+  .pos-topbar:has(.pos-badge--attention) .pos-topbar__place {
+    flex: 1 1 0;
+  }
+  .pos-topbar:not(:has(.pos-badge--attention)) .pos-badges {
+    flex-wrap: nowrap;
+  }
+  .pos-topbar:not(:has(.pos-badge--attention)) .pos-badge {
     flex: none;
-    padding-left: var(--sp-3);
-    border-left: 1px solid var(--c-border-soft);
+    white-space: nowrap;
+  }
+  .pos-topbar__place {
+    flex: 0 1 auto;
+  }
+  .pos-topbar > .pos-navbar {
+    display: contents;
+  }
+  .pos-topbar > .pos-navbar > .pos-modes {
+    order: 2;
+  }
+  .pos-topbar > .pos-navbar > .pos-till-tools {
+    order: 4;
+    flex-wrap: nowrap;
+    margin-left: 0;
   }
 }

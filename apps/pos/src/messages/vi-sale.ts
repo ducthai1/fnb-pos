@@ -11,9 +11,14 @@ export const VI_SALE = {
   backKeyCap: "Esc",
   categoriesLabel: "Danh mục",
   allCategories: "Tất cả",
+  /** Under a category's name, and beside the menu's title for what the grid shows. */
+  productCount: (count: number) => `${count} món`,
+  shownCount: (count: number, soldOut: number) =>
+    soldOut === 0 ? `${count} món` : `${count} món · ${soldOut} hết`,
   emptyMenu: "Chưa có món nào để bán. Thêm món ở trang quản lý.",
   noMatch: "Không có món nào khớp.",
   soldOut: "Hết món",
+  bestSeller: "Bán chạy",
   noPrice: "Chưa có giá",
   orderNumber: (no: number) => `Đơn số ${no}`,
   callNumber: (call: string) => `Số gọi ${call}`,

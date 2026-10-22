@@ -14,6 +14,7 @@ import { useStaleDraftRedo } from "../features/table-order/use-stale-draft-redo"
 import { refusalSentence, vi } from "../messages/vi";
 import { FloorScreen } from "../screens/floor/floor-screen";
 import { Alert } from "../screens/shared/screen-frame";
+import { TillBarNav } from "../screens/till/till-bar-nav";
 import type { SellingModesProps } from "./selling-modes";
 import { TableOrdering } from "./table-ordering";
 
@@ -119,12 +120,7 @@ export function TableService(props: TableServiceProps) {
   const shownRefusal = refusal !== null && refusal.commandId !== dismissed ? refusal : null;
   return (
     <FloorScreen
-      header={
-        <>
-          {header}
-          {props.modeSwitch}
-        </>
-      }
+      header={<TillBarNav nav={props.modeSwitch}>{header}</TillBarNav>}
       areas={floor.occupancy?.areas ?? null}
       tables={floor.tables}
       now={now}
