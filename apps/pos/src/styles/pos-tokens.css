@@ -78,6 +78,13 @@
   --tap-lg: 56px;
   --bar-h: 56px;
 
+  /* Paper: a slip's preview is drawn as the thermal roll prints it, dark ink on white, in
+     every theme. Set once here; no theme changes them, so a dark till never shows dark
+     paper. */
+  --c-paper: #ffffff;
+  --c-paper-ink: #1f2328; /* 15.8:1 on paper */
+  --c-paper-edge: #c3c9d1;
+
   /* The names the screens were first written with, kept so every screen takes the theme */
   --pos-bg: var(--c-bg);
   --pos-surface: var(--c-surface);

@@ -39,6 +39,22 @@ export function writeThemeChoice(storage: () => Storage, choice: ThemeChoice): b
 export const resolveTheme = (choice: ThemeChoice, deviceIsDark: boolean): AppliedTheme =>
   choice === "system" ? (deviceIsDark ? "dark" : "pastel") : choice;
 
+/**
+ * The colour of the till's bar in each theme (its `--c-bg` in pos-tokens.css), given to the
+ * browser as `<meta name="theme-color">` so a phone's status bar or an installed till's
+ * title bar runs on from the bar. index.html carries the same list for the first paint.
+ */
+export const THEME_BAR_COLOUR: Readonly<Record<AppliedTheme, string>> = {
+  pastel: "#f3f7fc",
+  rangxay: "#f4ede3",
+  dark: "#11161d",
+};
+
+/** Puts the bar's colour of `theme` in the page's theme-color, when the page has one. */
+export function applyThemeColour(doc: Document, theme: AppliedTheme): void {
+  doc.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_BAR_COLOUR[theme]);
+}
+
 /** Where a theme is applied: the page's root, its storage and the device's colour setting. */
 export interface ThemeHost {
   readonly root: HTMLElement;
@@ -67,7 +83,9 @@ export function startTillTheme(host: ThemeHost): TillTheme {
     deviceDark = null;
   }
   const apply = () => {
-    host.root.dataset.theme = resolveTheme(current, deviceDark?.matches ?? false);
+    const theme = resolveTheme(current, deviceDark?.matches ?? false);
+    host.root.dataset.theme = theme;
+    applyThemeColour(host.root.ownerDocument, theme);
   };
   const onDeviceChange = () => {
     if (current === "system") apply();

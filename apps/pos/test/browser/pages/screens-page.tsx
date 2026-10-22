@@ -17,6 +17,7 @@ import { PHOTO_SALE_SCREENS } from "./photo-sale-screens";
 import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
 import { SALE_SCREENS } from "./sale-screens";
 import { TABLE_SCREENS } from "./table-screens";
+import { TopBarSample } from "./topbar-sample";
 import { SCREEN_NAMES, type ScreenName } from "./screen-names";
 
 // Every movement lands at once: a measurement or a picture never catches one half done.
@@ -98,8 +99,20 @@ function Ready({ name, children }: { name: string; children: ReactElement }) {
   return children;
 }
 
-const asked = new URLSearchParams(location.search).get("screen");
+const params = new URLSearchParams(location.search);
+const asked = params.get("screen");
+const bar = params.get("bar");
 const name = SCREEN_NAMES.find((known) => known === asked);
 const root = document.getElementById("root");
-if (name === undefined || root === null) throw new Error(`no screen named "${asked}"`);
-createRoot(root).render(<Ready name={name}>{SCREENS[name]()}</Ready>);
+if (root === null) throw new Error("no root");
+if (bar !== null) {
+  // Only the selling screen's bar, with the shop's name given (see topbar-sample.tsx).
+  createRoot(root).render(
+    <Ready name="bar">
+      <TopBarSample brandName={bar} pending={Number(params.get("pending") ?? 0)} />
+    </Ready>,
+  );
+} else {
+  if (name === undefined) throw new Error(`no screen named "${asked}"`);
+  createRoot(root).render(<Ready name={name}>{SCREENS[name]()}</Ready>);
+}

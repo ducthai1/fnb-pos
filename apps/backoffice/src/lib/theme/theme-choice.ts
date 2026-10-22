@@ -54,10 +54,35 @@ export function resolveTheme(choice: ThemeChoice, prefersDark: boolean): Theme {
   return prefersDark ? "dark" : DEFAULT_THEME;
 }
 
+/**
+ * The colour of the bar across the top in each look (`--c-bg` with a fifth of `--c-surface`
+ * mixed in, as backoffice-shell.css draws it), given to the browser as
+ * `<meta name="theme-color">` so a phone's status bar or an installed window's title bar
+ * runs on from the bar.
+ */
+export const THEME_BAR_COLOUR: Readonly<Record<Theme, string>> = {
+  pastel: "#f5f8fd",
+  rangxay: "#f6f0e6",
+  dark: "#12181f",
+};
+
+/** Puts the bar's colour of `theme` in the page's theme-color, adding the tag when missing. */
+export function applyThemeColour(doc: Document, theme: Theme): void {
+  let meta = doc.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (meta === null) {
+    meta = doc.createElement("meta");
+    meta.name = "theme-color";
+    doc.head.append(meta);
+  }
+  meta.content = THEME_BAR_COLOUR[theme];
+}
+
 /** Draws the page in `choice`: the look on `data-theme`, the choice itself beside it. */
 export function applyThemeChoice(root: HTMLElement, choice: ThemeChoice, prefersDark: boolean): void {
-  root.setAttribute("data-theme", resolveTheme(choice, prefersDark));
+  const theme = resolveTheme(choice, prefersDark);
+  root.setAttribute("data-theme", theme);
   root.setAttribute("data-theme-choice", choice);
+  applyThemeColour(root.ownerDocument, theme);
 }
 
 /** Listens for the operating system turning dark or light; returns the way to stop. */
@@ -73,8 +98,8 @@ export function watchSystemScheme(win: Pick<Window, "matchMedia"> | undefined, o
 }
 
 /**
- * The same steps as readThemeChoice, resolveTheme and applyThemeChoice, as a script the root
+ * The same steps as readThemeChoice, resolveTheme and applyThemeChoice (theme-color too), as a script the root
  * layout puts in the page's head: it runs before the first paint, so the page never shows
  * the default look first and then another.
  */
-export const THEME_BOOT_SCRIPT = `(function(){var c=null,d=document.documentElement,k=${JSON.stringify(THEME_CHOICES)};try{c=window.localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}if(k.indexOf(c)<0)c=${JSON.stringify(DEFAULT_THEME)};var t=c;if(c==="system"){t=${JSON.stringify(DEFAULT_THEME)};try{if(window.matchMedia(${JSON.stringify(DARK_QUERY)}).matches)t="dark"}catch(e){}}d.setAttribute("data-theme",t);d.setAttribute("data-theme-choice",c)})();`;
+export const THEME_BOOT_SCRIPT = `(function(){var c=null,d=document.documentElement,k=${JSON.stringify(THEME_CHOICES)};try{c=window.localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}if(k.indexOf(c)<0)c=${JSON.stringify(DEFAULT_THEME)};var t=c;if(c==="system"){t=${JSON.stringify(DEFAULT_THEME)};try{if(window.matchMedia(${JSON.stringify(DARK_QUERY)}).matches)t="dark"}catch(e){}}d.setAttribute("data-theme",t);d.setAttribute("data-theme-choice",c);var b=${JSON.stringify(THEME_BAR_COLOUR)},m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m)}m.content=b[t]})();`;

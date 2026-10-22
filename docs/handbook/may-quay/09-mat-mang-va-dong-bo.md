@@ -18,8 +18,10 @@ decisions:
   - D-068
   - D-077
   - D-078
+  - D-104
 tests:
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
+  - apps/pos/test/browser/topbar-shop-name-in-chrome.test.ts
   - apps/pos/src/screens/sales-home/server-restore-notice.test.tsx
   - apps/pos/src/screens/sales-home/till-clock-notice.test.tsx
   - packages/sync-client/src/sync/sync-client-clock-offset.test.ts
@@ -65,6 +67,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
 | **Máy chủ không nhận thao tác từ địa chỉ trang POS này. …** | địa chỉ mở POS không được máy chủ cho phép — báo quản lý |
 | **Đã đồng bộ hết** | máy chủ đã nhận hết lệnh của máy |
 | **Chưa đồng bộ 3 lệnh** | còn 3 lệnh chờ gửi |
+| chỉ hình đám mây có dấu ✓, hoặc đám mây có mũi tên kèm số (ví dụ **3**) | máy ngang hẹp hơn 1440 px (máy 1280 px…) thu hai nhãn trên lại cho tên quán đủ chỗ: ✓ là **Đã đồng bộ hết**, số là số lệnh chờ gửi. Trình đọc màn hình vẫn đọc nguyên câu. Khi có **Cần xử lý**, các nhãn xuống hàng riêng và ghi đủ chữ |
 | **Cần xử lý (1)** — nút đỏ | có lệnh bị máy chủ từ chối hẳn; bấm để xem |
 | **Giờ máy lệch 3 phút — máy đang dùng giờ máy chủ. Nên chỉnh lại giờ Windows.** — dải vàng | đồng hồ máy sai quá 2 phút; vẫn bán và thu tiền bình thường, nhưng nên chỉnh giờ máy |
 

@@ -24,11 +24,11 @@ const SHOP_NAME = "CôngTyTNHHMộtThànhViênTràSữaVàCàPhêMuối".repeat(
  * The bar as a shop with the longest names would see it. The names are swapped in the
  * answers on their way to the page, so the shop the other specs share keeps its own.
  */
-async function withHostileNames(page: Page) {
+async function withHostileNames(page: Page, shop = SHOP_NAME, staff: string = HOSTILE_NAMES.staff) {
   await page.route("**/api/auth/me", async (route) => {
     const response = await route.fetch();
     const member = (await response.json()) as Record<string, unknown>;
-    await route.fulfill({ response, json: { ...member, organizationName: SHOP_NAME, displayName: HOSTILE_NAMES.staff } });
+    await route.fulfill({ response, json: { ...member, organizationName: shop, displayName: staff } });
   });
   await page.route("**/api/branches", async (route) => {
     const response = await route.fetch();
@@ -114,6 +114,39 @@ it("keeps the bar, every group's list and the drawer inside the screen with the 
     await page.keyboard.press("Escape");
     await expect.poll(() => nav.count()).toBe(0);
     expect(await page.evaluate(() => document.activeElement?.getAttribute("aria-expanded"))).toBe("false");
+  }
+  expect(unexpectedProblems(problems)).toEqual([]);
+  await close();
+});
+
+/** The shop's name on the bar: its own width against the width its text needs. */
+const shopName = (page: Page) =>
+  page.locator(".bo-topbar__name .bo-clip").evaluate((element) => ({
+    shown: element.clientWidth,
+    needs: element.scrollWidth,
+  }));
+
+it("shows a short shop name whole at 1280 and 1440px, the branch giving way first", async () => {
+  const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 1280, height: 800 });
+  // The branch and the person carry the longest names, so they have to give the room.
+  await withHostileNames(page, "Cà phê Mẫu");
+  for (const width of [1280, 1440]) {
+    await resize(page, width);
+    const name = await shopName(page);
+    expect(name.shown, `shop name shown at ${width}px`).toBeGreaterThan(0);
+    expect(name.needs, `"Cà phê Mẫu" whole at ${width}px`).toBeLessThanOrEqual(name.shown);
+    expect(await outsideOfScreen(page, ".bo-topbar", true), `bar at ${width}px`).toEqual({ outside: [], excess: 0 });
+  }
+  expect(unexpectedProblems(problems)).toEqual([]);
+  await close();
+});
+
+it("cuts a 60-letter shop name with an ellipsis at 1280 and 1440px, the bar staying on the screen", async () => {
+  const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 1280, height: 800 });
+  await withHostileNames(page, SHOP_NAME.slice(0, 60));
+  for (const width of [1280, 1440]) {
+    await resize(page, width);
+    await expectShopNameCutNotPushing(page, width);
   }
   expect(unexpectedProblems(problems)).toEqual([]);
   await close();

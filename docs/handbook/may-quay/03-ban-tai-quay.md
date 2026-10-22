@@ -20,6 +20,7 @@ decisions:
   - D-075
   - D-099
   - D-103
+  - D-104
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
@@ -27,6 +28,8 @@ tests:
   - apps/pos/src/screens/till/theme-menu.test.tsx
   - apps/pos/src/features/theme/till-theme.test.ts
   - apps/pos/src/features/theme/theme-tokens-contrast.test.ts
+  - apps/pos/test/browser/slip-paper-in-chrome.test.ts
+  - apps/pos/test/browser/topbar-shop-name-in-chrome.test.ts
   - apps/pos/test/browser/sale-grid-columns-in-chrome.test.ts
   - apps/pos/src/app/menu-keeps-its-place.test.tsx
   - apps/pos/src/screens/sale/sale-screen.test.tsx
@@ -127,6 +130,10 @@ Phím tắt chạy cả khi con trỏ đang ở trong ô nhập, trừ lúc bộ
 ![Danh sách giao diện trên thanh của máy quầy](../images/may-quay/theme-menu.webp)
 
 Máy **nhớ** giao diện đã chọn: tắt mở lại, đăng xuất, đổi nhân viên vẫn giữ. Ảnh trong sổ tay này chụp ở giao diện Xanh pastel.
+
+Ở giao diện nào thì bản xem trước của phiếu in (hóa đơn, phiếu bếp, phiếu hủy món, tem ly, phiếu tạm tính, phiếu trả hàng, phiếu đóng ca) cũng là **giấy trắng chữ đen** như cuộn giấy in nhiệt, kể cả ở **Tối**. Thanh trạng thái của điện thoại / thanh tiêu đề của POS đã cài cũng đổi theo màu thanh trên cùng của giao diện đang dùng.
+
+Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà phê Mẫu" ở máy 1280 px); tên dài quá thì cắt bằng "…", thanh không bao giờ tràn khỏi màn.
 
 ## Luật và giới hạn
 

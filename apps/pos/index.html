@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b7d5c" />
+    <meta name="theme-color" content="#f3f7fc" />
     <link rel="icon" href="data:," />
     <title>FNB POS</title>
     <script>
-      // The till's theme before the first paint, so it never flashes another colour. Keep in
-      // step with src/features/theme/till-theme.ts (its test runs this script).
+      // The till's theme before the first paint, so it never flashes another colour, and the
+      // bar's colour as the browser's theme-color. Keep in step with
+      // src/features/theme/till-theme.ts (its test runs this script).
       (function () {
         var theme = "pastel";
+        var bar = { pastel: "#f3f7fc", rangxay: "#f4ede3", dark: "#11161d" };
         try {
           var kept = window.localStorage.getItem("fnb.theme");
           if (kept === "rangxay" || kept === "dark") theme = kept;
@@ -18,6 +20,8 @@
             theme = "dark";
         } catch (e) {}
         document.documentElement.setAttribute("data-theme", theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", bar[theme]);
       })();
     </script>
   </head>
