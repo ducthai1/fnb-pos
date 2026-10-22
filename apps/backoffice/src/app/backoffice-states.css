@@ -87,17 +87,17 @@
 
 .bo-empty .bo-button {
   min-height: var(--control-dense);
-  padding: 8px 12px;
-  border-color: var(--c-info);
-  background: var(--c-info);
-  color: var(--c-on-info-tool);
-  font-weight: var(--fw-medium);
+  padding: 8px 14px;
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+  font-weight: var(--fw-semibold);
 }
 
 .bo-empty .bo-button:hover:not(:disabled) {
-  border-color: var(--c-price);
-  background: var(--c-price);
-  color: var(--c-on-info-tool);
+  border-color: var(--c-brand-strong);
+  background: var(--c-brand-strong);
+  color: var(--c-on-brand);
 }
 
 .bo-button--sm {

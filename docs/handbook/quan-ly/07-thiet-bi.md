@@ -8,6 +8,7 @@ decisions:
   - D-065
   - D-066
 tests:
+  - apps/backoffice/src/components/ui/confirm-panel.test.tsx
   - apps/backoffice/src/components/devices/devices-screen.test.tsx
   - apps/api/src/devices/pairing-code.test.ts
   - apps/api/test/integration/devices/pairing-code-single-use.test.ts
@@ -43,7 +44,7 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 
 ### Thu hồi một máy
 
-1. Ở dòng của máy, bấm **Thu hồi**, xác nhận **Thu hồi máy**.
+1. Ở dòng của máy, bấm **Thu hồi**. Trang hiện khung hỏi lại **Thu hồi máy "…"?** ngay trên danh sách: bấm nút đỏ **Thu hồi máy** để làm, **Hủy** để thôi.
 2. Máy bị đăng xuất và **không bán được nữa** cho tới khi ghép lại bằng mã mới. Dòng chuyển sang "Đã thu hồi lúc …".
 3. Lọc **Đang dùng / Đã thu hồi**, tìm theo tên máy.
 

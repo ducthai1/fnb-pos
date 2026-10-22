@@ -46,46 +46,77 @@
   align-items: flex-start;
 }
 
-/* A second step, as a confirm box: a red warning sign before a red title,
-   the sentence in grey, two 36px buttons on the right, the one that acts filled red. */
+/* The one second step (components/ui/confirm-panel.tsx): a warning sign in a soft red tile,
+   the question in ink, what follows in grey, then Cancel and the solid red button that acts,
+   at the end of the row. */
 .bo-confirm {
   gap: var(--sp-4);
-  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  padding: var(--sp-5) var(--sp-6);
   border: 1px solid var(--c-danger-line);
   border-radius: var(--r-lg);
+  box-shadow: var(--shadow-panel);
 }
 
-.bo-confirm__title {
+.bo-confirm__head {
   display: flex;
-  align-items: center;
-  gap: var(--sp-2);
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-confirm__sign {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: var(--c-danger-soft);
   color: var(--c-danger);
 }
 
-.bo-confirm > .bo-muted {
-  font-size: var(--fs-md);
-  line-height: 24px;
+.bo-confirm__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.bo-confirm > .bo-row {
+.bo-confirm__title {
+  color: var(--c-text);
+  font-size: var(--fs-lg);
+}
+
+.bo-confirm__text > .bo-muted {
+  max-width: 72ch;
+  font-size: var(--fs-body);
+}
+
+.bo-confirm > .bo-fieldset,
+.bo-confirm > .bo-field,
+.bo-confirm > .bo-notice {
+  max-width: var(--measure-form);
+}
+
+.bo-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
 }
 
-.bo-confirm > .bo-row > .bo-button {
-  min-width: min(137px, 100%);
-  min-height: var(--control-dense);
+.bo-confirm__actions > .bo-button {
+  min-width: min(140px, 100%);
 }
 
-.bo-confirm .bo-button--danger {
-  border-color: var(--c-danger);
-  background: var(--c-danger);
-  color: var(--c-on-danger);
-}
+@media (max-width: 767px) {
+  .bo-confirm {
+    padding: var(--sp-4);
+  }
 
-.bo-confirm .bo-button--danger:hover:not(:disabled) {
-  color: var(--c-on-danger);
-  filter: brightness(0.92);
+  .bo-confirm__actions > .bo-button {
+    flex: 1 1 140px;
+  }
 }
 
 input[type="checkbox"],

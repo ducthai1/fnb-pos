@@ -8,6 +8,7 @@ decisions:
   - D-060
   - D-070
 tests:
+  - apps/backoffice/src/components/ui/text-field.test.tsx
   - apps/backoffice/src/components/floor/floor-screen.test.tsx
   - apps/backoffice/src/components/floor/area-plan.test.tsx
   - apps/backoffice/src/lib/floor/plan-geometry.test.ts
@@ -33,7 +34,7 @@ Cần quyền **Cài đặt cửa hàng**. Muốn máy quầy hiện chế độ
 ![Sơ đồ bàn](../images/quan-ly/so-do-ban.webp)
 
 1. Chọn chi nhánh, mở **Cửa hàng → Sơ đồ bàn**.
-2. Gõ **Tên khu vực mới**, bấm **Thêm khu vực**.
+2. Gõ **Tên khu vực mới**, bấm **Thêm khu vực**. Bấm khi ô còn trống thì dòng đỏ "Nhập tên, tối đa 60 ký tự." hiện dưới ô (nút đứng yên ngang ô); gõ tên là dòng đỏ tắt.
 3. Trong khung của khu vực: nhập **Tên bàn mới** và **Số ghế**, bấm **Thêm bàn**.
 4. Sửa tên hoặc số ghế ở từng dòng bàn rồi bấm lưu bàn; đổi tên khu vực rồi bấm lưu tên khu vực.
 5. Ở **Sơ đồ <khu vực>**: kéo bàn tới chỗ của nó, hoặc chọn bàn rồi bấm **phím mũi tên** (giữ **Shift** để đi xa hơn). **Mỗi lần thả được lưu ngay** ("Đã dời …").

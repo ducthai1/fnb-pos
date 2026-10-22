@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import type { ApiResult } from "../../lib/api/api-result";
 import type { Role } from "../../lib/api/roles-api";
 import type { StaffMember } from "../../lib/api/staff-api";
@@ -8,7 +8,7 @@ import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
-import { ErrorNotice } from "../ui/error-notice";
+import { ConfirmPanel } from "../ui/confirm-panel";
 import { SelectField } from "../ui/select-field";
 import { TextField } from "../ui/text-field";
 
@@ -57,7 +57,6 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
 }) {
   const api = useApi();
   const { signedOut } = useSession();
-  const titleId = useId();
   const [name, setName] = useState(member.displayName);
   const [roleId, setRoleId] = useState(member.roleId);
   const [pin, setPin] = useState("");
@@ -106,11 +105,17 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
   const [confirmLabel, busyLabel] = CONFIRM[tool];
   const hint = HINTS[tool];
   return (
-    <div className="bo-card bo-confirm bo-stack" role="alertdialog" aria-labelledby={titleId}>
-      <p id={titleId} className="bo-subtitle bo-wrap">
-        {TITLES[tool](member.displayName)}
-      </p>
-      {hint !== undefined && <p className="bo-muted bo-wrap">{hint}</p>}
+    <ConfirmPanel
+      title={TITLES[tool](member.displayName)}
+      hint={hint}
+      confirmLabel={confirmLabel}
+      busyLabel={busyLabel}
+      busy={busy}
+      error={error}
+      tone={tool === "lock" || tool === "pin" ? "destructive" : "change"}
+      onConfirm={() => void submit()}
+      onCancel={onCancel}
+    >
       {tool === "edit" && (
         <>
           <TextField label={vi.staff.nameLabel} value={name} onChange={setName} error={fieldError} maxLength={80} />
@@ -133,15 +138,6 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
           maxLength={6}
         />
       )}
-      <ErrorNotice message={error} />
-      <div className="bo-row">
-        <button type="button" className="bo-button bo-button--danger" disabled={busy} onClick={() => void submit()}>
-          {busy ? busyLabel : confirmLabel}
-        </button>
-        <button type="button" className="bo-button" disabled={busy} onClick={onCancel}>
-          {vi.common.cancel}
-        </button>
-      </div>
-    </div>
+    </ConfirmPanel>
   );
 }

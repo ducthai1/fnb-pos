@@ -1,0 +1,148 @@
+/* The app's own picker (components/ui/listbox.tsx): a warm button naming the choice and a
+   card of choices under it, the chosen one ticked, the one the keys or pointer are on tinted.
+   The bar's branch picker is a pill of it. */
+
+.bo-listbox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bo-listbox__label {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.bo-listbox__button {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-h);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bo-listbox__button > .bo-icon {
+  color: var(--c-text-3);
+}
+
+.bo-listbox__button > .bo-icon:last-child {
+  margin-left: auto;
+  transition: transform var(--t-state) var(--ease-out);
+}
+
+.bo-listbox[data-open] .bo-listbox__button > .bo-icon:last-child {
+  transform: rotate(180deg);
+}
+
+.bo-listbox__value {
+  flex: 1 1 auto;
+}
+
+.bo-listbox__button:hover:not(:disabled) {
+  border-color: var(--c-brand);
+}
+
+.bo-listbox__button:focus-visible,
+.bo-listbox[data-open] .bo-listbox__button {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: var(--ring-field);
+}
+
+.bo-listbox__button:focus-visible {
+  box-shadow: var(--ring);
+}
+
+.bo-listbox__button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.bo-listbox__popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max(100%, 220px);
+  max-width: min(360px, calc(100vw - 2 * var(--gutter)));
+  max-height: min(320px, 60dvh);
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--sp-1);
+  list-style: none;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-menu);
+  transform-origin: top left;
+  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+}
+
+/* Opened at the right end of a row (the bar, a pager): the card lines up on its right. */
+.bo-listbox--end .bo-listbox__popup {
+  right: 0;
+  left: auto;
+  transform-origin: top right;
+}
+
+/* Opened at the foot of a page (the pager): the card goes up. */
+.bo-listbox--up .bo-listbox__popup {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform-origin: bottom left;
+}
+
+.bo-listbox__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 40px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--c-text);
+  font-size: var(--fs-body);
+  cursor: pointer;
+  transition: background-color var(--t-tap) var(--ease-out);
+}
+
+.bo-listbox__option[data-active] {
+  background: var(--c-hover);
+  box-shadow: inset 0 0 0 1px var(--c-border-soft);
+}
+
+.bo-listbox__option[aria-selected="true"] {
+  color: var(--c-brand-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-listbox__option[aria-selected="true"] .bo-icon {
+  color: var(--c-brand);
+}
+
+/* The branch picker in the bar: a pill on the bar, the shop sign before the name. */
+.bo-branch-picker .bo-listbox__button {
+  min-height: 42px;
+  padding: 0 var(--sp-3) 0 14px;
+  border-color: var(--c-border-soft);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-card);
+  font-weight: var(--fw-semibold);
+}

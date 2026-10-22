@@ -90,7 +90,7 @@
   box-shadow: var(--ring);
 }
 
-/* The page you are on: the brand's pale green with a bar at its start, as in the menu bar. */
+/* The page you are on: the brand's pale caramel with a bar at its start, as in the menu bar. */
 .bo-drawer__link[aria-current="page"],
 .bo-drawer__link[aria-current="page"]:hover {
   background: var(--c-brand-soft);

@@ -20,25 +20,23 @@ function NewTableForm({ area, tables, onChanged }: { area: Area; tables: readonl
   const write = useFloorWrite(onChanged);
   const [name, setName] = useState("");
   const [seats, setSeats] = useState("4");
-  const [invalid, setInvalid] = useState<{ name?: true; seats?: true }>({});
 
   async function add(event: FormEvent) {
     event.preventDefault();
     const checkedName = floorName(name, TABLE_NAME_MAX);
     const checkedSeats = seatCount(seats);
-    setInvalid({ ...(checkedName === null ? { name: true } : {}), ...(checkedSeats === null ? { seats: true } : {}) });
     if (checkedName === null || checkedSeats === null) return;
     const body = newTableBody(area.id, checkedName, checkedSeats, tables);
     if (await write.run(() => api.putTable(uuidv7(), body), () => vi.common.saved)) setName("");
   }
 
   return (
-    <form className="bo-row" onSubmit={(event) => void add(event)} noValidate>
+    <form className="bo-field-row" onSubmit={(event) => void add(event)} noValidate>
       <TextField
         label={T.newTableName}
         value={name}
         disabled={write.busy}
-        error={invalid.name === undefined ? undefined : T.nameInvalid(TABLE_NAME_MAX)}
+        error={floorName(name, TABLE_NAME_MAX) === null ? T.nameInvalid(TABLE_NAME_MAX) : undefined}
         onChange={setName}
       />
       <TextField
@@ -47,7 +45,7 @@ function NewTableForm({ area, tables, onChanged }: { area: Area; tables: readonl
         inputMode="numeric"
         className="bo-field--narrow"
         disabled={write.busy}
-        error={invalid.seats === undefined ? undefined : T.seatsInvalid}
+        error={seatCount(seats) === null ? T.seatsInvalid : undefined}
         onChange={setSeats}
       />
       {/* The area's name is the shop's and may not wrap: it is in the accessible name only. */}
@@ -65,13 +63,11 @@ export function AreaCard({ area, tables, onChanged }: { area: Area; tables: read
   const titleId = useId();
   const write = useFloorWrite(onChanged);
   const [name, setName] = useState(area.name);
-  const [invalid, setInvalid] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   function rename(event: FormEvent) {
     event.preventDefault();
     const checked = floorName(name, AREA_NAME_MAX);
-    setInvalid(checked === null);
     if (checked !== null) void write.run(() => api.putArea(area.id, renamedAreaBody(area, checked)), () => vi.common.saved);
   }
 
@@ -88,12 +84,12 @@ export function AreaCard({ area, tables, onChanged }: { area: Area; tables: read
       <h2 id={titleId} className="bo-subtitle bo-wrap">
         {T.area(area.name)}
       </h2>
-      <form className="bo-row" onSubmit={rename} noValidate>
+      <form className="bo-field-row" onSubmit={rename} noValidate>
         <TextField
           label={T.areaName}
           value={name}
           disabled={write.busy}
-          error={invalid ? T.nameInvalid(AREA_NAME_MAX) : undefined}
+          error={floorName(name, AREA_NAME_MAX) === null ? T.nameInvalid(AREA_NAME_MAX) : undefined}
           onChange={setName}
         />
         <button type="submit" className="bo-button" disabled={write.busy} aria-label={T.saveArea(area.name)}>

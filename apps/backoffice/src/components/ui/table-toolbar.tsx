@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import type { Sort } from "./data-table";
 import { vi } from "../../messages/vi";
 import { Icon } from "./icon";
+import { Listbox } from "./listbox";
 
 const T = vi.table;
 
@@ -110,34 +111,25 @@ export function TableToolbar({
         </div>
       )}
       {sortable.length > 0 && (
-        <label className="bo-data__sort">
-          <span className="bo-sr-only">{T.sortBy}</span>
-          <select
-            id={`${id}-sort`}
-            className="bo-input"
-            value={sortText}
-            onChange={(event) => {
-              const [key, direction] = event.target.value.split(":");
-              onSort(
-                key === undefined || key === ""
-                  ? null
-                  : { key, direction: direction === "desc" ? "desc" : "asc" },
-              );
-            }}
-          >
-            <option value="">{`${T.sortBy}: ${T.sortNone}`}</option>
-            {sortable.flatMap((column) =>
-              [true, false].map((ascending) => (
-                <option
-                  key={`${column.key}${ascending}`}
-                  value={`${column.key}:${ascending ? "asc" : "desc"}`}
-                >
-                  {`${T.sortBy}: ${T.sortOption(column.label, ascending)}`}
-                </option>
-              )),
-            )}
-          </select>
-        </label>
+        <Listbox
+          className="bo-data__sort"
+          label={T.sortBy}
+          hideLabel
+          value={sortText}
+          choices={[
+            { value: "", label: `${T.sortBy}: ${T.sortNone}` },
+            ...sortable.flatMap((column) =>
+              [true, false].map((ascending) => ({
+                value: `${column.key}:${ascending ? "asc" : "desc"}`,
+                label: `${T.sortBy}: ${T.sortOption(column.label, ascending)}`,
+              })),
+            ),
+          ]}
+          onChange={(value) => {
+            const [key, direction] = value.split(":");
+            onSort(key === undefined || key === "" ? null : { key, direction: direction === "desc" ? "desc" : "asc" });
+          }}
+        />
       )}
       <p className="bo-data__count" aria-live="polite">
         {T.shown(shown, total)}

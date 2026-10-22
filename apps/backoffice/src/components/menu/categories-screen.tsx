@@ -108,7 +108,7 @@ export function CategoriesScreen() {
       <LoadStateView loaded={loaded} retry={reload}>
         {(categories) => (
           <>
-            <form className="bo-card bo-row" onSubmit={(event) => void add(event, categories)} noValidate>
+            <form className="bo-card bo-field-row" onSubmit={(event) => void add(event, categories)} noValidate>
               <TextField label={T.newLabel} value={name} onChange={setName} error={nameError} />
               <button type="submit" className="bo-button bo-button--primary">
                 {T.add}

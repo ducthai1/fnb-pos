@@ -30,9 +30,17 @@
   color: var(--c-text-3);
 }
 
+.bo-search {
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--t-state) var(--ease-out),
+    box-shadow var(--t-state) var(--ease-out);
+}
+
 .bo-search:focus-within {
   border-color: var(--c-brand);
-  box-shadow: 0 0 0 3px rgb(11 125 92 / 0.16);
+  box-shadow: var(--ring-field);
 }
 
 .bo-search__input {
@@ -74,7 +82,7 @@
   max-width: 100%;
 }
 
-.bo-data__sort {
+.bo-listbox.bo-data__sort {
   display: none;
   min-width: 0;
 }
@@ -86,13 +94,39 @@
   white-space: nowrap;
 }
 
+/* The table is one card; its head stays at the top of the page's scroller while a long
+   list scrolls under it (nothing between them may clip, or the head would scroll away). */
 .bo-data__table {
-  border: 1px solid var(--c-line);
-  border-radius: var(--r-sm);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
   border-collapse: separate;
   border-spacing: 0;
-  overflow: hidden;
   background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.bo-data__table thead th {
+  position: sticky;
+  /* A sticky box stops at the scroller's padding; the head goes up to its very top. */
+  top: calc(-1 * var(--main-pad-top));
+  z-index: 2;
+  box-shadow: 0 1px 0 var(--c-border-soft);
+}
+
+.bo-data__table thead th:first-child {
+  border-top-left-radius: calc(var(--r-md) - 1px);
+}
+
+.bo-data__table thead th:last-child {
+  border-top-right-radius: calc(var(--r-md) - 1px);
+}
+
+.bo-data__table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: calc(var(--r-md) - 1px);
+}
+
+.bo-data__table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: calc(var(--r-md) - 1px);
 }
 
 .bo-data__table tbody tr:last-child td {
@@ -158,7 +192,7 @@ th:not([aria-sort]) .bo-sort .bo-icon {
     max-width: none;
   }
 
-  .bo-data__sort {
+  .bo-listbox.bo-data__sort {
     display: flex;
     flex: 1 1 100%;
   }

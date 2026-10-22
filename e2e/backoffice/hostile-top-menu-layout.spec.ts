@@ -37,7 +37,7 @@ async function withHostileNames(page: Page) {
     await route.fulfill({ response, json: { branches: branches.map((branch, at) => ({ ...branch, name: names[at % 2] })) } });
   });
   await page.reload();
-  await page.getByLabel(T.branchLabel).waitFor();
+  await page.getByRole("combobox", { name: T.branchLabel }).waitFor();
 }
 
 /** Boxes of `selector` and everything in it that reach past the screen; `vertical` also counts top and bottom. */
@@ -129,7 +129,7 @@ const pageWidths = (page: Page) =>
     return { left: box.left, width: box.width, content, blocks: widths.filter((width) => width > 0) };
   });
 
-it("gives a page with a wide table the whole width under the bar, up to a very wide screen's stop", async () => {
+it("gives a page with a wide table the whole width under the bar, however wide the screen", async () => {
   const role = await asOwner(stack, "POST", "/roles", { name: "CaSángBảngRộng", permissionKeys: ["open_drawer"], thresholds: {} });
   expect(role.status).toBe(201);
   const roleId = (role.body as { roleId: string }).roleId;
@@ -143,12 +143,12 @@ it("gives a page with a wide table the whole width under the bar, up to a very w
   const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 1280, height: 800 });
   await openSection(page, T.nav.staff);
   await page.getByRole("table").waitFor();
-  for (const width of [1024, 1280, 1920]) {
+  for (const width of [1024, 1280, 1920, 2560]) {
     await resize(page, width);
     const measured = await pageWidths(page);
     // No column beside the page: the scroller starts at the screen's edge and spans it.
     expect({ left: measured.left, width: measured.width }, `scroller at ${width}px`).toEqual({ left: 0, width });
-    const expected = Math.round(Math.min(measured.content, 1680));
+    const expected = Math.round(measured.content);
     expect(new Set(measured.blocks), `page blocks at ${width}px`).toEqual(new Set([expected]));
   }
   expect(unexpectedProblems(problems)).toEqual([]);

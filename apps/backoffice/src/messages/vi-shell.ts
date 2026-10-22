@@ -104,4 +104,11 @@ export const VI_TABLE = {
   shown: (shown: number, total: number) => (shown === total ? `${total} dòng` : `Đang hiện ${shown} / ${total} dòng`),
   noMatch: "Không có dòng nào khớp. Thử bỏ bớt chữ tìm hoặc chọn bộ lọc khác.",
   actions: "Thao tác",
+  pager: "Chia trang",
+  pageSize: "Số dòng mỗi trang",
+  pageSizeOption: (size: number) => `${size} dòng / trang`,
+  range: (from: number, to: number, total: number) => `${from}–${to} trong ${total}`,
+  pageOf: (page: number, pages: number) => `Trang ${page} / ${pages}`,
+  previousPage: "Trang trước",
+  nextPage: "Trang sau",
 } as const;

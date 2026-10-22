@@ -77,8 +77,53 @@
 }
 
 .bo-field__error {
+  display: flex;
+  gap: 6px;
   color: var(--bo-danger);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 20px;
   overflow-wrap: anywhere;
+  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+}
+
+/* Fields with the button that sends them (components/ui/text-field.tsx FieldRow): the row
+   lines up at the top of the boxes, so an error growing under a box never moves the button.
+   Outside a card a field's label stands over its box: the button steps down by that line. */
+.bo-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-field-row > .bo-field {
+  flex: 1 1 220px;
+  max-width: var(--measure-form);
+}
+
+.bo-field-row > .bo-field.bo-field--narrow {
+  flex: 0 1 120px;
+}
+
+.bo-field-row > .bo-button {
+  flex: none;
+  margin-top: calc(var(--fs-sm) * 1.5 + 4px);
+}
+
+.bo-card .bo-field-row > .bo-button {
+  margin-top: 0;
+  min-height: 56px;
+  border-radius: var(--r-md);
+}
+
+.bo-card.bo-field-row {
+  flex-direction: row;
+}
+
+.bo-field-row > .bo-notice {
+  flex: 1 0 100%;
 }
 
 .bo-input {
@@ -102,11 +147,11 @@
   border-color: var(--c-brand);
 }
 
-/* Focus: the edge turns brand green, with a faint green halo. */
+/* Focus: the edge turns brand caramel, with a faint caramel halo. */
 .bo-input:focus-visible {
   outline: none;
   border-color: var(--c-brand);
-  box-shadow: 0 0 0 3px rgb(11 125 92 / 0.16);
+  box-shadow: var(--ring-field);
 }
 
 .bo-input[aria-invalid="true"] {
@@ -174,6 +219,30 @@
   border-color: var(--c-danger);
   background: var(--c-danger-soft);
   color: var(--c-danger);
+}
+
+/* The button that does what cannot be undone, in a confirm: solid red with white words
+   (7.3:1), a step darker under the pointer; it never fades unless it is really busy. */
+.bo-button--destructive,
+.bo-button--destructive:hover:not(:disabled) {
+  border-color: var(--c-danger);
+  background: var(--c-danger);
+  color: var(--c-on-danger);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-button--destructive:hover:not(:disabled) {
+  border-color: var(--c-danger-strong);
+  background: var(--c-danger-strong);
+}
+
+.bo-button--destructive:focus-visible {
+  box-shadow: var(--ring-danger);
+}
+
+.bo-button.bo-button--destructive:disabled {
+  opacity: 0.8;
+  cursor: progress;
 }
 
 .bo-button--block {

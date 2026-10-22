@@ -12,7 +12,7 @@ import { PageHeader } from "../shell/page-header";
 import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
 import { ErrorNotice } from "../ui/error-notice";
-import { TextField } from "../ui/text-field";
+import { FieldRow, TextField } from "../ui/text-field";
 import { AreaCard } from "./area-card";
 import { useFloorWrite } from "./use-floor-write";
 
@@ -27,12 +27,10 @@ function NewAreaForm({ branchId, areas, onChanged }: { branchId: string; areas: 
   const api = useApi();
   const write = useFloorWrite(onChanged);
   const [name, setName] = useState("");
-  const [invalid, setInvalid] = useState(false);
 
   async function add(event: FormEvent) {
     event.preventDefault();
     const checked = floorName(name, AREA_NAME_MAX);
-    setInvalid(checked === null);
     if (checked === null) return;
     if (await write.run(() => api.putArea(uuidv7(), newAreaBody(branchId, checked, areas)), () => vi.common.saved)) {
       setName("");
@@ -40,17 +38,19 @@ function NewAreaForm({ branchId, areas, onChanged }: { branchId: string; areas: 
   }
 
   return (
-    <form className="bo-card bo-row" onSubmit={(event) => void add(event)} noValidate>
-      <TextField
-        label={T.newAreaLabel}
-        value={name}
-        disabled={write.busy}
-        error={invalid ? T.nameInvalid(AREA_NAME_MAX) : undefined}
-        onChange={setName}
-      />
-      <button type="submit" className="bo-button bo-button--primary" disabled={write.busy}>
-        {T.addArea}
-      </button>
+    <form className="bo-card" onSubmit={(event) => void add(event)} noValidate>
+      <FieldRow>
+        <TextField
+          label={T.newAreaLabel}
+          value={name}
+          disabled={write.busy}
+          error={floorName(name, AREA_NAME_MAX) === null ? T.nameInvalid(AREA_NAME_MAX) : undefined}
+          onChange={setName}
+        />
+        <button type="submit" className="bo-button bo-button--primary" disabled={write.busy}>
+          {T.addArea}
+        </button>
+      </FieldRow>
       <ErrorNotice message={write.error} />
     </form>
   );

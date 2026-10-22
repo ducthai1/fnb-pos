@@ -1,6 +1,6 @@
 /* Tick boxes, radio dots and selects drawn the same on every system:
-   a 20px box with a 4px corner and a #d2cddb edge that fills brand green with a white tick,
-   a round dot that becomes a thick green ring, a select with its own grey chevron. They stay
+   a 20px box with a 4px corner and a warm edge that fills brand caramel with a white tick,
+   a round dot that becomes a thick caramel ring, a select with its own grey chevron. They stay
    the real inputs, so their names and keys are the browser's. The feature switches and the
    availability toggle draw themselves (more specific rules) and are left alone. */
 

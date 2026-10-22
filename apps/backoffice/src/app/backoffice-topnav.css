@@ -1,19 +1,18 @@
-/* The menu bar of a computer screen (1024px and up): a band of the brand's green under the
-   bar, white headings in a row, each dropping a white list of its pages. The page on
-   screen is underlined at its heading and tinted in the list. */
+/* The menu of a computer screen (1024px and up), in the bar from 1280px and its second row
+   below that: each group a heading in a row, dropping a card of its pages. The group of the
+   page on screen is underlined in caramel at the bar's foot; the page is tinted in the card. */
 
 .bo-topnav {
   min-width: 0;
-  padding: 0 var(--sp-3);
-  background: var(--c-brand);
 }
 
 .bo-topnav__items {
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  gap: 0 var(--sp-1);
+  gap: 0 2px;
   min-width: 0;
+  height: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -22,36 +21,47 @@
 .bo-topnav__item {
   position: relative;
   display: flex;
+  align-items: center;
+  min-height: 52px;
 }
 
 .bo-topnav__top {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-1);
-  min-height: 48px;
-  padding: 0 var(--sp-3);
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--r-sm);
   background: transparent;
-  color: var(--c-on-brand);
+  color: var(--c-text-2);
   font: inherit;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-medium);
   line-height: 20px;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 120ms ease;
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out),
+    transform var(--t-tap) var(--ease-out);
 }
 
 .bo-topnav__top .bo-icon {
-  transition: transform 120ms ease;
+  color: var(--c-text-3);
+  transition: transform var(--t-state) var(--ease-out);
 }
 
 .bo-topnav__top:hover,
 .bo-topnav__top[aria-expanded="true"] {
-  background: var(--c-brand-strong);
+  background: var(--c-surface-3);
+  color: var(--c-text);
+}
+
+.bo-topnav__top:active {
+  transform: scale(var(--press-scale));
 }
 
 .bo-topnav__top[aria-expanded="true"] .bo-icon {
@@ -59,44 +69,47 @@
 }
 
 .bo-topnav__top:focus-visible {
-  outline: 2px solid var(--c-on-brand);
-  outline-offset: -4px;
+  outline: none;
+  box-shadow: var(--ring);
 }
 
-/* The heading of the page on screen: bolder, with a white bar along its foot. */
+/* The group of the page on screen: dark ink, a caramel bar along the foot of the bar. */
 .bo-topnav__top[aria-current] {
-  font-weight: var(--fw-bold);
+  color: var(--c-text);
+  font-weight: var(--fw-semibold);
 }
 
-.bo-topnav__top[aria-current]::after {
+.bo-topnav__item:has(> .bo-topnav__top[aria-current])::after {
   content: "";
   position: absolute;
-  right: var(--sp-3);
-  bottom: 0;
-  left: var(--sp-3);
-  height: 4px;
-  border-radius: 2px 2px 0 0;
-  background: var(--c-on-brand);
+  right: 10px;
+  bottom: -1px;
+  left: 10px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--c-brand);
+  pointer-events: none;
 }
 
 .bo-topnav__panel {
   position: absolute;
-  top: calc(100% + var(--sp-1));
+  top: calc(100% + 2px);
   left: 0;
   z-index: 30;
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: max-content;
-  min-width: 240px;
-  max-width: min(320px, calc(100vw - 2 * var(--sp-4)));
+  min-width: 260px;
+  max-width: min(340px, calc(100vw - 2 * var(--sp-4)));
   margin: 0;
   padding: var(--sp-2);
   list-style: none;
   background: var(--c-surface);
   border: 1px solid var(--c-border-soft);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   box-shadow: var(--shadow-menu);
+  transform-origin: top left;
 }
 
 .bo-topnav__panel[hidden] {
@@ -107,7 +120,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  min-height: 40px;
+  min-height: 42px;
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--r-sm);
   color: var(--c-text);
@@ -115,10 +128,11 @@
   line-height: 20px;
   font-weight: var(--fw-medium);
   text-decoration: none;
+  transition: background-color var(--t-tap) var(--ease-out);
 }
 
 .bo-topnav__link .bo-icon {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 .bo-topnav__link-label {
@@ -142,7 +156,6 @@
 .bo-topnav__link[aria-current="page"],
 .bo-topnav__link[aria-current="page"]:hover {
   background: var(--c-brand-soft);
-  box-shadow: inset 4px 0 0 var(--c-brand);
   color: var(--c-brand-strong);
   font-weight: var(--fw-semibold);
 }
@@ -151,6 +164,10 @@
   color: var(--c-brand);
 }
 
-.bo-topnav__link[aria-current="page"]:focus-visible {
-  box-shadow: inset 4px 0 0 var(--c-brand), var(--ring);
+/* The second row of the bar between 1024px and 1279px: the headings start under the shop. */
+@media (max-width: 1279px) {
+  .bo-topnav {
+    margin-inline: -10px;
+    border-top: 1px solid var(--c-line);
+  }
 }

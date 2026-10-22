@@ -1,14 +1,15 @@
 "use client";
 
 import { type QrRefundMethod, QR_REFUND_METHODS } from "@fnb/contracts";
-import { useId, useState } from "react";
+import { useState } from "react";
 import type { PaymentIntentSnapshot } from "../../lib/api/payments-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
-import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
+import { SuccessNotice } from "../ui/error-notice";
+import { ConfirmPanel } from "../ui/confirm-panel";
 import { TextField } from "../ui/text-field";
 
 const T = vi.transfers;
@@ -32,7 +33,6 @@ function HandBackPanel({
 }) {
   const api = useApi();
   const { signedOut } = useSession();
-  const titleId = useId();
   const [method, setMethod] = useState<QrRefundMethod | null>(null);
   const [note, setNote] = useState("");
   const [noteError, setNoteError] = useState<string | undefined>(undefined);
@@ -56,11 +56,16 @@ function HandBackPanel({
   }
 
   return (
-    <div className="bo-card bo-confirm bo-stack" role="alertdialog" aria-labelledby={titleId}>
-      <p id={titleId} className="bo-subtitle bo-wrap">
-        {T.handBackTitle(intent.contentCode, receivedText(intent))}
-      </p>
-      <p className="bo-muted bo-wrap">{T.handBackHint}</p>
+    <ConfirmPanel
+      title={T.handBackTitle(intent.contentCode, receivedText(intent))}
+      hint={T.handBackHint}
+      confirmLabel={T.handBackConfirm}
+      busyLabel={T.handingBack}
+      busy={busy}
+      error={error}
+      onConfirm={() => void submit()}
+      onCancel={onCancel}
+    >
       <fieldset className="bo-fieldset">
         <legend>{T.handBackMethod}</legend>
         {QR_REFUND_METHODS.map((each) => (
@@ -82,21 +87,7 @@ function HandBackPanel({
         error={noteError}
         maxLength={500}
       />
-      <ErrorNotice message={error} />
-      <div className="bo-row">
-        <button
-          type="button"
-          className="bo-button bo-button--danger"
-          disabled={busy}
-          onClick={() => void submit()}
-        >
-          {busy ? T.handingBack : T.handBackConfirm}
-        </button>
-        <button type="button" className="bo-button" disabled={busy} onClick={onCancel}>
-          {vi.common.cancel}
-        </button>
-      </div>
-    </div>
+    </ConfirmPanel>
   );
 }
 
