@@ -162,7 +162,7 @@ Ba đường khác nhau, không dùng chung một trạng thái: [A][D][F]
 - Một ca cho một quầy, nhiều máy dùng chung được. [F]
 - Thu/chi ngoài bán hàng (`cash_move`: loại, số tiền, lý do, người làm). [F][E] POS365 `PosPayoutTypes`.
 - Tiền dự kiến = đầu ca + tiền mặt bán − tiền mặt hoàn ± thu/chi. Đếm theo mệnh giá. [A] Toast Expected Deposit; [E] POS365 `Denominations`.
-- Chênh lệch: ngưỡng theo phương thức; vượt ngưỡng cần người duyệt. [F]
+- Chênh lệch: **một** ngưỡng cho tiền mặt (`shift_close_difference_tolerance`, mặc định 0 đ, chỉnh ở trang Cài đặt); vượt ngưỡng cần người duyệt, trong ngưỡng vẫn ghi lại chênh lệch. Không có ngưỡng theo phương thức: két chỉ có tiền mặt, QR khớp bằng ngân hàng (D-078). [F]
 - [QĐ] **Cho đóng ca khi còn bàn mở bằng cách chuyển đơn mở sang ca sau.** [F] Odoo chặn đóng ca, rất phiền với quán mở khuya.
 - Đơn offline đến sau khi ca đã đóng ⇒ gắn đúng ca và ngày kinh doanh lúc **bán**, không phải lúc nhận. [F] Odoo gắn sang ca đang mở ⇒ sai.
 - Đối soát cuối ca theo từng phương thức: tiền mặt đếm, QR khớp ngân hàng, thẻ khớp máy POS, kênh giao hàng trừ phí. [D]

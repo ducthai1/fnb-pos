@@ -30,6 +30,13 @@ export const CONFIG_SETTING_DEFAULTS = {
    * in a seller's name nobody entered; set per branch, since each branch invoices as itself.
    */
   einvoice_profile: null,
+  /**
+   * How far, in đồng either way, a till's counted drawer may be off before closing its shift
+   * needs someone allowed to accept the difference: one cash amount, as a decimal string like
+   * every money setting. Zero, so every difference is looked at until a shop allows some;
+   * within it the difference is still recorded, only nobody has to sign for it.
+   */
+  shift_close_difference_tolerance: "0",
 } as const;
 
 export type ConfigSettingKey = keyof typeof CONFIG_SETTING_DEFAULTS;

@@ -108,7 +108,7 @@ export const VI_SETTINGS = {
   },
   tolerance: {
     title: "Ngưỡng chênh lệch khi đóng ca",
-    hint: "Tiền đếm được lệch quá số này (thừa hoặc thiếu) thì phải có người duyệt mới đóng ca.",
+    hint: "Tiền mặt đếm được lệch quá số này (thừa hoặc thiếu) thì phải có quản lý duyệt mới đóng ca. Lệch trong mức này vẫn được ghi lại, chỉ không cần quản lý xác nhận. Để 0 đ: mọi lần lệch đều cần quản lý xác nhận.",
     label: "Số tiền chênh lệch tối đa (đ)",
     current: (amount: string) => `Đang áp dụng: ${amount}`,
   },

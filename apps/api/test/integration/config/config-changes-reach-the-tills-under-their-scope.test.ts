@@ -95,6 +95,19 @@ describe("a setting changed for a scope", () => {
     expect(await configSent(q7.deviceToken, start.q7)).toEqual([]);
   });
 
+  it("hands a till the drawer tolerance set for it, which its close screen goes by", async () => {
+    const start = await cursors();
+    const tillB = { scopeKind: "device", scopeId: s.tillB.deviceId } as const;
+    await save(tillB, "shift_close_difference_tolerance", "5000");
+    const atQ1 = await configSent(s.tillA.deviceToken, start.q1);
+    expect(atQ1.map((change) => change.entityId)).toEqual([s.tillB.deviceId]);
+    const settingsOf = (snapshot: unknown) =>
+      (snapshot as { settings: Record<string, unknown> }).settings;
+    expect(settingsOf(atQ1[0]?.snapshot).shift_close_difference_tolerance).toBe("5000");
+    const own = await bootstrapOf(app, s.tillA.deviceToken);
+    expect(settingsOf(own.config).shift_close_difference_tolerance).toBe("0");
+  });
+
   it("reaches only the till a till-level value is set on", async () => {
     const start = await cursors();
     await save({ scopeKind: "device", scopeId: s.tillB.deviceId }, "tables", true);
