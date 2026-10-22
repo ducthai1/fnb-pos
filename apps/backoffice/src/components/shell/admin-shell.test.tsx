@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi as mock } from "vitest";
 import type { BackofficeApi } from "../../lib/api/backoffice-api";
 import { vi } from "../../messages/vi";
@@ -75,7 +75,24 @@ describe("the frame of every signed-in page", () => {
     expect(screen.queryByRole("navigation")).toBeNull();
     fireEvent.click(toggle);
     expect(screen.getByRole("button", { name: T.closeMenu }).getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByRole("navigation", { name: T.navigation }).textContent).toBe("drawer");
+    const drawer = screen.getByRole("navigation", { name: T.navigation });
+    expect(within(drawer).getByRole("link").textContent).toBe("drawer");
+    // The look of the pages is at the drawer's foot as well as in the bar.
+    expect(within(drawer).getByRole("combobox", { name: T.theme.label }).textContent).toContain(T.theme.choices.pastel);
+  });
+
+  it("closes only the look list on Esc inside the drawer, then the drawer on the next Esc", async () => {
+    screenOf(800);
+    renderShell({});
+    fireEvent.click(await screen.findByRole("button", { name: T.openMenu }));
+    const picker = within(screen.getByRole("navigation")).getByRole("combobox", { name: T.theme.label });
+    fireEvent.keyDown(picker, { key: "Enter" });
+    expect(screen.getByRole("listbox", { name: T.theme.label })).toBeDefined();
+    fireEvent.keyDown(picker, { key: "Escape" });
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.getByRole("navigation")).toBeDefined();
+    fireEvent.keyDown(picker, { key: "Escape" });
+    expect(screen.queryByRole("navigation")).toBeNull();
   });
 
   it("lays the menu across the top on a computer, with no menu button and nothing beside the page", async () => {
@@ -84,6 +101,7 @@ describe("the frame of every signed-in page", () => {
     const nav = await screen.findByRole("navigation", { name: T.navigation });
     expect(nav.textContent).toBe("bar");
     expect(screen.getByRole("banner").contains(nav)).toBe(true);
+    expect(within(screen.getByRole("banner")).getAllByRole("combobox", { name: T.theme.label })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: T.openMenu })).toBeNull();
     expect(screen.getByRole("main").previousElementSibling).toBe(screen.getByRole("banner"));
   });
@@ -94,9 +112,9 @@ describe("the frame of every signed-in page", () => {
     await screen.findByRole("navigation");
     act(() => screenOf(800));
     fireEvent.click(screen.getByRole("button", { name: T.openMenu }));
-    expect(screen.getAllByRole("navigation").map((nav) => nav.textContent)).toEqual(["drawer"]);
+    expect(screen.getAllByRole("navigation").map((nav) => within(nav).getByRole("link").textContent)).toEqual(["drawer"]);
     act(() => screenOf(1280));
-    expect(screen.getAllByRole("navigation").map((nav) => nav.textContent)).toEqual(["bar"]);
+    expect(screen.getAllByRole("navigation").map((nav) => within(nav).getByRole("link").textContent)).toEqual(["bar"]);
     act(() => screenOf(800));
     expect(screen.queryByRole("navigation")).toBeNull();
     expect(screen.getByRole("button", { name: T.openMenu }).getAttribute("aria-expanded")).toBe("false");

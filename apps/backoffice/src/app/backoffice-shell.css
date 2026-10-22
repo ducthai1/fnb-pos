@@ -110,14 +110,14 @@
   min-height: var(--control-dense);
 }
 
-/* One row from 1280px: shop · menu · branch · account, the menu taking what is left. */
+/* One row from 1280px: shop · menu · branch · look · account, the menu taking what is left. */
 @media (min-width: 1280px) {
   .bo-topbar__inner {
     display: grid;
     /* The menu keeps its whole width; the shop's name and the person's give way ("…"),
        and the room left over stands between the menu and the branch. */
     grid-template-columns:
-      minmax(0, auto) max-content minmax(0, 1fr) minmax(120px, 220px)
+      minmax(0, auto) max-content minmax(0, 1fr) minmax(120px, 220px) max-content
       minmax(var(--account-min, 200px), auto);
     align-items: stretch;
     column-gap: var(--sp-4);
@@ -153,8 +153,13 @@
     width: 100%;
   }
 
-  .bo-topbar__account {
+  .bo-topbar__look {
     grid-column: 5;
+    align-self: center;
+  }
+
+  .bo-topbar__account {
+    grid-column: 6;
     align-self: center;
     justify-self: end;
     max-width: 100%;

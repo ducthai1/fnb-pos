@@ -29,6 +29,16 @@ export const VI_SHELL = {
   navigation: "Các mục quản lý",
   breadcrumb: "Bạn đang ở",
   account: "Tài khoản đang đăng nhập",
+  /** The look of the pages on this machine (the palette button in the bar, the drawer's foot). */
+  theme: {
+    label: "Giao diện",
+    choices: {
+      pastel: "Xanh pastel",
+      rangxay: "Rang xay",
+      dark: "Tối",
+      system: "Theo máy",
+    },
+  },
   groups: {
     people: "Nhân sự & thiết bị",
     menu: "Thực đơn",

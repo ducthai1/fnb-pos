@@ -8,6 +8,7 @@ decisions:
   - D-032
   - D-050
   - D-099
+  - D-103
 tests:
   - apps/backoffice/src/components/auth/login-form.test.tsx
   - apps/backoffice/src/lib/navigation/safe-return-path.test.ts
@@ -19,6 +20,10 @@ tests:
   - apps/backoffice/src/components/ui/table-pager.test.tsx
   - apps/backoffice/src/components/ui/text-field.test.tsx
   - apps/backoffice/src/components/ui/confirm-panel.test.tsx
+  - apps/backoffice/src/components/shell/theme-picker.test.tsx
+  - apps/backoffice/src/lib/theme/theme-choice.test.ts
+  - apps/backoffice/src/app/backoffice-tokens-contrast.test.ts
+  - e2e/backoffice/dark-look-keeps-text-readable.spec.ts
   - e2e/backoffice/every-page-fits-and-lines-up.spec.ts
   - apps/api/test/integration/auth/backoffice-login.test.ts
   - apps/api/test/integration/auth/backoffice-session-organizations.test.ts
@@ -56,11 +61,25 @@ Nhân viên đứng quầy **không** đăng nhập ở đây: họ đăng nhậ
 3. Tài khoản thuộc nhiều tổ chức (ví dụ bạn làm cho hai công ty) thì trang hiện **Chọn tổ chức** — bấm **Vào <tên tổ chức>**. Muốn đổi tài khoản thì bấm **Đăng nhập tài khoản khác**.
 4. Vào được thì trang mở lại đúng trang bạn định mở trước khi bị hỏi đăng nhập (chỉ trang trong cùng trang quản lý; địa chỉ lạ thì về trang Tổng quan).
 5. Ở góc trên, nút **Chi nhánh đang xem** (biểu tượng cửa hàng, tên chi nhánh) chọn chi nhánh mà mọi trang đang hiện số liệu: bấm vào để thả danh sách rồi bấm một chi nhánh (chi nhánh đang xem có dấu tích). Dùng bàn phím: Tab tới nút, mũi tên lên/xuống để đi trong danh sách, **Enter** để chọn, **Esc** để đóng không đổi; gõ chữ đầu của tên để nhảy tới chi nhánh đó. Trình duyệt nhớ lựa chọn này cho lần sau (trên đúng máy đó).
-6. Trên máy tính menu nằm ngay trong thanh trên cùng (rộng từ 1280px: tên quán · 4 nhóm · chi nhánh · tài khoản trên một hàng; từ 1024 đến 1279px các nhóm xuống hàng thứ hai của thanh). Nhóm của trang đang mở có gạch màu nâu cam ở chân thanh; bấm tên nhóm để thả danh sách trang, trang đang mở được tô nền. Dưới mỗi tiêu đề trang có dòng **Tổng quan › nhóm › trang** để biết mình đang ở đâu. Trên điện thoại và máy tính bảng bấm nút **Mở menu** để mở ngăn kéo.
+6. Trên máy tính menu nằm ngay trong thanh trên cùng (rộng từ 1280px: tên quán · 4 nhóm · chi nhánh · nút giao diện · tài khoản trên một hàng; từ 1024 đến 1279px các nhóm xuống hàng thứ hai của thanh). Nhóm của trang đang mở có gạch màu chủ đạo (xanh dương ở giao diện Xanh pastel) ở chân thanh; bấm tên nhóm để thả danh sách trang, trang đang mở được tô nền. Dưới mỗi tiêu đề trang có dòng **Tổng quan › nhóm › trang** để biết mình đang ở đâu. Trên điện thoại và máy tính bảng bấm nút **Mở menu** để mở ngăn kéo.
 7. Mọi danh sách dài (món, nhân viên, thiết bị…) có ô tìm và bộ lọc ở trên, hiện **25 dòng mỗi trang**; dưới danh sách ghi đang xem dòng nào trong bao nhiêu (ví dụ "1–25 trong 60"), có ô chọn **25 / 50 / 100 dòng / trang** và nút **Trang trước** / **Trang sau**. Hàng tiêu đề của bảng luôn ở trên cùng khi cuộn. Gõ tìm, đổi bộ lọc hay đổi cách sắp xếp thì quay về trang 1. Danh sách không quá 25 dòng thì không có phần chia trang.
 8. Một ô nhập chỉ báo lỗi (chữ đỏ dưới ô, viền đỏ) **sau khi** bạn đã gõ rồi rời ô, hoặc sau khi bấm nút lưu/thêm — không bao giờ đỏ sẵn khi bạn chưa làm gì. Sửa đúng là lỗi tự tắt.
 9. Việc không hoàn tác được (thu hồi máy, khóa nhân viên, lưu trữ vai trò, xóa khu vực/bàn, ngừng bán món, trả lại tiền QR) luôn hỏi lại bằng một khung có dấu cảnh báo: **Hủy** bên trái, nút đỏ đậm làm việc đó bên phải. Nút đỏ chỉ mờ đi khi đang làm ("Đang thu hồi…").
 10. Xong việc bấm **Đăng xuất** (màn rộng 1280–1599px chỉ còn biểu tượng cửa ra, dưới 1440px tên người đăng nhập cũng chỉ còn chữ cái đầu; trình đọc màn hình vẫn đọc đủ tên).
+
+## Đổi giao diện
+
+![Danh sách giao diện thả xuống từ nút bảng màu trên thanh trên cùng](../images/quan-ly/doi-giao-dien.webp)
+
+1. Trên thanh trên cùng, ngay trước tên người đăng nhập, bấm nút **Giao diện** (biểu tượng bảng màu). Trên điện thoại và máy tính bảng nút này vẫn ở thanh trên cùng, và có thêm ô **Giao diện** ở cuối ngăn kéo menu (bấm **Mở menu**).
+2. Danh sách thả xuống có bốn giao diện, mỗi cái kèm một chấm màu nhỏ; giao diện đang dùng có dấu tích:
+   - **Xanh pastel** — sáng, xanh dương dịu. Là giao diện **mặc định**.
+   - **Rang xay** — sáng, tông kem và nâu cà phê ấm.
+   - **Tối** — nền tối, chữ sáng; dễ chịu khi quán tắt bớt đèn hay làm ca đêm.
+   - **Theo máy** — máy tính / điện thoại đang để chế độ sáng thì dùng Xanh pastel, chế độ tối thì dùng Tối; đổi chế độ của máy là trang đổi theo ngay.
+3. Bấm một giao diện: trang đổi màu ngay, không tải lại, chữ đang gõ dở vẫn còn. Dùng bàn phím như ô chọn chi nhánh (mũi tên lên/xuống, **Enter** để chọn, **Esc** để đóng không đổi).
+
+Giao diện là lựa chọn của **từng máy**, không phải cài đặt của quán: trình duyệt của máy đó nhớ cho lần sau, máy khác vẫn giữ giao diện của nó. Các tab đang mở trang quản lý trên cùng máy đổi theo nhau. Trang mở ra là đã đúng giao diện ngay từ đầu, không nháy màu mặc định trước. Ở mọi giao diện, chữ trên nền đều đủ đậm để đọc (độ tương phản ít nhất 4.5:1, có test kiểm). Ảnh trong sổ tay chụp ở Xanh pastel; dùng giao diện khác thì màu khác ảnh, còn vị trí nút và câu chữ giống hệt.
 
 ## Luật và giới hạn
 
@@ -91,3 +110,4 @@ Trang quản lý **cần mạng** cho mọi việc. Mất mạng thì trang báo
 
 - Đăng ký cửa hàng mới, tạo chi nhánh, thương hiệu, quên mật khẩu, đổi mật khẩu, mời thêm người quản lý: chưa có màn hình (người vận hành tạo bằng công cụ phía máy chủ).
 - Chưa có "ghi nhớ đăng nhập" hay đăng nhập bằng mã OTP.
+- Giao diện chưa đi theo tài khoản: đăng nhập ở máy mới thì máy đó bắt đầu từ Xanh pastel. Trình duyệt chặn lưu dữ liệu trang (một số chế độ ẩn danh) thì giao diện đã chọn chỉ giữ tới khi tải lại hoặc đóng trang.

@@ -8,6 +8,7 @@ import { vi } from "../../messages/vi";
 import { Icon } from "../ui/icon";
 import { BranchPicker } from "./branch-picker";
 import { NAV_DRAWER_ID } from "./nav-drawer";
+import { ThemePicker } from "./theme-picker";
 
 const T = vi.shell;
 
@@ -25,8 +26,8 @@ export interface MenuButton {
 }
 
 /**
- * The bar over every page: the shop, the branch the pages are about, and who is signed in
- * with the way out; under it the menu bar (`children`) on a computer, or before the shop
+ * The bar over every page: the shop, the branch the pages are about, the look of the pages,
+ * and who is signed in with the way out; under it the menu bar (`children`) on a computer, or before the shop
  * the button of the menu drawer (`menuButton`) on a phone or a tablet.
  */
 export function AdminTopbar({
@@ -72,6 +73,9 @@ export function AdminTopbar({
         </span>
         <div className="bo-topbar__branch">
           <BranchPicker branches={branches} failed={branchesFailed} />
+        </div>
+        <div className="bo-topbar__look">
+          <ThemePicker placement="bar" />
         </div>
         <div className="bo-topbar__account" aria-label={T.account} role="group" data-frame="account">
           <span className="bo-avatar" data-initial={initialOf(name)} aria-hidden="true" />
