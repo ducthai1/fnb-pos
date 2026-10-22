@@ -61,3 +61,21 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
   /** The QR's money was marked handed back already: once is all it can be. */
   alreadyHandedBack: "API_PAYMENT_ALREADY_HANDED_BACK",
 } as const;
+
+/** Codes of the wallet routes: a till opening a wallet payment, a manager saving keys. */
+export const WALLET_ROUTE_ERROR_CODES = {
+  /** No wallet of that key is supported by this server. */
+  unknownWallet: "API_WALLET_UNKNOWN",
+  /** The branch has not turned the wallet on, or has no keys for it. */
+  notEnabled: "API_WALLET_NOT_ENABLED",
+  /** Turning a wallet on needs its keys first. */
+  keysMissing: "API_WALLET_KEYS_MISSING",
+  /** The wallet refused to open the payment, or could not be reached. */
+  unavailable: "API_WALLET_UNAVAILABLE",
+  /** The server has not heard of the order yet: the till syncs, then asks again. */
+  orderNotSynced: "API_WALLET_ORDER_NOT_SYNCED",
+  /** The order is paid or cancelled. */
+  orderNotOpen: "API_WALLET_ORDER_NOT_OPEN",
+  /** The payment was withdrawn while the wallet opened it (the order closed another way). */
+  withdrawn: "API_WALLET_PAYMENT_WITHDRAWN",
+} as const;

@@ -13,6 +13,7 @@ import { EInvoiceProfileSection } from "./einvoice-profile-section";
 import { FeatureSwitches } from "./feature-switches";
 import { PaymentAccountSection } from "./payment-account-section";
 import { useSettingWrite } from "./use-setting-write";
+import { WalletAccountSection } from "./wallet-account-section";
 import { WebhookSecretSection } from "./webhook-secret-section";
 
 /** A heading over the cards of one kind of setting, laid two across on a wide screen. */
@@ -79,6 +80,11 @@ export function SettingsSections({
           <WebhookSecretSection branchId={scope.id} />
         ) : (
           <p className="bo-muted bo-wrap">{vi.settings.secret.branchOnly}</p>
+        )}
+        {scope.kind === "branch" ? (
+          <WalletAccountSection branchId={scope.id} />
+        ) : (
+          <p className="bo-muted bo-wrap">{vi.settings.wallets.branchOnly}</p>
         )}
       </SettingsGroup>
     </div>

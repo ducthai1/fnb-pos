@@ -1,5 +1,5 @@
 ---
-title: Cài đặt — công tắc tính năng, phí, tài khoản nhận tiền, hóa đơn điện tử
+title: Cài đặt — công tắc tính năng, phí, tài khoản nhận tiền, ví điện tử, hóa đơn điện tử
 audience: chu-quan
 screens:
   - /settings
@@ -9,10 +9,12 @@ decisions:
   - D-049
   - D-055
   - D-061
+  - D-098
 tests:
   - apps/backoffice/src/components/settings/settings-switches.test.tsx
   - apps/backoffice/src/components/settings/settings-forms.test.tsx
   - apps/backoffice/src/components/settings/settings-groups.test.tsx
+  - apps/backoffice/src/components/settings/wallet-account-section.test.tsx
   - apps/backoffice/src/lib/settings/flag-violation.test.ts
   - packages/feature-flags/src/validate-flag-constraints.test.ts
   - packages/feature-flags/src/resolve-inherited-config.test.ts
@@ -23,15 +25,16 @@ tests:
   - apps/api/test/integration/payments/payment-account-setting-reaches-tills.test.ts
   - apps/api/test/integration/payments/webhook-secret-is-sealed-and-set-by-managers.test.ts
   - apps/api/test/integration/payments/webhook-secret-belongs-to-one-branch.test.ts
+  - apps/api/test/integration/payments/wallet-keys-are-sealed-and-set-by-managers.test.ts
   - apps/api/test/integration/einvoice/einvoice-profile-is-set-per-branch.test.ts
   - e2e/backoffice/settings-and-day-close.spec.ts
 ---
 
-# Cài đặt — công tắc tính năng, phí, tài khoản nhận tiền, hóa đơn điện tử
+# Cài đặt — công tắc tính năng, phí, tài khoản nhận tiền, ví điện tử, hóa đơn điện tử
 
 ## Dùng để làm gì
 
-Một trang cho mọi lựa chọn vận hành của quán: bật/tắt tính năng, cách tính tiền đơn (VAT, phí dịch vụ), tài khoản nhận chuyển khoản QR, ngưỡng lệch két khi đóng ca, hồ sơ hóa đơn điện tử và bí mật webhook của cổng thanh toán.
+Một trang cho mọi lựa chọn vận hành của quán: bật/tắt tính năng, cách tính tiền đơn (VAT, phí dịch vụ), tài khoản nhận chuyển khoản QR, ngưỡng lệch két khi đóng ca, hồ sơ hóa đơn điện tử, bí mật webhook của cổng thanh toán và ví điện tử (ZaloPay).
 
 ![Trang Cài đặt](../images/quan-ly/cai-dat.webp)
 
@@ -86,8 +89,11 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 - **Hồ sơ hóa đơn điện tử** (chi nhánh): **Xuất hóa đơn cho mọi đơn đã thanh toán**, **Mã số thuế**, **Tên người bán**, **Địa chỉ**, **Ký hiệu mẫu hóa đơn**, **Nhà cung cấp hóa đơn** (mã nhà cung cấp đã kết nối với máy chủ, ví dụ vnpt, viettel, misa), **Quy định áp dụng**, **Khi hoàn tiền** (không xuất hóa đơn riêng / xuất hóa đơn điều chỉnh). Chưa đặt hồ sơ thì chi nhánh không xuất hóa đơn nào.
 - **Bí mật webhook cổng thanh toán** (chỉ ở tầng chi nhánh): chọn **Cổng thanh toán** (SePay, PayOS), dán **Bí mật mới**, bấm **Lưu bí mật**. Cổng thanh toán ký thông báo chuyển khoản bằng bí mật này; có nó máy chủ mới tin được thông báo "đã nhận tiền" để QR tự xác nhận. Bí mật **chỉ ghi, không bao giờ hiện lại**; muốn thay thì nhập bí mật mới.
 
+- **Ví điện tử** (chỉ ở tầng chi nhánh): mỗi ví một khung (hiện có **ZaloPay**). Đánh dấu **Bật ZaloPay ở chi nhánh này**, nhập **App ID**, **Key1**, **Key2** do ZaloPay cấp cho quán, bấm **Lưu ví**. Lưu xong ba ô khóa tự trống, khung chỉ ghi **Đã lưu khóa** (hoặc **Chưa có khóa**) — khóa **không bao giờ hiện lại**. Muốn chỉ bật/tắt ví mà giữ khóa cũ: để trống ba ô khóa, đổi dấu bật rồi bấm **Lưu ví**. Bật ví thì ngăn thanh toán ở mọi máy quầy của chi nhánh có thêm thẻ **ZaloPay** ở lần đồng bộ kế tiếp; tắt thì thẻ mất đi.
+
 ## Luật và giới hạn
 
+- Ví điện tử: chỉ người có quyền **Cài đặt cửa hàng** mới xem và lưu được; App ID là dãy số (tối đa 12 chữ số), Key1/Key2 dài 8–256 ký tự, không khoảng trắng. Khóa được máy chủ mã hóa bằng `FNB_PAYMENT_SECRET_KEY`, gắn với đúng chi nhánh. Lần đầu bật ví phải nhập đủ ba ô. Máy chủ dùng ZaloPay **sandbox** (ứng dụng thử) khi chạy thử và ZaloPay **thật** khi `FNB_ENV=production` (đổi bằng `FNB_ZALOPAY_ENV`). Thông báo "đã trả" của ZaloPay chỉ tới được máy chủ khi người vận hành đặt địa chỉ công khai `FNB_PUBLIC_API_URL` (https); không có thì máy chủ tự hỏi ZaloPay vài giây một lần cho các mã đang chờ.
 - Bật một công tắc mà công tắc nó cần đang tắt, hoặc bật hai công tắc loại trừ nhau, bị từ chối ngay — ở **mọi tầng** (kể cả khi xung đột nằm ở một máy hay một chi nhánh khác). Trang nói rõ xung đột ở đâu.
 - Phí dịch vụ: tỉ lệ **> 0 và ≤ 100%**, tối đa 2 chữ số thập phân; thuế suất của phí 0–100%.
 - Số tài khoản 1–19 chữ số hoặc chữ cái không dấu; tên chủ tài khoản tối đa 80 ký tự.
@@ -114,6 +120,9 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 | Bí mật dài 16 đến 256 ký tự, không có khoảng trắng hay dấu tiếng Việt. | Dán lại đúng bí mật cổng cấp |
 | Một chi nhánh khác đã dùng bí mật này cho cùng cổng thanh toán. Mỗi chi nhánh cần bí mật riêng. | Tạo bí mật khác ở cổng thanh toán |
 | Máy chủ chưa được cấu hình để lưu bí mật cổng thanh toán. Báo hỗ trợ. | Người vận hành đặt `FNB_PAYMENT_SECRET_KEY` |
+| Ví chưa có khóa: nhập App ID, Key1 và Key2 rồi mới bật được. · Nhập đủ App ID, Key1 và Key2 lần đầu bật ví. | Nhập đủ ba ô khóa ZaloPay cấp |
+| App ID là dãy số ZaloPay cấp cho quán. | Sửa App ID |
+| Khóa dài 8 đến 256 ký tự, không có khoảng trắng hay dấu tiếng Việt. | Dán lại đúng Key1 / Key2 |
 | Cần quyền quản lý thiết bị để chọn máy. | Nhờ chủ quán, hoặc đặt ở tầng chi nhánh |
 
 ## Mất mạng thì sao
@@ -125,3 +134,4 @@ Sửa cài đặt cần mạng. Máy quầy đang mất mạng dùng cài đặt
 - Phần lớn công tắc tính năng (bảng trên) chưa có tác dụng: tồn kho, giá theo giờ, gọi món QR, ra món theo lượt, chia phiếu theo trạm, làm tròn tiền mặt.
 - Chưa có cài đặt giờ bắt đầu ngày kinh doanh hay múi giờ trên màn hình (mặc định 04:00, giờ Việt Nam khi tạo chi nhánh).
 - Chưa có cài đặt máy in, mẫu hóa đơn in, logo.
+- Ví **MoMo** và **VNPay** chưa có (làm khi có tài khoản thử, cùng khung **Ví điện tử**); chưa hoàn tiền qua ví.

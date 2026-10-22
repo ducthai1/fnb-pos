@@ -8,6 +8,7 @@ import { VI_ORDER_ADJUST, VI_ORDER_ADJUST_ERRORS, VI_REASONS } from "./vi-order-
 import { VI_ORDER_VERSION_ERRORS } from "./vi-order-version";
 import { VI_RATE_LIMIT_ERRORS } from "./vi-rate-limit";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
+import { VI_WALLET_ERRORS, VI_WALLET_PAYMENT } from "./vi-wallet-payment";
 import { VI_SALE } from "./vi-sale";
 import { VI_SHELL } from "./vi-shell";
 import { VI_CASH, VI_CLOSE_SHIFT, VI_SESSION, VI_SESSION_ERRORS } from "./vi-shift-tools";
@@ -57,6 +58,7 @@ export const vi = {
   sale: VI_SALE,
   checkout: VI_CHECKOUT,
   qr: VI_QR_PAYMENT,
+  wallet: VI_WALLET_PAYMENT,
   invoice: VI_INVOICE,
   tables: VI_TABLES,
   approval: VI_APPROVAL,
@@ -106,6 +108,7 @@ export const vi = {
     ...VI_APPROVAL_ERRORS,
     ...VI_ORDER_ADJUST_ERRORS,
     ...VI_SESSION_ERRORS,
+    ...VI_WALLET_ERRORS,
     pinLockedUntil: (time: string) => `Nhập sai PIN quá nhiều lần. Thử lại lúc ${time}.`,
     network: "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.",
     unknown: "Có lỗi xảy ra. Thử lại sau ít phút.",

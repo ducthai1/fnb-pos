@@ -1,3 +1,8 @@
+import {
+  type WalletPaymentAnswer,
+  type WalletPaymentBody,
+  walletPaymentAnswerSchema,
+} from "@fnb/contracts";
 import type { Grant } from "@fnb/domain";
 import type { DeviceCredential } from "../../shell-bridge/device-credential-store";
 import { parseStaffGrants } from "../permissions/staff-grants";
@@ -63,6 +68,12 @@ export interface PosApi {
     staffToken: string,
     request: ApprovalRequest,
   ): Promise<ApiResult<string>>;
+  /** Asks the server to open an e-wallet payment of the order's total; online only. */
+  createWalletPayment(
+    credential: DeviceCredential,
+    staffToken: string,
+    body: WalletPaymentBody,
+  ): Promise<ApiResult<WalletPaymentAnswer>>;
 }
 
 /** The header naming the staff member at the till, as the sync push sends it. */
@@ -116,6 +127,17 @@ export function httpPosApi(baseUrl: string, fetchImpl: FetchLike = (u, i) => fet
         body: request,
       });
       return resultOf(answer, (body) => stringFields(body, ["approvalId"])?.approvalId ?? null);
+    },
+    async createWalletPayment(credential, staffToken, body) {
+      const answer = await requestJson(fetchImpl, `${base}/pos/wallet-payments`, {
+        method: "POST",
+        headers: { ...deviceAuthorization(credential), [STAFF_SESSION_HEADER]: staffToken },
+        body,
+      });
+      return resultOf(answer, (sent) => {
+        const parsed = walletPaymentAnswerSchema.safeParse(sent);
+        return parsed.success ? parsed.data : null;
+      });
     },
   };
 }

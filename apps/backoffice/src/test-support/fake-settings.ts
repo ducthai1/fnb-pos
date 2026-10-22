@@ -74,6 +74,17 @@ export function fakeSettings(initial: Readonly<Record<string, Record<string, unk
     return answer(scope);
   });
   const putWebhookSecret = mock.fn<SettingsApi["putWebhookSecret"]>(async () => ok(true as const));
-  const api: SettingsApi = { getSettings, putSetting, clearSetting, putWebhookSecret };
-  return { api, getSettings, putSetting, clearSetting, putWebhookSecret };
+  const wallets = new Map<string, { enabled: boolean; saved: boolean }>();
+  const getWallets = mock.fn<SettingsApi["getWallets"]>(async () =>
+    ok({
+      wallets: [{ wallet: "zalopay" as const, ...(wallets.get("zalopay") ?? { enabled: false, saved: false }) }],
+    }),
+  );
+  const putWallet = mock.fn<SettingsApi["putWallet"]>(async (_branchId, wallet, body) => {
+    const saved = body.credentials !== undefined || wallets.get(wallet)?.saved === true;
+    wallets.set(wallet, { enabled: body.enabled, saved });
+    return ok(true as const);
+  });
+  const api: SettingsApi = { getSettings, putSetting, clearSetting, putWebhookSecret, getWallets, putWallet };
+  return { api, getSettings, putSetting, clearSetting, putWebhookSecret, getWallets, putWallet };
 }

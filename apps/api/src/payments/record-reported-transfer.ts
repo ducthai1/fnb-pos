@@ -79,7 +79,8 @@ export async function recordReportedTransfer(
 }
 
 /**
- * Matches money that just arrived to the pending QR its content names. A transfer naming a
+ * Matches money that just arrived to the pending QR its content names (a VietQR's: a wallet's
+ * payment is settled only by the wallet's own word). A transfer naming a
  * QR whose time ran out expires that QR and waits for a person; one naming no live QR, or a
  * QR of another branch's account, just waits.
  */
@@ -92,7 +93,7 @@ async function matchArrivedTransfer(
   if (code === null) return;
   const { rows } = await client.query<PaymentIntentRow>(
     `SELECT ${INTENT_COLUMNS} FROM payment_intent WHERE content_code = $1 ` +
-      "AND status = 'pending' FOR UPDATE",
+      "AND status = 'pending' AND wallet IS NULL FOR UPDATE",
     [code],
   );
   if (rows[0] === undefined) return;

@@ -15,6 +15,12 @@ export interface ServerConfig {
   readonly databaseUrl: string;
   /** Seals gateway secrets; without it no bank notice is taken. A secret: never printed. */
   readonly paymentSecretKey: Buffer | null;
+  /** Which ZaloPay a branch's keys are for: its sandbox (test apps) or production. */
+  readonly zaloPayEnvironment: "sandbox" | "production";
+  /** The public https base wallets send their notices to; null asks the wallets instead. */
+  readonly walletCallbackBase: string | null;
+  /** How often pending wallet payments are asked about. */
+  readonly walletPollIntervalMs: number;
   /** `none`: branches cannot turn invoices on. `fake`: invoices that exist nowhere. */
   readonly einvoiceProvider: "none" | "fake";
   readonly einvoiceWorkerIntervalMs: number;
@@ -68,6 +74,18 @@ const environmentSchema = z
         "must be 32 bytes in base64 (openssl rand -base64 32)",
       )
       .optional(),
+    FNB_ZALOPAY_ENV: z
+      .enum(["sandbox", "production"], { message: "must be sandbox or production" })
+      .optional(),
+    FNB_PUBLIC_API_URL: z
+      .string()
+      .refine((text) => isOrigin(text) && text.startsWith("https://"), "must be an https origin")
+      .optional(),
+    FNB_WALLET_POLL_INTERVAL_MS: z.coerce
+      .number({ message: "must be a whole number of milliseconds" })
+      .int("must be a whole number of milliseconds")
+      .min(1_000, "must be at least 1000")
+      .default(5_000),
     FNB_EINVOICE_PROVIDER: z.enum(["none", "fake"], { message: "must be none or fake" }).optional(),
     FNB_EINVOICE_WORKER_INTERVAL_MS: z.coerce
       .number({ message: "must be a whole number of milliseconds" })
@@ -131,6 +149,10 @@ export function readServerConfig(
       port: values.PORT,
       databaseUrl: values.FNB_DATABASE_URL,
       paymentSecretKey: key === undefined ? null : Buffer.from(key, "base64"),
+      zaloPayEnvironment:
+        values.FNB_ZALOPAY_ENV ?? (values.FNB_ENV === "production" ? "production" : "sandbox"),
+      walletCallbackBase: values.FNB_PUBLIC_API_URL ?? null,
+      walletPollIntervalMs: values.FNB_WALLET_POLL_INTERVAL_MS,
       einvoiceProvider: values.FNB_EINVOICE_PROVIDER ?? "fake",
       einvoiceWorkerIntervalMs: values.FNB_EINVOICE_WORKER_INTERVAL_MS,
       secureCookies: values.FNB_COOKIE_SECURE === "true",

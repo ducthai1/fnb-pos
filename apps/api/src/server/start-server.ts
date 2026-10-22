@@ -7,6 +7,7 @@ import { systemClock } from "../clock";
 import { installRateLimits } from "../http/rate-limit-hooks";
 import { maskSecrets, serverErrorLines } from "../http/server-error-report";
 import { installCleanupJob } from "../ops/sign-in-cleanup-job";
+import { walletGateways } from "../payments/wallets/wallet-gateways";
 import type { ServerConfig } from "./server-config";
 
 export interface RunningServer {
@@ -79,6 +80,14 @@ function dependenciesOf(config: ServerConfig, pool: pg.Pool, log: ServerLog): Ap
   };
   if (config.paymentSecretKey !== null) dependencies.paymentSecretKey = config.paymentSecretKey;
   if (config.allowedOrigins !== null) dependencies.allowedOrigins = config.allowedOrigins;
+  dependencies.wallets = walletGateways(config.zaloPayEnvironment);
+  if (config.walletCallbackBase !== null) {
+    dependencies.walletCallbackBase = config.walletCallbackBase;
+  }
+  dependencies.walletPoller = {
+    intervalMs: config.walletPollIntervalMs,
+    onError: (error) => log(`wallet poll round failed: ${maskSecrets(String(error))}`),
+  };
   if (config.einvoiceProvider === "fake") {
     dependencies.einvoiceProviders = [new FakeEInvoiceProvider()];
     dependencies.einvoiceWorker = {

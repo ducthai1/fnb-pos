@@ -1,5 +1,5 @@
 ---
-title: Thanh toán — tiền mặt, QR tự xác nhận, hóa đơn cho khách, in lại
+title: Thanh toán — tiền mặt, QR tự xác nhận, ví ZaloPay, hóa đơn cho khách, in lại
 audience:
   - thu-ngan
   - quan-ly
@@ -20,6 +20,7 @@ decisions:
   - D-059
   - D-073
   - D-074
+  - D-098
 tests:
   - apps/pos/src/app/counter-checkout.test.tsx
   - apps/pos/src/app/counter-payment-drawer.test.tsx
@@ -28,6 +29,7 @@ tests:
   - apps/pos/src/app/counter-invoice-buyer.test.tsx
   - apps/pos/src/app/sale-invoice-reprint.test.tsx
   - apps/pos/src/app/settled-qr-needs-attention.test.tsx
+  - apps/pos/src/app/counter-wallet-checkout.test.tsx
   - apps/pos/src/screens/payment/payment-drawer.test.tsx
   - apps/pos/src/screens/payment/cash-keypad.test.ts
   - apps/pos/src/features/payment/cash-suggestions.test.ts
@@ -39,6 +41,10 @@ tests:
   - apps/api/test/integration/payments/qr-time-runs-on-the-server-clock.test.ts
   - apps/api/test/integration/payments/transfer-code-is-not-reused-within-a-week.test.ts
   - apps/api/test/integration/payments/pay-with-paid-intent.test.ts
+  - apps/api/test/integration/payments/wallet-payment-asks-the-server-amount.test.ts
+  - apps/api/test/integration/payments/wallet-callback-settles-the-order-once.test.ts
+  - apps/api/test/integration/payments/wallet-polling-settles-a-lost-callback.test.ts
+  - apps/api/src/payments/wallets/zalopay-wallet.test.ts
   - e2e/pos/counter-sale-cash.spec.ts
   - e2e/pos/qr-payment-auto-confirm.spec.ts
   - e2e/pos/invoice-with-buyer-tax-code.spec.ts
@@ -52,13 +58,13 @@ Thu tiền của đơn đang bán (tại quầy hoặc tại bàn), tính tiền
 
 ## Ai dùng, cần quyền gì
 
-Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu tiền. Cài tài khoản nhận chuyển khoản (để có mã QR) là việc của chủ quán ở trang quản lý (Cài đặt, mục **Tài khoản nhận tiền**).
+Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu tiền. Cài tài khoản nhận chuyển khoản (để có mã QR) là việc của chủ quán ở trang quản lý (Cài đặt, mục **Tài khoản nhận tiền**); bật ví điện tử (ZaloPay) cũng vậy (Cài đặt, mục **Ví điện tử**).
 
 ## Các bước
 
 ### Mở ngăn thanh toán
 
-Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải, ghi số đơn và người bán, số **Cần thu** to ở trên, và hai thẻ: **Tiền mặt** và **Chuyển khoản QR**. Mỗi lần chỉ chọn **một** cách.
+Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải, ghi số đơn và người bán, số **Cần thu** to ở trên, và hai thẻ: **Tiền mặt** và **Chuyển khoản QR**. Chi nhánh đã bật ví điện tử thì có thêm một thẻ cho mỗi ví (hiện có **ZaloPay**), đứng sau thẻ QR; không bật ví nào thì vẫn đúng hai thẻ. Mỗi lần chỉ chọn **một** cách.
 
 ![Ngăn thanh toán, chọn tiền mặt](../images/may-quay/payment.webp)
 
@@ -82,6 +88,14 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần.
 4. Mã hết hạn mà khách chưa chuyển: bấm **Tạo QR mới**.
 
+### Thu bằng ví ZaloPay (khi chi nhánh bật ZaloPay)
+
+1. Chọn thẻ **ZaloPay**. Máy gửi đơn lên máy chủ rồi nhờ máy chủ tạo mã thanh toán ZaloPay cho **đúng số tiền cả đơn** do máy chủ tính (máy quầy không tự đặt số tiền). Trong lúc chờ, ngăn ghi "Đang tạo mã ZaloPay…".
+2. Màn hiện mã QR của ZaloPay, **Số tiền** và **Mã còn hiệu lực** (15 phút theo giờ máy chủ). Khách mở app ZaloPay, quét mã và bấm xác nhận — số tiền đã khóa sẵn trong mã, khách không gõ gì.
+3. **Không cần bấm gì**: khi ZaloPay báo đã trả đúng số, máy chuyển sang "ZaloPay báo đã nhận đủ tiền. Đang hoàn tất đơn…" rồi sang màn **Đã thanh toán**, giống hệt QR chuyển khoản.
+4. Khách đổi ý: bấm **Hủy mã** (hoặc **Thu cách khác**) — mã bị gỡ trên máy chủ; nếu khách vẫn trả muộn, khoản đó vào danh sách tiền chờ xử lý ở trang quản lý, không tự trả đơn.
+5. Mã hết hạn hoặc ví không tạo được mã: bấm **Tạo mã mới** / **Thử lại**, hoặc thu cách khác.
+
 ### Hóa đơn điện tử cho khách (khi chi nhánh bật hóa đơn điện tử)
 
 1. Trong ngăn thanh toán, dưới thẻ tiền mặt có dòng **Xuất hóa đơn cho khách**. Mặc định là **Khách lẻ — hóa đơn không ghi tên người mua.**
@@ -101,6 +115,8 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 ## Luật và giới hạn
 
+- **Ví ZaloPay** theo đúng luật của QR: một mã đang chờ mỗi đơn (QR chuyển khoản hay ví đều tính), mã sống **15 phút theo giờ máy chủ**, số tiền là **tổng máy chủ tính**; máy quầy hiện tổng khác (đơn vừa đổi ở nơi khác) thì máy chủ từ chối, không tạo mã. Ví báo số khác số của đơn (thiếu/thừa) thì đơn **không** tự đóng. Một lần trả chỉ được tính **một lần** dù ZaloPay báo nhiều lần.
+- Ví không trộn với tiền mặt: chỉ chọn được thẻ ví khi chưa nhận đồng tiền mặt nào.
 - **Không trộn tiền mặt với QR trong một đơn.** Mã QR luôn đòi đúng cả số cần thu (máy chủ kiểm), nên chỉ chọn được QR khi chưa nhận đồng tiền mặt nào; đã nhận tiền mặt mà khách muốn chuyển khoản thì **Bỏ** phần tiền mặt trước.
 - Tiền mặt nhận được **nhiều lần**, tối đa **10 lần trả** mỗi đơn. Số gõ tay chỉ gồm chữ số (dấu chấm, dấu cách được bỏ qua), tối đa **11 chữ số**.
 - Không ghi được "chuyển khoản tay": tiền chuyển khoản chỉ được ghi khi ngân hàng báo về qua đúng mã QR của đơn.
@@ -132,6 +148,13 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 | Máy chưa thấy QR đã được trả của đơn này. Chờ đồng bộ xong rồi thử lại. | Máy chưa nhận tin ngân hàng | Chờ vài giây khi có mạng |
 | Không tạo được mã QR trên máy. Thu cách khác hoặc báo quản lý. | Lỗi vẽ mã | Thu tiền mặt |
 | Không lưu được thanh toán trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý. | Máy không ghi được | Thử lại |
+| Thanh toán ZaloPay cần có mạng: máy đang mất kết nối. Thu tiền mặt hoặc chuyển khoản QR. | Máy quầy mất mạng / không gọi được máy chủ | Thu tiền mặt hoặc QR |
+| ZaloPay nhận đúng cả đơn: bỏ phần tiền mặt đã nhận nếu khách muốn trả bằng ví. | Đã nhận một phần tiền mặt | Bỏ dòng tiền mặt, rồi chọn ZaloPay |
+| Chưa gửi được đơn lên máy chủ nên chưa tạo được mã ZaloPay. Kiểm tra mạng rồi thử lại. | Đơn còn nằm trên máy, chưa đồng bộ | Chờ có mạng rồi bấm Thử lại |
+| Chi nhánh chưa bật ví này hoặc chưa nhập khóa. Quản lý bật ở trang quản lý (Cài đặt, mục Ví điện tử). | Quản lý vừa tắt ví / chưa nhập khóa | Thu cách khác; báo chủ quán |
+| Ví chưa tạo được mã thanh toán (ví từ chối hoặc không trả lời). Thử lại hoặc thu cách khác. | ZaloPay từ chối hoặc không trả lời | Bấm Thử lại, hoặc thu cách khác |
+| Ví báo nhận thiếu 20.000 ₫ — xử lý ở quầy. (hoặc **thừa**) | ZaloPay báo số khác số của đơn | Thu đủ bằng cách khác; khoản đó nằm trong danh sách cần hoàn |
+| Mã đã hết hạn. Tạo mã mới nếu khách vẫn muốn trả bằng ví. | Quá 15 phút | Bấm Tạo mã mới |
 | MST gồm 10 chữ số, mã chi nhánh thêm gạch và 3 số (0312345678-001), hoặc 12 số của cá nhân. | MST sai dạng | Sửa MST |
 | Ghi tên doanh nghiệp đúng như đăng ký thuế. / Ghi số CCCD hoặc số điện thoại của khách. / Số CCCD gồm đúng 12 chữ số. / Số điện thoại bắt đầu bằng 0 hoặc +84, 10–11 chữ số. / Email chưa đúng dạng, ví dụ ketoan@congty.vn. / Dài quá mức hóa đơn cho phép. | Thiếu hoặc sai thông tin người mua | Sửa ô bị báo |
 | Chi nhánh chưa bật hóa đơn điện tử nên không ghi được người mua. | Chi nhánh không phát hóa đơn | Báo chủ quán |
@@ -144,11 +167,13 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 - **Tiền mặt**: thu bình thường, đơn tự gửi lên khi có mạng.
 - **QR**: máy vẫn vẽ được mã (nội dung chuyển khoản do máy tạo), nhưng **chỉ biết khách đã chuyển khi có mạng** (tin ngân hàng đi qua máy chủ). Mất mạng thì nên thu tiền mặt.
+- **Ví ZaloPay**: cần mạng — mã do máy chủ xin ZaloPay, không vẽ được trên máy. Máy báo mất kết nối thì thẻ ZaloPay ghi rõ lý do; thu tiền mặt hoặc QR.
 - Hóa đơn điện tử: máy chủ phát hành khi nhận được đơn; mất mạng thì chờ.
 
 ## Chưa làm / sắp có
 
-- Thẻ ngân hàng (máy POS rời), ví điện tử (MoMo/ZaloPay/VNPay), thẻ trả trước, voucher, ghi nợ.
+- Ví **MoMo**, **VNPay** (làm sau ZaloPay, cùng một lớp cổng ví); hoàn tiền qua ví (hiện tiền ví thừa/thiếu do người xử lý tay ở trang quản lý). Báo cáo cuối ngày chưa tách riêng tiền ví với tiền chuyển khoản QR (đều ghi là chuyển khoản).
+- Thẻ ngân hàng (máy POS rời), thẻ trả trước, voucher, ghi nợ.
 - Trộn nhiều cách trả trong một đơn (ví dụ một phần tiền mặt, một phần QR); chia bill.
 - Làm tròn tiền mặt.
 - QR tĩnh dự phòng khi không có tin báo của ngân hàng.

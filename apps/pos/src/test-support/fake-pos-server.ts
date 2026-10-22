@@ -1,4 +1,8 @@
-import type { SyncCommandEnvelope } from "@fnb/contracts";
+import {
+  PAYMENT_INTENT_ENTITY,
+  type SyncCommandEnvelope,
+  type WalletPaymentBody,
+} from "@fnb/contracts";
 import {
   type LocalCommand,
   type LocalStore,
@@ -9,6 +13,7 @@ import {
 import { openNodeSqliteDriver } from "@fnb/sync-client/node-sqlite";
 import type { PosDependencies } from "../app/pos-dependencies";
 import type { ApiFailure } from "../features/api/api-result";
+import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSnapshot, BootstrapSource } from "../features/bootstrap/bootstrap-source";
 import { NO_MENU_COPIES, buildTillMenu } from "../features/menu/till-menu";
 import { type PrinterPort, previewOnlyPrinter } from "../features/printing/printer-port";
@@ -79,6 +84,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
     feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
     pushed: [] as SyncCommandEnvelope[],
+    /** Wallet payments the till asked the server to open, with the staff token it sent. */
+    walletPayments: [] as (WalletPaymentBody & { staffToken: string })[],
     /** Pushes fail as if the network dropped, while signing in still answers. */
     pushesHeld: false,
     /** The staff credential each batch was pushed with, and the commands in it. */
@@ -101,7 +108,31 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
   const floor = fakeFloorSource(state, rows.rows, state.calls);
 
   // The calls outside sync read the same state the tests script.
-  const api = fakePosApi(state);
+  const api: PosApi = {
+    ...fakePosApi(state),
+    // The server opens the wallet payment for the order's total and tells the branch's tills.
+    async createWalletPayment(_credential, staffToken, body) {
+      state.walletPayments.push({ ...body, staffToken });
+      if (!state.online) return unreachable();
+      const intent = {
+        id: body.intentId,
+        orderId: body.orderId,
+        branchId: CREDENTIAL.branchId,
+        amount: body.amount,
+        contentCode: "FNB7K3M9Q2X",
+        status: "pending" as const,
+        expiresAt: new Date(Date.now() + rows.qr.lifetimeMs).toISOString(),
+        receivedAmount: null,
+        version: 1,
+      };
+      rows.rows.set(intent.id, intent);
+      announce(PAYMENT_INTENT_ENTITY, intent);
+      return {
+        ok: true,
+        value: { intent, wallet: body.wallet, qrContent: `ZPQR-${body.intentId}` },
+      };
+    },
+  };
 
   const bootstrap: BootstrapSource = {
     async load() {

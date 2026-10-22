@@ -1,3 +1,4 @@
+import type { WalletPaymentBody } from "@fnb/contracts";
 import type { Grant } from "@fnb/domain";
 import type { LocalStore, RejectedCommand } from "@fnb/sync-client";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -96,6 +97,8 @@ export function PairedTill(props: {
         requestApproval: (request) => deps.api.requestApproval(credential, token, request),
       }),
       onSessionExpired: () => signOut(vi.errors.API_STAFF_SESSION_INVALID),
+      openWalletPayment: (body: WalletPaymentBody) =>
+        deps.api.createWalletPayment(credential, token, body),
     };
   }, [signedIn, snapshot, staff, deps, credential, signOut]);
 
