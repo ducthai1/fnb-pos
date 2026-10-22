@@ -15,6 +15,7 @@ import { VI_CASH, VI_CLOSE_SHIFT, VI_SESSION, VI_SESSION_ERRORS } from "./vi-shi
 import { VI_SYNC_ERRORS } from "./vi-sync-errors";
 import { VI_TABLE_ERRORS, commandSpecificSentence } from "./vi-table-errors";
 import { VI_TABLES } from "./vi-tables";
+import { VI_THEME } from "./vi-theme";
 
 export const vi = {
   boot: {
@@ -70,6 +71,7 @@ export const vi = {
   closeShift: VI_CLOSE_SHIFT,
   session: VI_SESSION,
   shell: VI_SHELL,
+  theme: VI_THEME,
   tools: { label: "Công cụ của máy" },
   sales: {
     title: "Bán hàng",

@@ -6,6 +6,20 @@
     <meta name="theme-color" content="#0b7d5c" />
     <link rel="icon" href="data:," />
     <title>FNB POS</title>
+    <script>
+      // The till's theme before the first paint, so it never flashes another colour. Keep in
+      // step with src/features/theme/till-theme.ts (its test runs this script).
+      (function () {
+        var theme = "pastel";
+        try {
+          var kept = window.localStorage.getItem("fnb.theme");
+          if (kept === "rangxay" || kept === "dark") theme = kept;
+          else if (kept === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+            theme = "dark";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

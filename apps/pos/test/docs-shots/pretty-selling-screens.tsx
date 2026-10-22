@@ -131,6 +131,8 @@ export const SELLING_SCREENS = {
   "sale-photos": () => saleScreen(),
   // Not one of the layout test's screens: the selling screen of a till that lost the network.
   "sale-offline": () => saleScreen({ connection: "offline", pending: 3, needsAttention: 1 }),
+  // Not one of the layout test's screens: the selling screen with the bar's look menu open.
+  "theme-menu": () => saleScreen(),
   "modifier-picker": () => (
     <ModifierPickerScreen
       header={tillBar()}

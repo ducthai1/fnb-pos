@@ -1,89 +1,19 @@
-/* Design tokens of the till ("Rang xay": a warm café, cream paper, espresso ink, roasted
-   caramel for what is chosen and what moves the sale on): colour by role, type, spacing,
-   radii, depth and motion. Screens use these names only; a colour written by hand in a
-   screen's CSS is a bug. The backoffice keeps the same roles in backoffice-tokens.css.
+/* Design tokens of the till: colour by role, type, spacing, radii, depth and motion. Screens
+   use these names only; a colour written by hand in a screen's CSS is a bug. The backoffice
+   keeps the same roles and the same themes in backoffice-tokens.css.
 
-   Every pair of writing on a fill is noted with its contrast (WCAG 2.2): text ≥ 4.5:1;
-   the soft fills only ever carry the dark writing of their own meaning. */
+   Colours come in themes, chosen per till and set as `data-theme` on <html> before the first
+   paint: "pastel" (soft blue, the default, also when nothing is set), "rangxay" (the warm
+   café) and "dark". "Follow the device" is not a theme of its own: it resolves to pastel or
+   dark. Every theme sets every colour name, so a screen never shows one theme's colour in
+   another (the contrast test checks that). The theme menu's swatches draw each theme with its
+   own colours through `data-theme-sample`.
+
+   Every pair of writing on a fill is noted as "<ratio>:1 on <fill>" (WCAG 2.2), and the
+   contrast test recomputes each note: text ≥ 4.5:1; the soft fills only ever carry the dark
+   writing of their own meaning. */
 
 :root {
-  /* Surfaces: light kraft paper, layers warming up towards the cashier */
-  --c-bg: #f4ede3;
-  --c-surface: #fffbf5;
-  --c-surface-2: #f8f1e7;
-  --c-surface-3: #efe5d8;
-  --c-overlay: rgb(42 30 23 / 0.52);
-
-  /* Text: espresso ink */
-  --c-text: #2a1e17; /* 15.7:1 on surface, 13.9:1 on bg */
-  --c-text-2: #5a4638; /* 8.6:1 on surface, 7.1:1 on surface-3 */
-  --c-text-3: #73604f; /* 5.8:1 on surface, 5.1:1 on bg, 4.8:1 on surface-3 */
-  --c-text-inverse: #fffbf5;
-
-  /* Lines */
-  --c-border: #cdbba5;
-  --c-border-soft: #e3d6c5;
-  --c-focus: #1d5fa8; /* 6.3:1 on surface: the ring is seen on every fill */
-
-  /* Brand: roasted caramel; the main action, what is selected, a table in use */
-  --c-brand: #9e3f1c; /* white on it 6.6:1; on surface 6.4:1, on bg 5.7:1 */
-  --c-brand-strong: #7f3015; /* on brand-soft 6.9:1, on surface 8.7:1 */
-  --c-brand-soft: #f6dccb;
-  --c-brand-tint: #d9824f; /* outlines and marks only, never under writing */
-  --c-brand-soft-pressed: #efcab2;
-  --c-on-brand: #ffffff;
-
-  /* Meanings */
-  --c-info: #25598a; /* the bank's way (VietQR): white on it 7.3:1, on info-soft 6.2:1 */
-  --c-info-soft: #e4edf5;
-  --c-price: #9e3f1c; /* prices are caramel like the main action: 6.4:1 on surface */
-  --c-on-info: #ffffff;
-  --c-amber: #8a5a00; /* warnings: 5.8:1 on surface, 5.1:1 on amber-soft */
-  --c-amber-bold: #b7791f;
-  --c-amber-soft: #f9ecd0;
-  /* The pre-bill button: honey fill, so its writing is dark (7.3:1) */
-  --c-amber-fill: #e0a43c;
-  --c-on-amber: #2e1f00;
-  --c-danger: #a3253b; /* sold out, errors: 7.1:1 on surface, 5.9:1 on danger-soft; white 7.3:1 */
-  --c-danger-soft: #f9e1e4;
-  --c-on-danger: #ffffff;
-  --c-success: #3d6b38; /* in sync, change given: 6.1:1 on surface, 5.2:1 on success-soft */
-  --c-success-soft: #e3eedb;
-  --c-violet: #6b3f8f; /* 6.4:1 on violet-soft */
-  --c-violet-soft: #f1e6f3;
-
-  /* Categories: each its own hue, warmed to sit on paper; the strong one reads on the soft
-     (5.6:1 or more) */
-  --c-cat-0: #6b5545;
-  --c-cat-0-soft: #efe5d8;
-  --c-cat-1: #3d6b38;
-  --c-cat-1-soft: #e3eedb;
-  --c-cat-2: #25598a;
-  --c-cat-2-soft: #e4edf5;
-  --c-cat-3: #8a5a00;
-  --c-cat-3-soft: #f9ecd0;
-  --c-cat-4: #6b3f8f;
-  --c-cat-4-soft: #f1e6f3;
-  --c-cat-5: #a3253b;
-  --c-cat-5-soft: #f9e1e4;
-  --c-cat-6: #1f6468;
-  --c-cat-6-soft: #dcefee;
-  --c-cat-7: #9e3f1c;
-  --c-cat-7-soft: #f6dccb;
-  --c-cat-8: #56631c;
-  --c-cat-8-soft: #ecefd6;
-  --c-on-brand-soft: rgb(255 255 255 / 0.22);
-  /* Initials drawn on a category colour: there to tell tiles apart, not to be read first */
-  --c-on-cat: rgb(255 251 245 / 0.78);
-  /* The edge of an empty tick box or radio dot: 3.7:1 on surface (a box's only outline) */
-  --c-control-edge: #94806d;
-
-  /* The thin edge of a tinted notice, the meaning's own colour at low strength */
-  --c-danger-line: rgb(163 37 59 / 0.2);
-  --c-info-line: rgb(37 89 138 / 0.2);
-  --c-success-line: rgb(61 107 56 / 0.22);
-  --c-amber-line: rgb(138 90 0 / 0.22);
-
   /* Type: one sans that draws every Vietnamese mark (Be Vietnam Pro, bundled with the app).
      Product names, big sums and the order number stand out by weight and size, and every
      figure is tabular so a total does not shift sideways as it changes. */
@@ -127,19 +57,6 @@
   --r-xl: 24px;
   --r-pill: 999px;
 
-  /* Depth: shadows tinted brown, never black, with a light top edge like thick paper */
-  --shadow-card:
-    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(66 38 20 / 0.08),
-    0 2px 8px -2px rgb(66 38 20 / 0.1);
-  --shadow-panel:
-    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(66 38 20 / 0.06),
-    0 12px 28px -12px rgb(66 38 20 / 0.28);
-  --shadow-raised: 0 4px 12px rgb(42 24 12 / 0.12), 0 24px 64px -16px rgb(42 24 12 / 0.45);
-  --shadow-press: 0 1px 2px rgb(66 38 20 / 0.12) inset;
-  --ring: 0 0 0 3px rgb(29 95 168 / 0.38);
-  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -6px rgb(127 48 21 / 0.55);
-  --shadow-dock: 0 -8px 24px -16px rgb(66 38 20 / 0.3);
-
   /* Motion: a light spring on a tap; things arrive in at most 200ms and leave faster than
      they came, so nothing makes a cashier wait. Only transform and opacity ever move. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -161,7 +78,7 @@
   --tap-lg: 56px;
   --bar-h: 56px;
 
-  /* The names the screens were first written with, kept so every screen takes the new look */
+  /* The names the screens were first written with, kept so every screen takes the theme */
   --pos-bg: var(--c-bg);
   --pos-surface: var(--c-surface);
   --pos-text: var(--c-text);
@@ -175,6 +92,289 @@
   --pos-ok-text: var(--c-success);
   --pos-warn-bg: var(--c-amber-soft);
   --pos-warn-text: var(--c-amber);
+}
+
+/* Xanh pastel, the default: a calm sky-blue counter, slate ink, a soft blue for what is
+   chosen and what moves the sale on. */
+:root,
+:root[data-theme="pastel"],
+[data-theme-sample="pastel"] {
+  color-scheme: light;
+
+  /* Surfaces: white cards on a faint blue, layers cooling towards the cashier */
+  --c-bg: #f3f7fc;
+  --c-surface: #ffffff;
+  --c-surface-2: #eef4fb;
+  --c-surface-3: #e2ebf6;
+  --c-overlay: rgb(22 34 51 / 0.5);
+
+  /* Text: slate ink */
+  --c-text: #1d2939; /* 14.7:1 on surface, 13.7:1 on bg, 12.2:1 on surface-3, 11.9:1 on brand-soft */
+  --c-text-2: #435267; /* 8.0:1 on surface, 7.2:1 on surface-2, 6.6:1 on surface-3 */
+  --c-text-3: #56667c; /* 5.9:1 on surface, 5.4:1 on bg, 5.3:1 on surface-2, 4.9:1 on surface-3 */
+  --c-text-inverse: #ffffff;
+
+  /* Lines */
+  --c-border: #c9d7e8;
+  --c-border-soft: #dfe8f3;
+  --c-focus: #1f5fd1; /* 5.8:1 on surface: a stronger blue than the brand, seen on every fill */
+
+  /* Brand: soft blue; the main action, what is selected, a table in use */
+  --c-brand: #3b6db3; /* 5.2:1 on surface, 4.9:1 on bg */
+  --c-brand-strong: #2c5591; /* 7.5:1 on surface, 6.0:1 on brand-soft, 5.4:1 on brand-soft-pressed */
+  --c-brand-soft: #dce8f8;
+  --c-brand-tint: #9dbde8; /* outlines and marks only, never under writing */
+  --c-brand-soft-pressed: #cbdcf3;
+  --c-on-brand: #ffffff; /* 5.2:1 on brand, 7.5:1 on brand-strong */
+
+  /* Meanings, cooled to sit beside the blue */
+  --c-info: #3c4fa0; /* the bank's way (VietQR), indigo beside the brand: 7.5:1 on surface, 6.2:1 on info-soft */
+  --c-info-soft: #e6e9f8;
+  --c-price: var(--c-brand-strong); /* 7.5:1 on surface */
+  --c-on-info: #ffffff; /* 7.5:1 on info */
+  --c-amber: #875800; /* warnings: 6.1:1 on surface, 5.4:1 on amber-soft */
+  --c-amber-bold: #b7791f;
+  --c-amber-soft: #faefd5;
+  /* The pre-bill button: honey fill, so its writing is dark */
+  --c-amber-fill: #e8b04a;
+  --c-on-amber: #2e1f00; /* 8.2:1 on amber-fill */
+  --c-danger: #ab2b45; /* sold out, errors: 6.6:1 on surface, 5.5:1 on danger-soft */
+  --c-danger-soft: #fbe4e9;
+  --c-on-danger: #ffffff; /* 6.6:1 on danger */
+  --c-success: #2c6a4c; /* in sync, change given: 6.4:1 on surface, 5.4:1 on success-soft */
+  --c-success-soft: #ddefe5;
+  --c-violet: #634a9e; /* 5.8:1 on violet-soft */
+  --c-violet-soft: #ece7f7;
+
+  /* Categories: a calm pastel set, each its own hue; the strong one reads on the soft */
+  --c-cat-0: #4b5a6e; /* 5.9:1 on cat-0-soft */
+  --c-cat-0-soft: #e4ebf3;
+  --c-cat-1: #2c6a4c; /* 5.3:1 on cat-1-soft */
+  --c-cat-1-soft: #dbeee3;
+  --c-cat-2: #2c5591; /* 6.0:1 on cat-2-soft */
+  --c-cat-2-soft: #dce8f8;
+  --c-cat-3: #7a5700; /* 5.6:1 on cat-3-soft */
+  --c-cat-3-soft: #f8edcc;
+  --c-cat-4: #5d4a9a; /* 5.9:1 on cat-4-soft */
+  --c-cat-4-soft: #ebe6f7;
+  --c-cat-5: #a0304e; /* 5.6:1 on cat-5-soft */
+  --c-cat-5-soft: #f8e2e9;
+  --c-cat-6: #1c6468; /* 5.7:1 on cat-6-soft */
+  --c-cat-6-soft: #d7eeef;
+  --c-cat-7: #9c4527; /* 5.2:1 on cat-7-soft */
+  --c-cat-7-soft: #f8e4da;
+  --c-cat-8: #53611b; /* 5.7:1 on cat-8-soft */
+  --c-cat-8-soft: #e9eed3;
+  --c-on-brand-soft: rgb(255 255 255 / 0.22);
+  /* Initials drawn on a category colour: there to tell tiles apart, not to be read first */
+  --c-on-cat: rgb(255 255 255 / 0.85);
+  /* The edge of an empty tick box or radio dot (a box's only outline): 3.5:1 on surface */
+  --c-control-edge: #7a8aa0;
+
+  /* The thin edge of a tinted notice, the meaning's own colour at low strength */
+  --c-danger-line: rgb(171 43 69 / 0.2);
+  --c-info-line: rgb(60 79 160 / 0.2);
+  --c-success-line: rgb(44 106 76 / 0.22);
+  --c-amber-line: rgb(135 88 0 / 0.22);
+
+  /* Depth: shadows tinted navy, never black, with a light top edge */
+  --shadow-card:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(28 52 88 / 0.08),
+    0 2px 8px -2px rgb(28 52 88 / 0.1);
+  --shadow-panel:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(28 52 88 / 0.06),
+    0 12px 28px -12px rgb(28 52 88 / 0.26);
+  --shadow-raised: 0 4px 12px rgb(20 36 64 / 0.12), 0 24px 64px -16px rgb(20 36 64 / 0.42);
+  --shadow-press: 0 1px 2px rgb(28 52 88 / 0.12) inset;
+  --ring: 0 0 0 3px rgb(31 95 209 / 0.4);
+  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -6px rgb(44 85 145 / 0.5);
+  --shadow-dock: 0 -8px 24px -16px rgb(28 52 88 / 0.28);
+}
+
+/* Rang xay: a warm café, cream paper, espresso ink, roasted caramel for what is chosen and
+   what moves the sale on. */
+:root[data-theme="rangxay"],
+[data-theme-sample="rangxay"] {
+  color-scheme: light;
+
+  /* Surfaces: light kraft paper, layers warming up towards the cashier */
+  --c-bg: #f4ede3;
+  --c-surface: #fffbf5;
+  --c-surface-2: #f8f1e7;
+  --c-surface-3: #efe5d8;
+  --c-overlay: rgb(42 30 23 / 0.52);
+
+  /* Text: espresso ink */
+  --c-text: #2a1e17; /* 15.7:1 on surface, 13.9:1 on bg, 13.0:1 on surface-3, 12.4:1 on brand-soft */
+  --c-text-2: #5a4638; /* 8.6:1 on surface, 7.9:1 on surface-2, 7.1:1 on surface-3 */
+  --c-text-3: #73604f; /* 5.8:1 on surface, 5.1:1 on bg, 5.3:1 on surface-2, 4.8:1 on surface-3 */
+  --c-text-inverse: #fffbf5;
+
+  /* Lines */
+  --c-border: #cdbba5;
+  --c-border-soft: #e3d6c5;
+  --c-focus: #1d5fa8; /* 6.3:1 on surface: the ring is seen on every fill */
+
+  /* Brand: roasted caramel; the main action, what is selected, a table in use */
+  --c-brand: #9e3f1c; /* 6.4:1 on surface, 5.7:1 on bg */
+  --c-brand-strong: #7f3015; /* 8.7:1 on surface, 6.9:1 on brand-soft, 5.9:1 on brand-soft-pressed */
+  --c-brand-soft: #f6dccb;
+  --c-brand-tint: #d9824f; /* outlines and marks only, never under writing */
+  --c-brand-soft-pressed: #efcab2;
+  --c-on-brand: #ffffff; /* 6.6:1 on brand, 9.0:1 on brand-strong */
+
+  /* Meanings */
+  --c-info: #25598a; /* the bank's way (VietQR): 7.1:1 on surface, 6.2:1 on info-soft */
+  --c-info-soft: #e4edf5;
+  --c-price: #9e3f1c; /* prices are caramel like the main action: 6.4:1 on surface */
+  --c-on-info: #ffffff; /* 7.3:1 on info */
+  --c-amber: #8a5a00; /* warnings: 5.8:1 on surface, 5.1:1 on amber-soft */
+  --c-amber-bold: #b7791f;
+  --c-amber-soft: #f9ecd0;
+  /* The pre-bill button: honey fill, so its writing is dark */
+  --c-amber-fill: #e0a43c;
+  --c-on-amber: #2e1f00; /* 7.3:1 on amber-fill */
+  --c-danger: #a3253b; /* sold out, errors: 7.1:1 on surface, 5.9:1 on danger-soft */
+  --c-danger-soft: #f9e1e4;
+  --c-on-danger: #ffffff; /* 7.3:1 on danger */
+  --c-success: #3d6b38; /* in sync, change given: 6.1:1 on surface, 5.2:1 on success-soft */
+  --c-success-soft: #e3eedb;
+  --c-violet: #6b3f8f; /* 6.4:1 on violet-soft */
+  --c-violet-soft: #f1e6f3;
+
+  /* Categories: each its own hue, warmed to sit on paper; the strong one reads on the soft */
+  --c-cat-0: #6b5545; /* 5.6:1 on cat-0-soft */
+  --c-cat-0-soft: #efe5d8;
+  --c-cat-1: #3d6b38; /* 5.2:1 on cat-1-soft */
+  --c-cat-1-soft: #e3eedb;
+  --c-cat-2: #25598a; /* 6.2:1 on cat-2-soft */
+  --c-cat-2-soft: #e4edf5;
+  --c-cat-3: #8a5a00; /* 5.1:1 on cat-3-soft */
+  --c-cat-3-soft: #f9ecd0;
+  --c-cat-4: #6b3f8f; /* 6.4:1 on cat-4-soft */
+  --c-cat-4-soft: #f1e6f3;
+  --c-cat-5: #a3253b; /* 5.9:1 on cat-5-soft */
+  --c-cat-5-soft: #f9e1e4;
+  --c-cat-6: #1f6468; /* 5.7:1 on cat-6-soft */
+  --c-cat-6-soft: #dcefee;
+  --c-cat-7: #9e3f1c; /* 5.0:1 on cat-7-soft */
+  --c-cat-7-soft: #f6dccb;
+  --c-cat-8: #56631c; /* 5.6:1 on cat-8-soft */
+  --c-cat-8-soft: #ecefd6;
+  --c-on-brand-soft: rgb(255 255 255 / 0.22);
+  /* Initials drawn on a category colour: there to tell tiles apart, not to be read first */
+  --c-on-cat: rgb(255 251 245 / 0.78);
+  /* The edge of an empty tick box or radio dot (a box's only outline): 3.7:1 on surface */
+  --c-control-edge: #94806d;
+
+  /* The thin edge of a tinted notice, the meaning's own colour at low strength */
+  --c-danger-line: rgb(163 37 59 / 0.2);
+  --c-info-line: rgb(37 89 138 / 0.2);
+  --c-success-line: rgb(61 107 56 / 0.22);
+  --c-amber-line: rgb(138 90 0 / 0.22);
+
+  /* Depth: shadows tinted brown, never black, with a light top edge like thick paper */
+  --shadow-card:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 1px 2px rgb(66 38 20 / 0.08),
+    0 2px 8px -2px rgb(66 38 20 / 0.1);
+  --shadow-panel:
+    0 1px 0 rgb(255 255 255 / 0.7) inset, 0 2px 4px rgb(66 38 20 / 0.06),
+    0 12px 28px -12px rgb(66 38 20 / 0.28);
+  --shadow-raised: 0 4px 12px rgb(42 24 12 / 0.12), 0 24px 64px -16px rgb(42 24 12 / 0.45);
+  --shadow-press: 0 1px 2px rgb(66 38 20 / 0.12) inset;
+  --ring: 0 0 0 3px rgb(29 95 168 / 0.38);
+  --shadow-brand: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 6px 16px -6px rgb(127 48 21 / 0.55);
+  --shadow-dock: 0 -8px 24px -16px rgb(66 38 20 / 0.3);
+}
+
+/* Tối: a dark slate counter for a dim shop or a long night. Lighter, softer tones of the
+   same meanings (never inverted), dark writing on the light fills, depth by layer rather
+   than by shadow so nothing wears a grey halo; photos keep their own colours. */
+:root[data-theme="dark"],
+[data-theme-sample="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces: each layer a step lighter towards the cashier */
+  --c-bg: #11161d;
+  --c-surface: #19202a;
+  --c-surface-2: #1e2632;
+  --c-surface-3: #242d3a;
+  --c-overlay: rgb(0 0 0 / 0.62);
+
+  /* Text: a cool white, never pure */
+  --c-text: #e6ecf3; /* 13.8:1 on surface, 15.3:1 on bg, 11.7:1 on surface-3, 10.9:1 on brand-soft */
+  --c-text-2: #b4c0cf; /* 8.9:1 on surface, 8.3:1 on surface-2, 7.5:1 on surface-3 */
+  --c-text-3: #8f9db0; /* 5.9:1 on surface, 6.6:1 on bg, 5.5:1 on surface-2, 5.0:1 on surface-3 */
+  --c-text-inverse: #11161d;
+
+  /* Lines: light enough to be seen on every layer */
+  --c-border: #344052;
+  --c-border-soft: #2a3442;
+  --c-focus: #8cc1ff; /* 8.7:1 on surface */
+
+  /* Brand: the soft blue, lightened; dark writing on it */
+  --c-brand: #8fb6ec; /* 7.9:1 on surface, 8.7:1 on bg */
+  --c-brand-strong: #a9c8f2; /* 9.6:1 on surface, 7.5:1 on brand-soft, 6.3:1 on brand-soft-pressed */
+  --c-brand-soft: #22324a;
+  --c-brand-tint: #4f6f9c; /* outlines and marks only, never under writing */
+  --c-brand-soft-pressed: #2b3e5b;
+  --c-on-brand: #0e1a2c; /* 8.4:1 on brand, 10.2:1 on brand-strong */
+
+  /* Meanings: light variants on dark tinted fills; a solid fill carries dark writing */
+  --c-info: #a7b4f2; /* 8.2:1 on surface, 6.9:1 on info-soft */
+  --c-info-soft: #252b47;
+  --c-price: var(--c-brand-strong); /* 9.6:1 on surface */
+  --c-on-info: #10162f; /* 8.9:1 on info */
+  --c-amber: #e7b75c; /* 8.8:1 on surface, 7.4:1 on amber-soft */
+  --c-amber-bold: #d39a3a;
+  --c-amber-soft: #382c14;
+  --c-amber-fill: #e0a43c;
+  --c-on-amber: #2e1f00; /* 7.3:1 on amber-fill */
+  --c-danger: #f29ba6; /* 7.8:1 on surface, 6.9:1 on danger-soft */
+  --c-danger-soft: #3e2128;
+  --c-on-danger: #2c0b12; /* 8.6:1 on danger */
+  --c-success: #8ccfa5; /* 9.0:1 on surface, 7.5:1 on success-soft */
+  --c-success-soft: #1b3328;
+  --c-violet: #c6b4ee; /* 7.6:1 on violet-soft */
+  --c-violet-soft: #2c2641;
+
+  /* Categories: light tones on dark tinted fills; initials on a light tone are dark */
+  --c-cat-0: #b9c4d2; /* 7.4:1 on cat-0-soft */
+  --c-cat-0-soft: #273140;
+  --c-cat-1: #8ccfa5; /* 7.5:1 on cat-1-soft */
+  --c-cat-1-soft: #1b3328;
+  --c-cat-2: #a9c8f2; /* 7.5:1 on cat-2-soft */
+  --c-cat-2-soft: #22324a;
+  --c-cat-3: #e7b75c; /* 7.4:1 on cat-3-soft */
+  --c-cat-3-soft: #382c14;
+  --c-cat-4: #c6b4ee; /* 7.6:1 on cat-4-soft */
+  --c-cat-4-soft: #2c2641;
+  --c-cat-5: #f29ba6; /* 6.9:1 on cat-5-soft */
+  --c-cat-5-soft: #3e2128;
+  --c-cat-6: #86cfd1; /* 7.3:1 on cat-6-soft */
+  --c-cat-6-soft: #163638;
+  --c-cat-7: #f0ad8f; /* 7.4:1 on cat-7-soft */
+  --c-cat-7-soft: #3d2619;
+  --c-cat-8: #c3cf86; /* 8.1:1 on cat-8-soft */
+  --c-cat-8-soft: #2c3116;
+  --c-on-brand-soft: rgb(14 26 44 / 0.14);
+  --c-on-cat: rgb(14 20 28 / 0.78);
+  /* The edge of an empty tick box or radio dot (a box's only outline): 4.6:1 on surface */
+  --c-control-edge: #7b889c;
+
+  --c-danger-line: rgb(242 155 166 / 0.28);
+  --c-info-line: rgb(167 180 242 / 0.28);
+  --c-success-line: rgb(140 207 165 / 0.28);
+  --c-amber-line: rgb(231 183 92 / 0.3);
+
+  /* Depth: faint and black, with no light top edge (it would draw a grey halo) */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.32);
+  --shadow-panel: 0 2px 4px rgb(0 0 0 / 0.2), 0 12px 28px -12px rgb(0 0 0 / 0.5);
+  --shadow-raised: 0 4px 12px rgb(0 0 0 / 0.3), 0 24px 64px -16px rgb(0 0 0 / 0.6);
+  --shadow-press: 0 1px 2px rgb(0 0 0 / 0.4) inset;
+  --ring: 0 0 0 3px rgb(140 193 255 / 0.45);
+  --shadow-brand: 0 6px 16px -8px rgb(0 0 0 / 0.55);
+  --shadow-dock: 0 -8px 24px -16px rgb(0 0 0 / 0.6);
 }
 
 /* A till set to reduce motion: every movement lands at once, nothing scales under a finger.

@@ -8,9 +8,14 @@ import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { API_BASE } from "./features/menu/api-base";
 import { httpFloorSource } from "./features/floor/floor-occupancy";
 import { printerForBuild } from "./features/printing/printer-port";
+import { theTillTheme } from "./features/theme/till-theme";
 import { takePairingCodeFromAddress } from "./screens/pair-device/pairing-link";
 import { indexedDbDeviceCredentialStore } from "./shell-bridge/indexeddb-device-credential-store";
 import "./styles/pos-styles";
+
+// index.html already set the kept theme; from here the till also follows the device while
+// set to "Theo máy", on every screen, signed in or not.
+theTillTheme();
 
 const store = openBrowserLocalStore();
 // The app reports a failed open on screen; this only keeps it from counting as unhandled.

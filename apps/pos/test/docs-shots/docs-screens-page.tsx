@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect } from "react";
 import { createRoot } from "react-dom/client";
+import { writeThemeChoice } from "../../src/features/theme/till-theme";
 import "../../src/styles/pos-styles";
 import { ENTRY_SCREENS } from "./pretty-entry-screens";
 import { OPERATIONS_SCREENS } from "./pretty-operations-screens";
@@ -8,6 +9,10 @@ import { TABLE_SCREENS } from "./pretty-table-screens";
 
 // Every movement lands at once: a measurement or a picture never catches one half done.
 document.documentElement.dataset.motion = "off";
+// The handbook shows the default look, whatever this browser or the device is set to: the
+// page and the bar's theme menu both start from it.
+writeThemeChoice(() => window.localStorage, "pastel");
+document.documentElement.dataset.theme = "pastel";
 
 // The till's screens with the sample café's data, chosen by ?screen=, for the handbook.
 
