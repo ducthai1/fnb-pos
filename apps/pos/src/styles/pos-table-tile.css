@@ -1,8 +1,10 @@
-/* A table, by status: free is white with a thin edge; seated is filled green, pre-billed
-   blue, changed after its pre-bill red, with white writing. The status is written on it too,
+/* A table, by status, in the selling screen's card language (a raised card, the name in
+   bold, the bill in heavy tabular figures): free is the plain card; seated is filled with
+   the brand colour, pre-billed with the info colour, changed after its pre-bill with the
+   danger colour, with light writing. The status is written on it too,
    so the colour only helps a glance across the room. */
 .pos-table {
-  --table-line: var(--c-border);
+  --table-line: var(--c-border-soft);
   --table-fill: var(--c-surface);
   --table-text: var(--c-text);
   --table-quiet: var(--c-text-2);
@@ -13,7 +15,7 @@
   gap: var(--sp-2);
   width: 100%;
   height: 100%;
-  min-height: 139px;
+  min-height: 148px;
   padding: var(--sp-4);
   border: 1px solid var(--table-line);
   border-radius: var(--r-lg);
@@ -24,11 +26,10 @@
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 80ms ease;
 }
 
 .pos-table:active {
-  transform: scale(0.98);
+  box-shadow: var(--shadow-press);
 }
 
 .pos-table:focus-visible {
@@ -38,9 +39,10 @@
 
 .pos-table__name {
   max-width: 100%;
-  font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
-  line-height: 24px;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
 }
 
 /* The status closes the tile's head, a faint rule under it before the facts. */
@@ -85,8 +87,9 @@
 .pos-table__amount {
   max-width: 100%;
   margin-top: auto;
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-tight);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }

@@ -140,6 +140,8 @@ export interface OrderSnapshot {
   readonly preBillPrintedVersion: number | null;
   /** When the order was opened, by the server's reading of the till's time. */
   readonly openedAt: string;
+  /** When the order was paid (or a refund given), by the server's reading; null until then. */
+  readonly paidAt: string | null;
   readonly reasonCode: string | null;
   readonly chargeProfile: ChargeProfileSnapshot;
   readonly refundAmounts: RefundAmountsSnapshot | null;

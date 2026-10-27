@@ -112,3 +112,144 @@
   display: grid;
   gap: 0.25rem;
 }
+
+/* The day's orders on a till: one row per order, the money right-aligned in tabular figures,
+   the whole row a tap target that opens the order's drawer. Fixed columns, so a long table
+   name wraps in its cell instead of pushing the totals off the screen. */
+.pos-history-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.pos-history-table th {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--c-border-soft);
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-align: left;
+}
+
+.pos-history-table th:nth-child(1) {
+  width: 12%;
+}
+
+.pos-history-table th:nth-child(2) {
+  width: 10%;
+}
+
+.pos-history-table th:nth-child(4) {
+  width: 18%;
+}
+
+.pos-history-table th:nth-child(5) {
+  width: 22%;
+}
+
+.pos-history-table td {
+  height: 56px;
+  padding: var(--sp-1) var(--sp-4);
+  border-bottom: 1px solid var(--c-border-soft);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.pos-history-table tbody tr {
+  cursor: pointer;
+  transition: background-color var(--t-state) var(--ease-out);
+}
+
+.pos-history-table tbody tr:hover,
+.pos-history-table tbody tr:active {
+  background: var(--c-surface-2);
+}
+
+.pos-history-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pos-history-table .pos-history-table__money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-bold);
+}
+
+.pos-history-table__time {
+  color: var(--c-text-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-medium);
+}
+
+.pos-history-table__open {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  margin-left: calc(-1 * var(--sp-2));
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pos-history-table__open:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.pos-history-table__aside {
+  display: block;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+/* The order's drawer: its facts as label and value, the total last and large; the actions
+   stacked at the foot. */
+.pos-history-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+  margin: 0;
+}
+
+.pos-history-facts dt {
+  color: var(--c-text-2);
+}
+
+.pos-history-facts dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.pos-history-facts .pos-history-facts__total {
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--c-border);
+}
+
+.pos-history-facts dd.pos-history-facts__total {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-tight);
+}
+
+.pos-history-drawer__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}

@@ -49,7 +49,7 @@ tests:
 ### Thu hoặc chi tiền két
 
 1. Trên thanh trên cùng bấm **Thu/chi két**.
-2. Chọn **Thu vào két** hoặc **Chi ra khỏi két**, gõ **Số tiền (đồng)**, ghi **Lý do** (ví dụ "đổi tiền lẻ", "trả tiền đá").
+2. Chọn **Thu vào két** hoặc **Chi ra khỏi két** trên công tắc hai bên (bên đang chọn nổi lên), gõ **Số tiền (đồng)**, ghi **Lý do** (ví dụ "đổi tiền lẻ", "trả tiền đá").
 3. Máy hiện trước **Tiền dự kiến trong két sau đó: …**. Bấm **Thu … vào két** / **Chi … khỏi két**.
 
    ![Thu/chi két](../images/may-quay/cash-move.webp)

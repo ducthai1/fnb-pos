@@ -61,7 +61,7 @@ Cho quán có chỗ ngồi: khách ngồi trước, gọi món nhiều lượt, 
 
    ![Sơ đồ bàn dạng lưới](../images/may-quay/floor.webp)
 
-3. Mỗi bàn ghi tên, trạng thái, khách đã **ngồi bao lâu** và số tiền đang có. Chú thích ở góc phải đếm số bàn mỗi trạng thái:
+3. Mỗi bàn là một thẻ ghi tên (chữ đậm), trạng thái, số chỗ, khách đã **ngồi bao lâu** và số tiền đang có (chữ lớn ở chân thẻ); bàn có khách tô kín màu của trạng thái. Chú thích ở góc phải đếm số bàn mỗi trạng thái:
 
    | Trạng thái | Nghĩa |
    |---|---|
@@ -72,7 +72,7 @@ Cho quán có chỗ ngồi: khách ngồi trước, gọi món nhiều lượt, 
 
 ### Mở bàn và gọi món
 
-1. Chạm vào một bàn. Màn **Bàn T02** mở ra: thực đơn bên trái, đơn của bàn bên phải.
+1. Chạm vào một bàn. Đơn của bàn mở ra: thực đơn bên trái, bên phải là đơn với tên bàn và số đơn ở đầu (**Bàn T02 · Đơn số 27**). Dưới tổng tiền: **Gửi bếp** (nền xanh nhạt) và **In tạm tính** (nền vàng nhạt) nằm cạnh nhau, **Thanh toán** trải hết bề ngang, dưới cùng là **Chuyển bàn** và **Về sơ đồ bàn**.
 
    ![Đơn của bàn T02](../images/may-quay/table-order.webp)
 
@@ -118,7 +118,8 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 |---|---|---|
 | Đang tải sơ đồ bàn… / Không tải được sơ đồ bàn. Kiểm tra mạng; máy sẽ tự thử lại. | Máy chưa có sơ đồ | Chờ; kiểm tra mạng |
 | Chi nhánh chưa có bàn nào. Thêm khu và bàn ở trang quản lý, mục Sơ đồ bàn. | Chưa vẽ sơ đồ | Chủ quán vẽ sơ đồ |
-| Khu này chưa có bàn. / Không có bàn nào khớp bộ lọc. | Khu trống / lọc không ra bàn | Đổi khu hoặc bộ lọc |
+| Khu này chưa có bàn. — Thêm bàn cho khu này ở trang quản lý, mục Sơ đồ bàn. | Khu trống | Đổi khu, hoặc chủ quán thêm bàn |
+| Không có bàn nào khớp bộ lọc. — Chọn “Tất cả” để xem mọi bàn của khu. | Lọc không ra bàn | Chọn **Tất cả** |
 | Đơn của bàn này chưa về máy. Chờ máy đồng bộ (vài giây khi có mạng) rồi chạm lại vào bàn. | Máy khác vừa mở bàn, đơn chưa tới máy này | Chờ vài giây, chạm lại |
 | Bàn T05 đang có khách. Máy chưa gộp được hai bàn: chọn một bàn trống, hoặc thanh toán riêng từng bàn. | Chuyển sang bàn có khách | Chọn bàn trống |
 | Không còn bàn trống nào ở chi nhánh. | Hết bàn trống | — |

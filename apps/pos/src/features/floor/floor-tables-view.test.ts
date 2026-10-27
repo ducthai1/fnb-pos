@@ -51,6 +51,7 @@ const order = (fields: Partial<StoredTableOrder> = {}): StoredTableOrder => ({
   preBillPrinted: false,
   preBillPrintedVersion: null,
   openedAt: null,
+  paidAt: null,
   reasonCode: null,
   refundOfOrderId: null,
   refundAmounts: null,
