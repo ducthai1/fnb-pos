@@ -25,6 +25,11 @@ export const SYNC_ERROR_CODES = {
   /** What the customer was asked to pay is not what the order now comes to. */
   orderTotalMismatch: "DOMAIN_ORDER_TOTAL_MISMATCH",
   paymentsDoNotMatchAmountDue: "SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE",
+  /**
+   * A refund paid back by bank transfer for a sale the customer paid with no transfer: money
+   * goes back the way it came, so a cash sale is refunded in cash.
+   */
+  refundMethodNotAllowed: "SYNC_REFUND_METHOD_NOT_ALLOWED",
   /** The branch marked the product sold out, for this channel, before the till recorded it. */
   productSoldOut: "SYNC_PRODUCT_SOLD_OUT",
   /**

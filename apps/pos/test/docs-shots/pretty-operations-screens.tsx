@@ -167,7 +167,7 @@ export const OPERATIONS_SCREENS = {
     />
   ),
   refund: () => (
-    <RefundScreen
+    <RefundScreen transferAllowed
       header={null}
       orderNo={ORDER.deviceOrderNo}
       lines={refundableLines(sale, [])}

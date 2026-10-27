@@ -70,6 +70,7 @@ export function RefundFlow(props: RefundFlowProps) {
       header={props.header}
       orderNo={sale.deviceOrderNo}
       lines={refundableLines(sale, entry.refunds)}
+      transferAllowed={sale.payments.some((payment) => payment.method === "qr_transfer")}
       preview={(selection) => {
         try {
           return { payout: plan(selection).payout };

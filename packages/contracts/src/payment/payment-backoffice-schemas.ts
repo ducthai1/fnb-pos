@@ -43,11 +43,22 @@ export const refundDueIntentSchema = paymentIntentSnapshotSchema.extend({
   owedAmount: wholeDongSchema.positive().optional(),
 });
 
+/** An open shift of the branch, whose drawer QR money can be handed back from. */
+export const openShiftChoiceSchema = z
+  .object({
+    id: uuidSchema,
+    deviceName: z.string().nullable(),
+    openedByName: z.string(),
+    openedAt: instantSchema,
+  })
+  .strict();
+
 export const unmatchedPaymentsSchema = z
   .object({
     transfers: z.array(unmatchedTransferSchema),
     openIntents: z.array(paymentIntentSnapshotSchema),
     refundDue: z.array(refundDueIntentSchema),
+    openShifts: z.array(openShiftChoiceSchema).optional(),
   })
   .strict();
 

@@ -10,11 +10,20 @@ import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
 import { SuccessNotice } from "../ui/error-notice";
 import { ConfirmPanel } from "../ui/confirm-panel";
+import { SelectField } from "../ui/select-field";
 import { TextField } from "../ui/text-field";
 
 const T = vi.transfers;
 
 type OwedIntent = UnmatchedPayments["refundDue"][number];
+type OpenShift = NonNullable<UnmatchedPayments["openShifts"]>[number];
+
+const shiftText = (shift: OpenShift) =>
+  T.handBackShiftOption(
+    shift.deviceName ?? T.handBackShiftNoDevice,
+    shift.openedByName,
+    new Date(shift.openedAt).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }),
+  );
 
 const receivedText = (intent: OwedIntent) =>
   intent.receivedAmount === null ? "—" : vndText(intent.receivedAmount);
@@ -40,10 +49,12 @@ const rowText = (intent: OwedIntent) =>
  */
 function HandBackPanel({
   intent,
+  openShifts,
   onDone,
   onCancel,
 }: {
   intent: OwedIntent;
+  openShifts: readonly OpenShift[];
   onDone: (message: string) => void;
   onCancel: () => void;
 }) {
@@ -51,6 +62,8 @@ function HandBackPanel({
   const { signedOut } = useSession();
   const [method, setMethod] = useState<QrRefundMethod | null>(null);
   const [note, setNote] = useState("");
+  const [shiftId, setShiftId] = useState<string>(openShifts[0]?.id ?? "");
+  const fromDrawer = method === "cash_from_drawer";
   const [noteError, setNoteError] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -59,10 +72,12 @@ function HandBackPanel({
     const missingNote = note.trim() === "";
     setNoteError(missingNote ? T.handBackNeedsNote : undefined);
     if (method === null) return setError(T.handBackChooseMethod);
+    if (fromDrawer && shiftId === "") return setError(T.handBackChooseShift);
     if (missingNote) return setError(null);
     setBusy(true);
     setError(null);
-    const result = await api.handBackQrMoney(intent.id, { method, note: note.trim() });
+    const body = { method, note: note.trim(), ...(fromDrawer ? { fromShiftId: shiftId } : {}) };
+    const result = await api.handBackQrMoney(intent.id, body);
     setBusy(false);
     if (!result.ok) {
       if (isSignedOut(result)) signedOut();
@@ -96,6 +111,19 @@ function HandBackPanel({
           </label>
         ))}
       </fieldset>
+      {!fromDrawer ? null : openShifts.length === 0 ? (
+        <p className="bo-muted bo-wrap">{T.handBackNoOpenShift}</p>
+      ) : (
+        <>
+          <SelectField
+            label={T.handBackShift}
+            value={shiftId}
+            choices={openShifts.map((shift) => ({ value: shift.id, label: shiftText(shift) }))}
+            onChange={setShiftId}
+          />
+          <p className="bo-muted bo-wrap">{T.handBackFromDrawerHint}</p>
+        </>
+      )}
       <TextField
         label={T.handBackNote}
         value={note}
@@ -110,9 +138,11 @@ function HandBackPanel({
 /** Money the bank brought for a QR that no order uses: the customer is owed it back. */
 export function RefundDueList({
   intents,
+  openShifts = [],
   onHandedBack,
 }: {
   intents: readonly OwedIntent[];
+  openShifts?: readonly OpenShift[];
   onHandedBack: () => void;
 }) {
   const { user } = useSession();
@@ -155,6 +185,7 @@ export function RefundDueList({
               {mayHandBack && open === intent.id && (
                 <HandBackPanel
                   intent={intent}
+                  openShifts={openShifts}
                   onCancel={() => setOpen(null)}
                   onDone={(message) => {
                     setOpen(null);

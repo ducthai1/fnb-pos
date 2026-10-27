@@ -22,6 +22,7 @@ decisions:
   - D-061
   - D-063
   - D-076
+  - D-081
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -130,7 +131,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
 1. **Lịch sử đơn** → chọn đơn đã trả → **Hoàn tiền đơn số …** (xem [08-lich-su-don.md](08-lich-su-don.md)).
 2. Chọn số lượng hoàn của từng món (mỗi món ghi **Đã bán 2 · còn hoàn được 2**). Máy tính **số tiền hoàn theo đúng giá đã bán** (đã trừ giảm giá) — thu ngân không gõ số tiền.
-3. Chọn **Hoàn bằng**: **Tiền mặt từ két** (két của ca đang mở giảm đúng số này) hoặc **Chuyển khoản** (máy chỉ ghi lại; thu ngân tự chuyển từ tài khoản cửa hàng; két không đổi).
+3. Chọn **Hoàn bằng**: **Tiền mặt từ két** (két của ca đang mở giảm đúng số này) hoặc **Chuyển khoản** (máy chỉ ghi lại; thu ngân tự chuyển từ tài khoản cửa hàng; két không đổi). Nút **Chuyển khoản** chỉ có khi khách đã trả đơn đó bằng **chuyển khoản QR**; đơn trả toàn tiền mặt chỉ hoàn bằng tiền mặt.
 4. Chọn **Lý do**: *Khách trả lại món · Pha/làm sai món · Món không đạt · Tính tiền nhầm · Lý do khác*. Bấm **Hoàn 50.000 ₫**.
 
    ![Hoàn tiền](../images/may-quay/refund.webp)
@@ -154,6 +155,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 - Hủy món **không trả nguyên liệu về kho** (chưa có kho).
 - Món đang giảm giá: gỡ giảm giá trước rồi mới hủy. Món đã hủy một phần: không giảm giá thêm.
 - Đơn có **giảm giá toàn đơn**: các món đang có bị khóa sửa/xóa; hủy món làm phần giảm toàn đơn vượt mức được tự giảm thì máy chặn.
+- **Hoàn về đúng đường khách đã trả**: hoàn bằng chuyển khoản chỉ khi đơn gốc có khoản **chuyển khoản QR**; đơn trả toàn tiền mặt mà máy gửi hoàn bằng chuyển khoản thì máy chủ từ chối.
 - Hoàn tiền tạo một **đơn hoàn riêng** gắn với đơn gốc; số còn hoàn được trừ cả những lần hoàn trước. Hoàn **không nhập lại kho**. Chỉ hoàn được đơn **đã trả**.
 - Giảm theo % gõ được số lẻ tới 2 chữ số sau dấu phẩy (ví dụ `12,5`), từ trên 0 đến 100.
 
@@ -181,6 +183,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 | Nhập số: phần trăm từ 1 đến 100, hoặc số tiền chỉ gồm chữ số. | Gõ sai mức giảm | Gõ lại |
 | Mức giảm này làm tròn ra 0 ₫ trên số còn phải trả. | Mức quá nhỏ | Tăng mức giảm |
 | Số tiền giảm lớn hơn số còn phải trả. / Nhập mức giảm lớn hơn 0. / Món đã hủy một phần nên không giảm giá thêm được. | — | Sửa mức giảm |
+| Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két. | Hoàn bằng chuyển khoản cho đơn trả tiền mặt | Hoàn lại bằng tiền mặt từ két |
 | Chọn ít nhất một món để hoàn. / Số lượng hoàn nhiều hơn số còn chưa hoàn của món. / Chỉ hoàn được đơn đã thanh toán. / Đơn này đã hoàn hết. | Hoàn sai | Chọn lại |
 | Đơn chưa lưu xong trên máy (hoặc lần lưu vừa rồi lỗi). Quay lại đơn rồi thử lại. | Đơn đang lưu dở | Quay lại đơn, thử lại |
 

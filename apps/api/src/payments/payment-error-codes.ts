@@ -70,6 +70,10 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
    * the money, or the till may still close the QR's open order with it.
    */
   notOwedToCustomer: "API_PAYMENT_NOT_OWED_TO_CUSTOMER",
+  /** Handing back from a drawer named no shift of the QR's branch. */
+  shiftNotFound: "API_PAYMENT_SHIFT_NOT_FOUND",
+  /** Handing back from a drawer whose shift is closed: its count is final. */
+  shiftNotOpen: "API_PAYMENT_SHIFT_NOT_OPEN",
   /** The QR's money was marked handed back already: once is all it can be. */
   alreadyHandedBack: "API_PAYMENT_ALREADY_HANDED_BACK",
 } as const;

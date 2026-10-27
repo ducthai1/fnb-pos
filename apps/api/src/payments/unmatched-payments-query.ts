@@ -80,7 +80,25 @@ export async function readUnmatchedPayments(
       "ORDER BY matched_at DESC, id DESC LIMIT $2",
     [branchId, LISTED],
   );
+  const shifts = await client.query<{
+    id: string;
+    device_name: string | null;
+    opened_by: string;
+    opened_at: Date;
+  }>(
+    "SELECT s.id, d.name AS device_name, st.display_name AS opened_by, s.created_at AS opened_at " +
+      "FROM shift s LEFT JOIN device d ON d.tenant_id = s.tenant_id AND d.id = s.device_id " +
+      "JOIN staff st ON st.tenant_id = s.tenant_id AND st.id = s.opened_by_staff_id " +
+      "WHERE s.branch_id = $1 AND s.status = 'open' ORDER BY s.created_at, s.id",
+    [branchId],
+  );
   return {
+    openShifts: shifts.rows.map((row) => ({
+      id: row.id,
+      deviceName: row.device_name,
+      openedByName: row.opened_by,
+      openedAt: row.opened_at.toISOString(),
+    })),
     transfers: transfers.rows.map((row) => ({
       id: row.id,
       gateway: row.gateway,

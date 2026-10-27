@@ -23,6 +23,8 @@ export interface RefundScreenProps {
     reason: ReasonCode,
     method: RefundMethod,
   ): Promise<string | null>;
+  /** Whether the customer paid the sale by QR transfer: only then can it go back by transfer. */
+  transferAllowed: boolean;
   onBack(): void;
 }
 
@@ -93,18 +95,20 @@ export function RefundScreen(props: RefundScreenProps) {
       <fieldset className="pos-group">
         <legend className="pos-group__legend">{R.method}</legend>
         <ul className="pos-choices">
-          {Object.values(REFUND_METHODS).map((each) => (
-            <li key={each}>
-              <button
-                type="button"
-                className="pos-button"
-                aria-pressed={method === each}
-                onClick={() => setMethod(each)}
-              >
-                {R.methods[each]}
-              </button>
-            </li>
-          ))}
+          {Object.values(REFUND_METHODS)
+            .filter((each) => props.transferAllowed || each !== REFUND_METHODS.bankTransfer)
+            .map((each) => (
+              <li key={each}>
+                <button
+                  type="button"
+                  className="pos-button"
+                  aria-pressed={method === each}
+                  onClick={() => setMethod(each)}
+                >
+                  {R.methods[each]}
+                </button>
+              </li>
+            ))}
         </ul>
         <p className="pos-hint">{method === REFUND_METHODS.cash ? R.cashNote : R.transferNote}</p>
       </fieldset>

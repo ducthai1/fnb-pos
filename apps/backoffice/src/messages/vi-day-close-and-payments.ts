@@ -88,11 +88,22 @@ export const VI_TRANSFERS = {
   handBackHint:
     "Chỉ ghi khi tiền đã thật sự trả lại khách. Ghi rồi không sửa hay hủy được; số tiền vào báo cáo ngày hôm nay, không tính là doanh thu.",
   handBackMethod: "Hoàn bằng",
-  handBackMethods: { cash: "Tiền mặt", bank_transfer: "Chuyển khoản lại" } as Readonly<
-    Record<string, string>
-  >,
+  handBackMethods: {
+    cash_from_drawer: "Tiền mặt từ két (chọn ca đang mở)",
+    cash: "Tiền mặt ngoài két",
+    bank_transfer: "Chuyển khoản",
+  } as Readonly<Record<string, string>>,
+  handBackShift: "Ca đang mở (két đã lấy tiền)",
+  handBackShiftOption: (device: string, staff: string, time: string) =>
+    `${device} · ${staff} mở lúc ${time}`,
+  handBackShiftNoDevice: "Ca chung của chi nhánh",
+  handBackChooseShift: "Chọn ca có két đã lấy tiền ra trả khách.",
+  handBackNoOpenShift:
+    "Chi nhánh không có ca nào đang mở: chọn tiền mặt ngoài két hoặc chuyển khoản.",
+  handBackFromDrawerHint:
+    "Máy ghi một khoản chi két vào ca đã chọn: tiền dự kiến của ca giảm đúng số này.",
   handBackNote: "Ghi chú (hoàn cho ai, vì sao)",
-  handBackChooseMethod: "Chọn hoàn bằng tiền mặt hay chuyển khoản lại.",
+  handBackChooseMethod: "Chọn hoàn bằng tiền mặt từ két, tiền mặt ngoài két hay chuyển khoản.",
   handBackNeedsNote: "Ghi chú hoàn cho ai, vì sao.",
   handBackConfirm: "Ghi đã hoàn",
   handingBack: "Đang ghi…",

@@ -42,6 +42,15 @@ async function refundOne() {
 }
 
 describe("refunding a paid sale from the day's history", () => {
+  it("offers only cash for a sale the customer paid in cash", async () => {
+    const server = counterWithManager();
+    await paidThenHistory(server);
+    tap(text.history.refund(1));
+    await screen.findByRole("heading", { name: R.title(1) });
+    expect(screen.getByRole("button", { name: R.methods.cash })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: R.methods.bank_transfer })).toBeNull();
+  });
+
   it("gives back one of two coffees in cash from the drawer, with a manager's approval", async () => {
     const server = counterWithManager();
     await paidThenHistory(server);

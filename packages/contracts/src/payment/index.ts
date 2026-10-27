@@ -29,6 +29,7 @@ export {
   webhookSecretBodySchema,
 } from "./payment-backoffice-schemas";
 export {
+  QR_MONEY_HANDED_BACK_REASON,
   QR_REFUND_METHODS,
   type QrRefund,
   type QrRefundBody,

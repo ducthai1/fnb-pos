@@ -59,7 +59,11 @@ export function TransfersScreen() {
                   figure="refundDue"
                 />
               </section>
-              <RefundDueList intents={payments.refundDue} onHandedBack={refresh} />
+              <RefundDueList
+                intents={payments.refundDue}
+                openShifts={payments.openShifts ?? []}
+                onHandedBack={refresh}
+              />
               <TransferMatchForm key={branchId} payments={payments} onMatched={refresh} />
             </>
           )}

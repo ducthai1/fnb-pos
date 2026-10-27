@@ -21,6 +21,8 @@ export const VI_SYNC_ERRORS = {
   SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH:
     "Số tiền ghi cho khoản chuyển khoản khác số máy chủ tính cho mã QR (đủ: số của mã; thiếu: số ngân hàng báo về).",
   SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE: "Tổng các khoản đã thu khác số tiền cần thu của đơn.",
+  SYNC_REFUND_METHOD_NOT_ALLOWED:
+    "Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két.",
   DOMAIN_ORDER_TOTAL_MISMATCH:
     "Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại.",
   DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION:
