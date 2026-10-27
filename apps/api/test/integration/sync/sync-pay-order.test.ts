@@ -5,6 +5,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import {
+  RECORDED_AT,
   command,
   line,
   orderIdOf,
@@ -59,6 +60,32 @@ const paymentsOf = (orderId: string) =>
   );
 
 describe("order.pay", () => {
+  it("says when the order was paid, and a draft that it is not paid yet", async () => {
+    const extra = {
+      groupId: s.menu.coffee.extrasGroup,
+      optionId: s.menu.coffee.extraShot,
+      quantity: 1,
+    };
+    const draft = saveDraft(s.tillA, [line(s.menu.coffee.id, { modifiers: [extra] })]);
+    const saved = await pushOne(app, s.tillA, draft);
+    expect(saved.snapshot?.paidAt).toBeNull();
+    const result = await pushOne(
+      app,
+      s.tillA,
+      command(s.tillA, "order.pay", {
+        orderId: orderIdOf(draft),
+        payments: [{ method: "cash", amount: 39_000 }],
+        expectedAmountDue: 39_000,
+      }),
+    );
+    expect(result.status).toBe("accepted");
+    expect(result.snapshot?.paidAt).toBe(RECORDED_AT);
+    const pulled = (await pullAll(app, s.tillB)).changes.filter(
+      (change) => change.entity === "order" && change.entityId === orderIdOf(draft),
+    );
+    expect(pulled.at(-1)?.snapshot).toMatchObject({ paidAt: RECORDED_AT });
+  });
+
   it("closes the order with its payments and answers with the paid order", async () => {
     const orderId = await draftOf39k();
     const result = await pushOne(

@@ -9,8 +9,11 @@ decisions:
   - D-028
   - D-031
   - D-057
+  - D-094
 tests:
   - apps/pos/src/features/history/order-history.test.ts
+  - apps/pos/src/screens/history/history-table.test.tsx
+  - apps/api/test/integration/sync/sync-pay-order.test.ts
   - apps/pos/src/app/refund-from-history.test.tsx
   - apps/pos/src/app/staff-session-on-the-till.test.tsx
   - apps/pos/src/app/sale-invoice-reprint.test.tsx
@@ -29,16 +32,21 @@ Mọi nhân viên đã đăng nhập đều xem được. Hoàn tiền cần quy
 
 ## Các bước
 
-1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn mới nhất ở trên.
+1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn **mới nhất ở trên** (theo giờ trả; đơn nháp theo giờ mở).
 
    ![Lịch sử đơn](../images/may-quay/order-history.webp)
 
-2. Lọc theo trạng thái: **Tất cả · Nháp · Đã trả · Đã hủy · Đã hoàn**. Gõ vào ô **Tìm theo số đơn** để tìm (khớp một phần số cũng ra).
-3. Mỗi đơn ghi **Đơn số …**, nơi bán (**Mang đi** hoặc **Bàn T02**), số tiền, và **Máy khác** nếu đơn do máy khác của chi nhánh bán. Đơn đã hoàn một phần ghi thêm **Đã hoàn …**.
-4. Việc làm được với từng đơn:
+2. Lọc theo trạng thái: **Tất cả · Nháp · Đã trả · Đã hủy · Đã hoàn**. Gõ vào ô **Tìm theo số đơn** để tìm (khớp một phần số cũng ra). Không có đơn nào khớp thì màn nhắc đổi bộ lọc về **Tất cả** hoặc xóa số đang tìm.
+3. Trên máy quầy (màn rộng từ 1024px) đơn xếp thành **bảng**: **Giờ · Số · Bàn/Mang đi · Trạng thái · Tổng** — giờ là giờ khách trả (đơn **Nháp** ghi giờ mở đơn), tổng canh phải. Đơn do máy khác của chi nhánh bán ghi thêm **Máy khác**; đơn đã hoàn một phần ghi thêm **Đã hoàn …** dưới tổng. Trên điện thoại mỗi đơn là một thẻ có giờ, nơi bán, số tiền và các nút ngay trên thẻ.
+4. Chạm vào một dòng của bảng: ngăn kéo **Đơn số …** mở bên phải, ghi trạng thái, giờ mở, giờ trả, số đã hoàn và tổng; các nút nằm ở chân ngăn kéo:
    - Đơn **Nháp** (chưa trả) tại quầy: **Mở lại đơn số …** — đơn quay về màn bán tại quầy để bán tiếp.
    - Đơn **Nháp** của bàn: **Mở ở sơ đồ bàn** — máy chuyển sang sơ đồ, chạm vào bàn để mở.
-   - Đơn **Đã trả** (hoặc đã hoàn một phần): **Hoàn tiền đơn số …** (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)) và **In lại hóa đơn số …** (bill hiện lại ở màn **In lại hóa đơn**).
+   - Đơn **Đã trả** (hoặc đã hoàn một phần): **In lại hóa đơn số …** (bill hiện lại ở màn **In lại hóa đơn**) và **Hoàn tiền đơn số …** (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)).
+
+   Đóng ngăn kéo bằng nút ✕, phím Esc hoặc chạm ra ngoài.
+
+   ![Ngăn kéo của một đơn trong lịch sử](../images/may-quay/order-history-order.webp)
+
 5. Bấm **Về bán hàng** để quay lại.
 
 ## Luật và giới hạn

@@ -31,6 +31,8 @@ export interface StoredOrder {
   readonly preBillPrintedVersion: number | null;
   /** When the guests' order was opened, as the server stamped it; null in a copy without it. */
   readonly openedAt: string | null;
+  /** When it was paid, as the server stamped it; null for a draft, or a copy without it. */
+  readonly paidAt: string | null;
   /** Why a draft was cancelled or a sale refunded. */
   readonly reasonCode: string | null;
   readonly chargeProfile: OrderChargeProfile;
@@ -153,6 +155,7 @@ export function readStoredOrder(snapshot: EntitySnapshot): StoredOrder | null {
       preBillPrinted: snapshot.preBillPrinted === true,
       preBillPrintedVersion: Number.isSafeInteger(printed) ? (printed as number) : null,
       openedAt: typeof snapshot.openedAt === "string" ? snapshot.openedAt : null,
+      paidAt: typeof snapshot.paidAt === "string" ? snapshot.paidAt : null,
       reasonCode: strOrNull(snapshot, "reasonCode"),
       chargeProfile: profile.data,
       lines: lines.map((entry) => entry.line),

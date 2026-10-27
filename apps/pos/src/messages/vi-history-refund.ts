@@ -24,6 +24,20 @@ export const VI_HISTORY = {
   reprint: (no: number) => `In lại hóa đơn số ${no}`,
   reprintTitle: "In lại hóa đơn",
   back: "Về bán hàng",
+  tableLabel: "Đơn trong ngày",
+  columns: {
+    time: "Giờ",
+    number: "Số",
+    where: "Bàn/Mang đi",
+    status: "Trạng thái",
+    total: "Tổng",
+  },
+  openOrder: (no: number) => `Xem đơn số ${no}`,
+  openedAt: "Mở lúc",
+  paidAt: "Trả lúc",
+  total: "Tổng",
+  close: "Đóng, về lịch sử đơn",
+  emptyHint: "Đổi bộ lọc về “Tất cả” hoặc xóa số đang tìm.",
 } as const;
 
 export const VI_REFUND = {

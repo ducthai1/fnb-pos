@@ -83,7 +83,19 @@ export function dayHistory() {
         sent: [],
       },
     );
-    return { entity: "order", entityId: order.orderId, snapshot, source: "server" as const, serverVersion: 2 };
+    // One order every 13 minutes back from 12:40, a sale paid 6 minutes after it was opened.
+    const opened = Date.UTC(2026, 9, 21, 5, 40) - i * 13 * 60_000;
+    const times = {
+      openedAt: new Date(opened).toISOString(),
+      paidAt: status === "paid" ? new Date(opened + 6 * 60_000).toISOString() : null,
+    };
+    return {
+      entity: "order",
+      entityId: order.orderId,
+      snapshot: { ...snapshot, ...times },
+      source: "server" as const,
+      serverVersion: 2,
+    };
   });
   return orderHistory(views, "2026-10-21", DEVICE);
 }

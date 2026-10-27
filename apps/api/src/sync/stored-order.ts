@@ -32,6 +32,8 @@ export interface StoredOrder {
   readonly preBillPrintedVersion: number | null;
   /** When the order was opened, as the server decided it. */
   readonly openedAt: Date;
+  /** When the order was paid, as the server decided it; null until it is. */
+  readonly paidAt: Date | null;
   /** Why a draft was cancelled or a sale refunded. */
   readonly reasonCode: string | null;
   readonly chargeProfile: OrderChargeProfile;
@@ -70,6 +72,7 @@ interface OrderRow {
   table_tag: string | null;
   pre_bill_printed_version: number | null;
   opened_at: Date;
+  paid_at: Date | null;
   reason_code: string | null;
   charge_profile: unknown;
   refund_prices_include_tax: boolean | null;
@@ -82,7 +85,7 @@ const ORDER_COLUMNS =
   "id, branch_id, device_id, device_order_no, status, service_type, channel_key, " +
   "business_date::text AS business_date, version, refund_of_order_id, official_no, call_number, " +
   "table_id, table_name_snapshot, table_tag, pre_bill_printed_version, reason_code, " +
-  "coalesce(opened_at, created_at) AS opened_at, " +
+  "coalesce(opened_at, created_at) AS opened_at, paid_at, " +
   "charge_profile, refund_prices_include_tax, " +
   "refund_service_charge_tax_rate_bp";
 
@@ -156,6 +159,7 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     preBillPrinted: row.pre_bill_printed_version === row.version,
     preBillPrintedVersion: row.pre_bill_printed_version,
     openedAt: row.opened_at,
+    paidAt: row.paid_at,
     reasonCode: row.reason_code,
     chargeProfile: chargeProfileFromStored(row.charge_profile),
     payments: payments.rows.map((payment) => ({

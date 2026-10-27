@@ -44,7 +44,8 @@ export function expectOperationsText(name: string, text: string) {
   if (name === "close-shift") expect(text).toContain(NINE_DIGITS);
   if (name === "order-history") {
     expect(text).toContain(HOSTILE_NAMES.branch);
-    expect(text).toContain(vi.history.orderLine(999_999_939));
+    // A card writes "Đơn số …"; the till's table has the number alone in its "Số" column.
+    expect(text).toContain("999999939");
   }
   if (name === "refund") {
     expect(text).toContain(HOSTILE_NAMES.staff);

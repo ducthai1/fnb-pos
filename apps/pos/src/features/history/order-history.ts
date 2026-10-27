@@ -76,7 +76,18 @@ export function orderHistory(
         ownTill: order.deviceId === deviceId,
       };
     })
-    .sort((a, b) => b.order.deviceOrderNo - a.order.deviceOrderNo);
+    .sort(newestFirst);
+}
+
+/** When the history places an order: when it was paid, or for a draft when it was opened. */
+export const historyTimeOf = (order: StoredOrder): string | null => order.paidAt ?? order.openedAt;
+
+/** By the time the history shows, the latest first; by number where a copy has no time. */
+function newestFirst(a: HistoryEntry, b: HistoryEntry): number {
+  const at = historyTimeOf(a.order);
+  const bt = historyTimeOf(b.order);
+  if (at !== null && bt !== null && at !== bt) return Date.parse(bt) - Date.parse(at);
+  return b.order.deviceOrderNo - a.order.deviceOrderNo;
 }
 
 /** The entries of one status (all when "all") whose order number contains `search`. */

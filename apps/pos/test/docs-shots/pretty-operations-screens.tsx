@@ -166,6 +166,22 @@ export const OPERATIONS_SCREENS = {
       onBack={nothing}
     />
   ),
+  // The same day with one sale's drawer open (the capture taps its row's number).
+  "order-history-order": () => (
+    <OrderHistoryScreen
+      header={null}
+      day="2026-10-21"
+      entries={history}
+      filter="all"
+      search=""
+      onFilter={nothing}
+      onSearch={nothing}
+      onReopen={nothing}
+      onRefund={nothing}
+      onReprint={nothing}
+      onBack={nothing}
+    />
+  ),
   refund: () => (
     <RefundScreen
       header={null}

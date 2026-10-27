@@ -79,6 +79,7 @@ export function orderSnapshotOf(stored: StoredOrder): OrderSnapshot {
     preBillPrinted: stored.preBillPrinted,
     preBillPrintedVersion: stored.preBillPrintedVersion,
     openedAt: stored.openedAt.toISOString(),
+    paidAt: stored.paidAt === null ? null : stored.paidAt.toISOString(),
     reasonCode: stored.reasonCode,
     chargeProfile: chargeProfileToSnapshot(stored.chargeProfile),
     // A refund's totals are read from these amounts, so a till needs them to show it.

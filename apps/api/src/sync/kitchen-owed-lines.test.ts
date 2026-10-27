@@ -50,6 +50,7 @@ function storedWith(line: OrderLine, sentUnits: bigint, sentNote: string | null)
     preBillPrinted: false,
     preBillPrintedVersion: null,
     openedAt: new Date("2026-10-20T03:00:00.000Z"),
+    paidAt: null,
     reasonCode: null,
     chargeProfile: { pricesIncludeTax: true, serviceCharge: null },
     payments: [],
