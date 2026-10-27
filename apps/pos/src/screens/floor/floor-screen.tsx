@@ -1,4 +1,4 @@
-import { LayoutGrid, Map as MapIcon } from "lucide-react";
+import { Armchair, LayoutGrid, ListFilter, Map as MapIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import type { FloorArea } from "../../features/floor/floor-occupancy";
 import { planBoxOf, planReadable } from "../../features/floor/floor-plan-box";
@@ -75,7 +75,7 @@ export function FloorScreen(props: FloorScreenProps) {
           <LoadingState title={F.loading} />
         ) : null
       ) : areas.length === 0 ? (
-        <EmptyState title={F.noPlan} />
+        <EmptyState icon={Armchair} title={F.noPlan} />
       ) : (
         <>
           <div className="pos-tabs pos-area-tabs" role="tablist" aria-label={F.areasLabel}>
@@ -99,7 +99,7 @@ export function FloorScreen(props: FloorScreenProps) {
               )}
             </div>
             {box === null ? null : (
-              <div className="pos-tabs" role="group" aria-label={F.viewLabel}>
+              <div className="pos-tabs pos-segmented" role="group" aria-label={F.viewLabel}>
                 <button
                   type="button"
                   className="pos-tab"
@@ -122,10 +122,15 @@ export function FloorScreen(props: FloorScreenProps) {
             )}
             <FloorLegend tables={inArea} />
           </div>
-          {inArea.length === 0 ? <EmptyState title={F.emptyArea} /> : null}
-          {inArea.length > 0 && shown.length === 0 ? <EmptyState title={F.noneShown} /> : null}
+          {inArea.length === 0 ? (
+            <EmptyState icon={Armchair} title={F.emptyArea} body={F.emptyAreaHint} />
+          ) : null}
+          {inArea.length > 0 && shown.length === 0 ? (
+            <EmptyState icon={ListFilter} title={F.noneShown} body={F.noneShownHint} />
+          ) : null}
           {box !== null && view === "plan" ? (
             <FloorPlan
+              key={areaId}
               box={box}
               tables={inArea}
               shown={new Set(shown.map((table) => table.id))}
@@ -133,7 +138,7 @@ export function FloorScreen(props: FloorScreenProps) {
               onOpen={props.onOpenTable}
             />
           ) : (
-            <ul className="pos-table-grid" aria-label={F.title}>
+            <ul key={areaId} className="pos-table-grid" aria-label={F.title}>
               {shown.map((table) => (
                 <li key={table.id}>
                   <TableTile table={table} now={now} onOpen={() => props.onOpenTable(table)} />

@@ -148,3 +148,31 @@
   background: var(--c-brand);
   color: var(--c-on-brand);
 }
+
+/* A switch between two or three ways to see the same thing (the floor as a plan or a grid,
+   the history's days): one soft track, the chosen side a raised card, as the order's
+   "Mang đi / Tại chỗ". */
+.pos-tabs.pos-segmented[role="group"] {
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+}
+
+.pos-tabs.pos-segmented[role="group"] > .pos-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding-inline: var(--sp-4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-text-2);
+}
+
+.pos-tabs.pos-segmented[role="group"] > .pos-tab[aria-pressed="true"] {
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  color: var(--c-text);
+}

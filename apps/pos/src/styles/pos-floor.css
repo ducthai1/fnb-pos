@@ -5,8 +5,8 @@
 
 .pos-table-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
-  gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr));
+  gap: var(--sp-4);
   margin: 0;
   padding: 0;
   list-style: none;

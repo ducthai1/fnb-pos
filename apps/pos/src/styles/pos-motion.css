@@ -33,6 +33,12 @@
   animation: pos-swap-b var(--t-state) var(--ease-out);
 }
 
+/* Another area of the floor: its tables fade in where the last area's stood. */
+.pos-table-grid,
+.pos-plan {
+  animation: pos-swap-a var(--t-state) var(--ease-out);
+}
+
 /* Every tappable thing gives under the finger the same way. */
 .pos-table,
 .pos-chip,
