@@ -68,6 +68,16 @@ const refundsOf = (saleId: string) =>
   });
 
 describe("order.refund", () => {
+  it("refuses to give a cash sale back by bank transfer", async () => {
+    const { orderId, lineId } = await paidSale();
+    const sent = refund(s.tillB, orderId, cups(lineId, "1"), -25_667);
+    const payload = sent.payload as { payouts: { method: string; amount: number }[] };
+    payload.payouts = [{ method: "bank_transfer", amount: -25_667 }];
+    const result = await pushOne(app, s.tillB, sent);
+    expect(result).toMatchObject({ status: "rejected", code: "SYNC_REFUND_METHOD_NOT_ALLOWED" });
+    expect(await refundsOf(orderId)).toEqual([]);
+  });
+
   // What each refund gives back, worked out from the sale's own discount share per cup;
   // the last one takes the rounding đồng, so every split adds up to the 77.000đ paid.
   it.each([

@@ -156,6 +156,7 @@ export function CounterCheckout(props: CounterCheckoutProps) {
       client={client}
       place={place}
       orderId={order.orderId}
+      shiftId={props.shiftId}
       subtitle={`${S.orderNumber(order.deviceOrderNo)} · ${where}`}
       amountDue={priced.totals.amountDue}
       account={account}

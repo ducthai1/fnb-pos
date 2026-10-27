@@ -4,12 +4,15 @@ import {
   type PaymentIntentSnapshot,
   cancelPaymentIntentPayloadSchema,
   createPaymentIntentPayloadSchema,
+  handBackQrExcessPayloadSchema,
 } from "@fnb/contracts";
-import type { Vnd } from "@fnb/domain";
-import { buildVietQrPayload, contentCodeFromRandom } from "@fnb/domain/payment";
+import { type Vnd, vnd } from "@fnb/domain";
+import { buildVietQrPayload, contentCodeFromRandom, qrExcess } from "@fnb/domain/payment";
 import type { LocalCommand } from "@fnb/sync-client";
 import { newId } from "../ids/new-id";
 import { type TillPlace, moneyToWire, tillCommand } from "../order/till-command";
+import { shiftAfterMove } from "../shift/shift-commands";
+import type { StoredShift } from "../shift/stored-shift";
 
 /**
  * How long the server keeps a QR payable from when it hears of it. The till shows this
@@ -96,6 +99,38 @@ export function cancelQrCommand(
       entity: PAYMENT_INTENT_ENTITY,
       entityId: intent.id,
       optimistic: { ...intent, status: "cancelled", version: intent.version + 1 },
+    },
+  );
+}
+
+/** What an over transfer brought beyond its QR: the cash the cashier hands back. */
+export function excessOf(intent: PaymentIntentSnapshot): Vnd {
+  return qrExcess(vnd(intent.amount), vnd(intent.receivedAmount ?? intent.amount));
+}
+
+/**
+ * payment.hand_back_excess: the order was closed with an over-paid QR at its own amount and
+ * the cashier hands the excess back from the drawer; the till expects the shift's drawer to
+ * hold that much less. The server checks the excess against the bank's figures.
+ */
+export function handBackExcessCommand(
+  place: TillPlace,
+  shift: StoredShift,
+  intent: PaymentIntentSnapshot,
+  at: number,
+): LocalCommand {
+  const excess = excessOf(intent);
+  const payload = { intentId: intent.id, cashMoveId: newId(), amount: moneyToWire(excess) };
+  return tillCommand(
+    place,
+    "payment.hand_back_excess",
+    handBackQrExcessPayloadSchema,
+    payload,
+    at,
+    {
+      entity: "shift",
+      entityId: shift.id,
+      optimistic: shiftAfterMove(shift, shift.openedByStaffId, { kind: "out", amount: excess }),
     },
   );
 }

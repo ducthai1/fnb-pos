@@ -6,6 +6,7 @@ import {
   paymentIntentSnapshotSchema,
 } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
+import { qrTenderAmount } from "@fnb/domain/payment";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { type TillPlace, tillCommand } from "../order/till-command";
 import { PAYMENT_METHODS, type Tender } from "./tenders";
@@ -34,11 +35,34 @@ export async function paidQrOfOrder(
   return null;
 }
 
-/** The transfer a paid QR brought, as the tender that pays the order with it. */
+/**
+ * The QRs of the order the bank paid short, as this till last heard of them: what they
+ * brought pays part of the order, and the next tender brings exactly the rest.
+ */
+export async function shortQrsOfOrder(
+  client: Pick<SyncClient, "snapshots">,
+  orderId: string,
+): Promise<PaymentIntentSnapshot[]> {
+  const short: PaymentIntentSnapshot[] = [];
+  for (const view of await client.snapshots(PAYMENT_INTENT_ENTITY)) {
+    const intent = readIntentSnapshot(view.snapshot);
+    if (intent !== null && intent.orderId === orderId && intent.status === "partial") {
+      short.push(intent);
+    }
+  }
+  return short.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/**
+ * The transfer a settled QR brought, as the tender that pays the order with it: what it
+ * asked for when paid exactly, all it brought when short.
+ */
 export function qrTenderOf(intent: PaymentIntentSnapshot): Tender {
+  const settlement = intent.status === "partial" ? "partial" : "paid";
+  const received = vnd(intent.receivedAmount ?? intent.amount);
   return {
     method: PAYMENT_METHODS.qrTransfer,
-    amount: vnd(intent.amount),
+    amount: qrTenderAmount(settlement, vnd(intent.amount), received),
     paymentIntentId: intent.id,
   };
 }

@@ -1,4 +1,8 @@
-import { cashMovePayloadSchema, closeShiftPayloadSchema } from "@fnb/contracts";
+import {
+  type EntitySnapshot,
+  cashMovePayloadSchema,
+  closeShiftPayloadSchema,
+} from "@fnb/contracts";
 import {
   type ClosingAssessment,
   type DenominationCount,
@@ -26,14 +30,12 @@ export interface CashMove {
   readonly approvalId: string | null;
 }
 
-/** shift.cash_move; the till expects the shift's book with the move in it. */
-export function cashMoveCommand(
-  place: TillPlace,
+/** The shift as the till expects it once `move` went through its drawer. */
+export function shiftAfterMove(
   shift: StoredShift,
   staffId: string,
-  move: CashMove,
-  at: number,
-): LocalCommand {
+  move: Pick<CashMove, "kind" | "amount">,
+): EntitySnapshot {
   const { figures } = shift;
   const after = summarizeShiftCash({
     openingCash: figures.openingCash,
@@ -45,6 +47,17 @@ export function cashMoveCommand(
       { kind: move.kind === "in" ? "cash_in" : "cash_out", amount: move.amount, staffId },
     ],
   });
+  return { ...shift.row, version: shift.version + 1, figures: figuresOnWire(after) };
+}
+
+/** shift.cash_move; the till expects the shift's book with the move in it. */
+export function cashMoveCommand(
+  place: TillPlace,
+  shift: StoredShift,
+  staffId: string,
+  move: CashMove,
+  at: number,
+): LocalCommand {
   const payload = {
     cashMoveId: newId(),
     kind: move.kind,
@@ -55,7 +68,7 @@ export function cashMoveCommand(
   return tillCommand(place, "shift.cash_move", cashMovePayloadSchema, payload, at, {
     entity: "shift",
     entityId: shift.id,
-    optimistic: { ...shift.row, version: shift.version + 1, figures: figuresOnWire(after) },
+    optimistic: shiftAfterMove(shift, staffId, move),
   });
 }
 

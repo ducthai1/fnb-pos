@@ -9,6 +9,8 @@ decisions:
   - D-052
   - D-059
   - D-064
+  - D-080
+  - D-081
 tests:
   - apps/backoffice/src/components/payments/transfers-screen.test.tsx
   - apps/backoffice/src/components/payments/refund-due-list.test.tsx
@@ -18,6 +20,9 @@ tests:
   - apps/api/test/integration/payments/qr-money-handed-back-to-the-customer.test.ts
   - apps/api/test/integration/payments/qr-money-handed-back-after-the-day-closed.test.ts
   - apps/api/test/integration/payments/qr-money-handed-back-keys-and-tenants.test.ts
+  - apps/api/test/integration/payments/qr-short-transfer-finished-at-the-counter.test.ts
+  - apps/api/test/integration/payments/qr-over-transfer-handed-back-from-the-drawer.test.ts
+  - apps/api/test/integration/payments/qr-money-handed-back-from-a-shift-drawer.test.ts
   - e2e/backoffice/hand-back-qr-money.spec.ts
 ---
 
@@ -50,9 +55,14 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 
 ### Ghi đã hoàn tiền QR cho khách
 
-6. Ở **Cần hoàn cho khách**, mỗi dòng ghi "Mã …: đã nhận X (mã QR yêu cầu Y) — cần hoàn cho khách".
+6. Ở **Cần hoàn cho khách**, mỗi dòng ghi "Mã …: đã nhận X (mã QR yêu cầu Y) — cần hoàn cho khách". Đơn đã đóng bằng mã QR khách chuyển thừa thì dòng ghi "Mã …: đã nhận X, đơn đã thu Y — cần hoàn phần thừa Z cho khách": chỉ **phần thừa** Z phải trả.
 7. **Trả tiền cho khách trước** (tiền mặt, hoặc chuyển khoản lại cho khách).
-8. Bấm **Đã hoàn cho khách**, chọn **Hoàn bằng** (Tiền mặt / Chuyển khoản lại), ghi **Ghi chú (hoàn cho ai, vì sao)**, bấm **Ghi đã hoàn**.
+8. Bấm **Đã hoàn cho khách**, chọn **Hoàn bằng**:
+   - **Tiền mặt từ két (chọn ca đang mở)**: chọn ca có két đã lấy tiền ra (máy · người mở ca · giờ mở). Hệ thống ghi luôn một khoản **chi két** "Trả lại tiền QR cho khách" vào ca đó: tiền dự kiến của ca **giảm đúng số đã hoàn**, cuối ca két vẫn khớp.
+   - **Tiền mặt ngoài két**: tiền lấy từ chỗ khác (két sắt, túi chủ quán) — không ca nào bị trừ.
+   - **Chuyển khoản**: chuyển lại cho khách từ tài khoản cửa hàng.
+
+   Ghi **Ghi chú (hoàn cho ai, vì sao)**, bấm **Ghi đã hoàn**.
 9. Trang báo "Đã ghi: hoàn X của mã QR … cho khách."
 
 ## Luật và giới hạn
@@ -62,8 +72,10 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 - Không khớp được vào đơn đã trả bằng cách khác, đã hủy, hoặc đã có QR khác nhận đủ: khi đó tiền đó là tiền **cần hoàn cho khách**.
 - Khớp tay và ghi đã hoàn đều **không sửa, không hủy được**, và được ghi nhật ký.
 - **Chỉ ghi đã hoàn khi tiền đã thật sự trả lại khách.** Ghi chú và cách hoàn là bắt buộc.
-- Tiền QR đã hoàn **không phải doanh thu**: nó vào báo cáo **ngày ghi hoàn** ở dòng "Tiền QR đã hoàn lại khách", và **không trừ vào két của ca nào** — hoàn bằng tiền mặt từ két thì két ca sẽ lệch đúng số đó, cần ghi chú khi đóng ca.
+- Tiền QR đã hoàn **không phải doanh thu**: nó vào báo cáo **ngày ghi hoàn** ở dòng "Tiền QR đã hoàn lại khách". Chỉ cách **Tiền mặt từ két** trừ vào két: ca được chọn phải **đang mở** và **cùng chi nhánh** với mã QR; ca đã đóng thì bị từ chối (két đã đếm xong). Khoản chi két và dấu "đã hoàn" được ghi **cùng một lúc** — không có chuyện ghi được cái này mà thiếu cái kia.
 - Hoàn sau khi ngày của tiền đó đã chốt: vẫn ghi được, báo cáo ngày đã chốt không đổi, và mục này được liệt kê riêng ở [Chốt ngày](11-chot-ngay.md).
+- Khoản **chuyển thừa** mà thu ngân đã **Thối lại tiền mặt** ở quầy thì không vào danh sách này: máy quầy đã ghi "đã hoàn" (cách hoàn: tiền mặt từ két) và một khoản chi két của ca. Báo cáo ngày vẫn có nó ở dòng "Tiền QR đã hoàn lại khách".
+- Khoản **chuyển thiếu** của đơn còn mở vẫn nằm ở "cần hoàn", nhưng thu ngân có thể **dùng nó trả đơn** (thu nốt phần còn lại bằng tiền mặt hoặc QR mới): đơn trả xong thì dòng đó **tự biến mất**. Đã ghi "đã hoàn" thì máy quầy không dùng khoản đó trả đơn được nữa — nên chỉ ghi hoàn khi khách thật sự lấy lại tiền.
 - Tiền ngân hàng báo về **không bao giờ bị bỏ qua**: hoặc khớp đơn, hoặc nằm trong "chưa khớp", hoặc trong "cần hoàn".
 
 ## Khi có lỗi
@@ -75,7 +87,11 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 | Mã QR này đã được trả hoặc đã hủy, không nhận thêm giao dịch. | Chọn mã khác; tiền thừa sẽ nằm ở "cần hoàn" |
 | Giao dịch vào tài khoản của chi nhánh khác với mã QR này. | Đổi chi nhánh đang xem |
 | Đơn của mã QR này đã trả bằng cách khác, đã hủy, hoặc đã có QR khác nhận đủ tiền. Không khớp được: tiền này cần hoàn lại cho khách. | Hoàn tiền cho khách |
-| Chọn hoàn bằng tiền mặt hay chuyển khoản lại. / Ghi chú hoàn cho ai, vì sao. | Điền đủ |
+| Chọn hoàn bằng tiền mặt từ két, tiền mặt ngoài két hay chuyển khoản. / Ghi chú hoàn cho ai, vì sao. | Điền đủ |
+| Chọn ca có két đã lấy tiền ra trả khách. | Chọn một ca ở ô **Ca đang mở** |
+| Chi nhánh không có ca nào đang mở: chọn tiền mặt ngoài két hoặc chuyển khoản. | Không có két nào đang mở để trừ |
+| Ca này đã đóng nên không ghi chi két vào được. Chọn ca đang mở, hoặc tiền mặt ngoài két. | Ca vừa đóng; làm mới trang, chọn lại |
+| Không tìm thấy ca này ở chi nhánh của mã QR. Làm mới danh sách rồi chọn lại ca. | Làm mới trang |
 | Tiền của mã QR này không phải tiền cần hoàn: … Làm mới danh sách. | Máy quầy còn có thể dùng tiền đó; tải lại trang |
 | Tiền của mã QR này đã được ghi là đã hoàn cho khách. Làm mới danh sách. | Người khác vừa ghi; không ghi lại |
 | Khớp tay cần quyền quản lý cài đặt. / Ghi đã hoàn tiền cần quyền quản lý cài đặt. | Nhờ chủ quán |
@@ -86,6 +102,5 @@ Trang cần mạng. Ở máy quầy, mã QR tạo được khi mất mạng như
 
 ## Chưa làm / sắp có
 
-- Chưa tự ghi "chi két" khi hoàn tiền QR bằng tiền mặt từ két (đang chờ chủ dự án quyết).
 - Chưa tách được một giao dịch cho nhiều đơn.
 - Chưa có đối soát sao kê ngân hàng theo ngày.

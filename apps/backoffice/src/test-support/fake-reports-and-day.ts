@@ -93,5 +93,8 @@ export function unmatchedPayments(): UnmatchedPayments {
     ],
     openIntents: [intent(20, "FNBA1B2C3D4", 35_000, "expired", null), intent(21, "FNBZ9Y8X7W6", 64_000, "pending", null)],
     refundDue: [intent(30, "FNBR5S6T7V8", 50_000, "overpaid", 70_000)],
+    openShifts: [
+      { id: id(40), deviceName: "Quầy 1", openedByName: "Lan", openedAt: "2026-10-20T01:00:00.000Z" },
+    ],
   } as UnmatchedPayments;
 }

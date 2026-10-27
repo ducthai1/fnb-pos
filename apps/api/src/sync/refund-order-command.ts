@@ -31,9 +31,28 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * own open shift), exactly as a sale's cash goes in, so the shift expects that much less.
  * Returns the refund's order id.
  */
+/**
+ * A refund goes back by bank transfer only when the customer paid the sale by a QR transfer:
+ * a cash sale handed back "by transfer" would let money leave the shop to an account nobody
+ * paid from, with nothing to check it against.
+ */
+async function assertRefundGoesBackTheWayItCame(
+  context: SyncCommandContext,
+  saleId: string,
+  payouts: RefundOrderPayload["payouts"],
+) {
+  if (!payouts.some((payout) => payout.method === "bank_transfer")) return;
+  const { rows } = await context.client.query<{ by_qr: boolean }>(
+    "SELECT EXISTS (SELECT 1 FROM payment WHERE order_id = $1 AND method = 'qr_transfer') AS by_qr",
+    [saleId],
+  );
+  if (rows[0]?.by_qr !== true) throw new CommandRejection(SYNC_ERROR_CODES.refundMethodNotAllowed);
+}
+
 async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayload) {
   const { client, device, staffId, time } = context;
   const sale = await orderOfBranch(context, payload.saleOrderId);
+  await assertRefundGoesBackTheWayItCame(context, sale.order.id, payload.payouts);
   if ((await readStoredOrder(client, payload.refundOrderId, false)) !== null) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderIdTaken);
   }

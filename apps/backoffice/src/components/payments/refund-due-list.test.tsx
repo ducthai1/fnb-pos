@@ -62,6 +62,25 @@ describe("marking QR money handed back to the customer", () => {
     await waitFor(() => expect(listUnmatched).toHaveBeenCalledTimes(2));
   });
 
+  it("names the open shift whose drawer the cash came out of", async () => {
+    const handBackQrMoney = mock.fn(async () => ok({ ...REFUND, method: "cash_from_drawer" }));
+    const { row } = await openOwed({ handBackQrMoney });
+    const panel = startHandBack(row);
+    fireEvent.click(
+      within(panel).getByRole("radio", { name: T.handBackMethods.cash_from_drawer! }),
+    );
+    expect(within(panel).getByLabelText(T.handBackShift)).toBeTruthy();
+    expect(within(panel).getByText(T.handBackFromDrawerHint)).toBeTruthy();
+    fill(panel, null, "Trả lại chị Lan");
+    await waitFor(() =>
+      expect(handBackQrMoney).toHaveBeenCalledWith(OWED.id, {
+        method: "cash_from_drawer",
+        note: "Trả lại chị Lan",
+        fromShiftId: fixtureId(40),
+      }),
+    );
+  });
+
   it("keeps the row and the form while the server has not answered", async () => {
     let answer: (value: ReturnType<typeof ok<QrRefund>>) => void = () => {};
     const handBackQrMoney = mock.fn(

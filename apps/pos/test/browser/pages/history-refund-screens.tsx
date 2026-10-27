@@ -51,6 +51,7 @@ export const HISTORY_REFUND_SCREENS = {
   ),
   refund: () => (
     <RefundScreen
+      transferAllowed
       header={null}
       orderNo={999_999_999}
       lines={HOSTILE_REFUND_LINES}

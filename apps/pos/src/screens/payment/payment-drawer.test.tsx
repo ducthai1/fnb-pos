@@ -216,3 +216,41 @@ describe("the payment drawer's e-wallet cards", () => {
     expect(calls.wallets).toEqual([]);
   });
 });
+
+describe("the payment drawer after a QR came short", () => {
+  it("keeps what the bank brought on the cash card and takes exactly the rest in cash", () => {
+    const short: Tender = {
+      method: "qr_transfer",
+      amount: vnd(45_000),
+      paymentIntentId: "0190f0aa-0000-7000-8000-000000000001",
+    };
+    const paid: (readonly Tender[])[] = [];
+    render(
+      <PaymentDrawer
+        amountDue={vnd(50_000)}
+        qrAccountSet
+        initialWay="qr"
+        onQr={() => undefined}
+        onLeaveQr={async () => true}
+        qrPanel={(_back, cashFor) => (
+          <button type="button" onClick={() => cashFor([short])}>
+            rest in cash
+          </button>
+        )}
+        qrBusy={false}
+        onBack={() => undefined}
+        onPaid={async (tenders) => void paid.push(tenders)}
+      />,
+    );
+    tap("rest in cash");
+    expect(shown("remaining")).toBe("5000");
+    const method = text.checkout.methods.qr_transfer;
+    expect(
+      screen.queryByRole("button", { name: T.removeTender(method, money(45_000)) }),
+    ).toBeNull();
+    fireEvent.change(screen.getByLabelText(T.cashTyped), { target: { value: "5.000" } });
+    tap(T.addCash);
+    tap(T.finish);
+    expect(paid).toEqual([[short, { method: "cash", amount: 5_000n }]]);
+  });
+});

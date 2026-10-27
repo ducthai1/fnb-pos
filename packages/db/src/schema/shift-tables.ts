@@ -10,8 +10,12 @@ export const cashMove = pgTable("cash_move", {
   kind: text("kind").notNull(),
   amount: money("amount").notNull(),
   reason: text("reason").notNull(),
-  staffId: uuid("staff_id").notNull(),
+  /** Who moved the cash: a till's staff member, or a backoffice user handing QR money back. */
+  staffId: uuid("staff_id"),
+  appUserId: uuid("app_user_id"),
   approvalId: uuid("approval_id"),
+  /** The QR whose money this cash handed back to the customer; see 0033. */
+  paymentIntentId: uuid("payment_intent_id"),
 });
 
 /** The notes of one denomination counted at a shift's opening or closing. */

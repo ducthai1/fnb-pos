@@ -11,10 +11,18 @@ export const VI_SYNC_ERRORS = {
   SYNC_PAYMENT_CONTENT_CODE_TAKEN:
     "Nội dung chuyển khoản trùng với một mã QR trong tuần qua. Tạo QR mới.",
   SYNC_PAYMENT_INTENT_OF_ANOTHER_ORDER: "Mã QR này thuộc đơn khác, không dùng trả đơn này được.",
-  SYNC_PAYMENT_INTENT_NOT_PAID:
-    "Ngân hàng chưa báo nhận đủ tiền cho mã QR này (chưa chuyển, chuyển thiếu hoặc thừa).",
-  SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH: "Số tiền ghi cho khoản chuyển khoản khác số tiền của mã QR.",
+  SYNC_PAYMENT_INTENT_NOT_PAID: "Ngân hàng chưa báo nhận tiền cho mã QR này.",
+  SYNC_PAYMENT_NO_EXCESS_TO_HAND_BACK:
+    "Mã QR này không có tiền thừa để thối lại (khách không chuyển thừa, hoặc đơn chưa đóng bằng mã này).",
+  SYNC_PAYMENT_EXCESS_AMOUNT_MISMATCH:
+    "Số tiền thối lại khác phần thừa ngân hàng báo về. Khoản thừa vẫn nằm trong danh sách cần hoàn ở trang quản lý.",
+  SYNC_PAYMENT_INTENT_HANDED_BACK:
+    "Tiền của mã QR này đã được quản lý trả lại khách, nên không dùng trả đơn được nữa. Thu cách khác.",
+  SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH:
+    "Số tiền ghi cho khoản chuyển khoản khác số máy chủ tính cho mã QR (đủ: số của mã; thiếu: số ngân hàng báo về).",
   SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE: "Tổng các khoản đã thu khác số tiền cần thu của đơn.",
+  SYNC_REFUND_METHOD_NOT_ALLOWED:
+    "Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két.",
   DOMAIN_ORDER_TOTAL_MISMATCH:
     "Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại.",
   DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION:
@@ -39,6 +47,7 @@ const VI_COMMAND_NAMES: Readonly<Record<string, string>> = {
   "order.mark_sent_to_kitchen": "Gửi phiếu pha chế",
   "payment.create_intent": "Tạo mã QR chuyển khoản",
   "payment.cancel_intent": "Gỡ mã QR chuyển khoản",
+  "payment.hand_back_excess": "Thối lại tiền chuyển thừa",
   "shift.open": "Mở ca",
   "print.job_reported": "Báo kết quả in",
   "order.mark_pre_bill_printed": "In tạm tính",

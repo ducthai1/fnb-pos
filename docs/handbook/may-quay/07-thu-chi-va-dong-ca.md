@@ -14,6 +14,7 @@ decisions:
   - D-061
   - D-076
   - D-078
+  - D-080
 tests:
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -26,6 +27,7 @@ tests:
   - apps/api/test/integration/shift/open-orders-carry-to-next-shift.test.ts
   - apps/api/test/integration/shift/closed-shift-is-immutable.test.ts
   - apps/api/test/integration/config/config-changes-reach-the-tills-under-their-scope.test.ts
+  - apps/api/test/integration/payments/qr-over-transfer-handed-back-from-the-drawer.test.ts
   - e2e/pos/close-shift-with-count.spec.ts
 ---
 
@@ -72,9 +74,10 @@ tests:
 - Ngưỡng thu/chi **cộng dồn trong cả ca**, **mọi nhân viên trên két đó cộng chung**, tính theo độ lớn (thu 400.000 rồi chi 400.000 là 800.000 đ đã qua tay). Không chia nhỏ để lách được.
 - Lý do thu/chi **bắt buộc**, tối đa **200 ký tự**. Số tiền chỉ gồm chữ số, lớn hơn 0.
 - **Mức lệch cho phép** mặc định là **0 đ**: chưa cài thì **mọi** lần lệch (dù 1.000 đ) đều cần quản lý duyệt. Lệch trong mức cho phép (tính cả hai chiều thiếu/thừa) thì tự đóng: chênh lệch **vẫn được ghi lại** trên ca và phiếu chốt ca, chỉ không cần quản lý xác nhận.
-- Chỉ có **một** mức, cho **tiền mặt**: két chỉ chứa tiền mặt; tiền QR khớp bằng tin ngân hàng (thiếu/thừa xử lý ở trang quản lý), không đếm ở két.
+- Chỉ có **một** mức, cho **tiền mặt**: két chỉ chứa tiền mặt; tiền QR khớp bằng tin ngân hàng, không đếm ở két (khách chuyển thiếu thì thu nốt ở quầy, thừa thì thối lại từ két — xem [04-thanh-toan.md](04-thanh-toan.md)).
 - Quản lý duyệt **đúng con số lệch của đúng ca đang đóng**; lần duyệt thu/chi két cũng chỉ dùng cho ca đang mở lúc duyệt. Nếu máy chủ tính ra con số khác (ví dụ có đơn vừa trả tiền mặt vào ca ở máy khác), máy báo con số của máy chủ và xin duyệt lại cho số đó.
 - **Được đóng ca khi bàn còn khách**: đơn bàn chưa trả **chuyển sang ca sau** (đơn tính vào ca lúc thanh toán).
+- **Thối lại tiền chuyển thừa** ở ngăn thanh toán (khách chuyển khoản QR thừa) tự ghi một khoản **chi két** lý do "Trả lại tiền chuyển thừa" vào ca đang mở của máy, đúng số thừa; nó cộng vào ngưỡng thu/chi của ca như mọi khoản chi. Không cần ghi tay thêm.
 - Ca đã đóng **không sửa được**. Tiền của đơn bán lúc mất mạng tới máy chủ sau khi ca đã đóng vẫn thuộc ca lúc bán (được đánh dấu "ghi sau khi đóng ca").
 
 ## Khi có lỗi

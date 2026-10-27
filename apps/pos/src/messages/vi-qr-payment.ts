@@ -15,10 +15,14 @@ export const VI_QR_PAYMENT = {
     drawing: "Đang tạo mã QR…",
     waiting: "Đưa mã cho khách quét. Máy tự chuyển sang “đã nhận” khi ngân hàng báo tiền về.",
     paid: "Đã nhận đủ tiền chuyển khoản. Đang hoàn tất đơn…",
-    short: (gap: string) => `Khách chuyển thiếu ${gap} — xử lý ở quầy.`,
-    over: (gap: string) => `Khách chuyển thừa ${gap} — xử lý ở quầy.`,
+    short: (gap: string) => `Khách chuyển thiếu ${gap}.`,
+    over: (gap: string) => `Khách chuyển thừa ${gap}.`,
+    shortHint:
+      "Đơn chưa đóng. Thu nốt phần thiếu bằng tiền mặt hoặc một mã QR mới đúng số đó. Khách không trả nữa thì chọn Thu cách khác: khoản đã chuyển vào danh sách cần hoàn ở trang quản lý.",
     gapHint:
       "Đơn chưa được đóng. Thu đủ bằng cách khác; khoản khách đã chuyển nằm trong danh sách cần hoàn ở trang quản lý.",
+    overHint:
+      "Đơn đóng bằng đúng số tiền của mã QR. Thối phần thừa bằng tiền mặt trong két (máy ghi một khoản chi két), hoặc đóng đơn để quản lý hoàn sau ở trang quản lý.",
     expired: "Mã QR đã hết hạn. Nếu khách chưa chuyển, tạo mã mới.",
     expiredLate:
       "Mã QR đã hết hạn và có tiền chuyển đến muộn. Báo quản lý khớp tay trước khi thu lại của khách.",
@@ -28,6 +32,10 @@ export const VI_QR_PAYMENT = {
   cancel: "Hủy QR",
   renew: "Tạo QR mới",
   otherMethod: "Thu cách khác",
+  cashForRest: (gap: string) => `Thu nốt ${gap} tiền mặt`,
+  qrForRest: (gap: string) => `QR cho phần còn lại ${gap}`,
+  handBackCash: (gap: string) => `Thối lại ${gap} tiền mặt`,
+  closeOverLater: "Đóng đơn, quản lý hoàn sau",
   retryPay: "Hoàn tất bằng chuyển khoản đã nhận",
   closeWithSettledQr: "Đóng đơn bằng QR đã nhận",
   openShiftToClose: "Mở ca để đóng đơn này",

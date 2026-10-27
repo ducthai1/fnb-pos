@@ -32,14 +32,17 @@ export function CashBalance({
                 <span className="pos-tender__text pos-wrap">
                   {method} {formatVnd(tender.amount)}
                 </span>
-                <button
-                  type="button"
-                  className="pos-button pos-button--quiet pos-button--sm"
-                  aria-label={T.removeTender(method, formatVnd(tender.amount))}
-                  onClick={() => onRemove(index)}
-                >
-                  <Icon of={X} />
-                </button>
+                {/* What a QR brought is the bank's: it stays, the rest is taken beside it. */}
+                {tender.paymentIntentId !== undefined ? null : (
+                  <button
+                    type="button"
+                    className="pos-button pos-button--quiet pos-button--sm"
+                    aria-label={T.removeTender(method, formatVnd(tender.amount))}
+                    onClick={() => onRemove(index)}
+                  >
+                    <Icon of={X} />
+                  </button>
+                )}
               </li>
             );
           })}

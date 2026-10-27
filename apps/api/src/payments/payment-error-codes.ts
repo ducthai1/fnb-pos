@@ -15,8 +15,20 @@ export const PAYMENT_SYNC_ERROR_CODES = {
   intentOfAnotherOrder: "SYNC_PAYMENT_INTENT_OF_ANOTHER_ORDER",
   /** order.pay named an intent no transfer has paid exactly (pending, partial, overpaid…). */
   intentNotPaid: "SYNC_PAYMENT_INTENT_NOT_PAID",
-  /** order.pay put down a different amount than the intent's. */
+  /** order.pay named an intent whose money a person already handed back to the customer. */
+  intentHandedBack: "SYNC_PAYMENT_INTENT_HANDED_BACK",
+  /**
+   * order.pay put down a different amount than the intent pays: what it asked for when paid
+   * exactly or over, what the bank brought when short.
+   */
   intentAmountMismatch: "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
+  /**
+   * payment.hand_back_excess named a QR with no excess for the till to hand back: not paid
+   * over, or no sale was closed with it yet (then all of it is the customer's).
+   */
+  noExcessToHandBack: "SYNC_PAYMENT_NO_EXCESS_TO_HAND_BACK",
+  /** payment.hand_back_excess put down another amount than the bank's excess. */
+  excessAmountMismatch: "SYNC_PAYMENT_EXCESS_AMOUNT_MISMATCH",
   /**
    * The bank paid a QR of the order exactly and nothing uses that money yet: the order is
    * closed with that QR (order.pay naming it), not in cash, cancelled, or billed again.
@@ -58,6 +70,10 @@ export const PAYMENT_ROUTE_ERROR_CODES = {
    * the money, or the till may still close the QR's open order with it.
    */
   notOwedToCustomer: "API_PAYMENT_NOT_OWED_TO_CUSTOMER",
+  /** Handing back from a drawer named no shift of the QR's branch. */
+  shiftNotFound: "API_PAYMENT_SHIFT_NOT_FOUND",
+  /** Handing back from a drawer whose shift is closed: its count is final. */
+  shiftNotOpen: "API_PAYMENT_SHIFT_NOT_OPEN",
   /** The QR's money was marked handed back already: once is all it can be. */
   alreadyHandedBack: "API_PAYMENT_ALREADY_HANDED_BACK",
 } as const;

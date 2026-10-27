@@ -74,7 +74,8 @@ export async function readDayStatus(
     [branchId, businessDate],
   );
   const qrRefunds = await client.query<{ id: string; amount: string; method: string }>(
-    "SELECT id, received_amount AS amount, refund_method AS method FROM payment_intent " +
+    "SELECT id, COALESCE(refund_amount, received_amount) AS amount, refund_method AS method " +
+      "FROM payment_intent " +
       "WHERE branch_id = $1 AND refund_business_date = $2 AND refunded_after_day_close " +
       "ORDER BY refunded_at, id",
     [branchId, businessDate],

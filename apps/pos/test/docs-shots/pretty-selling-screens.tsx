@@ -60,7 +60,12 @@ export function tillHeader(mode: "counter" | "tables", status: TillSyncStatus = 
   );
 }
 
-const adjust = { onVoid: nothing, onDiscount: nothing, onDiscountOrder: nothing, onCancelOrder: nothing };
+const adjust = {
+  onVoid: nothing,
+  onDiscount: nothing,
+  onDiscountOrder: nothing,
+  onCancelOrder: nothing,
+};
 /** What the sample café sells most of, as the till reads it from its own sales. */
 const BEST_SELLERS: ReadonlySet<string> = new Set([P["Cà phê sữa đá"]!, P["Trà đào cam sả"]!]);
 export const saleScreen = (status?: TillSyncStatus) => (
@@ -88,7 +93,11 @@ const overTheSale = (drawer: ReactElement) => (
   </>
 );
 const due = PRICED.totals.amountDue;
-const ACCOUNT = { bankBin: "970436", accountNumber: "0071001234567", accountName: "CONG TY CA PHE MAU" };
+const ACCOUNT = {
+  bankBin: "970436",
+  accountNumber: "0071001234567",
+  accountName: "CONG TY CA PHE MAU",
+};
 const CODE = "FNB7K2M9QXA";
 const qrDrawer = (phase: Parameters<typeof QrPanel>[0]["phase"]) =>
   overTheSale(
@@ -106,7 +115,10 @@ const qrDrawer = (phase: Parameters<typeof QrPanel>[0]["phase"]) =>
         <QrPanel
           amount={due}
           account={ACCOUNT}
-          qr={{ contentCode: CODE, payload: buildVietQrPayload({ ...ACCOUNT, amount: due, content: CODE }) }}
+          qr={{
+            contentCode: CODE,
+            payload: buildVietQrPayload({ ...ACCOUNT, amount: due, content: CODE }),
+          }}
           phase={phase}
           error={null}
           busy={false}
@@ -114,6 +126,9 @@ const qrDrawer = (phase: Parameters<typeof QrPanel>[0]["phase"]) =>
           onRenew={nothing}
           onRetryPay={nothing}
           onCloseWithSettledQr={nothing}
+          onCashForRest={nothing}
+          onCloseOver={() => undefined}
+          onQrForRest={nothing}
         />
       )}
     />,
@@ -163,12 +178,19 @@ export const SELLING_SCREENS = {
   "buyer-info": () => (
     <BuyerInfoScreen
       header={null}
-      buyer={{ taxCode: "0312345678", name: "Công ty TNHH Hoa Sen", address: "12 Lê Lợi, Quận 1, TP.HCM", email: "ketoan@hoasen.vn" }}
+      buyer={{
+        taxCode: "0312345678",
+        name: "Công ty TNHH Hoa Sen",
+        address: "12 Lê Lợi, Quận 1, TP.HCM",
+        email: "ketoan@hoasen.vn",
+      }}
       onSave={never}
       onBack={nothing}
     />
   ),
-  "sale-done": () => <SaleDoneScreen header={null} sale={SALE} slips={slips} onNextOrder={nothing} />,
+  "sale-done": () => (
+    <SaleDoneScreen header={null} sale={SALE} slips={slips} onNextOrder={nothing} />
+  ),
   "sale-done-invoice": () => (
     <SaleDoneScreen
       header={null}
@@ -180,7 +202,13 @@ export const SELLING_SCREENS = {
         },
       ]}
       invoice={
-        <SaleInvoicePanel invoice={INVOICE} buyer={null} reprinting={false} onEditBuyer={nothing} onReprint={nothing} />
+        <SaleInvoicePanel
+          invoice={INVOICE}
+          buyer={null}
+          reprinting={false}
+          onEditBuyer={nothing}
+          onReprint={nothing}
+        />
       }
       onNextOrder={nothing}
     />

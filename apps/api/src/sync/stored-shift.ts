@@ -119,7 +119,8 @@ export async function readShiftCashBook(
     [shift.id, CASH_METHOD],
   );
   const moves = await client.query<{ kind: "in" | "out"; amount: string; staff_id: string }>(
-    "SELECT kind, amount, staff_id FROM cash_move WHERE shift_id = $1",
+    "SELECT kind, amount, COALESCE(staff_id, app_user_id) AS staff_id FROM cash_move " +
+      "WHERE shift_id = $1",
     [shift.id],
   );
   const onTime: ShiftCashEvent[] = [];

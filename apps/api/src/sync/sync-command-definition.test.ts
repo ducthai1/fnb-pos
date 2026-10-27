@@ -53,6 +53,7 @@ describe("sync command definitions", () => {
       "order.void_line",
       "payment.cancel_intent",
       "payment.create_intent",
+      "payment.hand_back_excess",
       "print.job_reported",
       "shift.cash_move",
       "shift.close",

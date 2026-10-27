@@ -38,11 +38,27 @@ export const unmatchedTransferSchema = z
  * waiting for one. `refundDue` is money the bank brought that no order counts (a QR paid
  * short or over, or paid for an order that closed another way): the customer is owed it.
  */
+/** A QR whose money the customer is owed back, and how much of it (all, or the excess). */
+export const refundDueIntentSchema = paymentIntentSnapshotSchema.extend({
+  owedAmount: wholeDongSchema.positive().optional(),
+});
+
+/** An open shift of the branch, whose drawer QR money can be handed back from. */
+export const openShiftChoiceSchema = z
+  .object({
+    id: uuidSchema,
+    deviceName: z.string().nullable(),
+    openedByName: z.string(),
+    openedAt: instantSchema,
+  })
+  .strict();
+
 export const unmatchedPaymentsSchema = z
   .object({
     transfers: z.array(unmatchedTransferSchema),
     openIntents: z.array(paymentIntentSnapshotSchema),
-    refundDue: z.array(paymentIntentSnapshotSchema),
+    refundDue: z.array(refundDueIntentSchema),
+    openShifts: z.array(openShiftChoiceSchema).optional(),
   })
   .strict();
 
