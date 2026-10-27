@@ -72,7 +72,7 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
           {props.notice}
         </p>
       ) : null}
-      <div className="pos-tabs" role="group" aria-label={C.title}>
+      <div className="pos-tabs pos-segmented" role="group" aria-label={C.title}>
         {(["in", "out"] as const).map((each) => (
           <button
             key={each}
