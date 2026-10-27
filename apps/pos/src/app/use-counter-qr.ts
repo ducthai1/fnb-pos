@@ -5,7 +5,13 @@ import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNow } from "../features/menu/use-now";
 import type { TillPlace } from "../features/order/till-command";
-import { type DrawnQr, cancelQrCommand, drawQr } from "../features/payment/qr-intent-commands";
+import {
+  type DrawnQr,
+  cancelQrCommand,
+  drawQr,
+  handBackExcessCommand,
+} from "../features/payment/qr-intent-commands";
+import { readStoredShift } from "../features/shift/stored-shift";
 import { type QrPhase, qrPhaseOf } from "../features/payment/qr-intent-phase";
 import { paidQrOfOrder, qrTenderOf, shortQrsOfOrder } from "../features/payment/settled-qr";
 import type { Tender } from "../features/payment/tenders";
@@ -18,6 +24,8 @@ export interface CounterQrInput {
   client: SyncClient;
   place: TillPlace;
   orderId: string;
+  /** The shift the sale is paid into: an over transfer's excess leaves its drawer. */
+  shiftId: string;
   /** The domain's amount due on the draft as last saved: what the QR asks for. */
   amountDue: Vnd;
   account: PaymentAccount | null;
@@ -48,6 +56,11 @@ export interface CounterQr {
   leave(): Promise<boolean>;
   retryPay(): void;
   closeWithSettledQr(): Promise<void>;
+  /**
+   * Closes the order with an over-paid QR at its own amount, then, when `handBack`, hands
+   * the excess back from the drawer (one command: the QR marked, the drawer's cash out).
+   */
+  closeOver(handBack: boolean): Promise<void>;
 }
 
 /**
@@ -55,7 +68,7 @@ export interface CounterQr {
  * the sync feed, and the order closed the moment the bank's notice paid it exactly.
  */
 export function useCounterQr(input: CounterQrInput): CounterQr {
-  const { client, place, orderId, amountDue, account, record, onPaid } = input;
+  const { client, place, orderId, shiftId, amountDue, account, record, onPaid } = input;
   const [drawn, setDrawn] = useState<DrawnQr | null>(null);
   const [amount, setAmount] = useState<Vnd>(amountDue);
   const [error, setError] = useState<string | null>(null);
@@ -146,6 +159,19 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
     leave,
     retryPay: () => {
       if (intent !== null) void pay(intent);
+    },
+    closeOver: async (handBack: boolean) => {
+      if (intent === null || intent.status !== "overpaid" || paying.current) return;
+      await pay(intent);
+      if (!handBack || !paying.current) return;
+      try {
+        const view = await client.snapshot("shift", shiftId);
+        const shift = view === null ? null : readStoredShift(view.snapshot);
+        // No shift on the till: the excess stays listed for a manager to refund.
+        if (shift !== null) await record(handBackExcessCommand(place, shift, intent, Date.now()));
+      } catch (failure) {
+        console.error(failure);
+      }
     },
     closeWithSettledQr: async () => {
       const paid = await paidQrOfOrder(client, orderId);

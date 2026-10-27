@@ -12,14 +12,14 @@ import {
   setIntentStatus,
 } from "./payment-intent-store";
 
-const SETTLED = new Set(["paid", "partial"]);
+const SETTLED = new Set(["paid", "partial", "overpaid"]);
 
 /**
  * A QR transfer pays an order only with money the bank confirmed for it: an intent of this
- * order, matched to a transfer, that no person handed back to the customer. Exact, it pays
- * what it asked for; short, it pays all it brought and another tender brings exactly the
- * rest. Nothing yet, or too much, is for a person to settle, and the order still closes
- * only when the tenders make its total.
+ * order, matched to a transfer, that no person handed back to the customer. Exact or over,
+ * it pays what it asked for (the excess is the customer's, handed back apart from the sale);
+ * short, it pays all it brought and another tender brings exactly the rest. Nothing yet is
+ * for a person to settle, and the order still closes only when the tenders make its total.
  */
 export async function assertQrTransfersArePaid(
   context: SyncCommandContext,
@@ -41,7 +41,7 @@ export async function assertQrTransfersArePaid(
     if (await wasHandedBack(context, intent.id)) {
       throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentHandedBack);
     }
-    const settlement = intent.status as "paid" | "partial";
+    const settlement = intent.status as "paid" | "partial" | "overpaid";
     const pays = qrTenderAmount(settlement, intent.amount, intent.receivedAmount);
     if (compareVnd(pays, vnd(tender.amount)) !== 0) {
       throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentAmountMismatch);

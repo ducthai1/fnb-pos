@@ -105,7 +105,6 @@ describe("order.pay with a QR transfer", () => {
       "partial",
       "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
     ],
-    ["paid over", 50_000, "overpaid", "SYNC_PAYMENT_INTENT_NOT_PAID"],
   ])("refuses an intent %s, leaving the order a draft", async (_case, received, expected, code) => {
     const { orderId, intentId, status } =
       received === null

@@ -1,10 +1,12 @@
 import type { UnmatchedPayments } from "@fnb/contracts";
 import { moneyToWire } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
+import { qrMoneyOwedBack } from "@fnb/domain/payment";
 import type pg from "pg";
 import {
   INTENT_COLUMNS,
   type PaymentIntentRow,
+  type StoredPaymentIntent,
   intentOfRow,
   paymentIntentSnapshotOf,
 } from "./payment-intent-store";
@@ -16,16 +18,29 @@ const ORDER_IS_OPEN =
   "EXISTS (SELECT 1 FROM sales_order o WHERE o.tenant_id = payment_intent.tenant_id " +
   "AND o.id = payment_intent.order_id AND o.status = 'draft')";
 
+const A_SALE_USES_IT =
+  "EXISTS (SELECT 1 FROM payment p WHERE p.tenant_id = payment_intent.tenant_id " +
+  "AND p.payment_intent_id = payment_intent.id)";
+
 /**
- * Whether the money the bank brought for a payment_intent row is the customer's: it came
- * (settled), no payment uses it, and no till can still close its order with it (an exact
- * one of an open order is the till's to use). Handed back or not is asked apart.
+ * Whether some of the money the bank brought for a payment_intent row is the customer's:
+ * an over transfer always is (a sale counts at most what the QR asked), and an exact or
+ * short one when no payment uses it and no till can still close its order with it (an
+ * exact one of an open order is the till's to use). Handed back or not is asked apart.
  */
 export const NO_SALE_COUNTS_IT =
-  "(payment_intent.status IN ('paid', 'partial', 'overpaid') AND NOT EXISTS (SELECT 1 " +
-  "FROM payment p WHERE p.tenant_id = payment_intent.tenant_id " +
-  "AND p.payment_intent_id = payment_intent.id) " +
-  `AND NOT (payment_intent.status = 'paid' AND ${ORDER_IS_OPEN}))`;
+  "(payment_intent.status = 'overpaid' OR (payment_intent.status IN ('paid', 'partial') " +
+  `AND NOT ${A_SALE_USES_IT} AND NOT (payment_intent.status = 'paid' AND ${ORDER_IS_OPEN})))`;
+
+/** Selects, beside an intent's columns, whether a sale counts the money it brought. */
+export const USED_BY_SALE = `${A_SALE_USES_IT} AS used_by_sale`;
+
+/** How much of a settled intent's money the customer is owed back. */
+export function owedOf(intent: StoredPaymentIntent, usedBySale: boolean) {
+  const received = intent.receivedAmount ?? vnd(0);
+  const settlement = intent.status as "paid" | "partial" | "overpaid";
+  return qrMoneyOwedBack(settlement, intent.amount, received, usedBySale);
+}
 
 /**
  * The branch's transfers in that no QR claimed, newest first, and the QRs of open orders
@@ -59,8 +74,8 @@ export async function readUnmatchedPayments(
       "ORDER BY created_at DESC, id DESC LIMIT $2",
     [branchId, LISTED],
   );
-  const refundDue = await client.query<PaymentIntentRow>(
-    `SELECT ${INTENT_COLUMNS} FROM payment_intent WHERE branch_id = $1 ` +
+  const refundDue = await client.query<PaymentIntentRow & { used_by_sale: boolean }>(
+    `SELECT ${INTENT_COLUMNS}, ${USED_BY_SALE} FROM payment_intent WHERE branch_id = $1 ` +
       `AND ${NO_SALE_COUNTS_IT} AND refunded_at IS NULL ` +
       "ORDER BY matched_at DESC, id DESC LIMIT $2",
     [branchId, LISTED],
@@ -75,6 +90,10 @@ export async function readUnmatchedPayments(
       receivedAt: row.received_at.toISOString(),
     })),
     openIntents: intents.rows.map((row) => paymentIntentSnapshotOf(intentOfRow(row))),
-    refundDue: refundDue.rows.map((row) => paymentIntentSnapshotOf(intentOfRow(row))),
+    refundDue: refundDue.rows.map((row) => {
+      const intent = intentOfRow(row);
+      const owedAmount = moneyToWire(owedOf(intent, row.used_by_sale));
+      return { ...paymentIntentSnapshotOf(intent), owedAmount };
+    }),
   };
 }

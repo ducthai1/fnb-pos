@@ -15,7 +15,7 @@ const account: PaymentAccount = {
 };
 
 function panelAt(phase: QrPhase) {
-  const calls = { cashForRest: 0, qrForRest: 0, left: 0 };
+  const calls = { cashForRest: 0, qrForRest: 0, left: 0, closedOver: [] as boolean[] };
   render(
     <QrPanel
       amount={vnd(50_000)}
@@ -29,6 +29,7 @@ function panelAt(phase: QrPhase) {
       onRetryPay={() => undefined}
       onCloseWithSettledQr={() => undefined}
       onCashForRest={() => void calls.cashForRest++}
+      onCloseOver={(handBack) => void calls.closedOver.push(handBack)}
       onQrForRest={() => void calls.qrForRest++}
     />,
   );
@@ -49,5 +50,16 @@ describe("the QR panel when the bank brought too little", () => {
     panelAt({ kind: "waiting", secondsLeft: 600 });
     expect(screen.queryByRole("button", { name: /Thu nốt/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /QR cho phần còn lại/ })).toBeNull();
+  });
+});
+
+describe("the QR panel when the bank brought too much", () => {
+  it("closes the order and hands the excess back in cash, or leaves it for a manager", () => {
+    const calls = panelAt({ kind: "over", gap: vnd(10_000) });
+    expect(screen.getByRole("status").textContent).toContain(Q.phases.over(money(10_000)));
+    fireEvent.click(screen.getByRole("button", { name: Q.handBackCash(money(10_000)) }));
+    fireEvent.click(screen.getByRole("button", { name: Q.closeOverLater }));
+    expect(calls.closedOver).toEqual([true, false]);
+    expect(screen.queryByRole("button", { name: /Thu nốt/ })).toBeNull();
   });
 });

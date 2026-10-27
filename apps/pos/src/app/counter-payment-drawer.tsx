@@ -16,6 +16,8 @@ export interface CounterPaymentDrawerProps {
   client: SyncClient;
   place: TillPlace;
   orderId: string;
+  /** The shift the sale is paid into; an over transfer's excess leaves its drawer. */
+  shiftId: string;
   subtitle: string;
   amountDue: Vnd;
   account: PaymentAccount | null;
@@ -88,6 +90,7 @@ export function CounterPaymentDrawer(props: CounterPaymentDrawerProps) {
               void qr.shortTenders().then(cashFor);
             }}
             onQrForRest={qr.show}
+            onCloseOver={(handBack) => void qr.closeOver(handBack)}
             onRetryPay={qr.retryPay}
             onCloseWithSettledQr={() => void qr.closeWithSettledQr()}
           />

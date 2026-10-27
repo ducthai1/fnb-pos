@@ -35,6 +35,11 @@ export interface QrPanelProps {
   onCashForRest(): void;
   /** The bank brought less: a new QR for exactly the rest. */
   onQrForRest(): void;
+  /**
+   * The bank brought more: the order closes with the QR at its own amount, and the excess is
+   * handed back from the drawer (`handBack`) or left for a manager to refund.
+   */
+  onCloseOver(handBack: boolean): void;
 }
 
 function statusOf(phase: QrPhase): { text: string; tone: "info" | "ok" | "warn" } {
@@ -91,7 +96,14 @@ export function QrPanel(props: QrPanelProps) {
             other,
           ]
         : [],
-    over: [other],
+    over:
+      phase.kind === "over"
+        ? [
+            button(Q.handBackCash(formatVnd(phase.gap)), () => props.onCloseOver(true), true),
+            button(Q.closeOverLater, () => props.onCloseOver(false)),
+            other,
+          ]
+        : [],
     expired: [other, renew],
     withdrawn: [other, renew],
     refused:
@@ -111,7 +123,7 @@ export function QrPanel(props: QrPanelProps) {
         {status.text}
       </p>
       {phase.kind === "short" ? <p className="pos-hint pos-wrap">{Q.phases.shortHint}</p> : null}
-      {phase.kind === "over" ? <p className="pos-hint pos-wrap">{Q.phases.gapHint}</p> : null}
+      {phase.kind === "over" ? <p className="pos-hint pos-wrap">{Q.phases.overHint}</p> : null}
       {phase.kind === "waiting" && qr !== null ? (
         <div className="pos-card pos-qr">
           <div className="pos-qr__frame">

@@ -24,6 +24,21 @@ export function qrExcess(asked: Vnd, received: Vnd): Vnd {
 }
 
 /**
+ * What the customer is owed back of what the bank brought for a QR: the excess of an over
+ * transfer the sale was closed with (the sale counts what the QR asked), or all of it when
+ * no sale counts any of it.
+ */
+export function qrMoneyOwedBack(
+  settlement: TransferSettlement,
+  asked: Vnd,
+  received: Vnd,
+  usedBySale: boolean,
+): Vnd {
+  if (!usedBySale) return received;
+  return settlement === "overpaid" ? qrExcess(asked, received) : ZERO_VND;
+}
+
+/**
  * What a further tender (cash, or a second QR) must bring once short transfers paid part of
  * `amountDue`: exactly the rest, never less (the order would close unpaid) nor more (the
  * bank's money would exceed the sale). Short transfers that already cover it are refused.

@@ -48,6 +48,7 @@ const qrScreen = (phase: Parameters<typeof QrPanel>[0]["phase"]) =>
           onRetryPay={nothing}
           onCloseWithSettledQr={nothing}
           onCashForRest={nothing}
+          onCloseOver={() => undefined}
           onQrForRest={nothing}
         />
       )}

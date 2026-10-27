@@ -12,6 +12,8 @@ export const cashMove = pgTable("cash_move", {
   reason: text("reason").notNull(),
   staffId: uuid("staff_id").notNull(),
   approvalId: uuid("approval_id"),
+  /** The QR whose money this cash handed back to the customer; see 0033. */
+  paymentIntentId: uuid("payment_intent_id"),
 });
 
 /** The notes of one denomination counted at a shift's opening or closing. */

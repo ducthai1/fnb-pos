@@ -20,6 +20,7 @@ tests:
   - apps/api/test/integration/payments/qr-money-handed-back-after-the-day-closed.test.ts
   - apps/api/test/integration/payments/qr-money-handed-back-keys-and-tenants.test.ts
   - apps/api/test/integration/payments/qr-short-transfer-finished-at-the-counter.test.ts
+  - apps/api/test/integration/payments/qr-over-transfer-handed-back-from-the-drawer.test.ts
   - e2e/backoffice/hand-back-qr-money.spec.ts
 ---
 
@@ -52,7 +53,7 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 
 ### Ghi đã hoàn tiền QR cho khách
 
-6. Ở **Cần hoàn cho khách**, mỗi dòng ghi "Mã …: đã nhận X (mã QR yêu cầu Y) — cần hoàn cho khách".
+6. Ở **Cần hoàn cho khách**, mỗi dòng ghi "Mã …: đã nhận X (mã QR yêu cầu Y) — cần hoàn cho khách". Đơn đã đóng bằng mã QR khách chuyển thừa thì dòng ghi "Mã …: đã nhận X, đơn đã thu Y — cần hoàn phần thừa Z cho khách": chỉ **phần thừa** Z phải trả.
 7. **Trả tiền cho khách trước** (tiền mặt, hoặc chuyển khoản lại cho khách).
 8. Bấm **Đã hoàn cho khách**, chọn **Hoàn bằng** (Tiền mặt / Chuyển khoản lại), ghi **Ghi chú (hoàn cho ai, vì sao)**, bấm **Ghi đã hoàn**.
 9. Trang báo "Đã ghi: hoàn X của mã QR … cho khách."
@@ -66,6 +67,7 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 - **Chỉ ghi đã hoàn khi tiền đã thật sự trả lại khách.** Ghi chú và cách hoàn là bắt buộc.
 - Tiền QR đã hoàn **không phải doanh thu**: nó vào báo cáo **ngày ghi hoàn** ở dòng "Tiền QR đã hoàn lại khách", và **không trừ vào két của ca nào** — hoàn bằng tiền mặt từ két thì két ca sẽ lệch đúng số đó, cần ghi chú khi đóng ca.
 - Hoàn sau khi ngày của tiền đó đã chốt: vẫn ghi được, báo cáo ngày đã chốt không đổi, và mục này được liệt kê riêng ở [Chốt ngày](11-chot-ngay.md).
+- Khoản **chuyển thừa** mà thu ngân đã **Thối lại tiền mặt** ở quầy thì không vào danh sách này: máy quầy đã ghi "đã hoàn" (cách hoàn: tiền mặt từ két) và một khoản chi két của ca. Báo cáo ngày vẫn có nó ở dòng "Tiền QR đã hoàn lại khách".
 - Khoản **chuyển thiếu** của đơn còn mở vẫn nằm ở "cần hoàn", nhưng thu ngân có thể **dùng nó trả đơn** (thu nốt phần còn lại bằng tiền mặt hoặc QR mới): đơn trả xong thì dòng đó **tự biến mất**. Đã ghi "đã hoàn" thì máy quầy không dùng khoản đó trả đơn được nữa — nên chỉ ghi hoàn khi khách thật sự lấy lại tiền.
 - Tiền ngân hàng báo về **không bao giờ bị bỏ qua**: hoặc khớp đơn, hoặc nằm trong "chưa khớp", hoặc trong "cần hoàn".
 

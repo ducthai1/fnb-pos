@@ -14,7 +14,8 @@ export async function qrRefundsOfTheDay(
   businessDate: string,
 ): Promise<DailySalesReport["qrRefunds"]> {
   const { rows } = await client.query<{ method: string; amount: string }>(
-    "SELECT refund_method AS method, received_amount AS amount FROM payment_intent " +
+    "SELECT refund_method AS method, COALESCE(refund_amount, received_amount) AS amount " +
+      "FROM payment_intent " +
       "WHERE branch_id = $1 AND refund_business_date = $2 AND refunded_at IS NOT NULL " +
       "AND NOT refunded_after_day_close " +
       "ORDER BY refund_method, refunded_at, id",

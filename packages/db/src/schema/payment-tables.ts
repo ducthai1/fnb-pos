@@ -36,6 +36,9 @@ export const paymentIntent = pgTable("payment_intent", {
   refundBusinessDate: date("refund_business_date"),
   /** Handed back once its business day was closed: beside that day's report; see 0028. */
   refundedAfterDayClose: boolean("refunded_after_day_close").notNull().default(false),
+  /** What went back (null: all the bank brought), and the till's staff who did; see 0033. */
+  refundAmount: money("refund_amount"),
+  refundedByStaffId: uuid("refunded_by_staff_id"),
   /** A wallet's payment (null for a VietQR): the wallet, its ref, what to scan; see 0032. */
   wallet: text("wallet"),
   gatewayRef: text("gateway_ref"),

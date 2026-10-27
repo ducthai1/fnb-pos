@@ -23,6 +23,13 @@ export const PAYMENT_SYNC_ERROR_CODES = {
    */
   intentAmountMismatch: "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
   /**
+   * payment.hand_back_excess named a QR with no excess for the till to hand back: not paid
+   * over, or no sale was closed with it yet (then all of it is the customer's).
+   */
+  noExcessToHandBack: "SYNC_PAYMENT_NO_EXCESS_TO_HAND_BACK",
+  /** payment.hand_back_excess put down another amount than the bank's excess. */
+  excessAmountMismatch: "SYNC_PAYMENT_EXCESS_AMOUNT_MISMATCH",
+  /**
    * The bank paid a QR of the order exactly and nothing uses that money yet: the order is
    * closed with that QR (order.pay naming it), not in cash, cancelled, or billed again.
    */

@@ -1,9 +1,10 @@
 import { type QrRefund, type QrRefundMethod, moneyToWire } from "@fnb/contracts";
 import { appendAudit } from "@fnb/db";
-import { businessDate, vnd } from "@fnb/domain";
+import { businessDate } from "@fnb/domain";
 import type pg from "pg";
 import { PAYMENT_ROUTE_ERROR_CODES as CODES } from "./payment-error-codes";
-import { NO_SALE_COUNTS_IT } from "./unmatched-payments-query";
+import { INTENT_COLUMNS, type PaymentIntentRow, intentOfRow } from "./payment-intent-store";
+import { NO_SALE_COUNTS_IT, USED_BY_SALE, owedOf } from "./unmatched-payments-query";
 
 export interface HandBackRequest {
   readonly appUserId: string;
@@ -18,11 +19,8 @@ export type HandBackOutcome =
   | { readonly ok: true; readonly refund: QrRefund }
   | { readonly ok: false; readonly status: 404 | 409; readonly code: string };
 
-interface IntentRow {
-  branch_id: string;
-  order_id: string;
-  status: string;
-  received_amount: string | null;
+interface IntentRow extends PaymentIntentRow {
+  used_by_sale: boolean;
   refunded_at: Date | null;
   owed: boolean;
   utc_offset_minutes: number;
@@ -42,8 +40,10 @@ export async function handBackQrMoney(
   request: HandBackRequest,
 ): Promise<HandBackOutcome> {
   const { rows } = await client.query<IntentRow>(
-    "SELECT payment_intent.branch_id, payment_intent.order_id, payment_intent.status, " +
-      "payment_intent.received_amount, payment_intent.refunded_at, " +
+    `SELECT ${INTENT_COLUMNS.split(", ")
+      .map((column) => `payment_intent.${column}`)
+      .join(", ")}, ` +
+      `payment_intent.refunded_at, ${USED_BY_SALE}, ` +
       `${NO_SALE_COUNTS_IT} AS owed, b.utc_offset_minutes, b.business_day_start_minute ` +
       "FROM payment_intent JOIN branch b ON b.tenant_id = payment_intent.tenant_id " +
       "AND b.id = payment_intent.branch_id WHERE payment_intent.id = $1 " +
@@ -60,15 +60,16 @@ export async function handBackQrMoney(
     utcOffsetMinutes: row.utc_offset_minutes,
     dayStartMinute: row.business_day_start_minute,
   });
+  const amount = owedOf(intentOfRow(row), row.used_by_sale);
   const marked = await client.query<{ after_close: boolean }>(
     "UPDATE payment_intent SET refunded_at = $2, refunded_by_app_user_id = $3, " +
-      "refund_method = $4, refund_note = $5, refund_business_date = $6, updated_at = $2 " +
-      "WHERE id = $1 AND refunded_at IS NULL RETURNING refunded_after_day_close AS after_close",
-    [request.intentId, request.now, request.appUserId, request.method, request.note, day],
+      "refund_method = $4, refund_note = $5, refund_business_date = $6, refund_amount = $7, " +
+      "updated_at = $2 WHERE id = $1 AND refunded_at IS NULL " +
+      "RETURNING refunded_after_day_close AS after_close",
+    [request.intentId, request.now, request.appUserId, request.method, request.note, day, amount],
   );
   const afterDayClose = marked.rows[0]?.after_close;
   if (afterDayClose === undefined) return { ok: false, status: 409, code: CODES.alreadyHandedBack };
-  const amount = vnd(BigInt(row.received_amount));
   await appendAudit(client, {
     actor: { kind: "app_user", id: request.appUserId },
     action: "payment.qr_money_handed_back",

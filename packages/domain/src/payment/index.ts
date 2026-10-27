@@ -16,7 +16,12 @@ export {
   settlementOfTransfer,
   transitionPaymentIntent,
 } from "./payment-intent-status";
-export { qrExcess, qrTenderAmount, remainderAfterShortTransfers } from "./qr-short-and-over";
+export {
+  qrExcess,
+  qrMoneyOwedBack,
+  qrTenderAmount,
+  remainderAfterShortTransfers,
+} from "./qr-short-and-over";
 export {
   CONTENT_CODE_LENGTH,
   CONTENT_CODE_PREFIX,

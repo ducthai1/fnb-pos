@@ -2,7 +2,7 @@
 
 import { type QrRefundMethod, QR_REFUND_METHODS } from "@fnb/contracts";
 import { useState } from "react";
-import type { PaymentIntentSnapshot } from "../../lib/api/payments-api";
+import type { UnmatchedPayments } from "../../lib/api/payments-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
@@ -14,8 +14,24 @@ import { TextField } from "../ui/text-field";
 
 const T = vi.transfers;
 
-const receivedText = (intent: PaymentIntentSnapshot) =>
+type OwedIntent = UnmatchedPayments["refundDue"][number];
+
+const receivedText = (intent: OwedIntent) =>
   intent.receivedAmount === null ? "—" : vndText(intent.receivedAmount);
+
+/** What goes back: the excess once a sale counts the QR, else all the bank brought. */
+const owedText = (intent: OwedIntent) =>
+  intent.owedAmount === undefined ? receivedText(intent) : vndText(intent.owedAmount);
+
+const rowText = (intent: OwedIntent) =>
+  intent.owedAmount !== undefined && intent.owedAmount !== intent.receivedAmount
+    ? T.refundRowExcess(
+        intent.contentCode,
+        receivedText(intent),
+        vndText(intent.amount),
+        owedText(intent),
+      )
+    : T.refundRow(intent.contentCode, receivedText(intent), vndText(intent.amount));
 
 /**
  * Saying one QR's money went back to the customer: how and a note, then one tap. What the
@@ -27,7 +43,7 @@ function HandBackPanel({
   onDone,
   onCancel,
 }: {
-  intent: PaymentIntentSnapshot;
+  intent: OwedIntent;
   onDone: (message: string) => void;
   onCancel: () => void;
 }) {
@@ -57,7 +73,7 @@ function HandBackPanel({
 
   return (
     <ConfirmPanel
-      title={T.handBackTitle(intent.contentCode, receivedText(intent))}
+      title={T.handBackTitle(intent.contentCode, owedText(intent))}
       hint={T.handBackHint}
       confirmLabel={T.handBackConfirm}
       busyLabel={T.handingBack}
@@ -96,7 +112,7 @@ export function RefundDueList({
   intents,
   onHandedBack,
 }: {
-  intents: readonly PaymentIntentSnapshot[];
+  intents: readonly OwedIntent[];
   onHandedBack: () => void;
 }) {
   const { user } = useSession();
@@ -123,9 +139,7 @@ export function RefundDueList({
               className="bo-notice bo-notice--warn bo-wrap bo-stack"
               data-intent={intent.id}
             >
-              <span>
-                {T.refundRow(intent.contentCode, receivedText(intent), vndText(intent.amount))}
-              </span>
+              <span>{rowText(intent)}</span>
               {mayHandBack && open !== intent.id && (
                 <button
                   type="button"

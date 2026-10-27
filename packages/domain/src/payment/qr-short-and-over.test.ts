@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { isDomainError } from "../errors";
 import { addVnd, vnd } from "../money";
 import { PAYMENT_ERROR_CODES } from "./payment-error-codes";
-import { qrExcess, qrTenderAmount, remainderAfterShortTransfers } from "./qr-short-and-over";
+import {
+  qrExcess,
+  qrMoneyOwedBack,
+  qrTenderAmount,
+  remainderAfterShortTransfers,
+} from "./qr-short-and-over";
 
 const refusalOf = (run: () => unknown) => {
   try {
@@ -26,6 +31,13 @@ describe("a QR transfer that came short or over", () => {
     expect(refusalOf(() => qrExcess(vnd(50_000), vnd(50_000)))).toBe(
       PAYMENT_ERROR_CODES.invalidAmount,
     );
+  });
+
+  it("owes back the excess once a sale counts the QR, all of it when no sale does", () => {
+    expect(qrMoneyOwedBack("overpaid", vnd(50_000), vnd(60_000), true)).toBe(10_000n);
+    expect(qrMoneyOwedBack("overpaid", vnd(50_000), vnd(60_000), false)).toBe(60_000n);
+    expect(qrMoneyOwedBack("partial", vnd(50_000), vnd(45_000), false)).toBe(45_000n);
+    expect(qrMoneyOwedBack("partial", vnd(50_000), vnd(45_000), true)).toBe(0n);
   });
 
   it("leaves exactly the rest of the order for the next tender", () => {
