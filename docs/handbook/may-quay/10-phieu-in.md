@@ -15,6 +15,7 @@ decisions:
   - D-063
 tests:
   - apps/pos/src/features/printing/print-sale-slips.test.ts
+  - packages/printing/src/layout/lay-out-document.test.ts
   - apps/pos/src/app/table-rounds.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -79,6 +80,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 - **Phiếu tạm tính**: in hoặc chỉ xem trên màn đều tính là khách đã được đưa phiếu (bàn sang "Đã in tạm tính"); máy in kẹt thì không tính.
 - **Tem dán ly**: một tem cho **mỗi ly** (ghi "1/4", "2/4"…), chỉ cho món được đánh dấu "in tem ly" ở trang quản lý, và **chỉ cho đơn quầy**. Đơn bàn: lúc thanh toán máy bỏ tem (vì coi như đã có lúc gửi bếp), nhưng lúc gửi bếp hiện cũng chưa làm tem — nên đơn bàn **không có tem ly** nào.
 - Khổ giấy đang dùng để dựng phiếu: bill **80 mm**, tem ly **40 × 30 mm**. Khi in thật, chữ được in **không dấu** cho tới khi cài được bảng mã tiếng Việt của từng máy in (bảng mã sai thì mọi chữ có dấu thành ký tự lạ).
+- **Tên món dài tự xuống dòng; số tiền luôn nằm cùng dòng đầu của tên.** Tên hoặc ghi chú có dấu xuống dòng ở đầu (thường do dán từ Excel) không còn đẩy số tiền lên một dòng trống phía trên tên.
 - Thông tin người mua hóa đơn điện tử **không in** lên bill.
 
 ## Khi có lỗi

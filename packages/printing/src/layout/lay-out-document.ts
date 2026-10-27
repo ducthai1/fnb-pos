@@ -46,7 +46,11 @@ function layOutColumns(
     const left = wrapText(block.left, columns - indent).map((l) => spaces(indent) + l);
     return [...left, ...right.map((r) => aligned(r, columns, "right"))].map((l) => text(l, bold));
   }
-  const left = wrapText(block.left, leftWidth);
+  // A name that starts with a line break (pasted from a sheet) would leave its first line
+  // empty, printing the amount on a blank line above the name it belongs to.
+  const wrapped = wrapText(block.left, leftWidth);
+  const firstWritten = wrapped.findIndex((line) => line.trim() !== "");
+  const left = firstWritten === -1 ? [""] : wrapped.slice(firstWritten);
   return left.map((line, i) => {
     const head = spaces(indent) + line;
     return text(

@@ -22,6 +22,18 @@ describe("laying out a document", () => {
     expect(lines.every((l) => l.kind === "text" && l.large)).toBe(true);
   });
 
+  it("keeps the amount beside the name when the name starts with a line break", () => {
+    for (const lead of ["\n", "\r\n", " ", "\v"]) {
+      const doc: PrintBlock[] = [{ kind: "columns", left: `${lead}Trà sữa`, right: "35.000" }];
+      expect(texts(layOutDocument(doc, 18))).toEqual(["Trà sữa     35.000"]);
+    }
+  });
+
+  it("still prints the amount of a name that is only line breaks", () => {
+    const doc: PrintBlock[] = [{ kind: "columns", left: "\n\n", right: "35.000" }];
+    expect(texts(layOutDocument(doc, 18))).toEqual(["            35.000"]);
+  });
+
   it("puts the right column on the first line of a wrapped left column", () => {
     const doc: PrintBlock[] = [
       { kind: "columns", left: "Trà sữa trân châu", right: "35.000", indent: 1 },
