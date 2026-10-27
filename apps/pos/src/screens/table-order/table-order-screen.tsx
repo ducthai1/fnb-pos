@@ -29,7 +29,9 @@ export function TableOrderScreen({
   ...cart
 }: TableOrderScreenProps) {
   return (
-    <ScreenFrame title={vi.tables.order.title(cart.order.table?.name ?? "")} wide>
+    // The order's own head names the table, as the counter's names its order: the screen's
+    // title is for screen readers only.
+    <ScreenFrame title={vi.tables.order.title(cart.order.table?.name ?? "")} wide titleHidden>
       {header}
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
       {notices}

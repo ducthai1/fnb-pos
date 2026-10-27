@@ -45,12 +45,13 @@ export function TableOrderActions(props: TableOrderActionsProps) {
     tone: string,
     glyph: LucideIcon,
     key?: string,
+    keyTone = "pos-kbd",
   ) => (
     <button type="button" className={`pos-button ${tone}`} disabled={disabled} onClick={onClick}>
       <Icon of={glyph} />
       {label}
       {key === undefined ? null : (
-        <kbd className="pos-kbd" aria-hidden>
+        <kbd className={keyTone} aria-hidden>
           {key}
         </kbd>
       )}
@@ -62,21 +63,32 @@ export function TableOrderActions(props: TableOrderActionsProps) {
         owedUnits > 0 ? T.sendToKitchen(owedUnits) : T.nothingToSend,
         props.onSend,
         !canSend,
-        "pos-button--info pos-table-actions__send",
+        "pos-table-actions__send",
         ChefHat,
         K.send,
       )}
-      {button(T.preBill, props.onPreBill, !canBill, "pos-button--amber", ReceiptText, K.preBill)}
+      {button(T.preBill, props.onPreBill, !canBill, "pos-table-actions__bill", ReceiptText, K.preBill)}
       {button(
         T.pay,
         props.onPay,
         !canBill,
-        "pos-button--primary pos-button--lg pos-table-actions__pay",
+        "pos-button--primary pos-cart__checkout pos-table-actions__pay",
         Wallet,
         K.pay,
+        "pos-kbd pos-kbd--on-brand",
       )}
-      {button(T.transfer, props.onTransfer, blocked || !props.saved, "", ArrowRightLeft)}
-      <button type="button" className="pos-button pos-button--quiet" onClick={props.onBack}>
+      {button(
+        T.transfer,
+        props.onTransfer,
+        blocked || !props.saved,
+        "pos-table-actions__move",
+        ArrowRightLeft,
+      )}
+      <button
+        type="button"
+        className="pos-button pos-button--quiet pos-table-actions__back"
+        onClick={props.onBack}
+      >
         <Icon of={LayoutGrid} />
         {T.backToFloor}
       </button>

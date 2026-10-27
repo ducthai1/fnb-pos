@@ -37,47 +37,66 @@
   color: var(--c-amber);
 }
 
-/* Send over pre-bill on the left, pay as tall as both on the right; move and leave under. */
+/* Like the counter's order foot: the two steps of a round side by side, soft like the badges
+   they lead to (sent to the kitchen, pre-billed), the pay button across the whole foot, then
+   moving the guests and going back, quiet. */
 .pos-table-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-areas:
-    "send pay"
-    "bill pay";
+    "send bill"
+    "pay pay"
+    "move back";
   gap: var(--sp-2);
 }
 
 .pos-table-actions > .pos-button {
   min-width: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   overflow-wrap: anywhere;
 }
 
 .pos-table-actions > .pos-table-actions__send {
   grid-area: send;
+  border-color: var(--c-info-line);
+  background: var(--c-info-soft);
+  color: var(--c-info);
 }
 
-.pos-table-actions > .pos-button--amber {
+.pos-table-actions > .pos-table-actions__bill {
   grid-area: bill;
+  border-color: var(--c-amber-line);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
 }
 
 .pos-table-actions > .pos-table-actions__pay {
   grid-area: pay;
-  min-height: 88px;
+}
+
+.pos-table-actions > .pos-table-actions__move {
+  grid-area: move;
+}
+
+.pos-table-actions > .pos-table-actions__back {
+  grid-area: back;
 }
 
 .pos-notice {
   margin: 0;
   padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--pos-ok-bg);
-  color: var(--pos-ok-text);
+  border: 1px solid var(--c-success-line);
+  border-radius: var(--r-md);
+  background: var(--c-success-soft);
+  color: var(--c-success);
+  font-weight: var(--fw-medium);
   overflow-wrap: anywhere;
 }
 
 .pos-notice[data-tone="warn"] {
-  background: var(--pos-warn-bg);
-  color: var(--pos-warn-text);
+  border-color: var(--c-amber-line);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
 }
 
 /* A second step in place, drawn as the back office's confirm box: an amber warning sign

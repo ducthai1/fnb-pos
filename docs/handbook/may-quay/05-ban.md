@@ -72,7 +72,7 @@ Cho quán có chỗ ngồi: khách ngồi trước, gọi món nhiều lượt, 
 
 ### Mở bàn và gọi món
 
-1. Chạm vào một bàn. Màn **Bàn T02** mở ra: thực đơn bên trái, đơn của bàn bên phải.
+1. Chạm vào một bàn. Đơn của bàn mở ra: thực đơn bên trái, bên phải là đơn với tên bàn và số đơn ở đầu (**Bàn T02 · Đơn số 27**). Dưới tổng tiền: **Gửi bếp** (nền xanh nhạt) và **In tạm tính** (nền vàng nhạt) nằm cạnh nhau, **Thanh toán** trải hết bề ngang, dưới cùng là **Chuyển bàn** và **Về sơ đồ bàn**.
 
    ![Đơn của bàn T02](../images/may-quay/table-order.webp)
 
