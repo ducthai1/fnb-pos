@@ -15,7 +15,12 @@ export const PAYMENT_SYNC_ERROR_CODES = {
   intentOfAnotherOrder: "SYNC_PAYMENT_INTENT_OF_ANOTHER_ORDER",
   /** order.pay named an intent no transfer has paid exactly (pending, partial, overpaid…). */
   intentNotPaid: "SYNC_PAYMENT_INTENT_NOT_PAID",
-  /** order.pay put down a different amount than the intent's. */
+  /** order.pay named an intent whose money a person already handed back to the customer. */
+  intentHandedBack: "SYNC_PAYMENT_INTENT_HANDED_BACK",
+  /**
+   * order.pay put down a different amount than the intent pays: what it asked for when paid
+   * exactly or over, what the bank brought when short.
+   */
   intentAmountMismatch: "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
   /**
    * The bank paid a QR of the order exactly and nothing uses that money yet: the order is

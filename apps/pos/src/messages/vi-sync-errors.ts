@@ -12,8 +12,11 @@ export const VI_SYNC_ERRORS = {
     "Nội dung chuyển khoản trùng với một mã QR trong tuần qua. Tạo QR mới.",
   SYNC_PAYMENT_INTENT_OF_ANOTHER_ORDER: "Mã QR này thuộc đơn khác, không dùng trả đơn này được.",
   SYNC_PAYMENT_INTENT_NOT_PAID:
-    "Ngân hàng chưa báo nhận đủ tiền cho mã QR này (chưa chuyển, chuyển thiếu hoặc thừa).",
-  SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH: "Số tiền ghi cho khoản chuyển khoản khác số tiền của mã QR.",
+    "Ngân hàng chưa báo nhận tiền cho mã QR này, hoặc khách chuyển thừa (xử lý phần thừa trước).",
+  SYNC_PAYMENT_INTENT_HANDED_BACK:
+    "Tiền của mã QR này đã được quản lý trả lại khách, nên không dùng trả đơn được nữa. Thu cách khác.",
+  SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH:
+    "Số tiền ghi cho khoản chuyển khoản khác số máy chủ tính cho mã QR (đủ: số của mã; thiếu: số ngân hàng báo về).",
   SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE: "Tổng các khoản đã thu khác số tiền cần thu của đơn.",
   DOMAIN_ORDER_TOTAL_MISMATCH:
     "Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại.",

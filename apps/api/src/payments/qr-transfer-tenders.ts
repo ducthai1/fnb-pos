@@ -1,6 +1,6 @@
 import { PAYMENT_INTENT_ENTITY, type PayOrderPayload } from "@fnb/contracts";
-import { compareVnd, vnd } from "@fnb/domain";
-import { transitionPaymentIntent } from "@fnb/domain/payment";
+import { type Vnd, compareVnd, vnd } from "@fnb/domain";
+import { qrTenderAmount, transitionPaymentIntent } from "@fnb/domain/payment";
 import { appendChange } from "../sync/change-feed";
 import type { SyncCommandContext } from "../sync/sync-command-context";
 import { CommandRejection } from "../sync/sync-error-codes";
@@ -12,10 +12,14 @@ import {
   setIntentStatus,
 } from "./payment-intent-store";
 
+const SETTLED = new Set(["paid", "partial"]);
+
 /**
  * A QR transfer pays an order only with money the bank confirmed for it: an intent of this
- * order, matched to a transfer that brought exactly its amount, put down at that amount.
- * Anything less certain (nothing yet, too little, too much) is for a person to settle.
+ * order, matched to a transfer, that no person handed back to the customer. Exact, it pays
+ * what it asked for; short, it pays all it brought and another tender brings exactly the
+ * rest. Nothing yet, or too much, is for a person to settle, and the order still closes
+ * only when the tenders make its total.
  */
 export async function assertQrTransfersArePaid(
   context: SyncCommandContext,
@@ -31,12 +35,42 @@ export async function assertQrTransfersArePaid(
     if (intent.orderId !== orderId) {
       throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentOfAnotherOrder);
     }
-    if (intent.status !== "paid")
+    if (!SETTLED.has(intent.status) || intent.receivedAmount === null) {
       throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentNotPaid);
-    if (compareVnd(intent.amount, vnd(tender.amount)) !== 0) {
+    }
+    if (await wasHandedBack(context, intent.id)) {
+      throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentHandedBack);
+    }
+    const settlement = intent.status as "paid" | "partial";
+    const pays = qrTenderAmount(settlement, intent.amount, intent.receivedAmount);
+    if (compareVnd(pays, vnd(tender.amount)) !== 0) {
       throw new CommandRejection(PAYMENT_SYNC_ERROR_CODES.intentAmountMismatch);
     }
   }
+}
+
+async function wasHandedBack(context: SyncCommandContext, intentId: string): Promise<boolean> {
+  const { rows } = await context.client.query<{ handed_back: boolean }>(
+    "SELECT refunded_at IS NOT NULL AS handed_back FROM payment_intent WHERE id = $1",
+    [intentId],
+  );
+  return rows[0]?.handed_back === true;
+}
+
+/**
+ * What QRs of the open order already brought short, that no person handed back: a further
+ * QR asks for exactly the rest of the order beside them.
+ */
+export async function shortTransfersOfOrder(
+  context: SyncCommandContext,
+  orderId: string,
+): Promise<Vnd[]> {
+  const { rows } = await context.client.query<{ received_amount: string }>(
+    "SELECT received_amount FROM payment_intent WHERE order_id = $1 AND status = 'partial' " +
+      "AND refunded_at IS NULL ORDER BY id FOR UPDATE",
+    [orderId],
+  );
+  return rows.map((row) => vnd(BigInt(row.received_amount)));
 }
 
 /**

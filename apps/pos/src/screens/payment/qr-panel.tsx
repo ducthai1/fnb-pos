@@ -31,6 +31,10 @@ export interface QrPanelProps {
   onRenew(): void;
   onRetryPay(): void;
   onCloseWithSettledQr(): void;
+  /** The bank brought less: what it brought goes onto the cash card, the rest in cash. */
+  onCashForRest(): void;
+  /** The bank brought less: a new QR for exactly the rest. */
+  onQrForRest(): void;
 }
 
 function statusOf(phase: QrPhase): { text: string; tone: "info" | "ok" | "warn" } {
@@ -79,7 +83,14 @@ export function QrPanel(props: QrPanelProps) {
     drawing: [button(Q.cancel, props.onLeave)],
     waiting: [button(Q.cancel, props.onLeave)],
     paid: props.error === null ? [] : [button(Q.retryPay, props.onRetryPay, true)],
-    short: [other],
+    short:
+      phase.kind === "short"
+        ? [
+            button(Q.cashForRest(formatVnd(phase.gap)), props.onCashForRest, true),
+            button(Q.qrForRest(formatVnd(phase.gap)), props.onQrForRest),
+            other,
+          ]
+        : [],
     over: [other],
     expired: [other, renew],
     withdrawn: [other, renew],
@@ -99,9 +110,8 @@ export function QrPanel(props: QrPanelProps) {
         <Icon of={STATUS_ICON[status.tone]} size={phase.kind === "paid" ? 28 : 22} />
         {status.text}
       </p>
-      {phase.kind === "short" || phase.kind === "over" ? (
-        <p className="pos-hint pos-wrap">{Q.phases.gapHint}</p>
-      ) : null}
+      {phase.kind === "short" ? <p className="pos-hint pos-wrap">{Q.phases.shortHint}</p> : null}
+      {phase.kind === "over" ? <p className="pos-hint pos-wrap">{Q.phases.gapHint}</p> : null}
       {phase.kind === "waiting" && qr !== null ? (
         <div className="pos-card pos-qr">
           <div className="pos-qr__frame">

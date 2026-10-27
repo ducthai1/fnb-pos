@@ -21,6 +21,7 @@ decisions:
   - D-073
   - D-074
   - D-078
+  - D-080
   - D-098
 tests:
   - apps/pos/src/app/counter-checkout.test.tsx
@@ -32,11 +33,14 @@ tests:
   - apps/pos/src/app/settled-qr-needs-attention.test.tsx
   - apps/pos/src/app/counter-wallet-checkout.test.tsx
   - apps/pos/src/screens/payment/payment-drawer.test.tsx
+  - apps/pos/src/screens/payment/qr-panel.test.tsx
   - apps/pos/src/screens/payment/cash-keypad.test.ts
   - apps/pos/src/features/payment/cash-suggestions.test.ts
   - apps/pos/src/features/payment/tenders.test.ts
   - apps/pos/src/features/payment/qr-intent-phase.test.ts
   - apps/pos/src/features/invoice/buyer-form.test.ts
+  - packages/domain/src/payment/qr-short-and-over.test.ts
+  - apps/api/test/integration/payments/qr-short-transfer-finished-at-the-counter.test.ts
   - apps/api/test/integration/payments/intent-lifecycle-one-live-qr-per-order.test.ts
   - apps/api/test/integration/payments/match-under-over-duplicate.test.ts
   - apps/api/test/integration/payments/qr-time-runs-on-the-server-clock.test.ts
@@ -89,6 +93,11 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 2. Đưa mã cho khách quét. **Không cần bấm gì**: khi ngân hàng báo tiền về đúng số, máy tự chuyển sang "Đã nhận đủ tiền chuyển khoản. Đang hoàn tất đơn…" rồi sang màn **Đã thanh toán**.
 3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần.
 4. Mã hết hạn mà khách chưa chuyển: bấm **Tạo QR mới**.
+5. Khách **chuyển thiếu** (ví dụ 45.000 ₫ cho đơn 50.000 ₫): máy báo "Khách chuyển thiếu 5.000 ₫." và có hai nút:
+   - **Thu nốt 5.000 ₫ tiền mặt**: máy chuyển sang thẻ tiền mặt, dòng **Chuyển khoản 45.000 ₫** đã nằm sẵn (không bỏ được — đó là tiền ngân hàng đã báo về), **Còn lại** 5.000 ₫. Nhận tiền mặt như thường rồi **Hoàn tất thanh toán**.
+   - **QR cho phần còn lại 5.000 ₫**: máy vẽ mã QR mới **đúng 5.000 ₫**; khách chuyển đủ thì đơn tự đóng bằng cả hai khoản chuyển khoản.
+
+   Khách không trả nữa (muốn lấy lại tiền): bấm **Thu cách khác**, thu đủ bằng tiền mặt; khoản đã chuyển nằm trong danh sách **cần hoàn** ở trang quản lý.
 
 ### Thu bằng ví ZaloPay (khi chi nhánh bật ZaloPay)
 
@@ -123,7 +132,8 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 - Tiền mặt nhận được **nhiều lần**, tối đa **10 lần trả** mỗi đơn. Số gõ tay chỉ gồm chữ số (dấu chấm, dấu cách được bỏ qua), tối đa **11 chữ số**.
 - Không ghi được "chuyển khoản tay": tiền chuyển khoản chỉ được ghi khi ngân hàng báo về qua đúng mã QR của đơn.
 - Mã QR có hiệu lực **15 phút**, tính theo **giờ máy chủ** (đồng hồ máy quầy sai cũng không kéo dài được). Mỗi đơn chỉ có **một mã QR đang chờ**. Nội dung chuyển khoản là **FNB + 8 ký tự**, không dùng lại trong **7 ngày**.
-- Khách chuyển **thiếu** hoặc **thừa**: đơn **không** tự đóng. Thu đủ bằng cách khác; khoản khách đã chuyển vào danh sách **cần hoàn** ở trang quản lý, người có quyền xử lý ở đó.
+- Khách chuyển **thiếu**: đơn **không** tự đóng. Ngoại lệ duy nhất của luật "không trộn tiền mặt với QR": khoản chuyển thiếu được tính **đúng số ngân hàng báo về**, phần còn lại thu bằng tiền mặt hoặc **một mã QR mới đúng bằng phần còn lại** (máy chủ tính: tổng đơn trừ các khoản QR chuyển thiếu của đơn chưa hoàn cho khách; mã QR khác số đó bị từ chối). Đơn chỉ đóng khi các khoản cộng lại **đúng bằng** tổng máy chủ tính — không có "bớt cho khách" tự động; muốn bớt thì dùng giảm giá đơn. Khoản chuyển thiếu đã dùng trả đơn thì **ra khỏi** danh sách cần hoàn; khoản quản lý đã đánh dấu "đã hoàn cho khách" thì không dùng trả đơn được nữa.
+- Khách chuyển **thừa**: đơn **không** tự đóng. Thu đủ bằng cách khác; khoản khách đã chuyển vào danh sách **cần hoàn** ở trang quản lý, người có quyền xử lý ở đó.
 - Khách **đã chuyển đủ qua QR** mà thu ngân lại thu tiền mặt / hủy đơn / tạo QR mới: máy chủ từ chối. Trả lại tiền mặt cho khách, rồi bấm **Đóng đơn bằng QR đã nhận**.
 - Tiền chuyển đến **sau khi mã hết hạn**: không tự trả đơn; quản lý khớp tay ở trang quản lý.
 - Chỉ **tiền mặt** đi vào két của ca. Đơn tính vào ca **lúc thanh toán**.
@@ -142,7 +152,11 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 | Chuyển khoản chỉ được ghi khi ngân hàng báo tiền về qua mã QR của đơn. | Định ghi chuyển khoản không qua QR | Dùng thẻ Chuyển khoản QR |
 | Mã QR nhận đúng cả đơn: bỏ phần tiền mặt đã nhận nếu khách muốn chuyển khoản. | Đã nhận một phần tiền mặt | Bỏ dòng tiền mặt, rồi chọn QR |
 | Chưa có tài khoản nhận chuyển khoản nên chưa tạo được QR. Quản lý nhập tài khoản ở trang quản lý (Cài đặt, mục Tài khoản nhận tiền). | Chi nhánh chưa cài tài khoản | Thu tiền mặt; báo chủ quán |
-| Khách chuyển thiếu 20.000 ₫ — xử lý ở quầy. (hoặc **thừa**) | Ngân hàng báo số khác số của đơn | Thu đủ bằng cách khác; khoản đã chuyển nằm trong danh sách cần hoàn ở trang quản lý |
+| Khách chuyển thiếu 5.000 ₫. | Ngân hàng báo ít hơn số của mã | Bấm **Thu nốt 5.000 ₫ tiền mặt** hoặc **QR cho phần còn lại 5.000 ₫**; khách không trả nữa thì **Thu cách khác** |
+| Khách chuyển thừa 10.000 ₫ — xử lý ở quầy. | Ngân hàng báo nhiều hơn số của đơn | Thu đủ bằng cách khác; khoản đã chuyển nằm trong danh sách cần hoàn ở trang quản lý |
+| Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại. (khi tạo QR cho phần còn lại) | Mã QR mới không đúng phần còn lại (đơn vừa đổi, hoặc máy chưa thấy khoản chuyển thiếu) | Chờ đồng bộ, mở lại ngăn thanh toán rồi chọn lại |
+| Tiền của mã QR này đã được quản lý trả lại khách, nên không dùng trả đơn được nữa. Thu cách khác. | Quản lý đã hoàn khoản chuyển thiếu ở trang quản lý | Thu đủ bằng tiền mặt hoặc QR mới |
+| Số tiền ghi cho khoản chuyển khoản khác số máy chủ tính cho mã QR (đủ: số của mã; thiếu: số ngân hàng báo về). | Máy ghi sai số của khoản chuyển khoản | Mở lại ngăn thanh toán, chọn lại |
 | Mã QR đã hết hạn. Nếu khách chưa chuyển, tạo mã mới. | Quá 15 phút | Bấm Tạo QR mới |
 | Mã QR đã hết hạn và có tiền chuyển đến muộn. Báo quản lý khớp tay trước khi thu lại của khách. | Khách chuyển sau khi hết hạn | Báo quản lý, **đừng** thu thêm của khách |
 | Mã QR này đã bị gỡ (đơn đã thu cách khác hoặc đã đổi). Tạo mã mới nếu cần. | QR đã bị gỡ | Tạo mã mới |
@@ -178,7 +192,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 - Ví **MoMo**, **VNPay** (làm sau ZaloPay, cùng một lớp cổng ví); hoàn tiền qua ví (hiện tiền ví thừa/thiếu do người xử lý tay ở trang quản lý). Báo cáo cuối ngày chưa tách riêng tiền ví với tiền chuyển khoản QR (đều ghi là chuyển khoản).
 - Thẻ ngân hàng (máy POS rời), thẻ trả trước, voucher, ghi nợ.
-- Trộn nhiều cách trả trong một đơn (ví dụ một phần tiền mặt, một phần QR); chia bill.
+- Trộn nhiều cách trả trong một đơn (ví dụ một phần tiền mặt, một phần QR) — trừ trường hợp khách chuyển thiếu ở trên; chia bill.
 - Làm tròn tiền mặt.
 - QR tĩnh dự phòng khi không có tin báo của ngân hàng.
 - Bill, tem ly, phiếu pha chế ra giấy (hiện là bản xem trước — xem [10-phieu-in.md](10-phieu-in.md)).

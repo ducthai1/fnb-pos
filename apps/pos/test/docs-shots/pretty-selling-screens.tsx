@@ -114,6 +114,8 @@ const qrDrawer = (phase: Parameters<typeof QrPanel>[0]["phase"]) =>
           onRenew={nothing}
           onRetryPay={nothing}
           onCloseWithSettledQr={nothing}
+          onCashForRest={nothing}
+          onQrForRest={nothing}
         />
       )}
     />,

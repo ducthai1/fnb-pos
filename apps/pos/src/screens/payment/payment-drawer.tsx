@@ -35,8 +35,11 @@ export interface PaymentDrawerProps {
   onQr(): void;
   /** Takes a QR still out down; false when that could not be recorded and the QR stays. */
   onLeaveQr(): Promise<boolean>;
-  /** The QR and what it came to; `backToCash` is how its own buttons leave it. */
-  qrPanel(backToCash: () => void): ReactNode;
+  /**
+   * The QR and what it came to; `backToCash` is how its own buttons leave it, `cashFor` how
+   * a short transfer's money goes onto the cash card for the rest to be taken in cash.
+   */
+  qrPanel(backToCash: () => void, cashFor: (tenders: readonly Tender[]) => void): ReactNode;
   /** The QR is being drawn, taken down or paid: no other choice can be made meanwhile. */
   qrBusy: boolean;
   /** The e-wallets the branch turned on, a card each after the QR's; none by default. */
@@ -81,7 +84,8 @@ export function PaymentDrawer(props: PaymentDrawerProps) {
     if (tenders.length > 0) return W.wholeOrderOnly(name);
     return props.walletsOffline === true ? W.offline(name) : null;
   };
-  const unavailable = way === "qr" ? qrUnavailable : isWalletWay(way) ? walletUnavailable(way) : null;
+  const unavailable =
+    way === "qr" ? qrUnavailable : isWalletWay(way) ? walletUnavailable(way) : null;
   useTillKey(vi.sale.keys.pay, () => void finish(), payable && !locked);
 
   function take(tender: Tender) {
@@ -108,7 +112,8 @@ export function PaymentDrawer(props: PaymentDrawerProps) {
    */
   function leaveCurrent(then: () => void) {
     if (way === "cash" || unavailable !== null) return then();
-    const left = way === "qr" ? props.onLeaveQr() : (props.onLeaveWallet?.() ?? Promise.resolve(true));
+    const left =
+      way === "qr" ? props.onLeaveQr() : (props.onLeaveWallet?.() ?? Promise.resolve(true));
     void left.then((done) => {
       if (done) then();
     });
@@ -187,7 +192,13 @@ export function PaymentDrawer(props: PaymentDrawerProps) {
       ) : isWalletWay(way) ? (
         props.walletPanel?.(way, () => setWay("cash"))
       ) : (
-        props.qrPanel(() => setWay("cash"))
+        props.qrPanel(
+          () => setWay("cash"),
+          (short) => {
+            setTenders(short);
+            setWay("cash");
+          },
+        )
       )}
       <Alert message={error} />
       {/* Not beside a QR still out: editing the buyer leaves the drawer, and the QR must be

@@ -9,6 +9,7 @@ decisions:
   - D-052
   - D-059
   - D-064
+  - D-080
 tests:
   - apps/backoffice/src/components/payments/transfers-screen.test.tsx
   - apps/backoffice/src/components/payments/refund-due-list.test.tsx
@@ -18,6 +19,7 @@ tests:
   - apps/api/test/integration/payments/qr-money-handed-back-to-the-customer.test.ts
   - apps/api/test/integration/payments/qr-money-handed-back-after-the-day-closed.test.ts
   - apps/api/test/integration/payments/qr-money-handed-back-keys-and-tenants.test.ts
+  - apps/api/test/integration/payments/qr-short-transfer-finished-at-the-counter.test.ts
   - e2e/backoffice/hand-back-qr-money.spec.ts
 ---
 
@@ -64,6 +66,7 @@ Khi khách trả bằng **chuyển khoản QR**, ngân hàng (qua cổng SePay/P
 - **Chỉ ghi đã hoàn khi tiền đã thật sự trả lại khách.** Ghi chú và cách hoàn là bắt buộc.
 - Tiền QR đã hoàn **không phải doanh thu**: nó vào báo cáo **ngày ghi hoàn** ở dòng "Tiền QR đã hoàn lại khách", và **không trừ vào két của ca nào** — hoàn bằng tiền mặt từ két thì két ca sẽ lệch đúng số đó, cần ghi chú khi đóng ca.
 - Hoàn sau khi ngày của tiền đó đã chốt: vẫn ghi được, báo cáo ngày đã chốt không đổi, và mục này được liệt kê riêng ở [Chốt ngày](11-chot-ngay.md).
+- Khoản **chuyển thiếu** của đơn còn mở vẫn nằm ở "cần hoàn", nhưng thu ngân có thể **dùng nó trả đơn** (thu nốt phần còn lại bằng tiền mặt hoặc QR mới): đơn trả xong thì dòng đó **tự biến mất**. Đã ghi "đã hoàn" thì máy quầy không dùng khoản đó trả đơn được nữa — nên chỉ ghi hoàn khi khách thật sự lấy lại tiền.
 - Tiền ngân hàng báo về **không bao giờ bị bỏ qua**: hoặc khớp đơn, hoặc nằm trong "chưa khớp", hoặc trong "cần hoàn".
 
 ## Khi có lỗi

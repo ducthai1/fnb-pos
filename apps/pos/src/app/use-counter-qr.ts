@@ -1,12 +1,13 @@
 import type { PaymentAccount, PaymentIntentSnapshot } from "@fnb/contracts";
-import type { Vnd } from "@fnb/domain";
+import { type Vnd, vnd } from "@fnb/domain";
+import { remainderAfterShortTransfers } from "@fnb/domain/payment";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNow } from "../features/menu/use-now";
 import type { TillPlace } from "../features/order/till-command";
 import { type DrawnQr, cancelQrCommand, drawQr } from "../features/payment/qr-intent-commands";
 import { type QrPhase, qrPhaseOf } from "../features/payment/qr-intent-phase";
-import { paidQrOfOrder, qrTenderOf } from "../features/payment/settled-qr";
+import { paidQrOfOrder, qrTenderOf, shortQrsOfOrder } from "../features/payment/settled-qr";
 import type { Tender } from "../features/payment/tenders";
 import { useQrIntent } from "../features/payment/use-qr-intent";
 import { vi } from "../messages/vi";
@@ -28,14 +29,21 @@ export interface CounterQrInput {
 
 export interface CounterQr {
   readonly drawn: DrawnQr | null;
+  /** What the QR on screen asks for: the amount due, less what short QRs of it brought. */
+  readonly amount: Vnd;
   readonly phase: QrPhase;
   readonly error: string | null;
   /** A QR command is being recorded: its buttons wait. */
   readonly busy: boolean;
   /** Busy, or the bank paid and the order is closing with it: the drawer cannot be left. */
   readonly locked: boolean;
-  /** Draws and registers a QR for the whole amount due, taking down one still out. */
+  /**
+   * Draws and registers a QR for the whole amount due (or, after a short transfer, for
+   * exactly the rest of it), taking down one still out.
+   */
   show(): void;
+  /** What short QRs of the order brought, as tenders the rest is then taken in cash beside. */
+  shortTenders(): Promise<Tender[]>;
   /** Takes a QR still out down, so a late transfer waits for a person instead of paying twice. */
   leave(): Promise<boolean>;
   retryPay(): void;
@@ -49,6 +57,7 @@ export interface CounterQr {
 export function useCounterQr(input: CounterQrInput): CounterQr {
   const { client, place, orderId, amountDue, account, record, onPaid } = input;
   const [drawn, setDrawn] = useState<DrawnQr | null>(null);
+  const [amount, setAmount] = useState<Vnd>(amountDue);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const shown = useMemo(
@@ -70,8 +79,12 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
       try {
         const at = Date.now();
         if (withdraw !== null) await record(cancelQrCommand(place, withdraw, at));
-        const next = drawQr(place, account, { orderId, amountDue }, at);
+        const short = await shortQrsOfOrder(client, orderId);
+        const brought = short.map((intent) => vnd(intent.receivedAmount ?? 0));
+        const rest = remainderAfterShortTransfers(amountDue, brought);
+        const next = drawQr(place, account, { orderId, amountDue: rest }, at);
         await record(next.command);
+        setAmount(rest);
         setDrawn(next);
       } catch (failure) {
         console.error(failure);
@@ -80,7 +93,7 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
         setBusy(false);
       }
     },
-    [record, place, account, orderId, amountDue],
+    [client, record, place, account, orderId, amountDue],
   );
 
   const pay = useCallback(
@@ -89,14 +102,16 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
       paying.current = true;
       setError(null);
       try {
-        await onPaid([qrTenderOf(paid)]);
+        const short = await shortQrsOfOrder(client, orderId);
+        const beside = short.filter((intent) => intent.id !== paid.id).map(qrTenderOf);
+        await onPaid([...beside, qrTenderOf(paid)]);
       } catch (failure) {
         console.error(failure);
         paying.current = false;
         setError(Q.failed);
       }
     },
-    [onPaid],
+    [client, orderId, onPaid],
   );
 
   useEffect(() => {
@@ -121,11 +136,13 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
 
   return {
     drawn,
+    amount,
     phase,
     error,
     busy,
     locked: busy || (drawn !== null && phase.kind === "paid"),
     show: () => void draw(stillOut),
+    shortTenders: async () => (await shortQrsOfOrder(client, orderId)).map(qrTenderOf),
     leave,
     retryPay: () => {
       if (intent !== null) void pay(intent);

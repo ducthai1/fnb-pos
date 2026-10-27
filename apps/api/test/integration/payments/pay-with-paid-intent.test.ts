@@ -98,10 +98,15 @@ describe("order.pay with a QR transfer", () => {
   });
 
   it.each([
-    ["still waiting for the transfer", null, "pending"],
-    ["paid short", 20_000, "partial"],
-    ["paid over", 50_000, "overpaid"],
-  ])("refuses an intent %s, leaving the order a draft", async (_case, received, expected) => {
+    ["still waiting for the transfer", null, "pending", "SYNC_PAYMENT_INTENT_NOT_PAID"],
+    [
+      "paid short, at the amount it asked",
+      20_000,
+      "partial",
+      "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
+    ],
+    ["paid over", 50_000, "overpaid", "SYNC_PAYMENT_INTENT_NOT_PAID"],
+  ])("refuses an intent %s, leaving the order a draft", async (_case, received, expected, code) => {
     const { orderId, intentId, status } =
       received === null
         ? await (async () => {
@@ -116,7 +121,7 @@ describe("order.pay with a QR transfer", () => {
         : await intentPaidWith(received);
     expect(status).toBe(expected);
     const result = await pushOne(app, s.tillA, payByQr(s.tillA, orderId, intentId, 39_000));
-    expect(result).toMatchObject({ status: "rejected", code: "SYNC_PAYMENT_INTENT_NOT_PAID" });
+    expect(result).toMatchObject({ status: "rejected", code });
     expect(result.snapshot?.status).toBe("draft");
     expect(await qrPaymentsOf(orderId)).toEqual([]);
   });

@@ -71,7 +71,10 @@ describe("ZaloPay's callback", () => {
       received: 30_000,
     });
     const refused = await pushOne(app, s.tillA, payByQr(s.tillA, orderId, intentId, 39_000));
-    expect(refused).toMatchObject({ status: "rejected", code: "SYNC_PAYMENT_INTENT_NOT_PAID" });
+    expect(refused).toMatchObject({
+      status: "rejected",
+      code: "SYNC_PAYMENT_INTENT_AMOUNT_MISMATCH",
+    });
   });
 
   it("refuses a callback not signed with the branch's key2, recording nothing", async () => {

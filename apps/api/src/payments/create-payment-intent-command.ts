@@ -1,5 +1,6 @@
 import { type CreatePaymentIntentPayload, createPaymentIntentPayloadSchema } from "@fnb/contracts";
 import { compareVnd, computeOrderTotals, vnd } from "@fnb/domain";
+import { remainderAfterShortTransfers } from "@fnb/domain/payment";
 import { draftOfBranch } from "../sync/editable-order";
 import type { SyncCommandContext } from "../sync/sync-command-context";
 import { defineSyncCommand } from "../sync/sync-command-definition";
@@ -11,7 +12,7 @@ import {
   unclaimedTransfers,
 } from "./payment-intent-settlement";
 import { readPaymentIntent } from "./payment-intent-store";
-import { assertNoPaidQrLeftOut } from "./qr-transfer-tenders";
+import { assertNoPaidQrLeftOut, shortTransfersOfOrder } from "./qr-transfer-tenders";
 
 /**
  * How long a QR stays payable from the moment the server heard of it. Long enough for a
@@ -41,7 +42,7 @@ const CODE_RESERVED_FOR_MS = 7 * 24 * 60 * 60_000;
 /**
  * payment.create_intent: the till showed a VietQR for the order. The amount must be what
  * the server says the order comes to now, or the customer pays for a bill that no longer
- * exists. A transfer naming the code that reached the server before the intent did (the
+ * exists; when earlier QRs of it came short, exactly what those left of it. A transfer naming the code that reached the server before the intent did (the
  * till was offline) is matched at once. Returns the intent id.
  */
 async function createPaymentIntent(
@@ -51,7 +52,9 @@ async function createPaymentIntent(
   const { client, device, staffId } = context;
   const stored = await draftOfBranch(context, payload.orderId);
   const { amountDue } = computeOrderTotals(stored.order, stored.chargeProfile);
-  if (compareVnd(amountDue, vnd(payload.amount)) !== 0) {
+  const short = await shortTransfersOfOrder(context, payload.orderId);
+  const asked = remainderAfterShortTransfers(amountDue, short);
+  if (compareVnd(asked, vnd(payload.amount)) !== 0) {
     throw new CommandRejection(SYNC_ERROR_CODES.orderTotalMismatch);
   }
   await assertNoPaidQrLeftOut(context, payload.orderId);
