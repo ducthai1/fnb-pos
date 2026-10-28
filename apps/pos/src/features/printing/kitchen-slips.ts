@@ -12,6 +12,11 @@ import type { TillMenu } from "../menu/till-menu";
 import type { PrintJob } from "./printer-port";
 import { PRINTER_KEYS, RECEIPT_PRINTER } from "./printer-profiles";
 import { type SlipOrder, domainOrderOf, slipHead } from "./sale-order";
+import { weighedOnSlip } from "./weighed-print";
+
+/** The product of the item a ticket line is about, from the order's own lines. */
+const productIdOf = (sale: SlipOrder, lineId: string): string | null =>
+  sale.priced.lines.find((line) => line.id === lineId)?.productId ?? null;
 
 /** A station's ticket as order.mark_sent_to_kitchen reports it once printed. */
 export interface KitchenTicketJob {
@@ -70,6 +75,7 @@ export function kitchenSlips(
         kind: line.kind,
         name: line.name,
         quantity: line.quantity,
+        grams: weighedOnSlip(menu, productIdOf(sale, line.lineId), line.quantity)?.grams ?? null,
         note: line.note,
         previousNote: line.previousNote,
         children: line.children.map((child) => ({ name: child.name, quantity: child.quantity })),

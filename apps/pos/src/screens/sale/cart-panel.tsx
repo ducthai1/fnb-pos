@@ -64,6 +64,7 @@ export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }
             adjust={on.adjust}
             onQuantity={on.onQuantity}
             onRemove={on.onRemove}
+            onEntry={on.onEntry}
           />
         ))}
       </ul>

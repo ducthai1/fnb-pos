@@ -62,13 +62,17 @@ export function owedToKitchen(
   try {
     const diff = diffKitchenTicket(domain, sent, stationRoutingOf(menu));
     const owed = diff.tickets.flatMap((ticket) => ticket.lines);
-    const units = owed.reduce((sum, line) => sum + Number(line.quantity / QUANTITY_SCALE), 0);
+    // A weighing counts as one: 350 g of beans owed is something owed, not 0,35 of nothing.
+    const units = owed.reduce((sum, line) => sum + unitsOwed(line.quantity), 0);
     return { lineIds: new Set(owed.map((line) => line.lineId)), units };
   } catch {
     // Lines the domain cannot read (a menu change mid-order) owe nothing the till can print.
     return { lineIds: new Set(), units: 0 };
   }
 }
+
+const unitsOwed = (units: bigint): number =>
+  Number(units > 0n ? (units + QUANTITY_SCALE - 1n) / QUANTITY_SCALE : units / QUANTITY_SCALE);
 
 const treeOf = (priced: PricedCounterOrder, itemId: string): readonly OrderLine[] =>
   priced.lines.filter((line) => line.id === itemId || line.parentLineId === itemId);

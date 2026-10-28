@@ -13,9 +13,13 @@ decisions:
   - D-045
   - D-056
   - D-063
+  - D-106
 tests:
   - apps/pos/src/features/printing/print-sale-slips.test.ts
   - packages/printing/src/layout/lay-out-document.test.ts
+  - packages/printing/src/templates/bill-template.test.ts
+  - packages/printing/src/templates/kitchen-ticket-template.test.ts
+  - apps/pos/src/features/order/typed-and-weighed-lines.test.ts
   - apps/pos/src/app/table-rounds.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -82,6 +86,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 - Khổ giấy đang dùng để dựng phiếu: bill **80 mm**, tem ly **40 × 30 mm**. Khi in thật, chữ được in **không dấu** cho tới khi cài được bảng mã tiếng Việt của từng máy in (bảng mã sai thì mọi chữ có dấu thành ký tự lạ).
 - **Tên món dài tự xuống dòng; số tiền luôn nằm cùng dòng đầu của tên.** Tên hoặc ghi chú có dấu xuống dòng ở đầu (thường do dán từ Excel) không còn đẩy số tiền lên một dòng trống phía trên tên.
 - Thông tin người mua hóa đơn điện tử **không in** lên bill.
+- Món **bán theo cân** in **số gam** thay cho số lượng: bill ghi "351 g x 32.000 ₫/100 g" rồi số tiền (giấy 58 mm hẹp thì "351 g" cùng dòng số tiền, "x 32.000 ₫/100 g" xuống dòng dưới); phiếu pha chế ghi "351 g x Cà phê hạt Robusta". Món **giá nhập tay** in như món thường, với giá đã gõ: "2 x 180.000 ₫".
 
 ## Khi có lỗi
 

@@ -60,7 +60,7 @@ Chưa có: bất kỳ flow thao tác nào của KiotViet / Sapo FnB / iPOS / Cuk
 - Cờ trên món: `track_stock`, `earns_points` [E] KiotViet `isRewardPoint`, `sold_by_weight`, `open_price`, `kitchen_station`, `print_cup_label`.
 
 **Kiểu giá** [A][F]
-- base, theo biến thể, **giá nhập tay lúc order** (cần quyền), **theo cân** (đơn giá × số lượng nhập), theo kênh, theo khung giờ.
+- base, theo biến thể, **giá nhập tay lúc order** (cần quyền; duyệt gắn đúng đơn + món + giá, D-105), **theo cân** (đơn giá mỗi kg hoặc mỗi 100 g × cân nặng nhập bằng gam, làm tròn half-up tới đồng, D-106), theo kênh, theo khung giờ.
 - Bảng giá: `price_list_item(scope: variant|product|category|global, branch?, channel?, min_qty, datetime range, day_of_week, time_window)`. Ưu tiên: variant > product > category > global. [F]
 - [QĐ] Tính giá **tại lúc thêm dòng**, không dựng sẵn cho cả ca. [F] Odoo dựng sẵn nên happy hour không tự bật giữa ca.
 - Giá theo chi nhánh = ghi đè trên biến thể, thiếu thì lấy giá chung. [C] Square/Toast.

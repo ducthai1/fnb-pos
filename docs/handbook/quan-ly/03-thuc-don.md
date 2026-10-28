@@ -112,7 +112,8 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 - **Không xóa cứng** món, size hay tùy chọn: bỏ đi thì chúng được lưu trữ vì đơn cũ còn trỏ tới.
 - Hai người sửa cùng một món: người lưu sau bị từ chối với "Có người đã sửa món này trước bạn. Tải lại để xem bản mới nhất — thay đổi chưa lưu của bạn sẽ mất." Bấm **Tải lại món**.
 - Món **combo**: trang này chưa sửa được các phần combo ("Món combo: các phần combo chưa sửa được ở trang này và được giữ nguyên khi lưu.").
-- Máy quầy hiện chỉ bán món **giá cố định**, không bán combo (xem phần máy quầy). Món đặt "Thu ngân nhập giá" hay "Theo cân" vẫn lưu được ở đây.
+- Máy quầy bán món giá cố định, **giá nhập tay** và **bán theo cân** (xem [Bán tại quầy](../may-quay/03-ban-tai-quay.md)); combo chưa bán ở máy quầy.
+- **Không nên đổi đơn vị** (kg ↔ 100 g) của món bán theo cân khi còn đơn đang mở có món đó: máy đọc lại cân nặng theo đơn vị mới.
 - Hết món đặt tay ở trang này không tự bật lại theo giờ.
 
 ## Khi có lỗi

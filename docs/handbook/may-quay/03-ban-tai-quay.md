@@ -9,6 +9,8 @@ screens:
   - sale-long-cart
   - modifier-picker
   - modifier-picker-photo
+  - line-entry-price
+  - line-entry-weight
 decisions:
   - D-009
   - D-020
@@ -21,6 +23,9 @@ decisions:
   - D-099
   - D-103
   - D-104
+  - D-105
+  - D-106
+  - D-107
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
@@ -42,6 +47,13 @@ tests:
   - apps/pos/src/features/menu/product-photo-cache.test.ts
   - apps/pos/src/features/order/modifier-choices.test.ts
   - apps/pos/src/features/order/price-counter-order.test.ts
+  - apps/pos/src/app/counter-typed-price-and-weight.test.tsx
+  - apps/pos/src/features/order/typed-and-weighed-lines.test.ts
+  - apps/pos/src/features/order/line-entry-input.test.ts
+  - apps/pos/src/features/menu/till-menu.test.ts
+  - packages/domain/src/pricing/weighed-quantity.test.ts
+  - apps/api/test/integration/sync/sync-save-draft-prices-weighed-lines-by-weight.test.ts
+  - apps/api/test/integration/sync/sync-save-draft-open-price-needs-the-permission.test.ts
   - apps/api/test/integration/sync/sync-save-draft-prices-on-the-server.test.ts
   - apps/api/test/integration/sync/sync-save-draft-refuses-sold-out-products.test.ts
   - e2e/pos/counter-sale-cash.spec.ts
@@ -69,7 +81,7 @@ Trên cùng là một thanh: tên quán và tên máy, **Tại quầy / Bàn** (
 
 ## Ai dùng, cần quyền gì
 
-Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy món đã gửi bếp… cần quyền riêng — xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md).
+Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy món đã gửi bếp… cần quyền riêng — xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md). Món **giá nhập tay** cần quyền **Bán món giá nhập tay** (`open_price`; thu ngân, quản lý, chủ quán có sẵn; phục vụ thì không): người không có quyền vẫn gõ giá được nhưng quản lý phải nhập PIN duyệt **đúng giá đó cho đúng món đó**. Món bán theo cân không cần quyền gì.
 
 ## Các bước
 
@@ -77,6 +89,7 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
 2. **Chạm vào món**:
    - Món **không có size, không có tùy chọn** (ví dụ chai nước): chạm là vào đơn ngay, chạm lần nữa là thêm một.
    - Món **có size hoặc tùy chọn**: máy mở màn chọn tùy chọn (bước 3).
+   - Món **giá nhập tay** (ô món ghi **Nhập giá**) hoặc **bán theo cân** (ô món ghi giá kèm đơn vị, ví dụ **32.000 ₫/100 g**): máy mở ngăn **nhập giá** / **nhập cân nặng** (bước 3a); món có size/tùy chọn thì chọn trước, nút ở màn chọn đổi thành **Tiếp tục: nhập giá** / **Tiếp tục: nhập cân nặng**.
 3. **Chọn tùy chọn** trên màn của món:
 
    ![Chọn tùy chọn cho trà sữa](../images/may-quay/modifier-picker.webp)
@@ -87,7 +100,16 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - **Số lượng**: số ly giống hệt nhau.
    - **Ghi chú**: gõ tự do, hoặc chạm **Ghi chú nhanh**: *Ít đá · Không đá · Ít đường · Không đường · Đá riêng · Mang về riêng*. Chạm lần nữa vào cùng ghi chú nhanh là bỏ nó ra.
    - Bấm **Thêm vào đơn · 100.000 đ** (số tiền là giá của các ly đó đã gồm tùy chọn). Bấm **Quay lại** hoặc phím **Esc** để thôi.
+3a. **Nhập giá hoặc cân nặng** trong ngăn kéo mở từ bên phải (giống ngăn thanh toán):
+
+   ![Nhập cân nặng cho món bán theo cân](../images/may-quay/line-entry-weight.webp)
+
+   - **Giá nhập tay**: gõ giá **cho một món**, bằng đồng, trên bàn phím số (phím **000** để gõ nhanh nghìn) hoặc bàn phím máy; món có giá gợi ý (giá quản lý ghi ở trang quản lý) thì có phím **Giá gợi ý của món**. Dòng **Thành tiền** ghi giá đó. Bấm **Thêm vào đơn · 150.000 ₫**. Người không có quyền thấy câu "Bạn không tự nhập giá được: bấm Thêm để nhờ quản lý duyệt đúng giá này."; bấm thì máy mở màn **Cần quản lý duyệt** "Bán Bánh kem với giá 150.000 ₫" (xem [06](06-huy-giam-hoan-va-duyet.md)). Không ai duyệt thì quay lại ngăn với giá vừa gõ, đơn không đổi.
+   - **Bán theo cân**: gõ cân nặng bằng **gam** (cân hiện bao nhiêu gam gõ bấy nhiêu, không có dấu phẩy) hoặc chạm phím **Cân nhanh** **100 g · 200 g · 250 g · 500 g · 1.000 g**. **Thành tiền** = giá × cân nặng, làm tròn tới đồng, ví dụ "351 g × 32.000 ₫/100 g" = **112.320 ₫**. Bấm **Thêm vào đơn**.
+   - Đóng ngăn bằng **×**, phím **Esc** hoặc chạm ra ngoài: món không vào đơn.
 4. **Sửa đơn** ở cột bên phải: mỗi món một dòng — nút **−** / **+** ở đầu dòng để bớt / thêm một, rồi tên món, số tiền; tùy chọn hiện thành các nhãn nhỏ dưới tên, ghi chú là nhãn vàng. Bấm nút **⋯** cuối dòng để mở thao tác của món đó (**Xóa món**, **Hủy món**, **Giảm giá** — xem [06](06-huy-giam-hoan-va-duyet.md)); dòng đang mở chuyển nền đậm hơn. Cột đơn hẹp (máy tính bảng dựng đứng, điện thoại) thì nút − / + và ⋯ nằm ở hàng dưới tên.
+   - Món **giá nhập tay** có nhãn **Giá nhập · 150.000 ₫** dưới tên: chạm vào để **đổi giá** (giá mới cần duyệt lại nếu người bán không có quyền). Nút − / + vẫn dùng được (2 cái bánh cùng giá).
+   - Món **bán theo cân** có nhãn **351 g × 32.000 ₫/100 g** dưới tên và **không có** nút − / +: một dòng là một lần cân; chạm nhãn để **cân lại**, muốn thêm phần khác thì chạm món lần nữa (thành dòng mới).
 5. **Tìm món**: bấm vào ô tìm hoặc phím **F2**, gõ tên — **không dấu cũng được** ("tra sua" tìm ra "Trà sữa", "d" khớp cả "đ"). Máy tìm trong danh mục đang chọn; chọn **Tất cả** để tìm khắp thực đơn.
 6. Bấm **Thanh toán** hoặc phím **F9** — xem [04-thanh-toan.md](04-thanh-toan.md).
 
@@ -140,7 +162,9 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
 - Bảng giá theo giờ (ví dụ giờ vàng) áp theo **giờ của máy lúc bán**.
 - Món **Hết món** (bật ở trang quản lý) hiện ảnh xám với con dấu **Hết món**, giá gạch ngang, không chạm được. Món **Chưa có giá** cũng không chạm được. Món hết hoặc chưa có giá không có nút **+** và không mang nhãn **Bán chạy**.
-- Máy quầy **chỉ bán món giá cố định**: combo, món giá nhập tay và món bán theo cân **không hiện** trên máy quầy.
+- Máy quầy bán món **giá cố định**, **giá nhập tay** và **bán theo cân**; **combo không hiện** trên máy quầy. Món theo cân mà bản sao trên máy chưa có đơn vị (từ trước khi có đơn vị) thì chưa hiện, tới lần đồng bộ sau.
+- **Giá nhập tay**: lớn hơn 0 ₫, tối đa **100.000.000 ₫ một món**; gõ quá thì báo "Giá tối đa 100.000.000 ₫ cho một món." và không thêm được. Máy chủ tính lại tiền theo giá đã gõ và **chỉ nhận lần duyệt đúng đơn, đúng món, đúng giá** — một lần duyệt không dùng cho món thứ hai hay cho giá khác.
+- **Bán theo cân**: cân nặng là **số gam nguyên**, từ 1 g tới **100 kg (100.000 g)** một dòng; quá thì báo "Một lần cân tối đa 100 kg (100.000 g).". Tiền dòng = giá mỗi kg (hoặc mỗi 100 g) × cân nặng, **làm tròn tới đồng (nửa đồng làm tròn lên)**, đúng như máy chủ tính; phiếu pha chế và hóa đơn in **"351 g x …"**.
 - **Đơn dài** (nhiều món): cột đơn tự cuộn, phần tổng tiền, **Giảm giá đơn**, **Hủy đơn** và **Thanh toán** luôn đứng yên ở dưới.
 - Số lượng một dòng: tối đa **999**. Ghi chú: tối đa **500 ký tự**. Số bàn ghi tay: tối đa **20 ký tự**.
 - Nhóm tùy chọn có giới hạn theo size (ví dụ size L được thêm nhiều topping hơn) thì máy áp đúng theo size đang chọn.
@@ -165,14 +189,22 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 | Không lưu được đơn trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý. | Máy không ghi được đơn vào bộ nhớ máy | Thử lại; tải lại trang; báo quản lý |
 | Món đã gửi bếp, đã giảm giá hoặc đã hủy một phần nên không bớt, đổi hay xóa được: muốn bớt thì hủy món. … | Sửa món đã khóa | Dùng **Hủy món** |
 | Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại. | Giá vừa đổi trên máy chủ | Mở lại đơn |
+| Giá tối đa 100.000.000 ₫ cho một món. | Gõ giá quá lớn (thường là thừa số 0) | Xóa bớt số |
+| Một lần cân tối đa 100 kg (100.000 g). | Gõ cân nặng quá lớn | Xóa bớt số |
+| Bạn không có quyền làm thao tác này và không ai duyệt hộ được. | Không ai có quyền duyệt giá nhập tay | Báo chủ quán |
+| Giá gõ vượt 100.000.000 ₫ cho một món nên máy chủ không nhận. Gõ lại giá. / Món bán theo cân cần cân nặng lớn hơn 0 g. Cân lại món. / Cân nặng không tròn gam theo đơn vị của món (đơn vị vừa đổi). Cân lại món. / Một lần cân tối đa 100 kg. Cân lại món. | Máy chủ từ chối dòng (hiện ở **Cần xử lý**) | Mở lại đơn, gõ lại giá / cân lại |
+| Lần duyệt này dành cho đơn, món hoặc ca khác với thao tác máy gửi. … / Quản lý đã duyệt một con số khác với thao tác máy gửi … | Lần duyệt giá nhập tay không khớp món / giá | Đổi giá lại, xin duyệt lại |
 
 ## Mất mạng thì sao
 
-Bán tại quầy **không cần mạng**: thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md). Đổi giao diện không cần mạng.
+Bán tại quầy **không cần mạng**: thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bán theo cân và giá nhập tay của người **có quyền** cũng bán được khi mất mạng; người **không có quyền** gõ giá thì cần mạng để quản lý duyệt (màn duyệt báo "Duyệt cần mạng…"). Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md). Đổi giao diện không cần mạng.
 
 ## Chưa làm / sắp có
 
-- Bán **combo**, món **giá nhập tay**, món **theo cân** trên máy quầy.
+- Bán **combo** trên máy quầy.
+- **Cân điện tử** nối với máy: chưa có; ngăn nhập cân đã chừa nút **Đọc cân** (chỉ hiện khi máy có cân), hiện thu ngân gõ số gam cân hiện.
+- **Hủy món bán theo cân đã gửi bếp** (bàn): màn **Hủy món** đếm theo số món nguyên nên chưa hủy được một lần cân đã gửi bếp; trước khi gửi bếp thì **Xóa món** bình thường.
+- In lại hóa đơn cũ của món theo cân đọc đơn vị **hiện tại** của món; đổi đơn vị (kg ↔ 100 g) khi còn đơn đang mở hoặc cần in lại thì phiếu ghi sai đơn vị.
 - Giữ đơn (treo đơn để bán khách khác rồi quay lại) ở chế độ tại quầy — hiện mỗi máy giữ **một** đơn quầy đang bán; đơn chưa thanh toán mở lại được từ **Lịch sử đơn** (xem [08](08-lich-su-don.md)).
 - Kênh giao hàng, khuyến mãi, voucher, tích điểm khách hàng.
 - Tem dán ly và phiếu pha chế in ra giấy (hiện là bản xem trước — xem [10-phieu-in.md](10-phieu-in.md)).

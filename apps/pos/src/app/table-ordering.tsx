@@ -2,8 +2,13 @@ import { useState } from "react";
 import type { FloorArea } from "../features/floor/floor-occupancy";
 import type { FloorTableView } from "../features/floor/floor-tables-view";
 import { cartView } from "../features/order/cart-view";
-import { addCartLine, removeCartLine, setLineQuantity } from "../features/order/counter-order";
-import { needsNoChoice, plainLine } from "../features/order/plain-cart-line";
+import {
+  type CartLine,
+  addCartLine,
+  removeCartLine,
+  replaceCartLine,
+  setLineQuantity,
+} from "../features/order/counter-order";
 import type { PrintedSlip } from "../features/printing/print-sale-slips";
 import type { TableOrderOpening } from "../features/table-order/table-order-opening";
 import {
@@ -23,6 +28,8 @@ import { TransferTableScreen } from "../screens/table-order/transfer-table-scree
 import { cancelTicketsScreen } from "../features/table-order/void-cancel-tickets";
 import { UnderLayer } from "../screens/shared/under-layer";
 import { CounterCheckout } from "./counter-checkout";
+import { LineEntryFlow, type PendingEntry } from "./line-entry-flow";
+import { type ChosenLine, chosenLine, retyped, tapped } from "./line-entry-steps";
 import { OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 import type { TableOrderPhase } from "./table-order-phase";
 import type { CounterSaleProps } from "./counter-sale";
@@ -52,6 +59,18 @@ export function TableOrdering(props: TableOrderingProps) {
   const table = order.table ?? { id: "", name: "" };
   const rounds = { ...props, session, now: Date.now };
   const back = () => setPhase({ kind: "order" });
+  /** A chosen line goes on the order, or waits in the drawer for its price or weight. */
+  const take = (chosen: ChosenLine) => {
+    if (chosen.kind === "enter") return setPhase({ kind: "entering", pending: chosen.pending });
+    session.update((draft) => addCartLine(draft, chosen.line));
+    back();
+  };
+  const entered = (pending: PendingEntry, line: CartLine) => {
+    session.update((draft) =>
+      pending.editing ? replaceCartLine(draft, line) : addCartLine(draft, line),
+    );
+    back();
+  };
 
   async function showSlips(
     title: string,
@@ -80,10 +99,7 @@ export function TableOrdering(props: TableOrderingProps) {
           product={phase.product}
           now={now}
           onCancel={back}
-          onAdd={(line) => {
-            session.update((draft) => addCartLine(draft, line));
-            back();
-          }}
+          onAdd={(line) => take(chosenLine(phase.product, line))}
         />
       );
     case "slips":
@@ -121,9 +137,13 @@ export function TableOrdering(props: TableOrderingProps) {
   }
   const blocked = session.refusal !== null;
   const checkout = phase.kind === "checkout" ? phase.priced : null;
+  const entering = phase.kind === "entering" ? phase.pending : null;
   return (
     <>
-      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
+      <UnderLayer
+        covered={checkout !== null || entering !== null}
+        gone={checkout !== null && wholeScreen}
+      >
         <TableOrderScreen
           header={header}
           menu={menu}
@@ -146,9 +166,13 @@ export function TableOrdering(props: TableOrderingProps) {
             />
           }
           onPick={(product) => {
-            if (needsNoChoice(product))
-              session.update((draft) => addCartLine(draft, plainLine(product)));
-            else setPhase({ kind: "picking", product });
+            const chosen = tapped(product);
+            if (chosen === "pick") setPhase({ kind: "picking", product });
+            else take(chosen);
+          }}
+          onEntry={(lineId) => {
+            const pending = retyped(menu, order, lineId);
+            if (pending !== null) setPhase({ kind: "entering", pending });
           }}
           onQuantity={(lineId, quantity) =>
             session.update((draft) => setLineQuantity(draft, lineId, quantity))
@@ -176,6 +200,16 @@ export function TableOrdering(props: TableOrderingProps) {
           }
         />
       </UnderLayer>
+      {entering === null ? null : (
+        <LineEntryFlow
+          menu={menu}
+          now={now}
+          orderId={order.orderId}
+          pending={entering}
+          onCancel={back}
+          onDone={(line) => entered(entering, line)}
+        />
+      )}
       {checkout === null ? null : (
         <CounterCheckout
           {...props}

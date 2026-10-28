@@ -19,7 +19,8 @@ import {
 const S = vi.sale;
 const T = vi.tables.order;
 
-export interface TableCartProps extends Pick<CartPanelProps, "onQuantity" | "onRemove"> {
+export interface TableCartProps
+  extends Pick<CartPanelProps, "onQuantity" | "onRemove" | "onEntry"> {
   order: CounterOrder;
   view: CartView;
   /** Items held as stored (the kitchen has them, or a discount or void points at them). */
@@ -70,6 +71,7 @@ export function TableCart(props: TableCartProps) {
               adjust={on.adjust}
               onQuantity={on.onQuantity}
               onRemove={on.onRemove}
+              onEntry={on.onEntry}
             />
           );
         })}

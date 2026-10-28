@@ -4,12 +4,13 @@ import { type ReactNode, useState } from "react";
 import type { TillMenu } from "../features/menu/till-menu";
 import { cartView } from "../features/order/cart-view";
 import {
+  type CartLine,
   addCartLine,
   removeCartLine,
+  replaceCartLine,
   setLineQuantity,
   setServiceType,
 } from "../features/order/counter-order";
-import { needsNoChoice, plainLine } from "../features/order/plain-cart-line";
 import type { PricedCounterOrder } from "../features/order/price-counter-order";
 import type { TillPlace } from "../features/order/till-command";
 import type { CounterOrderSession } from "../features/order/use-counter-order";
@@ -21,6 +22,8 @@ import { ScreenFrame } from "../screens/shared/screen-frame";
 import { UnderLayer } from "../screens/shared/under-layer";
 import { TillBarNav } from "../screens/till/till-bar-nav";
 import { CounterCheckout } from "./counter-checkout";
+import { LineEntryFlow, type PendingEntry } from "./line-entry-flow";
+import { type ChosenLine, chosenLine, retyped, tapped } from "./line-entry-steps";
 import { type AdjustStep, OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 
 export interface CounterSaleProps {
@@ -41,6 +44,7 @@ export interface CounterSaleProps {
 type Phase =
   | { readonly kind: "selling" }
   | { readonly kind: "picking"; readonly product: PosProduct }
+  | { readonly kind: "entering"; readonly pending: PendingEntry }
   | { readonly kind: "adjusting"; readonly step: AdjustStep }
   | { readonly kind: "checkout"; readonly priced: PricedCounterOrder };
 
@@ -50,6 +54,18 @@ export function CounterSale(props: CounterSaleProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
   const [wholeScreen, setWholeScreen] = useState(false);
   const { order, chargeProfile } = session;
+  /** A chosen line goes on the order, or waits in the drawer for its price or weight. */
+  const take = (chosen: ChosenLine) => {
+    if (chosen.kind === "enter") return setPhase({ kind: "entering", pending: chosen.pending });
+    session.update((draft) => addCartLine(draft, chosen.line));
+    setPhase({ kind: "selling" });
+  };
+  const entered = (pending: PendingEntry, line: CartLine) => {
+    session.update((draft) =>
+      pending.editing ? replaceCartLine(draft, line) : addCartLine(draft, line),
+    );
+    setPhase({ kind: "selling" });
+  };
 
   if (order === null || chargeProfile === null) {
     return (
@@ -83,17 +99,18 @@ export function CounterSale(props: CounterSaleProps) {
         product={phase.product}
         now={now}
         onCancel={() => setPhase({ kind: "selling" })}
-        onAdd={(line) => {
-          session.update((draft) => addCartLine(draft, line));
-          setPhase({ kind: "selling" });
-        }}
+        onAdd={(line) => take(chosenLine(phase.product, line))}
       />
     );
   }
   const checkout = phase.kind === "checkout" ? phase.priced : null;
+  const entering = phase.kind === "entering" ? phase.pending : null;
   return (
     <>
-      <UnderLayer covered={checkout !== null} gone={checkout !== null && wholeScreen}>
+      <UnderLayer
+        covered={checkout !== null || entering !== null}
+        gone={checkout !== null && wholeScreen}
+      >
         <SaleScreen
           header={<TillBarNav nav={props.modeSwitch}>{header}</TillBarNav>}
           menu={menu}
@@ -105,9 +122,13 @@ export function CounterSale(props: CounterSaleProps) {
           adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
           saveFailed={session.saveFailed}
           onPick={(product) => {
-            if (needsNoChoice(product)) {
-              session.update((draft) => addCartLine(draft, plainLine(product)));
-            } else setPhase({ kind: "picking", product });
+            const chosen = tapped(product);
+            if (chosen === "pick") setPhase({ kind: "picking", product });
+            else take(chosen);
+          }}
+          onEntry={(lineId) => {
+            const pending = retyped(menu, order, lineId);
+            if (pending !== null) setPhase({ kind: "entering", pending });
           }}
           onQuantity={(lineId, quantity) =>
             session.update((draft) => setLineQuantity(draft, lineId, quantity))
@@ -122,6 +143,16 @@ export function CounterSale(props: CounterSaleProps) {
           }}
         />
       </UnderLayer>
+      {entering === null ? null : (
+        <LineEntryFlow
+          menu={menu}
+          now={now}
+          orderId={order.orderId}
+          pending={entering}
+          onCancel={() => setPhase({ kind: "selling" })}
+          onDone={(line) => entered(entering, line)}
+        />
+      )}
       {checkout === null ? null : (
         <CounterCheckout
           {...props}

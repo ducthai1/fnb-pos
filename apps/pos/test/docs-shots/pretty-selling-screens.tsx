@@ -1,4 +1,5 @@
 import { posProductSchema } from "@fnb/contracts";
+import { vnd } from "@fnb/domain";
 import { buildVietQrPayload } from "@fnb/domain/payment";
 import type { ReactElement, ReactNode } from "react";
 import { BestSellersContext } from "../../src/features/menu/use-best-sellers";
@@ -12,6 +13,7 @@ import { OpenShiftScreen } from "../../src/screens/open-shift/open-shift-screen"
 import { PaymentDrawer } from "../../src/screens/payment/payment-drawer";
 import { QrPanel } from "../../src/screens/payment/qr-panel";
 import { SaleDoneScreen } from "../../src/screens/payment/sale-done-screen";
+import { LineEntryDrawer } from "../../src/screens/sale/line-entry-drawer";
 import { ModifierPickerScreen } from "../../src/screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../../src/screens/sale/sale-screen";
 import { UnderLayer } from "../../src/screens/shared/under-layer";
@@ -140,6 +142,19 @@ const slips = [
 ].flatMap((job) => (job === null ? [] : [{ job, outcome: { status: "preview_only" as const } }]));
 const milkTea = PRODUCTS.find((product) => product.id === P["Trà sữa trân châu"]);
 
+/** Coffee beans the shop sells by weight, 32.000 đ per 100 g, a quarter kilo on the scale. */
+const beans = posProductSchema.parse({
+  ...milkTea,
+  id: "0199f000-0000-7000-8000-00000000be01",
+  name: "Cà phê hạt Robusta",
+  pricingMode: "weighed",
+  measureUnit: "100g",
+  basePrice: 32_000,
+  variants: [],
+  modifierGroups: [],
+  imageUrl: undefined,
+});
+
 export const SELLING_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={tillBar()} onOpen={never} />,
   sale: () => saleScreen(),
@@ -148,6 +163,22 @@ export const SELLING_SCREENS = {
   "sale-offline": () => saleScreen({ connection: "offline", pending: 3, needsAttention: 1 }),
   // Not one of the layout test's screens: the selling screen with the bar's look menu open.
   "theme-menu": () => saleScreen(),
+  "line-entry-weight": () =>
+    overTheSale(
+      <LineEntryDrawer
+        product={beans}
+        kind="weight"
+        per={{ price: vnd(32_000), unit: "100g" }}
+        typed="250"
+        onType={nothing}
+        editing={false}
+        needsManager={false}
+        error={null}
+        busy={false}
+        onConfirm={nothing}
+        onClose={nothing}
+      />,
+    ),
   "modifier-picker": () => (
     <ModifierPickerScreen
       header={tillBar()}

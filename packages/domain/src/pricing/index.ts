@@ -18,6 +18,7 @@ export { validateProductConfig } from "./validate-product-config";
 export {
   GRAMS_PER_MEASURE_UNIT,
   MAX_WEIGHED_GRAMS,
+  formatGrams,
   gramsOfWeighedQuantity,
   measureUnitOf,
   weighedLineAmount,

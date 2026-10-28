@@ -303,11 +303,11 @@
 ### T04-06 Màn bán
 - **Làm:** lưới món, tìm nhanh, chọn biến thể/tùy chọn, ghi chú, số lượng, giữ đơn, nhiều đơn song song.
 - **Test:** `apps/pos/src/features/order/modifier-picker.test.tsx`; `e2e/pos/counter-sale-cash.spec.ts`.
-- **Trạng thái:** done bản web (2026-10-20) — tab danh mục, tìm bỏ dấu, lưới món, bảng chọn tùy chọn theo luật domain, giỏ dạng cây, lưu nháp tự động. Chưa có: combo, giá mở, món cân, ảnh món, mở lại nháp sau khi tải lại.
+- **Trạng thái:** done bản web (2026-10-20) — tab danh mục, tìm bỏ dấu, lưới món, bảng chọn tùy chọn theo luật domain, giỏ dạng cây, lưu nháp tự động. Chưa có: combo, ảnh món, mở lại nháp sau khi tải lại (giá mở + món cân: xong ở T04-07, 2026-10-28).
 
 ### T04-07 Tổng tiền + giảm tay + giá nhập tay + theo cân
 - **Test:** `e2e/pos/manual-discount-over-threshold-needs-approval.spec.ts`.
-- **Trạng thái:** một phần (2026-10-21) — giảm dòng/đơn + duyệt vượt ngưỡng (D-057, `e2e/pos/void-discount-refund-with-approval.spec.ts`); giá nhập tay + món theo cân chưa (máy quầy ẩn, D-048).
+- **Trạng thái:** done (2026-10-28, nhánh `feat/open-price-and-weighed-items`) — giảm dòng/đơn + duyệt vượt ngưỡng (D-057, `e2e/pos/void-discount-refund-with-approval.spec.ts`); **giá nhập tay** (ngăn nhập giá, duyệt gắn đơn + dòng + đúng giá, D-105) và **món theo cân** (kg / 100 g, nhập gam, D-106, D-107) bán được ở quầy và bàn; test `apps/pos/src/app/counter-typed-price-and-weight.test.tsx`, `apps/api/test/integration/sync/sync-save-draft-{open-price-needs-the-permission,prices-weighed-lines-by-weight}.test.ts`. Còn: hủy món cân đã gửi bếp, cân điện tử (backlog).
 
 ### T04-08 Thanh toán
 - **Làm:** tiền mặt (gợi ý mệnh giá, tiền thừa), QR động (xác nhận tay), thẻ (ghi nhận tay), nhiều phương thức.
@@ -471,6 +471,13 @@
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
+
+- 2026-10-28 · Hủy món **bán theo cân** đã gửi bếp (bàn): màn Hủy món và `VoidRequest.units` đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp (trước khi gửi thì Xóa món được) — cho hủy nguyên lần cân (số lượng của dòng).
+- 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn: máy đọc lại gam và in bill theo đơn vị **hiện tại** của món ⇒ đổi đơn vị khi còn đơn mở / in lại bill cũ là sai đơn vị. Cột `sales_order_line.measure_unit` + snapshot.
+- 2026-10-28 · Cân điện tử: nối `WeighingScale` (`apps/pos/src/features/order/weighing-scale.ts`) qua vỏ native; ngăn nhập cân đã có nút "Đọc cân".
+- 2026-10-28 · Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft` (máy chủ chỉ kiểm cân nặng của món theo cân) — chặn số lẻ cho món không bán theo cân.
+- 2026-10-28 · HĐĐT chưa có đơn vị tính (ĐVT) trên dòng; món theo cân cần "kg"/"100 g" và số lượng lẻ.
+- 2026-10-28 · Nhập/xuất Excel bỏ qua món theo cân / giá nhập tay (không có cột đơn vị, cách tính giá).
 
 - 2026-10-22 · `order.refund` vẫn ghi được khi máy không có ca mở (luật D-078 mới áp cho `order.pay`) — áp cùng luật cho hoàn tiền mặt.
 - 2026-10-22 · Ví điện tử: chưa hoàn tiền qua ví (bộ chuyển trả "chưa hỗ trợ"); báo cáo ngày chưa tách tiền ví khỏi chuyển khoản QR (cả hai là `qr_transfer`); chưa có e2e trình duyệt cho luồng ví; `expire_duration_seconds=900` sandbox nhận nhưng chưa thấy trong tài liệu chính thức (docs.zalopay.vn không phân giải được tên miền trên máy này — đã đối chiếu SDK Node chính thức + gọi sandbox thật).

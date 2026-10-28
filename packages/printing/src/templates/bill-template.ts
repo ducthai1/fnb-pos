@@ -1,9 +1,11 @@
 import {
   type BasisPoints,
   type LocalClockParts,
+  type MeasureUnit,
   type Quantity,
   QUANTITY_SCALE,
   type Vnd,
+  formatGrams,
   formatVnd,
   negateVnd,
 } from "@fnb/domain";
@@ -23,6 +25,11 @@ export interface BillLineChild {
 export interface BillLine {
   readonly name: string;
   readonly quantity: Quantity;
+  /**
+   * Sold by weight: the grams weighed and what the price is per, printed as "353 g x
+   * 200.000 ₫/kg" in place of the units. The amount is still the domain's.
+   */
+  readonly weighed?: { readonly grams: number; readonly per: MeasureUnit } | null;
   readonly unitPrice: Vnd;
   readonly amount: Vnd;
   readonly children: readonly BillLineChild[];
@@ -91,7 +98,12 @@ function header(input: BillInput): PrintBlock[] {
 }
 
 function lineBlocks(line: BillLine): PrintBlock[] {
-  const qty = `${formatQuantity(line.quantity)} x ${formatVnd(line.unitPrice)}`;
+  const { weighed } = line;
+  const qty =
+    weighed === undefined || weighed === null
+      ? `${formatQuantity(line.quantity)} x ${formatVnd(line.unitPrice)}`
+      : // "x" sticks to the price, so a narrow slip wraps to "351 g" and "x 32.000 ₫/100 g".
+        `${formatGrams(weighed.grams)} x\u00a0${formatVnd(line.unitPrice)}/${L.measureUnits[weighed.per]}`;
   return [
     { kind: "text", text: line.name, bold: true },
     pair(qty, formatVnd(line.amount), { indent: 2 }),

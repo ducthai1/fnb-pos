@@ -4,6 +4,8 @@ import {
   type OrderLine,
   QUANTITY_SCALE,
   computeOrderTotals,
+  gramsOfWeighedQuantity,
+  measureUnitOf,
 } from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 import { commandMadeLines, itemTree, referencedItemIds } from "./command-made-lines";
@@ -56,6 +58,27 @@ function modifierOf(menu: TillMenu, item: OrderLine, line: OrderLine): ModifierS
 }
 
 /**
+ * What the cashier typed for a stored item, as its cart line carries it: the price of an
+ * open-price item, the grams of a weighed one (its quantity, in the product's unit). A weight
+ * the product's unit cannot read back in whole grams (the unit changed since) is left out,
+ * and the line then cannot be priced until it is weighed again.
+ */
+export function entryOfStored(
+  menu: TillMenu,
+  item: Pick<OrderLine, "productId" | "quantity" | "unitPrice" | "priceSource">,
+): Pick<CartLine, "quantity" | "enteredPrice" | "grams"> {
+  const product = item.productId === null ? undefined : menu.productsById.get(item.productId);
+  const per = product === undefined ? null : measureUnitOf(product);
+  const typed = item.priceSource === "manual" ? { enteredPrice: item.unitPrice } : {};
+  if (per === null) return { ...typed, quantity: Number(item.quantity / QUANTITY_SCALE) };
+  try {
+    return { ...typed, quantity: 1, grams: gramsOfWeighedQuantity(item.quantity, per) };
+  } catch {
+    return { ...typed, quantity: 1 };
+  }
+}
+
+/**
  * An order from the copy the till holds: each item as the cart line that saves it again
  * (same id, same choices); the items the kitchen has, or a discount or cancel line points
  * at, kept exactly as stored; the lines only commands make held beside the cart.
@@ -82,7 +105,7 @@ export function openingFromStored(menu: TillMenu, stored: StoredOrder): OrderOpe
       modifiers: tree
         .filter((line) => line.lineType === "modifier")
         .map((line) => modifierOf(menu, item, line)),
-      quantity: Number(item.quantity / QUANTITY_SCALE),
+      ...entryOfStored(menu, item),
       note: item.note,
     };
   });

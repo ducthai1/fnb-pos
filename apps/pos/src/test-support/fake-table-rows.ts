@@ -1,7 +1,14 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
-import { quantity, quantityFromThousandths, quantityToDecimalString } from "@fnb/domain";
+import {
+  ZERO_VND,
+  quantity,
+  quantityFromThousandths,
+  quantityToDecimalString,
+  vnd,
+} from "@fnb/domain";
 import type { TillMenu } from "../features/menu/till-menu";
 import type { CartLine, CounterOrder } from "../features/order/counter-order";
+import { entryOfStored } from "../features/order/order-opening";
 import { tillOrderSnapshot } from "../features/order/order-snapshot-for-till";
 import { priceCounterOrder } from "../features/order/price-counter-order";
 
@@ -11,16 +18,28 @@ type LineRow = Record<string, unknown> & { id: string };
 
 const PROFILE = { pricesIncludeTax: true, serviceCharge: null };
 
-/** The draft intents of a save as cart lines, to price them as the server would. */
-const cartLinesOf = (payload: Payload): CartLine[] =>
-  (payload.lines as Payload[]).map((line) => ({
-    lineId: String(line.lineId),
-    productId: String(line.productId),
-    variantId: (line.variantId as string | null) ?? null,
-    modifiers: line.modifiers as CartLine["modifiers"],
-    quantity: Number(line.quantity),
-    note: (line.note as string | null) ?? null,
-  }));
+/**
+ * The draft intents of a save as cart lines, to price them as the server would: a typed
+ * price as typed, a weight (sent in the product's unit) back in grams.
+ */
+const cartLinesOf = (menu: TillMenu, payload: Payload): CartLine[] =>
+  (payload.lines as Payload[]).map((line) => {
+    const typed = typeof line.enteredPrice === "number" ? vnd(line.enteredPrice) : undefined;
+    const entry = entryOfStored(menu, {
+      productId: String(line.productId),
+      quantity: quantity(String(line.quantity)),
+      unitPrice: typed ?? ZERO_VND,
+      priceSource: typed === undefined ? "base" : "manual",
+    });
+    return {
+      lineId: String(line.lineId),
+      productId: String(line.productId),
+      variantId: (line.variantId as string | null) ?? null,
+      modifiers: line.modifiers as CartLine["modifiers"],
+      ...entry,
+      note: (line.note as string | null) ?? null,
+    };
+  });
 
 /**
  * The order rows a table's commands leave, shaped as the real server sends them, priced
@@ -49,7 +68,7 @@ export function fakeTableRows(
       serviceType: payload.serviceType === "dine_in" ? "dine_in" : "takeaway",
       tableTag: (payload.tableTag as string | null | undefined) ?? null,
       table: tableId === null ? null : { id: tableId, name: tableNameOf(tableId) },
-      lines: cartLinesOf(payload),
+      lines: cartLinesOf(menu, payload),
     };
     const priced = priceCounterOrder(menu, order, PROFILE, at(command));
     const shaped = tillOrderSnapshot(

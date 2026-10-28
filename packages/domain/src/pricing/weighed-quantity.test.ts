@@ -9,6 +9,7 @@ import { goodsLineAmounts } from "../totals/goods-line-amounts";
 import { PRICING_ERROR_CODES } from "./pricing-error-codes";
 import {
   MAX_WEIGHED_GRAMS,
+  formatGrams,
   gramsOfWeighedQuantity,
   measureUnitOf,
   weighedLineAmount,
@@ -123,6 +124,14 @@ describe("weighedLineAmount: what a weighed line costs", () => {
         expect(line?.gross).toBe(weighedLineAmount(price, weight));
       }),
     );
+  });
+});
+
+describe("formatGrams", () => {
+  it("groups thousands like money and keeps the unit on the same line", () => {
+    expect(formatGrams(353)).toBe("353\u00a0g");
+    expect(formatGrams(1_250)).toBe("1.250\u00a0g");
+    expect(formatGrams(100_000)).toBe("100.000\u00a0g");
   });
 });
 

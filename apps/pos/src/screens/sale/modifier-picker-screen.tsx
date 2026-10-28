@@ -13,6 +13,7 @@ import {
   tapOption,
 } from "../../features/order/modifier-choices";
 import { linePreviewTotal } from "../../features/order/line-preview-total";
+import { entryNeeded } from "../../features/order/plain-cart-line";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
 import { useTillKey } from "../shared/use-till-key";
@@ -57,6 +58,9 @@ export function ModifierPickerScreen({
     note: null,
   };
   const total = linePreviewTotal(menu, draft, now);
+  // A price typed or a weight weighed next, in its own drawer: no total here yet, and a
+  // weighing is one, so it has no quantity to count.
+  const entry = entryNeeded(product);
   useTillKey(vi.sale.keys.back, onCancel);
 
   function tap(groupId: string, optionId: string) {
@@ -106,7 +110,7 @@ export function ModifierPickerScreen({
               className="pos-button pos-button--primary pos-button--lg pos-wrap"
               onClick={add}
             >
-              {total === null ? P.addNoPrice : P.add(formatVnd(total))}
+              {entry !== null ? P.next[entry] : total === null ? P.addNoPrice : P.add(formatVnd(total))}
             </button>
           </div>
         </>
@@ -150,16 +154,18 @@ export function ModifierPickerScreen({
         />
       ))}
       <section className="pos-card pos-picker__more">
-        <div className="pos-picker__quantity">
-          <span className="pos-field__label">{P.quantity}</span>
-          <QuantityStepper
-            label={P.quantity}
-            name={product.name}
-            value={quantity}
-            max={MAX_LINE_QUANTITY}
-            onChange={setQuantity}
-          />
-        </div>
+        {entry === "weight" ? null : (
+          <div className="pos-picker__quantity">
+            <span className="pos-field__label">{P.quantity}</span>
+            <QuantityStepper
+              label={P.quantity}
+              name={product.name}
+              value={quantity}
+              max={MAX_LINE_QUANTITY}
+              onChange={setQuantity}
+            />
+          </div>
+        )}
         <label className="pos-field">
           <span className="pos-field__label">{vi.sale.note}</span>
           <textarea

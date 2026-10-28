@@ -1,4 +1,4 @@
-import type { ModifierSelectionInput } from "@fnb/domain";
+import type { ModifierSelectionInput, Vnd } from "@fnb/domain";
 
 export type CounterServiceType = "takeaway" | "dine_in";
 
@@ -9,10 +9,25 @@ export interface CartLine {
   readonly variantId: string | null;
   /** As validateModifierSelection returned them: catalog order, one entry per option. */
   readonly modifiers: readonly ModifierSelectionInput[];
-  /** Whole units: cups, cakes. */
+  /** Whole units: cups, cakes. A line sold by weight is one weighing: always 1. */
   readonly quantity: number;
   readonly note: string | null;
+  /** On a product sold at an open price: the price the cashier typed for one unit. */
+  readonly enteredPrice?: Vnd;
+  /** On a product sold by weight: what it weighed, in whole grams. */
+  readonly grams?: number;
+  /**
+   * A manager's approval of `enteredPrice` on this very line, for a cashier who may not type
+   * prices alone. The server uses it the first time the price reaches it; a later save of the
+   * same price needs none.
+   */
+  readonly priceApprovalId?: string;
 }
+
+/** What the cashier typed for a line: its price, or what it weighed. */
+export type LineEntry =
+  | { readonly kind: "price"; readonly price: Vnd; readonly approvalId: string | null }
+  | { readonly kind: "weight"; readonly grams: number };
 
 /** The order open on the counter, before it is paid. */
 export interface CounterOrder {
@@ -60,12 +75,42 @@ export function addCartLine(order: CounterOrder, line: CartLine): CounterOrder {
   return { ...order, lines: [...order.lines, line] };
 }
 
-/** 1 to MAX_LINE_QUANTITY: taking a line to nothing is removing it, a separate act. */
+/**
+ * 1 to MAX_LINE_QUANTITY: taking a line to nothing is removing it, a separate act. A line
+ * sold by weight keeps its one weighing: more of it is weighed again, not counted.
+ */
 export function setLineQuantity(order: CounterOrder, lineId: string, quantity: number) {
   if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > MAX_LINE_QUANTITY) return order;
   return {
     ...order,
-    lines: order.lines.map((line) => (line.lineId === lineId ? { ...line, quantity } : line)),
+    lines: order.lines.map((line) =>
+      line.lineId === lineId && line.grams === undefined ? { ...line, quantity } : line,
+    ),
+  };
+}
+
+/** `line` with what the cashier typed: a price (and its approval, if one was needed) or a weight. */
+export function withEntry(line: CartLine, entry: LineEntry): CartLine {
+  if (entry.kind === "weight") return { ...line, grams: entry.grams, quantity: 1 };
+  // Built afresh: an approval of an older price must not ride along with the new one.
+  const { lineId, productId, variantId, modifiers, quantity, note } = line;
+  return {
+    lineId,
+    productId,
+    variantId,
+    modifiers,
+    quantity,
+    note,
+    enteredPrice: entry.price,
+    ...(entry.approvalId === null ? {} : { priceApprovalId: entry.approvalId }),
+  };
+}
+
+/** Puts `line` in place of the line of the same id: a price typed again, a new weighing. */
+export function replaceCartLine(order: CounterOrder, line: CartLine): CounterOrder {
+  return {
+    ...order,
+    lines: order.lines.map((each) => (each.lineId === line.lineId ? line : each)),
   };
 }
 

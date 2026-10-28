@@ -1,12 +1,12 @@
 import type { PosProduct } from "@fnb/contracts";
-import { formatVnd } from "@fnb/domain";
 import { Flame, Plus } from "lucide-react";
-import { COUNTER_CHANNEL, tilePrice } from "../../features/menu/menu-prices";
+import { COUNTER_CHANNEL, tilePriceOf } from "../../features/menu/menu-prices";
 import { isSoldOut } from "../../features/menu/product-availability";
 import type { TillMenu } from "../../features/menu/till-menu";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { ProductMark } from "./product-photo";
+import { tilePriceText } from "./tile-price-text";
 
 export interface ProductTileProps {
   menu: TillMenu;
@@ -36,7 +36,7 @@ export function ProductTile({
   onPick,
 }: ProductTileProps) {
   const soldOut = isSoldOut(menu.availability.get(product.id), COUNTER_CHANNEL, now);
-  const price = tilePrice(menu, product, now);
+  const price = tilePriceOf(menu, product, now);
   const unavailable = soldOut || price === null;
   return (
     <button
@@ -51,8 +51,12 @@ export function ProductTile({
       <ProductMark className="pos-product__thumb" name={product.name} imageUrl={product.imageUrl} />
       <span className="pos-product__body">
         <span className="pos-product__name">{product.name}</span>
-        <span className="pos-product__price" data-no-price={price === null}>
-          {price === null ? vi.sale.noPrice : formatVnd(price)}
+        <span
+          className="pos-product__price"
+          data-no-price={price === null}
+          data-price-kind={price?.kind === "typed" ? "typed" : price?.per ? "weighed" : undefined}
+        >
+          {tilePriceText(price)}
         </span>
       </span>
       {/* After the name, so the tile is still named by it first; drawn over the mark. */}

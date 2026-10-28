@@ -3,9 +3,12 @@ import {
   type OrderLine,
   type OrderTotals,
   computeOrderTotals,
+  type Quantity,
   findProductVariant,
+  measureUnitOf,
   quantity,
   validateModifierSelection,
+  weighedQuantity,
 } from "@fnb/domain";
 import type { PosProduct } from "@fnb/contracts";
 import { newId } from "../ids/new-id";
@@ -40,7 +43,7 @@ function productOf(menu: TillMenu, line: CartLine): PosProduct {
  */
 export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLine[] {
   const product = productOf(menu, line);
-  const unit = unitPriceOf(menu, product, line.variantId, at);
+  const unit = unitPriceOf(menu, product, line.variantId, at, line.enteredPrice);
   const variant = findProductVariant(product, line.variantId);
   const options = new Map(
     product.modifierGroups.flatMap((group) => group.options.map((option) => [option.id, option])),
@@ -57,7 +60,7 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
       modifierOptionId: null,
       nameSnapshot: variant === null ? product.name : `${product.name} (${variant.name})`,
       unitPrice: unit.unitPrice,
-      quantity: quantity(line.quantity),
+      quantity: unitsOf(product, line),
       note: line.note,
       priceSource: unit.source,
     },
@@ -77,6 +80,15 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
       }),
     ),
   ];
+}
+
+/**
+ * How many units the item line stands for: the cups rung up, or, sold by weight, the grams
+ * weighed counted in the unit its price is per (a line not weighed yet is refused).
+ */
+function unitsOf(product: PosProduct, line: CartLine): Quantity {
+  const per = measureUnitOf(product);
+  return per === null ? quantity(line.quantity) : weighedQuantity(line.grams ?? 0, per);
 }
 
 /** Items the server keeps exactly as stored (the kitchen has them), with their option lines. */

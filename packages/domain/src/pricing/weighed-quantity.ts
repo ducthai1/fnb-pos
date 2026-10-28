@@ -65,6 +65,15 @@ export function weighedLineAmount(pricePerUnit: Vnd, weight: Quantity): Vnd {
   return multiplyVndByQuantity(pricePerUnit, weight, "half-up");
 }
 
+/**
+ * "353 g", "1.250 g": a weight as the cashier typed it, grouped like money and kept on one
+ * line with its unit, so the cart, the kitchen ticket and the bill all read the same.
+ */
+export function formatGrams(grams: number): string {
+  const grouped = String(grams).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${grouped}\u00a0g`;
+}
+
 /** The unit a weighed product is priced per; null for any other product, or one without. */
 export function measureUnitOf(product: Pick<Product, "pricingMode" | "measureUnit">) {
   return product.pricingMode === "weighed" ? (product.measureUnit ?? null) : null;

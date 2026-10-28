@@ -1,10 +1,9 @@
 import type { PosProduct } from "@fnb/contracts";
-import { formatVnd } from "@fnb/domain";
-import { tilePrice } from "../../features/menu/menu-prices";
+import { tilePriceOf } from "../../features/menu/menu-prices";
 import type { TillMenu } from "../../features/menu/till-menu";
-import { vi } from "../../messages/vi";
 import { categoryTones } from "./product-mark";
 import { ProductMark } from "./product-photo";
+import { tilePriceText } from "./tile-price-text";
 
 /**
  * The product being set up, as its tile shows it: its photo or mark, its category and the
@@ -21,7 +20,7 @@ export function PickerProductHead({
 }) {
   const category = menu.categories.find((each) => each.id === product.categoryId);
   const tone = category === undefined ? 0 : (categoryTones(menu.categories).get(category.id) ?? 0);
-  const price = tilePrice(menu, product, now);
+  const price = tilePriceOf(menu, product, now);
   return (
     <div className="pos-picker-head" data-tone={tone}>
       <ProductMark
@@ -31,7 +30,7 @@ export function PickerProductHead({
       />
       <p className="pos-picker-head__facts pos-wrap">
         {category === undefined ? null : <span>{category.name}</span>}
-        <strong>{price === null ? vi.sale.noPrice : formatVnd(price)}</strong>
+        <strong>{tilePriceText(price)}</strong>
       </p>
     </div>
   );
