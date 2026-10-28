@@ -1,5 +1,6 @@
 import {
   type BasisPoints,
+  type MeasureUnit,
   type PriceListItem,
   type PriceListScope,
   type Product,
@@ -68,8 +69,8 @@ export async function loadSellableProducts(
   return found;
 }
 
-// kind and pricing_mode hold only the values their CHECK constraints allow, and the
-// document was checked by the domain when it was saved.
+// kind, pricing_mode and measure_unit hold only the values their CHECK constraints allow,
+// and the document was checked by the domain when it was saved.
 function productOf(document: ProductDocument): Product {
   return {
     id: document.id,
@@ -78,6 +79,7 @@ function productOf(document: ProductDocument): Product {
     name: document.name,
     basePrice: document.basePrice === null ? null : vnd(document.basePrice),
     pricingMode: document.pricingMode as PricingMode,
+    measureUnit: document.measureUnit as MeasureUnit | null,
     variants: document.variants.map((variant) => ({
       ...variant,
       price: variant.price === null ? null : vnd(variant.price),

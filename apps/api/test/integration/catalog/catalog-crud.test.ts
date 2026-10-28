@@ -148,6 +148,7 @@ describe("listing and archiving products", () => {
       categoryId: shop.categoryId,
       basePrice: 35_000,
       pricingMode: "fixed",
+      measureUnit: null,
       version: 2,
       archivedAt: archived.json().archivedAt,
       imageUrl: null,

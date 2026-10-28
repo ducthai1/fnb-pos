@@ -28,6 +28,7 @@ async function menuOf(names: readonly string[]) {
       name,
       basePrice: 30_000,
       pricingMode: "fixed",
+      measureUnit: null,
       taxRateBp: 800,
       stationId: null,
       trackStock: false,

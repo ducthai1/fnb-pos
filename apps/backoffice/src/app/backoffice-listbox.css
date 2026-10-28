@@ -151,3 +151,46 @@
   box-shadow: var(--shadow-card);
   font-weight: var(--fw-semibold);
 }
+
+/* A picker among a form card's fields, drawn like them (backoffice-float-field.css): one
+   56px box with a 12px corner, its name small and grey along the top inside it. */
+.bo-row > .bo-listbox--field,
+.bo-row > .bo-listbox-field {
+  flex: 1 1 160px;
+}
+
+.bo-listbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bo-card .bo-listbox--field > .bo-listbox__label {
+  position: absolute;
+  top: 7px;
+  left: 17px;
+  right: 44px;
+  z-index: 1;
+  overflow: hidden;
+  color: var(--c-text-3);
+  font-size: 0.8125rem;
+  line-height: 18px;
+  font-weight: var(--fw-regular);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.bo-card .bo-listbox--field > .bo-listbox__button {
+  min-height: 56px;
+  padding: 24px 15px 6px;
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+/* The chevron sits in the middle of the box, not under the name. */
+.bo-card .bo-listbox--field > .bo-listbox__button > .bo-icon:last-child {
+  margin-top: -16px;
+}

@@ -99,6 +99,7 @@ describe("the menu a till starts with", () => {
       name: "Trà sữa trân châu",
       basePrice: 35_000n,
       pricingMode: "fixed",
+      measureUnit: null,
       taxRate: 800,
       trackStock: false,
       earnsPoints: true,

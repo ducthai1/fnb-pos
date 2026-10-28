@@ -7,10 +7,13 @@ import type { DataColumn } from "../ui/data-table";
 
 const T = vi.menu.products;
 
-const priceOf = (product: ProductSummary) =>
-  product.pricingMode === "open_price" || product.basePrice === null
-    ? T.openPrice
-    : formatVnd(vnd(product.basePrice));
+/** A weighed product's price says what it is per: "32.000 ₫ / 100 g". */
+function priceOf(product: ProductSummary): string {
+  if (product.pricingMode === "open_price" || product.basePrice === null) return T.openPrice;
+  const price = formatVnd(vnd(product.basePrice));
+  const unit = product.pricingMode === "weighed" ? product.measureUnit : null;
+  return unit === "kg" || unit === "100g" ? T.pricePer(price, T.units[unit]) : price;
+}
 
 export const columnsFor = (categoryName: (id: string | null) => string): readonly DataColumn<ProductSummary>[] => [
   {

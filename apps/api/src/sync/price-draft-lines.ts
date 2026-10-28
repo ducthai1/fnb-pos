@@ -3,6 +3,8 @@ import { newId } from "@fnb/db";
 import {
   type OrderLine,
   findProductVariant,
+  gramsOfWeighedQuantity,
+  measureUnitOf,
   quantity,
   resolveUnitPrice,
   validateModifierSelection,
@@ -74,6 +76,11 @@ function itemLine(
   // pricing it without them would charge the combo's base price for nothing.
   if (product.kind === "combo") throw new CommandRejection(SYNC_ERROR_CODES.comboNotSupported);
   const variant = findProductVariant(product, intent.variantId);
+  const units = quantity(intent.quantity);
+  // Sold by weight, the quantity is the weight in the product's unit: whole grams, more than
+  // nothing, at most what one line may weigh. The amount is then the domain's price × weight.
+  const unit = measureUnitOf(product);
+  if (unit !== null) gramsOfWeighedQuantity(units, unit);
   return {
     id: intent.lineId,
     parentLineId: null,
@@ -83,7 +90,7 @@ function itemLine(
     modifierOptionId: null,
     nameSnapshot: variant === null ? product.name : `${product.name} (${variant.name})`,
     unitPrice,
-    quantity: quantity(intent.quantity),
+    quantity: units,
     taxRate,
     note: intent.note,
     priceSource,

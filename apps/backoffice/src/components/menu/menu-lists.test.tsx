@@ -41,6 +41,18 @@ describe("the product list", () => {
     expect(screen.getAllByText(/^35\.000\s₫$/).length).toBe(2);
   });
 
+  it("says what a weighed product's price is per, and that a typed one has none", async () => {
+    const beans = { ...summary("p4", "Cà phê hạt"), pricingMode: "weighed", measureUnit: "100g" };
+    const cake = { ...summary("p5", "Bánh kem"), pricingMode: "open_price", basePrice: null };
+    await renderSignedIn(<ProductListScreen />, {
+      listProducts: async () => ok([beans, cake]),
+      listCategories: async () => ok([]),
+    });
+    await screen.findByText("Cà phê hạt");
+    expect(screen.getByText(/^35\.000\s₫ \/ 100 g$/)).toBeTruthy();
+    expect(screen.getByText(vi.menu.products.openPrice)).toBeTruthy();
+  });
+
   it("folds đ and combining marks like their precomposed letters", () => {
     expect(foldForSearch("Đường đen")).toBe("duong den");
     expect(foldForSearch("Nguyễn")).toBe(foldForSearch("Nguyễn"));

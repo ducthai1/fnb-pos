@@ -9,6 +9,8 @@ export interface ProductDocument {
   name: string;
   basePrice: number | null;
   pricingMode: string;
+  /** What a weighed product's price is per ("kg", "100g"); null on any other product. */
+  measureUnit: string | null;
   taxRateBp: number;
   stationId: string | null;
   trackStock: boolean;

@@ -66,6 +66,17 @@ describe("validateProductConfig: the product itself", () => {
     expect(error.details).toMatchObject({ variantId: "size-m" });
   });
 
+  it("requires a weighed product to say what its price is per, and no other product to", () => {
+    const fruit: Product = { ...PEARL_MILK_TEA, pricingMode: "weighed", modifierGroups: [] };
+    expect(codeFor(fruit)).toBe(PRICING_ERROR_CODES.measureUnitMissing);
+    expect(codeFor({ ...fruit, measureUnit: null })).toBe(PRICING_ERROR_CODES.measureUnitMissing);
+    expect(() => validateProductConfig({ ...fruit, measureUnit: "kg" })).not.toThrow();
+    expect(() => validateProductConfig({ ...fruit, measureUnit: "100g" })).not.toThrow();
+    const perKgTea = { ...PEARL_MILK_TEA, measureUnit: "kg" } as const;
+    expect(codeFor(perKgTea)).toBe(PRICING_ERROR_CODES.measureUnitOnUnweighedProduct);
+    expect(() => validateProductConfig({ ...PEARL_MILK_TEA, measureUnit: null })).not.toThrow();
+  });
+
   it("requires slots on a combo and refuses them on any other product", () => {
     expect(codeFor({ ...COMBO, combo: null })).toBe(CATALOG_ERROR_CODES.comboDefinitionMissing);
     expect(codeFor({ ...PEARL_MILK_TEA, combo: COMBO.combo })).toBe(

@@ -36,5 +36,11 @@ export function locateDomainError(error: Pick<DomainError, "code" | "details">):
   if (error.code === PRICING_ERROR_CODES.missingBasePrice || error.code === C.negativeProductPrice) {
     return productPath("basePrice");
   }
+  if (
+    error.code === PRICING_ERROR_CODES.measureUnitMissing ||
+    error.code === PRICING_ERROR_CODES.measureUnitOnUnweighedProduct
+  ) {
+    return productPath("measureUnit");
+  }
   return productPath();
 }

@@ -1,4 +1,4 @@
-import type { ModifierGroupVariantRule } from "@fnb/domain";
+import { MEASURE_UNITS, type ModifierGroupVariantRule } from "@fnb/domain";
 import { z } from "zod";
 import { countSchema, idSchema, nameSchema } from "../catalog/catalog-schema-parts";
 import { productImageUrlSchema } from "../catalog/product-image-schemas";
@@ -75,6 +75,12 @@ export const posProductSchema = z
     name: nameSchema,
     basePrice: moneySchema.nullable(),
     pricingMode: z.enum(["fixed", "open_price", "weighed"]),
+    /**
+     * What a weighed product's price is per; null on every other product. A copy a till
+     * stored before units existed has none and reads as null: the till does not sell a
+     * weighed product it cannot say the unit of.
+     */
+    measureUnit: z.enum(MEASURE_UNITS).nullable().default(null),
     taxRate: rateSchema,
     trackStock: z.boolean(),
     earnsPoints: z.boolean(),

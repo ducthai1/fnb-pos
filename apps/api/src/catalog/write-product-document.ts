@@ -48,6 +48,7 @@ export async function writeProductDocument(
       name: product.name,
       base_price: product.basePrice,
       pricing_mode: product.pricingMode,
+      measure_unit: product.measureUnit ?? null,
       tax_rate_bp: taxRate,
       station_id: input.stationId,
       track_stock: input.trackStock,

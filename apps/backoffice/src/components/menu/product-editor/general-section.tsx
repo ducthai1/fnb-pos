@@ -1,9 +1,11 @@
 "use client";
 
+import { MEASURE_UNITS, type MeasureUnit } from "@fnb/domain";
 import type { Category, Station } from "../../../lib/api/catalog-api";
 import { vi } from "../../../messages/vi";
+import { Listbox } from "../../ui/listbox";
 import { CheckField, SelectField } from "../../ui/select-field";
-import { TextField } from "../../ui/text-field";
+import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, productPath } from "./draft-error-paths";
 import { EDITOR_SECTIONS } from "./editor-sections";
 import type { ProductDraft } from "./product-draft";
@@ -67,7 +69,7 @@ export function GeneralSection({
   );
 }
 
-/** What the product sells for, how the till prices it, and its VAT. */
+/** What the product sells for, how the till prices it (and per what, sold by weight), and its VAT. */
 export function PriceSection({
   draft,
   errors,
@@ -78,23 +80,43 @@ export function PriceSection({
   edit: (change: DraftEdit) => void;
 }) {
   const set = (patch: Parameters<typeof setFields>[0]) => edit(setFields(patch));
+  const weighed = draft.pricingMode === "weighed";
+  const unitError = errors[productPath("measureUnit")];
   return (
     <fieldset className="bo-card bo-fieldset-card" id={EDITOR_SECTIONS.price}>
       <legend className="bo-subtitle">{T.priceTitle}</legend>
       <div className="bo-row">
-        <TextField
-          label={T.basePrice}
-          value={draft.basePrice}
-          inputMode="numeric"
-          hint={T.basePriceHint}
-          onChange={(basePrice) => set({ basePrice })}
-          error={errors[productPath("basePrice")]}
-        />
-        <SelectField
+        <Listbox
+          className="bo-listbox--field"
           label={T.pricingMode}
           value={draft.pricingMode}
           choices={MODES.map((mode) => ({ value: mode, label: T.pricingModes[mode] }))}
           onChange={(mode) => set({ pricingMode: mode as ProductDraft["pricingMode"] })}
+        />
+        {weighed && (
+          <div className="bo-listbox-field">
+            <Listbox
+              className="bo-listbox--field"
+              label={T.measureUnit}
+              value={draft.measureUnit}
+              choices={MEASURE_UNITS.map((unit) => ({ value: unit, label: T.measureUnits[unit] }))}
+              onChange={(unit) => set({ measureUnit: unit as MeasureUnit })}
+            />
+            <FieldError message={unitError} />
+          </div>
+        )}
+      </div>
+      <p className="bo-muted bo-wrap" data-pricing-mode-hint={draft.pricingMode}>
+        {T.pricingModeHints[draft.pricingMode]}
+      </p>
+      <div className="bo-row">
+        <TextField
+          label={weighed ? T.basePriceWeighed[draft.measureUnit] : T.basePrice}
+          value={draft.basePrice}
+          inputMode="numeric"
+          hint={draft.pricingMode === "open_price" ? T.basePriceOpenHint : T.basePriceHint}
+          onChange={(basePrice) => set({ basePrice })}
+          error={errors[productPath("basePrice")]}
         />
         <TextField
           label={T.taxRate}

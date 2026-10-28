@@ -1,10 +1,12 @@
 export { CATALOG_ERROR_CODES } from "./catalog-error-codes";
+export { MEASURE_UNITS } from "./catalog-types";
 export type {
   ComboDefinition,
   ComboSlot,
   ComboSlotOption,
   ModifierGroup,
   ModifierGroupVariantRule,
+  MeasureUnit,
   ModifierOption,
   PricingMode,
   Product,

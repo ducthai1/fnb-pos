@@ -15,6 +15,7 @@ interface ProductRow {
   name: string;
   base_price: string | null;
   pricing_mode: string;
+  measure_unit: string | null;
   tax_rate_bp: number;
   station_id: string | null;
   track_stock: boolean;
@@ -46,6 +47,7 @@ export async function readProductDocument(
     name: row.name,
     basePrice: row.base_price === null ? null : amountOf(row.base_price),
     pricingMode: row.pricing_mode,
+    measureUnit: row.measure_unit,
     taxRateBp: row.tax_rate_bp,
     stationId: row.station_id,
     trackStock: row.track_stock,

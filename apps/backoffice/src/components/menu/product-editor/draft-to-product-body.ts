@@ -104,6 +104,7 @@ export function draftToProductBody(draft: ProductDraft, errors: DraftErrorList):
     name: read.name(productPath("name"), draft.name),
     basePrice: read.optionalAmount(productPath("basePrice"), draft.basePrice),
     pricingMode: draft.pricingMode,
+    measureUnit: draft.pricingMode === "weighed" ? draft.measureUnit : null,
     taxRateBp: read.rate(productPath("taxRate"), draft.taxRate),
     stationId: draft.stationId,
     trackStock: draft.trackStock,

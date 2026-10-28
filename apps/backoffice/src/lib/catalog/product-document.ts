@@ -1,4 +1,5 @@
 import type { ProductDocumentInput } from "@fnb/contracts";
+import { MEASURE_UNITS, type MeasureUnit } from "@fnb/domain";
 import { isRecord, nullableTextOf, textOf, wholeNumberOf } from "../api/read-json-fields";
 
 /** A product as GET/PUT /catalog/products/:id answers it; money in whole đồng. */
@@ -12,6 +13,8 @@ export interface ProductDocument {
   readonly name: string;
   readonly basePrice: number | null;
   readonly pricingMode: ProductDocumentInput["pricingMode"];
+  /** What a weighed product's price is per; null on any other (and from an older API). */
+  readonly measureUnit: MeasureUnit | null;
   readonly taxRateBp: number;
   readonly stationId: string | null;
   readonly trackStock: boolean;
@@ -47,6 +50,7 @@ export function readProductDocument(body: unknown): ProductDocument | null {
   const taxRateBp = wholeNumberOf(body, "taxRateBp");
   const kind = oneOf(KINDS, body.kind);
   const pricingMode = oneOf(MODES, body.pricingMode);
+  const measureUnit = oneOf(MEASURE_UNITS, body.measureUnit);
   const archivedAt = nullableTextOf(body, "archivedAt");
   const categoryId = nullableTextOf(body, "categoryId");
   const stationId = nullableTextOf(body, "stationId");
@@ -56,6 +60,7 @@ export function readProductDocument(body: unknown): ProductDocument | null {
   if (taxRateBp === null || kind === null || pricingMode === null) return null;
   if (archivedAt === undefined || categoryId === undefined || stationId === undefined) return null;
   if (basePrice === null && body.basePrice !== null) return null;
+  if (measureUnit === null && body.measureUnit !== null && body.measureUnit !== undefined) return null;
   if (!flags.every((flag) => typeof flag === "boolean")) return null;
   if (!Array.isArray(body.variants) || !Array.isArray(body.modifierGroups)) return null;
   return {
@@ -68,6 +73,7 @@ export function readProductDocument(body: unknown): ProductDocument | null {
     name,
     basePrice,
     pricingMode,
+    measureUnit,
     taxRateBp,
     stationId,
     trackStock: body.trackStock as boolean,
@@ -95,6 +101,7 @@ export function bodyOfDocument(document: ProductDocument): ProductBody {
     name: document.name,
     basePrice: document.basePrice,
     pricingMode: document.pricingMode,
+    measureUnit: document.measureUnit,
     taxRateBp: document.taxRateBp,
     stationId: document.stationId,
     trackStock: document.trackStock,
