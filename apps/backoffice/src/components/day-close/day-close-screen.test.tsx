@@ -101,6 +101,16 @@ describe("closing a business day", () => {
     expect(within(refusal).getByText(shown)).toBeTruthy();
   });
 
+  it("says each invoice's state in words, never the server's key", () => {
+    expect(T.invoice(fixtureId(75), "pending", null)).toBe(`Đơn …${fixtureId(75).slice(-6)} · chờ phát hành`);
+    expect(T.invoice(fixtureId(75), "failed_permanent", "PROVIDER_REJECTED")).toContain(
+      "lỗi hẳn, cần xử lý tay · mã lỗi PROVIDER_REJECTED",
+    );
+    for (const status of ["pending", "issued", "failed_retryable", "failed_permanent", "new_state"]) {
+      expect(T.invoice(fixtureId(75), status, null)).not.toContain(status);
+    }
+  });
+
   it("shows a closed day as closed, with what was paid after the close", async () => {
     const closed = dayStatus({
       dayClose: { closedByAppUserId: OWNER.appUserId, closedAt: "2026-10-20T16:00:00.000Z" },

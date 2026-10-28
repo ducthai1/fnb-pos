@@ -44,6 +44,7 @@ Chốt rồi **không làm lại hay hủy được**.
    - **Không còn đơn chưa thanh toán** — thanh toán hoặc hủy ở máy quầy; trang ghi "Máy …xxxxxx · đơn số N" để tìm đúng máy;
    - **Không còn hóa đơn chờ phát hành** — đợi hệ thống phát hành xong.
 3. Danh sách bên dưới nói rõ còn gì: **Ca chưa đóng**, **Đơn chưa thanh toán**, **Hóa đơn điện tử đang chờ phát hành**, **Hóa đơn điện tử lỗi hẳn (cần xử lý tay)**, **Hóa đơn đã phát hành nhưng chưa gửi cơ quan thuế**. Hết vướng thì hiện "Không còn gì chặn việc chốt ngày."
+   Mỗi hóa đơn ghi đơn nào và trạng thái: **chờ phát hành**, **đã phát hành**, **lỗi, máy chủ đang thử lại** hoặc **lỗi hẳn, cần xử lý tay**, kèm mã lỗi nhà cung cấp trả về nếu có.
 4. Bấm **Chốt ngày**, đọc hộp xác nhận "Chốt ngày <ngày>?" — "Số liệu ngày được giữ nguyên từ lúc này. Không hủy được thao tác này." — bấm xác nhận.
 5. Trang báo "Đã chốt ngày <ngày>." và từ đó hiện "Đã chốt lúc …".
 
@@ -72,6 +73,5 @@ Chốt ngày cần mạng. Máy quầy nào đang mất mạng mà còn đơn ch
 
 ## Chưa làm / sắp có
 
-- Trạng thái hóa đơn trong danh sách đang hiện mã tiếng Anh của hệ thống (ví dụ `pending`) thay vì chữ tiếng Việt (xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)).
 - Chưa có nút phát hành lại hay hủy một hóa đơn lỗi từ màn hình.
 - Chưa có báo cáo két theo ca ở trang quản lý (báo cáo ca in ở máy quầy).

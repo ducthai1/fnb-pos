@@ -4,6 +4,14 @@
 const tillOrder = (deviceId: string, orderNo: number) =>
   `Máy …${deviceId.slice(-6)} · đơn số ${orderNo}`;
 
+/** An e-invoice's state in words; the server's key is no sentence for a manager. */
+const INVOICE_STATUS: Readonly<Record<string, string>> = {
+  pending: "chờ phát hành",
+  issued: "đã phát hành",
+  failed_retryable: "lỗi, máy chủ đang thử lại",
+  failed_permanent: "lỗi hẳn, cần xử lý tay",
+};
+
 export const VI_DAY_CLOSE = {
   title: "Chốt ngày",
   hint: "Chốt ngày giữ nguyên số liệu của ngày và gửi dữ liệu hóa đơn trong ngày lên cơ quan thuế. Chốt rồi không làm lại hay hủy được.",
@@ -21,7 +29,7 @@ export const VI_DAY_CLOSE = {
   qrRefund: (intentId: string, amount: string) => `Mã QR …${intentId.slice(-6)} · ${amount}`,
   order: tillOrder,
   invoice: (orderId: string, status: string, errorCode: string | null) =>
-    `Đơn …${orderId.slice(-6)} · ${status}${errorCode === null ? "" : ` · ${errorCode}`}`,
+    `Đơn …${orderId.slice(-6)} · ${INVOICE_STATUS[status] ?? "trạng thái lạ"}${errorCode === null ? "" : ` · mã lỗi ${errorCode}`}`,
   nothingOpen: "Không còn gì chặn việc chốt ngày.",
   checklistTitle: "Trước khi chốt",
   checks: {
