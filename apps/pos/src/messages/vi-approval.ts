@@ -35,6 +35,7 @@ export const VI_APPROVAL = {
     cashOut: (amount: string) => `Chi ${amount} khỏi két`,
     cashInShift: (total: string) => `két đã thu và chi trong ca, kể cả lần này: ${total}`,
     closeDifference: (difference: string) => `Đóng ca lệch ${difference} so với tiền dự kiến`,
+    transferTable: (from: string, to: string) => `Chuyển khách từ bàn ${from} sang bàn ${to}`,
     closeUnpaid: (orderNo: number) =>
       `Hủy đơn số ${orderNo} chưa thu tiền (đã in tạm tính hoặc đã gửi bếp)`,
   },

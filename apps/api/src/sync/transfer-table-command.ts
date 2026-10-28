@@ -11,7 +11,8 @@ import { TABLE_SYNC_ERROR_CODES } from "./table-sync-error-codes";
  * table.transfer: moves the guests of a draft to a free table of the branch. Only the
  * order's table changes; its lines, and what the kitchen already has of each, stay as they
  * are, so the next send prints only what is new. A table already holding an order is
- * refused: that would merge two bills, which is a separate action.
+ * refused: that would merge two bills, which is a separate action. A manager's approval of
+ * the move is for this order only.
  */
 async function transferTable(context: SyncCommandContext, payload: TransferTablePayload) {
   const stored = await draftOfBranch(context, payload.orderId);
@@ -19,7 +20,9 @@ async function transferTable(context: SyncCommandContext, payload: TransferTable
   if (stored.tableId === payload.toTableId) {
     throw new CommandRejection(TABLE_SYNC_ERROR_CODES.tableOccupied);
   }
-  await requirePermission(context, { key: "transfer_table" }, payload.approvalId);
+  // A manager approves moving these guests, so the approval moves this order and no other.
+  const action = { key: "transfer_table", subject: { orderId: stored.order.id } } as const;
+  await requirePermission(context, action, payload.approvalId);
   const table = await seatableTable(context.client, context.device.branchId, payload.toTableId);
   await seatingAtTable(() =>
     context.client.query(

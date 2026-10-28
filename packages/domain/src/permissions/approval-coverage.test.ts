@@ -42,6 +42,7 @@ describe("what an approval must name", () => {
       ["cash_move", "shift"],
       ["open_drawer", "shift"],
       ["accept_close_difference", "shift"],
+      ["transfer_table", "order"],
       ["close_unpaid_table", "order"],
     ]);
   });
@@ -49,6 +50,10 @@ describe("what an approval must name", () => {
   it("refuses a request an old till sends without a subject, or with one of the wrong kind", () => {
     expect(missingApprovalTerm({ key: "refund", refundAmount: vnd(25_000n) })).toBe("subject");
     expect(missingApprovalTerm({ key: "close_unpaid_table" })).toBe("subject");
+    expect(missingApprovalTerm({ key: "transfer_table" })).toBe("subject");
+    expect(missingApprovalTerm({ key: "transfer_table", subject: { shiftId: SHIFT_1 } })).toBe(
+      "subject",
+    );
     expect(
       missingApprovalTerm({ key: "refund", refundAmount: vnd(1n), subject: { shiftId: SHIFT_1 } }),
     ).toBe("subject");
@@ -66,9 +71,6 @@ describe("what an approval must name", () => {
         subject: { orderId: ORDER_A, lineId: LINE_1 },
       }),
     ).toBe("subject");
-    expect(missingApprovalTerm({ key: "transfer_table", subject: { orderId: ORDER_A } })).toBe(
-      "subject",
-    );
   });
 
   it("refuses a refund, void or close difference that names no figure", () => {
@@ -83,7 +85,9 @@ describe("what an approval must name", () => {
       missingApprovalTerm({ key: "accept_close_difference", subject: { shiftId: SHIFT_1 } }),
     ).toBe("figure");
     expect(missingApprovalTerm(refund(ORDER_A, 25_000n))).toBeNull();
-    expect(missingApprovalTerm({ key: "transfer_table" })).toBeNull();
+    expect(
+      missingApprovalTerm({ key: "transfer_table", subject: { orderId: ORDER_A } }),
+    ).toBeNull();
   });
 });
 
@@ -99,6 +103,16 @@ describe("judging an approval at use", () => {
     expect(judgeApproval(refund(ORDER_A, 25_000n), refund(ORDER_A, 24_000n))).toBe(
       "another_action",
     );
+  });
+
+  it("covers a table move only of the order it was given for", () => {
+    const move = (orderId: string): PermissionAction => ({
+      key: "transfer_table",
+      subject: { orderId },
+    });
+    expect(judgeApproval(move(ORDER_A), move(ORDER_A))).toBe("covers");
+    expect(judgeApproval(move(ORDER_A), move(ORDER_B))).toBe("another_subject");
+    expect(judgeApproval({ key: "transfer_table" }, move(ORDER_A))).toBe("another_subject");
   });
 
   it("covers nothing when given without a subject, as approvals of older tills were", () => {

@@ -99,8 +99,9 @@ describe("an approval request", () => {
       "a close difference naming no shift",
       { key: "accept_close_difference", difference: "-20000" },
     ],
+    ["a table transfer naming no order", { key: "transfer_table" }],
     [
-      "a table transfer naming a subject it has none of",
+      "a table transfer naming a shift, not its order",
       { key: "transfer_table", subject: { shiftId: SHIFT } },
     ],
   ])("for %s is refused before the PIN is tried", async (_, action) => {

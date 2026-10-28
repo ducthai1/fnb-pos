@@ -24,12 +24,14 @@ decisions:
   - D-076
   - D-081
   - D-105
+  - D-106
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
   - apps/pos/src/app/table-cancel-needs-a-manager.test.tsx
   - apps/pos/src/app/refund-from-history.test.tsx
+  - apps/pos/src/app/table-refusals.test.tsx
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/screens/approval/approval-sheet.test.tsx
   - apps/pos/src/features/permissions/till-authority.test.ts
@@ -146,7 +148,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
   - Giảm giá: so **tổng phần trăm mọi giảm giá cùng loại** trên món đó (hoặc trên đơn) **sau khi** thêm lần này, **làm tròn lên**. Ví dụ thu ngân giới hạn 10% đã giảm 10% cho một ly, giảm thêm 5% nữa là 15% ⇒ phải xin duyệt; màn duyệt ghi "(tổng giảm sau lần này: 15%)".
   - Thu/chi két: so **tổng số tiền đã thu và đã chi khỏi két trong cả ca** (mọi nhân viên trên két đó cộng chung, lấy độ lớn — rút 400.000 rồi bỏ lại 400.000 là 800.000 đ). Màn duyệt ghi "(két đã thu và chi trong ca, kể cả lần này: …)".
 - **Duyệt dùng một lần**, cho đúng thao tác, **đúng chỗ** và **đúng con số** quản lý đã thấy trên màn duyệt:
-  - Đúng chỗ: giảm giá món và hủy món đã gửi bếp gắn với **món đó của đơn đó**; giảm giá đơn, hủy đơn đã in tạm tính / đã gửi bếp, hoàn tiền gắn với **đơn đó**; thu/chi két, chấp nhận lệch két gắn với **ca đó**. Duyệt "Hoàn 25.000 ₫ cho đơn số 12" không dùng được cho đơn khác, kể cả trong 10 phút.
+  - Đúng chỗ: giảm giá món và hủy món đã gửi bếp gắn với **món đó của đơn đó**; giảm giá đơn, hủy đơn đã in tạm tính / đã gửi bếp, hoàn tiền, chuyển bàn gắn với **đơn đó**; thu/chi két, chấp nhận lệch két gắn với **ca đó**. Duyệt "Hoàn 25.000 ₫ cho đơn số 12" không dùng được cho đơn khác, kể cả trong 10 phút.
   - Đúng con số: hoàn tiền đúng **số tiền trả khách**; hủy món đã gửi bếp đúng **số món bếp đã có**; thu/chi két đúng **tổng thu + chi trong ca**; đóng ca đúng **số lệch**. Khác một đồng là phải xin lại.
   - Riêng giảm giá: duyệt là **tối đa** phần trăm đó cho món/đơn đó. Máy khác thêm món làm tổng giảm tụt từ 20% xuống 19% thì vẫn dùng được, không phải xin lại; cao hơn mức đã duyệt thì phải xin lại.
   - Máy quầy bản cũ xin duyệt mà không gửi đơn/ca thì máy chủ không nhận (xem bảng lỗi): cập nhật ứng dụng bán hàng.

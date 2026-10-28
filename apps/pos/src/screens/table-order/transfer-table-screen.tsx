@@ -14,7 +14,8 @@ export interface TransferTableScreenProps {
   /** The floor as the till sees it, area by area. */
   areas: readonly FloorArea[];
   tables: readonly FloorTableView[];
-  onMove(to: SeatedTable): Promise<void>;
+  /** Moves the guests; a sentence it answers says why they did not move. */
+  onMove(to: SeatedTable): Promise<string | null | void>;
   onBack(): void;
 }
 
@@ -36,7 +37,7 @@ export function TransferTableScreen(props: TransferTableScreenProps) {
     setMoving(true);
     props
       .onMove({ id: table.id, name: table.name })
-      .catch(console.error)
+      .then((why) => setRefused(why ?? null), console.error)
       .finally(() => setMoving(false));
   };
   return (

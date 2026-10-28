@@ -38,6 +38,9 @@ afterAll(async () => {
 
 const coffee = () => line(s.menu.coffee.id);
 
+/** What a manager is shown for moving the guests of one order to another table. */
+const moveOf = (orderId: string) => ({ key: "transfer_table", subject: { orderId } });
+
 /** Fresh tables of the shop's branch, so each test starts from free ones. */
 async function freeTables(...names: string[]) {
   const made = await areaWithTables(app, s.shop.managerCookie, s.shop.branchId, names, "Sân");
@@ -124,7 +127,7 @@ describe("table.transfer", () => {
     const managerId = await hireManager(app, s);
     await signInAs(app, s, s.tillB, "barista");
     const alone = await pushOne(app, s.tillB, transferTable(s.tillB, order.orderId, to));
-    const approvalId = await approve(app, s.tillB, managerId, { key: "transfer_table" });
+    const approvalId = await approve(app, s.tillB, managerId, moveOf(order.orderId));
     const approved = await pushOne(app, s.tillB, {
       ...transferTable(s.tillB, order.orderId, to, approvalId),
       createdAt: justNow(),
@@ -134,5 +137,33 @@ describe("table.transfer", () => {
       status: "occupied",
       orderId: order.orderId,
     });
+  });
+
+  it("takes a manager's approval only for moving the order it was given for", async () => {
+    const [fromA, fromB, to] = (await freeTables("S11", "S12", "S13")) as [string, string, string];
+    const shown = await seatedAt(fromA);
+    const other = await seatedAt(fromB);
+    const managerId = await hireManager(app, s);
+    await signInAs(app, s, s.tillB, "barista");
+    const approvalId = await approve(app, s.tillB, managerId, moveOf(shown.orderId));
+    const elsewhere = await pushOne(app, s.tillB, {
+      ...transferTable(s.tillB, other.orderId, to, approvalId),
+      createdAt: justNow(),
+    });
+    expect(elsewhere).toMatchObject({
+      status: "rejected",
+      code: "SYNC_APPROVAL_FOR_ANOTHER_SUBJECT",
+    });
+    expect(await seatingOf(app, s.tillA, to)).toEqual({ status: "free", orderId: null });
+    expect(await seatingOf(app, s.tillA, fromB)).toEqual({
+      status: "occupied",
+      orderId: other.orderId,
+    });
+    // Refused, the approval was not used up: the order it was given for still moves on it.
+    const meant = await pushOne(app, s.tillB, {
+      ...transferTable(s.tillB, shown.orderId, to, approvalId),
+      createdAt: justNow(),
+    });
+    expect(meant.status).toBe("accepted");
   });
 });

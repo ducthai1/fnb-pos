@@ -1,6 +1,8 @@
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { refusalSentence, vi as text } from "../messages/vi";
+import { managerApproves, tablesWithManager } from "../test-support/approval-cafe";
+import { LAN } from "../test-support/signed-in-till";
 import {
   FLOOR,
   addCoffees,
@@ -31,9 +33,23 @@ async function openTransfer(server: ReturnType<typeof tableCafeServer>) {
   await screen.findByRole("heading", { name: T.transfer.title("1") });
 }
 
+/** The table café with Lan allowed to move guests alone, as the cashier and waiter roles are. */
+function movingCafe() {
+  const server = tableCafeServer();
+  server.state.grants.set(LAN.id, [{ key: "transfer_table" }]);
+  return server;
+}
+
+/** The table café with Lan holding no key at all, so a move needs Minh. */
+function cafeWhereMovingNeedsAManager() {
+  const server = tablesWithManager();
+  server.state.grants.set(LAN.id, []);
+  return server;
+}
+
 describe("moving guests to another table", () => {
   it("moves them to a free table, and the floor shows them there at once", async () => {
-    const server = tableCafeServer();
+    const server = movingCafe();
     await tillOnTheFloor(server);
     await openTransfer(server);
     tile(FLOOR.t3)?.click();
@@ -46,7 +62,7 @@ describe("moving guests to another table", () => {
   });
 
   it("refuses a table that has guests with a sentence saying why, and sends nothing", async () => {
-    const server = tableCafeServer();
+    const server = movingCafe();
     await tillOnTheFloor(server);
     anotherTillSeats(server, FLOOR.t2);
     await waitFor(() => expect(tileStatus(FLOOR.t2)).toBe("occupied"));
@@ -58,7 +74,7 @@ describe("moving guests to another table", () => {
   });
 
   it("explains a move the server refused because guests sat down there a moment before", async () => {
-    const server = tableCafeServer();
+    const server = movingCafe();
     await tillOnTheFloor(server);
     await openTransfer(server);
     // Another till seats the third table; this till has not heard of it yet.
@@ -68,6 +84,49 @@ describe("moving guests to another table", () => {
     await waitFor(() => expect(alerts()).toContain(sentence));
     expect(sentence).not.toBe(text.errors.unknown);
     await waitFor(() => expect(tileStatus(FLOOR.t1)).toBe("occupied"));
+  });
+});
+
+describe("moving guests without the key to do it alone", () => {
+  it("asks a manager to approve moving this order, and sends the approval with the move", async () => {
+    const server = cafeWhereMovingNeedsAManager();
+    await tillOnTheFloor(server);
+    await openTransfer(server);
+    tile(FLOOR.t3)?.click();
+    await screen.findByRole("heading", { name: text.approval.title });
+    expect(document.querySelector("[data-approval-for]")?.textContent).toBe(
+      text.approval.actions.transferTable("1", "3"),
+    );
+    await managerApproves();
+    await screen.findByText(T.floor.moved("1", "3"));
+    const save = pushedOf(server, "order.save_draft")[0]?.payload as { orderId: string };
+    // The manager approved moving this order, so the server lets the approval move no other.
+    expect(server.state.calls.approvals.map((call) => call.action)).toEqual([
+      { key: "transfer_table", subject: { orderId: save.orderId } },
+    ]);
+    await waitFor(() =>
+      expect(pushedOf(server, "table.transfer").map((command) => command.payload)).toEqual([
+        {
+          orderId: save.orderId,
+          toTableId: FLOOR.t3,
+          approvalId: server.state.approvals[0]?.approvalId,
+        },
+      ]),
+    );
+    await waitFor(() => expect(tileStatus(FLOOR.t3)).toBe("occupied"));
+  });
+
+  it("moves nothing when the manager is not asked after all", async () => {
+    const server = cafeWhereMovingNeedsAManager();
+    await tillOnTheFloor(server);
+    await openTransfer(server);
+    tile(FLOOR.t3)?.click();
+    await screen.findByRole("heading", { name: text.approval.title });
+    tap(text.approval.cancel);
+    await screen.findByRole("heading", { name: T.transfer.title("1") });
+    await waitFor(() => expect(server.state.calls.pulls).toBeGreaterThan(5));
+    expect(pushedOf(server, "table.transfer")).toEqual([]);
+    expect(tileStatus(FLOOR.t3)).toBe("free");
   });
 });
 

@@ -142,13 +142,18 @@ export async function printPreBill(input: RoundInput): Promise<PrintedSlip | nul
   return slip;
 }
 
-/** table.transfer of the order as last saved; false when nothing was saved to move yet. */
+/**
+ * table.transfer of the order as last saved, with the manager's approval of moving it when
+ * one was needed; false when nothing was saved to move yet.
+ */
 export async function moveGuests(
   input: Pick<RoundInput, "place" | "session" | "now">,
   to: SeatedTable,
+  approvalId: string | null = null,
 ): Promise<boolean> {
   const settled = await input.session.settled();
   if (settled === null) return false;
-  await input.session.record(transferTableCommand(input.place, settled, to, input.now()));
+  const command = transferTableCommand(input.place, settled, to, input.now(), approvalId);
+  await input.session.record(command);
   return true;
 }
