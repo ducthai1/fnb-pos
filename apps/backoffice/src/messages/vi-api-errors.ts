@@ -3,6 +3,8 @@
 export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_INVALID_REQUEST: "Thông tin gửi đi không hợp lệ. Kiểm tra lại các ô đã nhập.",
   API_INTERNAL: "Máy chủ đang gặp lỗi. Thử lại sau ít phút.",
+  API_RATE_LIMITED:
+    "Có quá nhiều lần thử trong một lúc nên máy chủ tạm từ chối. Đợi một phút rồi thử lại.",
   API_ORIGIN_NOT_ALLOWED:
     "Máy chủ không nhận yêu cầu từ địa chỉ trang này. Mở trang quản lý bằng đúng địa chỉ của cửa hàng; nếu vẫn lỗi, báo hỗ trợ.",
   API_AUTH_INVALID_CREDENTIALS:

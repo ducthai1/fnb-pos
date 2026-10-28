@@ -13,6 +13,7 @@ describe("error code to Vietnamese sentence", () => {
     ["API_STAFF_PIN_TOO_WEAK", /PIN quá dễ đoán/],
     ["API_ROLE_LAST_ADMINISTRATOR", /quản lý nhân viên/],
     ["API_ORIGIN_NOT_ALLOWED", /không nhận yêu cầu từ địa chỉ trang này/],
+    ["API_RATE_LIMITED", /quá nhiều lần thử trong một lúc/],
     ["API_STAFF_PIN_NOT_LOCKED", /không bị khóa/],
     ["API_ROLE_ARCHIVED", /đã lưu trữ/],
     ["API_PAYMENT_ALREADY_HANDED_BACK", /đã hoàn cho khách/],

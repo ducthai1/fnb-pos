@@ -82,7 +82,7 @@ Người vận hành đặt biến môi trường trong `/etc/fnb/fnb-api.env` (
 
 | Thấy gì | Nghĩa là | Làm gì |
 |---|---|---|
-| Trang quản lý: "Có lỗi xảy ra (mã API_RATE_LIMITED). Thử lại; nếu vẫn lỗi, báo hỗ trợ." | Vượt giới hạn tần suất (trang quản lý chưa có câu riêng cho mã này) | Chờ khoảng một phút rồi thử lại; lặp lại nhiều thì kiểm `FNB_TRUSTED_PROXIES` (thiếu nó thì mọi người dùng chung một địa chỉ của Caddy) |
+| Trang quản lý: "Có quá nhiều lần thử trong một lúc nên máy chủ tạm từ chối. Đợi một phút rồi thử lại." | Vượt giới hạn tần suất | Chờ khoảng một phút rồi thử lại; lặp lại nhiều thì kiểm `FNB_TRUSTED_PROXIES` (thiếu nó thì mọi người dùng chung một địa chỉ của Caddy) |
 | Trang quản lý: "Máy chủ không nhận yêu cầu từ địa chỉ trang này…" | Origin không khớp | Sửa `FNB_ALLOWED_ORIGINS` cho đúng địa chỉ trên thanh địa chỉ của trình duyệt (gồm `https://`), khởi động lại API |
 | preflight cảnh báo job dọn dẹp tắt | `FNB_CLEANUP_ENABLED=false` | Bật lại nếu chỉ có một tiến trình |
 
