@@ -195,7 +195,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 | Món đang được giảm giá: gỡ giảm giá của món trước rồi mới hủy. | — | Gỡ giảm giá |
 | Hủy món làm phần giảm giá toàn đơn lớn hơn mức bạn được tự giảm. Gỡ giảm giá đơn trước, hủy món, rồi giảm lại. | — | Làm theo câu báo |
 | Bếp đã có món của đơn này chưa được hủy. Hủy từng món đã gửi bếp (in phiếu hủy) trước, rồi mới hủy đơn. | Hủy đơn khi còn món đã gửi bếp | Hủy món trước |
-| Nhập số: phần trăm từ 1 đến 100, hoặc số tiền chỉ gồm chữ số. | Gõ sai mức giảm | Gõ lại |
+| Nhập số: phần trăm từ 0,01 đến 100 (tối đa hai số lẻ), hoặc số tiền chỉ gồm chữ số. | Gõ sai mức giảm | Gõ lại |
 | Mức giảm này làm tròn ra 0 ₫ trên số còn phải trả. | Mức quá nhỏ | Tăng mức giảm |
 | Số tiền giảm lớn hơn số còn phải trả. / Nhập mức giảm lớn hơn 0. / Món đã hủy một phần nên không giảm giá thêm được. | — | Sửa mức giảm |
 | Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két. | Hoàn bằng chuyển khoản cho đơn trả tiền mặt | Hoàn lại bằng tiền mặt từ két |
