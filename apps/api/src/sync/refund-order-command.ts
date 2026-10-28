@@ -16,6 +16,7 @@ import { paidTimesOf } from "./paid-times";
 import { announceShiftCash, shiftForPayment } from "./payment-shift";
 import { insertRefundAmounts } from "./refund-amounts-store";
 import { insertRefundHeader } from "./refund-order-writes";
+import { SHIFT_SYNC_ERROR_CODES } from "./shift-sync-error-codes";
 import { requirePermission } from "./staff-permission-check";
 import { readRefundsOf, readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
@@ -27,8 +28,10 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * own, paid out at once. The domain's buildRefund works out what they give back from the
  * sale's own amounts (its charge profile, its discounts) after every earlier refund, so
  * refunding a sale bit by bit gives back exactly what it took. The till must pay out that
- * amount to the đồng, and an approval it needs is for this sale and that amount. Cash paid out leaves the drawer of the shift the till names (or its
- * own open shift), exactly as a sale's cash goes in, so the shift expects that much less.
+ * amount to the đồng, and an approval it needs is for this sale and that amount. Cash paid
+ * out leaves the drawer of the shift the till names (or its own open shift), exactly as a
+ * sale's cash goes in, so the shift expects that much less; a till naming none and having
+ * none open is refused, as a sale is.
  * Returns the refund's order id.
  */
 /**
@@ -77,6 +80,9 @@ async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayl
     throw new CommandRejection(SYNC_ERROR_CODES.paymentsDoNotMatchAmountDue);
   }
   const shift = await shiftForPayment(context, payload.shiftId);
+  // A refund belongs to a shift as a sale does: its cash leaves that drawer, its payout goes
+  // into that shift's report. Paid out with none, the money would leave no drawer anyone counts.
+  if (shift.shiftId === null) throw new CommandRejection(SHIFT_SYNC_ERROR_CODES.refundNeedsShift);
   if (!(await insertRefundHeader(client, context, sale, { refund, amounts }, payload))) {
     throw new CommandRejection(SYNC_ERROR_CODES.deviceOrderNoTaken);
   }

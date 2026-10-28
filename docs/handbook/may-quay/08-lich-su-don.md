@@ -10,6 +10,7 @@ decisions:
   - D-031
   - D-057
   - D-094
+  - D-105
 tests:
   - apps/pos/src/features/history/order-history.test.ts
   - apps/pos/src/screens/history/history-table.test.tsx
@@ -28,7 +29,7 @@ Xem lại các đơn của **ngày kinh doanh hôm nay** trên máy: tìm đơn 
 
 ## Ai dùng, cần quyền gì
 
-Mọi nhân viên đã đăng nhập đều xem được. Hoàn tiền cần quyền `refund` hoặc quản lý duyệt (xem [06](06-huy-giam-hoan-va-duyet.md)). In lại và mở lại đơn chưa trả không cần quyền riêng.
+Mọi nhân viên đã đăng nhập đều xem được, **sau khi máy đã mở ca** (chưa mở ca thì máy hiện màn **Mở ca** trước, chưa có nút **Lịch sử đơn**): tiền hoàn luôn ra khỏi két của ca đang mở. Hoàn tiền cần quyền `refund` hoặc quản lý duyệt (xem [06](06-huy-giam-hoan-va-duyet.md)). In lại và mở lại đơn chưa trả không cần quyền riêng.
 
 ## Các bước
 

@@ -19,6 +19,7 @@ decisions:
   - D-077
   - D-078
   - D-104
+  - D-105
 tests:
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
   - apps/pos/test/browser/topbar-shop-name-in-chrome.test.ts
@@ -95,6 +96,7 @@ Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người m
 - Chỉnh đồng hồ máy cho trùng giờ vàng **không** được giá giờ vàng: giờ của lệnh luôn quy về giờ máy chủ.
 - Lệnh bị từ chối **không tự mất**: nằm trong **Cần xử lý** để người xem lại.
 - Thanh toán luôn thuộc một ca: lệnh thanh toán không nêu ca, tới từ máy không có ca nào đang mở, bị máy chủ từ chối (`SYNC_PAYMENT_NEEDS_SHIFT`). Máy quầy bản hiện tại không gửi lệnh như vậy (chưa mở ca thì không bán được, đóng đơn QR từ "Cần xử lý" thì mở ca trước).
+- Hoàn tiền cũng vậy: lệnh hoàn không nêu ca, từ máy không có ca đang mở, bị từ chối (`SYNC_REFUND_NEEDS_SHIFT`). Máy quầy bản hiện tại chỉ mở **Lịch sử đơn** (nơi hoàn tiền) khi đã mở ca, nên không gửi lệnh như vậy.
 - Máy giữ nhật ký các lệnh đã gửi **7 ngày** để gửi bù nếu máy chủ phải khôi phục từ bản sao lưu.
 - Một máy gửi quá nhiều yêu cầu trong một phút thì máy chủ tạm từ chối (máy báo số giây phải chờ).
 
@@ -133,6 +135,9 @@ Lệnh gửi lại mà bị từ chối thì vào **Cần xử lý**. Nếu bả
 | Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý. | Lệnh hỏng | Báo quản lý/hỗ trợ kèm mã lỗi |
 | Máy chủ không tìm thấy đơn này ở chi nhánh của máy. | Đơn không có trên máy chủ | Báo quản lý |
 | Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại. | Lệnh thanh toán không thuộc ca nào (máy bản cũ, hoặc ca đã đóng mà lệnh không nêu ca) | Mở ca rồi thu lại; đơn QR đã về tiền thì bấm **Mở ca để đóng đơn này** |
+| Máy chưa mở ca nên lần hoàn tiền không được ghi. Mở ca, rồi hoàn lại đơn này từ Lịch sử đơn để két khớp sổ. | Lệnh **Hoàn đơn** không thuộc ca nào (máy bản cũ) | Mở ca, hoàn lại từ **Lịch sử đơn** |
+| Máy chủ không tìm thấy ca mà lệnh ghi vào (ca của chi nhánh khác, hoặc ca chưa mở được). Báo cho quản lý. | Lệnh nêu một ca máy chủ không có | Báo quản lý kèm mã lỗi |
+| Máy chủ đang giữ một ca chưa đóng của máy này nên không mở thêm ca được. Đóng ca đó trước. / Mã ca trùng với một ca đã có của cửa hàng. Mở ca lại. / Mã khoản thu/chi két trùng với một khoản đã có. Làm lại thao tác. | Lệnh mở ca hoặc thu/chi két trùng với cái máy chủ đã có | Làm theo câu báo |
 | Có lỗi xảy ra. Thử lại sau ít phút. | Lỗi máy quầy chưa biết tên | Báo hỗ trợ kèm mã lỗi dưới câu |
 | Các câu về bàn, QR, giảm giá, duyệt… | Xem câu tương ứng ở [04](04-thanh-toan.md), [05](05-ban.md), [06](06-huy-giam-hoan-va-duyet.md) | |
 

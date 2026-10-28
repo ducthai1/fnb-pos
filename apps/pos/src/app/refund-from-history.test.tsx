@@ -42,6 +42,16 @@ async function refundOne() {
 }
 
 describe("refunding a paid sale from the day's history", () => {
+  it("is reached only once the shift is open, so every refund pays out of a drawer", async () => {
+    const server = counterWithManager();
+    await signedInTill(server, { openShift: false });
+    await screen.findByRole("button", { name: text.checkout.openShift.open });
+    expect(screen.queryByRole("button", { name: text.history.open })).toBeNull();
+    tap(text.checkout.openShift.open);
+    await screen.findByRole("region", { name: text.sale.menuLabel });
+    expect(screen.getByRole("button", { name: text.history.open })).toBeTruthy();
+  });
+
   it("offers only cash for a sale the customer paid in cash", async () => {
     const server = counterWithManager();
     await paidThenHistory(server);

@@ -30,6 +30,14 @@ export const VI_SYNC_ERRORS = {
   SYNC_ORDER_NOT_FOUND: "Máy chủ không tìm thấy đơn này ở chi nhánh của máy.",
   SYNC_NO_OPEN_SHIFT: "Máy chưa mở ca nên không ghi được thao tác này.",
   SYNC_PAYMENT_NEEDS_SHIFT: "Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại.",
+  SYNC_REFUND_NEEDS_SHIFT:
+    "Máy chưa mở ca nên lần hoàn tiền không được ghi. Mở ca, rồi hoàn lại đơn này từ Lịch sử đơn để két khớp sổ.",
+  SYNC_SHIFT_NOT_FOUND:
+    "Máy chủ không tìm thấy ca mà lệnh ghi vào (ca của chi nhánh khác, hoặc ca chưa mở được). Báo cho quản lý.",
+  SYNC_SHIFT_ID_TAKEN: "Mã ca trùng với một ca đã có của cửa hàng. Mở ca lại.",
+  SYNC_SHIFT_ALREADY_OPEN:
+    "Máy chủ đang giữ một ca chưa đóng của máy này nên không mở thêm ca được. Đóng ca đó trước.",
+  SYNC_CASH_MOVE_ID_TAKEN: "Mã khoản thu/chi két trùng với một khoản đã có. Làm lại thao tác.",
   SYNC_INVALID_PAYLOAD: "Lệnh từ máy thiếu hoặc sai thông tin. Báo cho quản lý.",
   SYNC_EINVOICE_DISABLED: "Chi nhánh chưa bật hóa đơn điện tử nên không ghi được người mua.",
   SYNC_EINVOICE_NOT_FOUND:
@@ -43,6 +51,7 @@ export const VI_SYNC_ERRORS = {
 const VI_COMMAND_NAMES: Readonly<Record<string, string>> = {
   "order.save_draft": "Lưu đơn",
   "order.pay": "Thanh toán đơn",
+  "order.refund": "Hoàn đơn",
   "order.set_buyer_info": "Ghi người mua hóa đơn",
   "order.mark_sent_to_kitchen": "Gửi phiếu pha chế",
   "payment.create_intent": "Tạo mã QR chuyển khoản",

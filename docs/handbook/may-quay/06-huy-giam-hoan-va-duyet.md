@@ -23,6 +23,7 @@ decisions:
   - D-063
   - D-076
   - D-081
+  - D-105
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -46,6 +47,7 @@ tests:
   - apps/api/test/integration/sync/sync-void-line-takes-unsent-units-first.test.ts
   - apps/api/test/integration/sync/cancel-shown-or-served-draft-needs-a-manager.test.ts
   - apps/api/test/integration/sync/sync-refund-gives-back-what-the-sale-took.test.ts
+  - apps/api/test/integration/shift/cash-refund-is-paid-out-of-the-shift-drawer.test.ts
   - e2e/pos/void-discount-refund-with-approval.spec.ts
 ---
 
@@ -157,6 +159,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 - Đơn có **giảm giá toàn đơn**: các món đang có bị khóa sửa/xóa; hủy món làm phần giảm toàn đơn vượt mức được tự giảm thì máy chặn.
 - **Hoàn về đúng đường khách đã trả**: hoàn bằng chuyển khoản chỉ khi đơn gốc có khoản **chuyển khoản QR**; đơn trả toàn tiền mặt mà máy gửi hoàn bằng chuyển khoản thì máy chủ từ chối.
 - Hoàn tiền tạo một **đơn hoàn riêng** gắn với đơn gốc; số còn hoàn được trừ cả những lần hoàn trước. Hoàn **không nhập lại kho**. Chỉ hoàn được đơn **đã trả**.
+- **Hoàn tiền luôn thuộc một ca**, như thanh toán: tiền hoàn ra khỏi két của ca đang mở và vào báo cáo của ca đó. Máy quầy chỉ mở được **Lịch sử đơn** sau khi đã mở ca, nên lần hoàn luôn ghi vào ca đang mở. Lệnh hoàn không nêu ca, tới từ máy không có ca nào đang mở (máy bản cũ), bị máy chủ từ chối; lần hoàn đã ghi trước đây giữ nguyên.
 - Giảm theo % gõ được số lẻ tới 2 chữ số sau dấu phẩy (ví dụ `12,5`), từ trên 0 đến 100.
 
 ## Khi có lỗi
@@ -184,6 +187,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 | Mức giảm này làm tròn ra 0 ₫ trên số còn phải trả. | Mức quá nhỏ | Tăng mức giảm |
 | Số tiền giảm lớn hơn số còn phải trả. / Nhập mức giảm lớn hơn 0. / Món đã hủy một phần nên không giảm giá thêm được. | — | Sửa mức giảm |
 | Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két. | Hoàn bằng chuyển khoản cho đơn trả tiền mặt | Hoàn lại bằng tiền mặt từ két |
+| Máy chưa mở ca nên lần hoàn tiền không được ghi. Mở ca, rồi hoàn lại đơn này từ Lịch sử đơn để két khớp sổ. | Lệnh hoàn không thuộc ca nào (máy bản cũ); hiện trong **Cần xử lý** dưới tên **Hoàn đơn** | Mở ca, vào **Lịch sử đơn**, hoàn lại đúng các món đó |
 | Chọn ít nhất một món để hoàn. / Số lượng hoàn nhiều hơn số còn chưa hoàn của món. / Chỉ hoàn được đơn đã thanh toán. / Đơn này đã hoàn hết. | Hoàn sai | Chọn lại |
 | Đơn chưa lưu xong trên máy (hoặc lần lưu vừa rồi lỗi). Quay lại đơn rồi thử lại. | Đơn đang lưu dở | Quay lại đơn, thử lại |
 
