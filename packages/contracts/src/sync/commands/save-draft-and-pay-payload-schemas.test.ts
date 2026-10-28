@@ -50,7 +50,43 @@ describe("saveDraftPayloadSchema", () => {
     expect(parsed.lines[0]?.priceApprovalId).toBe(id(8));
   });
 
+  it("carries a combo's picks, each with its own options and no price", () => {
+    const tea = { slotId: id(6), productId: id(7), variantId: id(8), modifiers: [] };
+    const parsed = saveDraftPayloadSchema.parse({
+      ...draft,
+      lines: [{ ...lineIntent, comboPicks: [{ ...tea, upcharge: 10_000 }] }],
+    });
+    expect(parsed.lines[0]?.comboPicks).toEqual([tea]);
+  });
+
   it.each([
+    [
+      "a combo pick whose slot is not a uuid",
+      {
+        lines: [
+          {
+            ...lineIntent,
+            comboPicks: [{ slotId: "drink", productId: id(7), variantId: null, modifiers: [] }],
+          },
+        ],
+      },
+    ],
+    [
+      "more combo picks than any combo has places",
+      {
+        lines: [
+          {
+            ...lineIntent,
+            comboPicks: Array.from({ length: 31 }, () => ({
+              slotId: id(6),
+              productId: id(7),
+              variantId: null,
+              modifiers: [],
+            })),
+          },
+        ],
+      },
+    ],
     ["a quantity with four decimals", { lines: [{ ...lineIntent, quantity: "1.2345" }] }],
     ["a quantity as a number", { lines: [{ ...lineIntent, quantity: 1 }] }],
     ["a typed price with đồng fractions", { lines: [{ ...lineIntent, enteredPrice: 1.5 }] }],

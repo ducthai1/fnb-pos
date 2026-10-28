@@ -21,7 +21,6 @@ export const SYNC_ERROR_CODES = {
   /** A line id that belongs to another order. */
   lineIdTaken: "SYNC_LINE_ID_TAKEN",
   productNotFound: "SYNC_PRODUCT_NOT_FOUND",
-  comboNotSupported: "SYNC_COMBO_NOT_SUPPORTED",
   /** What the customer was asked to pay is not what the order now comes to. */
   orderTotalMismatch: "DOMAIN_ORDER_TOTAL_MISMATCH",
   paymentsDoNotMatchAmountDue: "SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE",

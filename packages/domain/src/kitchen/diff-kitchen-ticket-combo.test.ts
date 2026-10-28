@@ -62,13 +62,13 @@ describe("kitchen tickets for a combo", () => {
     const routing = (l: OrderLine) =>
       l.productId === "product-breakfast" ? "counter" : byProduct(l);
     const diff = diffKitchenTicket(breakfast(), [], routing);
-    expect(diff.tickets.map((t) => [t.stationId, t.lines[0]?.children.map((c) => c.lineId)])).toEqual(
-      [
-        ["bar", ["tea", "pearl"]],
-        ["kitchen", ["cake"]],
-        ["counter", ["water"]],
-      ],
-    );
+    expect(
+      diff.tickets.map((t) => [t.stationId, t.lines[0]?.children.map((c) => c.lineId)]),
+    ).toEqual([
+      ["bar", ["tea", "pearl"]],
+      ["kitchen", ["cake"]],
+      ["counter", ["water"]],
+    ]);
   });
 
   it("prints nothing and records nothing when neither the combo nor any pick is made anywhere", () => {

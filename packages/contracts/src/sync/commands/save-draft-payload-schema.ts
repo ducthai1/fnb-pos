@@ -11,6 +11,18 @@ const modifierSelectionSchema = z.object({
 });
 
 /**
+ * What was put in one place of a combo: a product the slot offers (and its size), with that
+ * product's own options. Like the line, it carries no price: the slot's upcharge and the
+ * options' prices come from the catalog.
+ */
+const comboPickSchema = z.object({
+  slotId: uuidSchema,
+  productId: uuidSchema,
+  variantId: uuidSchema.nullable(),
+  modifiers: z.array(modifierSelectionSchema).max(50),
+});
+
+/**
  * What the cashier chose, never what it costs: any price the till sends along (it shows
  * one on screen) is stripped here, and the server prices the line from its catalog. The
  * one exception is a product sold at an open price, whose price is whatever the cashier
@@ -32,6 +44,11 @@ const lineIntentSchema = z.object({
    * covers one line and one price.
    */
   priceApprovalId: uuidSchema.optional(),
+  /**
+   * A combo's picks, one per place filled (two milk teas in a "2 drinks" slot are two picks).
+   * Left out on any other product; the server refuses picks on a product that is no combo.
+   */
+  comboPicks: z.array(comboPickSchema).max(30).optional(),
 });
 
 /**
