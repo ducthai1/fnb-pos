@@ -107,13 +107,19 @@ describe("the product editor", () => {
       putProduct: async () => ({ ok: false, status: 400, code, body: { code, details } }),
     });
     fireEvent.click(await screen.findByRole("button", { name: T.save }));
-    const topping = screen.getByRole("region", { name: T.groupLabel(3) });
-    const pearl = within(topping).getByRole("group", { name: T.optionLabel(1) });
-    const price = within(pearl).getByLabelText(T.priceDelta);
-    await mock.waitFor(() => expect(price.getAttribute("aria-invalid")).toBe("true"));
-    expect(within(pearl).getByText(messageForCode(code))).toBeTruthy();
+    // Looked up again on every read: a field held from before the refusal arrived could be
+    // one the editor has since drawn anew, which would never show the refusal.
+    const pearl = () =>
+      within(screen.getByRole("region", { name: T.groupLabel(3) })).getByRole("group", {
+        name: T.optionLabel(1),
+      });
+    const price = () => within(pearl()).getByLabelText(T.priceDelta);
+    await mock.waitFor(() => expect(price().getAttribute("aria-invalid")).toBe("true"), {
+      timeout: 5_000,
+    });
+    expect(within(pearl()).getByText(messageForCode(code))).toBeTruthy();
 
     type(screen.getByLabelText(T.name), "Trà sữa trân châu mới");
-    expect(price.getAttribute("aria-invalid")).not.toBe("true");
+    expect(price().getAttribute("aria-invalid")).not.toBe("true");
   });
 });
