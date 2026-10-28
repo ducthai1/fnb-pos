@@ -110,12 +110,6 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - **Số lượng**: số ly giống hệt nhau.
    - **Ghi chú**: gõ tự do, hoặc chạm **Ghi chú nhanh**: *Ít đá · Không đá · Ít đường · Không đường · Đá riêng · Mang về riêng*. Chạm lần nữa vào cùng ghi chú nhanh là bỏ nó ra.
    - Bấm **Thêm vào đơn · 100.000 đ** (số tiền là giá của các ly đó đã gồm tùy chọn). Bấm **Quay lại** hoặc phím **Esc** để thôi.
-3b. **Chọn combo**: mỗi **phần** của combo (ví dụ **Đồ uống** · Chọn 1 · Bắt buộc, **Bánh** · Chọn tối đa 2) là một thẻ, có đếm **Đã chọn 1/2**:
-   - Mỗi món của phần là một nút; món đổi có **phụ thu** ghi ngay trên nút (**Trà sữa trân châu (L) +10.000 ₫**). Phần **chọn 1**: chạm món khác là đổi. Phần **chọn nhiều**: chạm thêm lần nữa là thêm một (×2), nút **Bớt …** để bớt; chạm quá số tối đa thì báo "“Bánh” chỉ lấy 2 món. Bớt một món trước khi chọn món khác.".
-   - Món đã chọn mà có tùy chọn riêng (đường, đá, topping) thì hiện ngay dưới phần đó một ô **Tùy chọn của …** với các nhóm như màn tùy chọn thường; hai ly giống nhau trong một phần thì có hai ô (**· phần 1**, **· phần 2**), mỗi ly chọn riêng.
-   - Phần **bắt buộc** chỉ có **một** món còn bán thì máy chọn sẵn món đó; còn lại máy **không chọn hộ**.
-   - Món **Hết món** hiện xám với nhãn **Hết món**, không chạm được; phần bắt buộc mà mọi món đều hết thì báo "Món của “…” đang hết, chưa bán được combo này.".
-   - **Số lượng** và **Ghi chú** như món thường (ghi chú là của cả combo). Nút **Thêm vào đơn · 60.000 ₫** ghi giá combo đã cộng phụ thu và tùy chọn của từng món; còn thiếu thì báo đúng chỗ, ví dụ "Chưa chọn “Đồ uống” — phần này bắt buộc." hoặc "Trà sữa trân châu (L): Chưa chọn “Đường” — mục này bắt buộc.".
 3a. **Nhập giá hoặc cân nặng** trong ngăn kéo mở từ bên phải (giống ngăn thanh toán):
 
    ![Nhập cân nặng cho món bán theo cân](../images/may-quay/line-entry-weight.webp)
@@ -123,6 +117,15 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - **Giá nhập tay**: gõ giá **cho một món**, bằng đồng, trên bàn phím số (phím **000** để gõ nhanh nghìn) hoặc bàn phím máy; món có giá gợi ý (giá quản lý ghi ở trang quản lý) thì có phím **Giá gợi ý của món**. Dòng **Thành tiền** ghi giá đó. Bấm **Thêm vào đơn · 150.000 ₫**. Người không có quyền thấy câu "Bạn không tự nhập giá được: bấm Thêm để nhờ quản lý duyệt đúng giá này."; bấm thì máy mở màn **Cần quản lý duyệt** "Bán Bánh kem với giá 150.000 ₫" (xem [06](06-huy-giam-hoan-va-duyet.md)). Không ai duyệt thì quay lại ngăn với giá vừa gõ, đơn không đổi.
    - **Bán theo cân**: gõ cân nặng bằng **gam** (cân hiện bao nhiêu gam gõ bấy nhiêu, không có dấu phẩy) hoặc chạm phím **Cân nhanh** **100 g · 200 g · 250 g · 500 g · 1.000 g**. **Thành tiền** = giá × cân nặng, làm tròn tới đồng, ví dụ "351 g × 32.000 ₫/100 g" = **112.320 ₫**. Bấm **Thêm vào đơn**.
    - Đóng ngăn bằng **×**, phím **Esc** hoặc chạm ra ngoài: món không vào đơn.
+3b. **Chọn combo**: mỗi **phần** của combo (ví dụ **Đồ uống** · Chọn 1 · Bắt buộc, **Bánh** · Chọn tối đa 2) là một thẻ, có đếm **Đã chọn 1/2**:
+
+   ![Chọn món cho combo đôi](../images/may-quay/combo-picker.webp)
+
+   - Mỗi món của phần là một nút; món đổi có **phụ thu** ghi ngay trên nút (**Trà sữa trân châu (L) +10.000 ₫**). Phần **chọn 1**: chạm món khác là đổi. Phần **chọn nhiều**: chạm thêm lần nữa là thêm một (×2), nút **Bớt …** để bớt; chạm quá số tối đa thì báo "“Bánh” chỉ lấy 2 món. Bớt một món trước khi chọn món khác.".
+   - Món đã chọn mà có tùy chọn riêng (đường, đá, topping) thì hiện ngay dưới phần đó một ô **Tùy chọn của …** với các nhóm như màn tùy chọn thường; hai ly giống nhau trong một phần thì có hai ô (**· phần 1**, **· phần 2**), mỗi ly chọn riêng.
+   - Phần **bắt buộc** chỉ có **một** món còn bán thì máy chọn sẵn món đó; còn lại máy **không chọn hộ**.
+   - Món **Hết món** hiện xám với nhãn **Hết món**, không chạm được; phần bắt buộc mà mọi món đều hết thì báo "Món của “…” đang hết, chưa bán được combo này.".
+   - **Số lượng** và **Ghi chú** như món thường (ghi chú là của cả combo). Nút **Thêm vào đơn · 60.000 ₫** ghi giá combo đã cộng phụ thu và tùy chọn của từng món; còn thiếu thì báo đúng chỗ, ví dụ "Chưa chọn “Đồ uống” — phần này bắt buộc." hoặc "Trà sữa trân châu (L): Chưa chọn “Đường” — mục này bắt buộc.".
 4. **Sửa đơn** ở cột bên phải: mỗi món một dòng — nút **−** / **+** ở đầu dòng để bớt / thêm một, rồi tên món, số tiền; tùy chọn hiện thành các nhãn nhỏ dưới tên, ghi chú là nhãn vàng. Bấm nút **⋯** cuối dòng để mở thao tác của món đó (**Xóa món**, **Hủy món**, **Giảm giá** — xem [06](06-huy-giam-hoan-va-duyet.md)); dòng đang mở chuyển nền đậm hơn. Cột đơn hẹp (máy tính bảng dựng đứng, điện thoại) thì nút − / + và ⋯ nằm ở hàng dưới tên.
    - Món **giá nhập tay** có nhãn **Giá nhập · 150.000 ₫** dưới tên: chạm vào để **đổi giá** (giá mới cần duyệt lại nếu người bán không có quyền). Nút − / + vẫn dùng được (2 cái bánh cùng giá).
    - **Combo** có các món đã chọn thành nhãn nhỏ dưới tên, mỗi món kèm tùy chọn của nó (**+ Trà sữa trân châu (L) · 50% đường, Trân châu đen**); số tiền của dòng là giá combo đã cộng phụ thu và tùy chọn. Muốn đổi món trong combo chưa gửi bếp thì xóa combo rồi chọn lại.

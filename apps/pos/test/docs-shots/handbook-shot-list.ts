@@ -42,6 +42,7 @@ const TILL = [
   "theme-menu",
   "modifier-picker",
   "line-entry-weight",
+  "combo-picker",
   "payment",
   "qr-payment",
   "qr-payment-refused",

@@ -14,6 +14,7 @@ import { PaymentDrawer } from "../../src/screens/payment/payment-drawer";
 import { QrPanel } from "../../src/screens/payment/qr-panel";
 import { SaleDoneScreen } from "../../src/screens/payment/sale-done-screen";
 import { LineEntryDrawer } from "../../src/screens/sale/line-entry-drawer";
+import { ComboPickerScreen } from "../../src/screens/sale/combo-picker-screen";
 import { ModifierPickerScreen } from "../../src/screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../../src/screens/sale/sale-screen";
 import { UnderLayer } from "../../src/screens/shared/under-layer";
@@ -22,7 +23,7 @@ import { TillBarNav } from "../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../src/screens/till/till-header";
 import { TillTools } from "../../src/screens/till/till-tools";
 import type { TillSyncStatus } from "../../src/features/sync/till-sync-status";
-import { P, PRODUCTS, PROFILE, SHOP } from "./pretty-menu";
+import { P, PRODUCTS, PROFILE, SHOP, SIZE } from "./pretty-menu";
 import { INVOICE, ORDER, PRICED, SALE, STAFF, menu, now } from "./pretty-order";
 
 // Selling, taking the money and the slips at the sample café, for the handbook's pictures.
@@ -155,6 +156,44 @@ const beans = posProductSchema.parse({
   imageUrl: undefined,
 });
 
+/** Two drinks for one price: a pearl milk tea (L for 10.000 more) and a fruit tea, both M. */
+const twoDrinks = posProductSchema.parse({
+  ...milkTea,
+  id: "0199f000-0000-7000-8000-00000000c001",
+  name: "Combo đôi",
+  kind: "combo",
+  stationId: null,
+  printCupLabel: false,
+  basePrice: 69_000,
+  variants: [],
+  modifierGroups: [],
+  imageUrl: undefined,
+  combo: {
+    slots: [
+      {
+        id: "0199f000-0000-7000-8000-00000000c002",
+        name: "Trà sữa",
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { productId: P["Trà sữa trân châu"], variantId: SIZE.m, upcharge: 0 },
+          { productId: P["Trà sữa trân châu"], variantId: SIZE.l, upcharge: 10_000 },
+        ],
+      },
+      {
+        id: "0199f000-0000-7000-8000-00000000c003",
+        name: "Trà trái cây",
+        minSelect: 1,
+        maxSelect: 1,
+        options: [
+          { productId: P["Trà đào cam sả"], variantId: SIZE.m, upcharge: 0 },
+          { productId: P["Trà vải"], variantId: SIZE.m, upcharge: 0 },
+        ],
+      },
+    ],
+  },
+});
+
 export const SELLING_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={tillBar()} onOpen={never} />,
   sale: () => saleScreen(),
@@ -179,6 +218,16 @@ export const SELLING_SCREENS = {
         onClose={nothing}
       />,
     ),
+  "combo-picker": () => (
+    <ComboPickerScreen
+      header={tillBar()}
+      menu={menu}
+      product={twoDrinks}
+      now={now}
+      onAdd={nothing}
+      onCancel={nothing}
+    />
+  ),
   "modifier-picker": () => (
     <ModifierPickerScreen
       header={tillBar()}
