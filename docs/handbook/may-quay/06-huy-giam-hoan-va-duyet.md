@@ -23,8 +23,8 @@ decisions:
   - D-063
   - D-076
   - D-081
-  - D-105
-  - D-106
+  - D-110
+  - D-111
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx

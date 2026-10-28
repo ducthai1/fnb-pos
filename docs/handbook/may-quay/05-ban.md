@@ -18,7 +18,7 @@ decisions:
   - D-070
   - D-074
   - D-076
-  - D-106
+  - D-111
 tests:
   - apps/pos/src/app/table-floor.test.tsx
   - apps/pos/src/app/table-floor-from-bootstrap.test.tsx

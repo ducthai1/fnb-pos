@@ -23,7 +23,7 @@ decisions:
   - D-078
   - D-080
   - D-098
-  - D-107
+  - D-112
 tests:
   - apps/pos/src/app/counter-checkout.test.tsx
   - apps/pos/src/app/counter-payment-drawer.test.tsx

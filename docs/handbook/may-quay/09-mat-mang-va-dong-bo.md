@@ -19,7 +19,7 @@ decisions:
   - D-077
   - D-078
   - D-104
-  - D-105
+  - D-110
 tests:
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
   - apps/pos/test/browser/topbar-shop-name-in-chrome.test.ts
