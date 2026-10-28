@@ -46,9 +46,9 @@ export function mergeDraftLines(
     const was = storedItems.get(item.id);
     if (was === undefined && locks.voidedLineIds.has(item.id)) refuse();
     const lock = was === undefined ? "none" : lockOf(was, stored, locks);
-    const options = fresh.filter((line) => line.parentLineId === item.id);
-    if (was === undefined || lock === "none") merged.push(item, ...options);
-    else merged.push(...keptTree(was, stored, item, options, lock === "referenced"));
+    const tree = subtreeOf(fresh, item.id);
+    if (was === undefined || lock === "none") merged.push(...tree);
+    else merged.push(...keptTree(was, stored, item, tree, lock === "referenced"));
   }
   const saved = new Set(freshItems.map((item) => item.id));
   for (const was of storedItems.values()) {
@@ -83,16 +83,19 @@ function lockOf(
   return (locks.sentQuantityByLineId.get(item.id) ?? 0n) > 0n ? "sent" : "none";
 }
 
-/** The stored item and its options, the quantity raised when the lock allows it. */
+/**
+ * The stored item with its options (and a combo's picks with theirs), the quantity raised
+ * when the lock allows it.
+ */
 function keptTree(
   was: OrderLine,
   stored: readonly OrderLine[],
   item: OrderLine,
-  freshOptions: readonly OrderLine[],
+  freshTree: readonly OrderLine[],
   exact: boolean,
 ): OrderLine[] {
-  const storedOptions = stored.filter(
-    (line) => line.parentLineId === was.id && line.lineType !== "discount",
+  const storedChildren = subtreeOf(stored, was.id).filter(
+    (line) => line.id !== was.id && line.lineType !== "discount",
   );
   const same =
     item.productId === was.productId &&
@@ -100,14 +103,20 @@ function keptTree(
     item.note === was.note &&
     (was.priceSource !== "manual" || item.unitPrice === was.unitPrice) &&
     (exact ? item.quantity === was.quantity : item.quantity >= was.quantity) &&
-    choicesOf(freshOptions) === choicesOf(storedOptions);
+    choicesOf(freshTree, item.id) === choicesOf(storedChildren, was.id);
   if (!same) refuse();
-  return [{ ...was, quantity: item.quantity }, ...storedOptions];
+  return [{ ...was, quantity: item.quantity }, ...storedChildren];
 }
 
-function choicesOf(options: readonly OrderLine[]): string {
-  return options
-    .map((line) => `${line.lineType}:${line.modifierOptionId}:${line.quantity}`)
+/** What hangs under a line, whatever the ids: a pick with the options under it, an option. */
+function choicesOf(lines: readonly OrderLine[], parentLineId: string): string {
+  return lines
+    .filter((line) => line.parentLineId === parentLineId && line.lineType !== "discount")
+    .map(
+      (line) =>
+        `${line.lineType}:${line.productId}:${line.variantId}:${line.modifierOptionId}:` +
+        `${line.quantity}(${choicesOf(lines, line.id)})`,
+    )
     .sort()
     .join(",");
 }

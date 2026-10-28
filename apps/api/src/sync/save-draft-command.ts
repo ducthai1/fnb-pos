@@ -5,7 +5,7 @@ import {
 } from "@fnb/contracts";
 import { type OrderLine, assertLinesEditable, validateLineTree } from "@fnb/domain";
 import { readDeviceOrderSettings } from "./device-order-settings";
-import { itemsAdding, newlyTypedPrices, refuseSoldOut } from "./draft-additions";
+import { newlyTypedPrices, productsAdding, refuseSoldOut } from "./draft-additions";
 import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
 import { mergeDraftLines, readVoidedLineIds } from "./draft-line-locks";
 import { insertDraftHeader, lineIdsTakenElsewhere, updateDraftHeader } from "./draft-order-writes";
@@ -57,7 +57,7 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   if (await lineIdsTakenElsewhere(client, payload.orderId, itemIds)) {
     throw new CommandRejection(SYNC_ERROR_CODES.lineIdTaken);
   }
-  const adding = itemsAdding(before, lines);
+  const adding = productsAdding(before, lines);
   await refuseSoldOut(client, device.branchId, payload.channelKey, adding, recordedAt);
   await requireTypedPrices(context, payload, newlyTypedPrices(before, lines));
   if (existing === null) {

@@ -8,9 +8,11 @@ import {
   optionPath,
   productPath,
   rulePath,
+  slotOptionPath,
+  slotPath,
   variantPath,
 } from "./draft-error-paths";
-import type { DraftGroup, DraftVariantRule, ProductDraft } from "./product-draft";
+import type { DraftCombo, DraftGroup, DraftVariantRule, ProductDraft } from "./product-draft";
 
 const NAME_MAX = 120;
 
@@ -90,10 +92,48 @@ function groupBody(read: FieldReader, group: DraftGroup, variantIds: ReadonlySet
 }
 
 /**
+ * The combo's slots as the API takes them. A row without a product, or without a size for a
+ * product sold by size, is recorded on the row: the till could not match it to any pick.
+ */
+function comboBody(
+  read: FieldReader,
+  combo: DraftCombo,
+  sizesOf: SizesOf,
+): NonNullable<ProductBody["combo"]> {
+  return {
+    slots: combo.slots.map((slot) => ({
+      id: slot.id,
+      name: read.name(slotPath(slot.id, "name"), slot.name),
+      minSelect: read.count(slotPath(slot.id, "minSelect"), slot.minSelect),
+      maxSelect: read.count(slotPath(slot.id, "maxSelect"), slot.maxSelect),
+      options: slot.options.map((option) => {
+        const path = (field: string) => slotOptionPath(slot.id, option.key, field);
+        if (option.productId === "") read.errors.add(path("productId"), vi.menu.editor.pickProduct);
+        else if (option.variantId === null && (sizesOf(option.productId)?.length ?? 0) > 0) {
+          read.errors.add(path("variantId"), vi.menu.editor.pickVariant);
+        }
+        return {
+          productId: option.productId,
+          variantId: option.variantId,
+          upcharge: read.amount(path("upcharge"), option.upcharge || "0"),
+        };
+      }),
+    })),
+  };
+}
+
+/** What the editor knows of other products: their sizes, so a combo row asks for one. */
+export type SizesOf = (productId: string) => readonly unknown[] | undefined;
+
+/**
  * The PUT body for the draft, with every field that cannot be read recorded at its path.
  * The body is only good to send when no error was recorded.
  */
-export function draftToProductBody(draft: ProductDraft, errors: DraftErrorList): ProductBody {
+export function draftToProductBody(
+  draft: ProductDraft,
+  errors: DraftErrorList,
+  sizesOf: SizesOf = () => undefined,
+): ProductBody {
   const read = new FieldReader(errors);
   const variantIds = new Set(draft.variants.map((variant) => variant.id));
   return {
@@ -117,6 +157,6 @@ export function draftToProductBody(draft: ProductDraft, errors: DraftErrorList):
       price: read.optionalAmount(variantPath(variant.id, "price"), variant.price),
     })),
     modifierGroups: draft.modifierGroups.map((group) => groupBody(read, group, variantIds)),
-    combo: draft.combo,
+    combo: draft.combo === null ? null : comboBody(read, draft.combo, sizesOf),
   };
 }

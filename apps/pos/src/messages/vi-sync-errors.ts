@@ -23,6 +23,12 @@ export const VI_SYNC_ERRORS = {
   SYNC_PAYMENTS_DO_NOT_MATCH_AMOUNT_DUE: "Tổng các khoản đã thu khác số tiền cần thu của đơn.",
   SYNC_REFUND_METHOD_NOT_ALLOWED:
     "Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két.",
+  DOMAIN_CATALOG_COMBO_OPTION_NOT_IN_SLOT:
+    "Combo vừa đổi trên thực đơn: một món đã chọn không còn trong combo. Xóa combo khỏi đơn rồi chọn lại.",
+  DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_MISSING:
+    "Combo còn thiếu một phần bắt buộc (thực đơn vừa đổi). Xóa combo khỏi đơn rồi chọn lại.",
+  DOMAIN_CATALOG_TOO_MANY_COMBO_SELECTIONS:
+    "Combo có nhiều món hơn thực đơn cho phép (thực đơn vừa đổi). Xóa combo khỏi đơn rồi chọn lại.",
   DOMAIN_ORDER_TOTAL_MISMATCH:
     "Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại.",
   DOMAIN_PRICING_ENTERED_PRICE_REQUIRED:

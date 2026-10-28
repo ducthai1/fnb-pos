@@ -56,6 +56,43 @@ function ticketLine(
   };
 }
 
+type ChildFilter = (child: KitchenTicketChild) => boolean;
+const EVERY_CHILD: ChildFilter = () => true;
+
+/**
+ * The stations that make a root item, each with the children its ticket shows. An ordinary
+ * item goes where its product is made, children and all. A combo goes to the station of each
+ * pick (a pick routed nowhere goes where the combo itself would): the bar gets the combo with
+ * the drink, the kitchen the same combo with the food. Options on the combo itself print on
+ * every part. `itemStation` is where the item itself (or, for a cancel, the line it cancels)
+ * is made.
+ */
+function stationParts(
+  lines: readonly OrderLine[],
+  item: OrderLine,
+  routing: StationRouting,
+  itemStation: string | null,
+): Map<string, ChildFilter> {
+  const picks = lines.filter(
+    (line) => line.parentLineId === item.id && line.lineType === "combo_component",
+  );
+  if (picks.length === 0) return new Map(itemStation === null ? [] : [[itemStation, EVERY_CHILD]]);
+  const stationOfPick = new Map(picks.map((pick) => [pick.id, routing(pick) ?? itemStation]));
+  const parentOf = new Map(lines.map((line) => [line.id, line.parentLineId]));
+  // The pick a child belongs to: itself, or the pick its option hangs under (null: the combo).
+  const pickOf = (child: KitchenTicketChild): string | null =>
+    stationOfPick.has(child.lineId) ? child.lineId : (parentOf.get(child.lineId) ?? null);
+  const parts = new Map<string, ChildFilter>();
+  for (const station of new Set(stationOfPick.values())) {
+    if (station === null) continue;
+    parts.set(station, (child) => {
+      const pick = pickOf(child);
+      return pick === null || pick === item.id || stationOfPick.get(pick) === station;
+    });
+  }
+  return parts;
+}
+
 /** What one root item adds to its station's ticket since `sent`. */
 function changesOf(
   order: Order,
@@ -79,8 +116,9 @@ function changesOf(
 /**
  * What each station must be told about an order since the tickets it already has: units not
  * sent yet, cancels of units it was sent (the negative lines voidLine makes, routed to the
- * station of the line they cancel) and notes changed on units it has. Toppings and combo
- * picks print under their item and go where it goes; an item routed to no station prints
+ * station of the line they cancel) and notes changed on units it has. Toppings print under
+ * their item and go where it goes; a combo goes to the station of each of its picks, under
+ * the same line on every ticket (see KitchenTicketDiff). An item routed to no station prints
  * nowhere and is not recorded as sent, so a void of it needs no cancel ticket.
  *
  * Pure: it neither prints nor records. The caller prints the tickets, and only once the printer
@@ -107,13 +145,16 @@ export function diffKitchenTicket(
   for (const line of order.lines.filter(isStationItem)) {
     const previous = sent.get(line.id);
     const routed = line.reversesLineId === null ? line : (byId.get(line.reversesLineId) ?? line);
-    const station = routing(routed);
-    if (station === null) {
+    const parts = stationParts(order.lines, line, routing, routing(routed));
+    if (parts.size === 0) {
       if (previous !== undefined) next.push(previous);
       continue;
     }
     const changes = changesOf(order, line, previous);
-    if (changes.length > 0) tickets.set(station, [...(tickets.get(station) ?? []), ...changes]);
+    for (const [station, keep] of parts) {
+      const part = changes.map((change) => ({ ...change, children: change.children.filter(keep) }));
+      if (part.length > 0) tickets.set(station, [...(tickets.get(station) ?? []), ...part]);
+    }
     next.push({ lineId: line.id, sentQuantity: stationUnits(line), sentNote: line.note });
   }
   const printed: KitchenTicket[] = [...tickets].map(([stationId, lines]) => ({ stationId, lines }));

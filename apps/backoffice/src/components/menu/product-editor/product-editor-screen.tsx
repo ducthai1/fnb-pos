@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { ApiResult } from "../../../lib/api/api-result";
-import type { Category, Station } from "../../../lib/api/catalog-api";
+import type { Category, ProductSummary, Station } from "../../../lib/api/catalog-api";
 import { vi } from "../../../messages/vi";
 import { useApi } from "../../app/api-context";
 import { LoadStateView } from "../../shell/load-state-view";
@@ -20,17 +20,23 @@ const T = vi.menu.editor;
 interface Choices {
   categories: Category[];
   stations: Station[];
+  /** The brand's products, which a combo's slots offer. */
+  products: ProductSummary[];
 }
 
 async function loadChoices(
   categories: Promise<ApiResult<Category[]>>,
   stations: Promise<ApiResult<Station[]>>,
+  products: Promise<ApiResult<ProductSummary[]>>,
 ): Promise<ApiResult<Choices>> {
-  const [c, s] = await Promise.all([categories, stations]);
+  const [c, s, p] = await Promise.all([categories, stations, products]);
   if (!c.ok) return c;
   if (!s.ok) return s;
-  return { ok: true, value: { categories: c.value, stations: s.value } };
+  if (!p.ok) return p;
+  return { ok: true, value: { categories: c.value, stations: s.value, products: p.value } };
 }
+
+const NO_PRODUCTS: readonly ProductSummary[] = [];
 
 /** One product on one page; `isNew` starts an empty one under `productId`. */
 export function ProductEditorScreen({
@@ -45,18 +51,29 @@ export function ProductEditorScreen({
 }) {
   const api = useApi();
   const { branch } = useSession();
-  const editor = useProductEditor(productId, isNew, branch?.brandId ?? null);
   const [confirmArchive, setConfirmArchive] = useState(false);
-  const brandId = editor.draft?.brandId ?? branch?.brandId ?? null;
+  // The page edits the products of the brand it is signed in to.
+  const brandId = branch?.brandId ?? null;
   const branchId = branch?.id ?? null;
   const load = useMemo(
     () =>
       brandId === null || branchId === null
         ? null
-        : () => loadChoices(api.listCategories(brandId), api.listStations(branchId)),
+        : () =>
+            loadChoices(
+              api.listCategories(brandId),
+              api.listStations(branchId),
+              api.listProducts(brandId),
+            ),
     [api, brandId, branchId],
   );
   const [choices, reloadChoices] = useApiLoad(load);
+  const products = choices.state === "ready" ? choices.value.products : NO_PRODUCTS;
+  const sizesOf = useMemo(() => {
+    const sizes = new Map(products.map((product) => [product.id, product.variants ?? []]));
+    return (id: string) => sizes.get(id);
+  }, [products]);
+  const editor = useProductEditor(productId, isNew, brandId, sizesOf);
   const { draft, notice } = editor;
 
   return (
@@ -87,6 +104,7 @@ export function ProductEditorScreen({
                       errors={editor.errors}
                       categories={categories}
                       stations={stations}
+                      products={products}
                       edit={editor.edit}
                     />
                     <div className="bo-card bo-save-bar">
@@ -124,7 +142,7 @@ export function ProductEditorScreen({
                       )}
                     </div>
                   </form>
-                  <SelectionPreview product={editor.product} branchId={branchId ?? ""} />
+                  <SelectionPreview product={editor.product} branchId={branchId ?? ""} products={products} />
                 </div>
               )
             }

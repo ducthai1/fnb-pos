@@ -13,7 +13,10 @@ export interface SentLineState {
   readonly sentNote: string | null;
 }
 
-/** The station that makes a line (bar, kitchen), or null when nobody makes it (bottled water). */
+/**
+ * The station that makes a line (bar, kitchen), or null when nobody makes it (bottled water).
+ * Asked about root items and about the picks of a combo, each of which has its own product.
+ */
 export type StationRouting = (line: OrderLine) => string | null;
 
 /**
@@ -60,7 +63,10 @@ export interface KitchenTicketDiff {
   /**
    * The sent state once these tickets are printed. Store it only AFTER the printer has taken
    * them: a ticket lost to a jammed or offline printer must come out again on the next send,
-   * and recording it as sent first would leave the order made without it, silently.
+   * and recording it as sent first would leave the order made without it, silently. A combo
+   * made at two stations is on both tickets under one line, with one sent state: store it
+   * once every ticket it is on has printed, or the station whose ticket was lost never gets
+   * its part.
    */
   readonly sentState: readonly SentLineState[];
 }

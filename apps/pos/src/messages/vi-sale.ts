@@ -94,6 +94,20 @@ export const VI_SALE = {
     changePrice: (name: string) => `Đổi giá ${name}`,
     reweigh: (name: string) => `Cân lại ${name}`,
   },
+  combo: {
+    /** The options of one pick, under the slot it fills. */
+    pickOptions: (name: string) => `Tùy chọn của ${name}`,
+    portion: (name: string, n: number) => `${name} · phần ${n}`,
+    slotFull: (slot: string, max: number) =>
+      `“${slot}” chỉ lấy ${max} món. Bớt một món trước khi chọn món khác.`,
+    required: (slot: string) => `Chưa chọn “${slot}” — phần này bắt buộc.`,
+    tooFew: (slot: string, min: number) => `“${slot}” cần chọn ít nhất ${min} món.`,
+    tooMany: (slot: string, max: number) => `“${slot}” chỉ được chọn tối đa ${max} món.`,
+    allSoldOut: (slot: string) => `Món của “${slot}” đang hết, chưa bán được combo này.`,
+    pickProblem: (pick: string, problem: string) => `${pick}: ${problem}`,
+    menuChanged: "Combo vừa đổi trên thực đơn. Đóng lại và chọn lại combo.",
+    upcharge: (amount: string) => `+${amount}`,
+  },
   modifierErrors: {
     required: (group: string) => `Chưa chọn “${group}” — mục này bắt buộc.`,
     tooFew: (group: string, min: number) => `“${group}” cần chọn ít nhất ${min}.`,

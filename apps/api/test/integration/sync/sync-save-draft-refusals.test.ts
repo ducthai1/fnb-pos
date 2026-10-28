@@ -56,9 +56,9 @@ describe("order.save_draft refuses", () => {
     ],
     ["a product taken off the menu", () => [line(archived)], "SYNC_PRODUCT_NOT_FOUND"],
     [
-      "a combo, whose slot choices it cannot carry yet",
-      () => [line(s.menu.combo)],
-      "SYNC_COMBO_NOT_SUPPORTED",
+      "a combo without the drink it must have",
+      () => [line(s.menu.combo.id)],
+      "DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_MISSING",
     ],
     [
       "more options than the group allows",

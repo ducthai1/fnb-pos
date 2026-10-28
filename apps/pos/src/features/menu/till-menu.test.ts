@@ -37,7 +37,7 @@ describe("the menu a till sells from", () => {
     ).toBe(true);
   });
 
-  it("offers typed-price and weighed products, but no combo, which a draft line cannot carry yet", () => {
+  it("offers typed-price, weighed and combo products, but no combo stored without its slots", () => {
     const menu = buildTillMenu(tillBootstrap(), NO_MENU_COPIES, new Set());
     expect(menu.products.map((row) => row.name)).toEqual([
       "Bánh croissant",
@@ -45,13 +45,21 @@ describe("the menu a till sells from", () => {
       "Trà sữa trân châu",
     ]);
     const sold = (change: Record<string, unknown>) =>
-      buildTillMenu(tillBootstrap(), withProducts(product({ ...MILK_TEA, version: 11, ...change })), new Set())
-        .products.map((row) => row.id);
+      buildTillMenu(
+        tillBootstrap(),
+        withProducts(product({ ...MILK_TEA, version: 11, ...change })),
+        new Set(),
+      ).products.map((row) => row.id);
     expect(sold({ pricingMode: "open_price" })).toContain(MENU.milkTea);
     expect(sold({ pricingMode: "weighed", measureUnit: "100g" })).toContain(MENU.milkTea);
     // A copy from before units cannot say what its price is per: not sold until a newer one.
     expect(sold({ pricingMode: "weighed" })).not.toContain(MENU.milkTea);
     expect(sold({ kind: "combo", combo: { slots: [] } })).not.toContain(MENU.milkTea);
+    const drink = { id: MENU.coffee, name: "Đồ uống", minSelect: 1, maxSelect: 1 };
+    const options = [{ productId: MENU.coffee, variantId: null, upcharge: 0 }];
+    expect(sold({ kind: "combo", combo: { slots: [{ ...drink, options }] } })).toContain(
+      MENU.milkTea,
+    );
   });
 
   it("takes sold-out state from the feed, newest version only", () => {

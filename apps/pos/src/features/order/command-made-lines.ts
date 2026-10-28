@@ -29,12 +29,11 @@ export function referencedItemIds(lines: readonly OrderLine[]): Set<string> {
 export const hasOrderDiscount = (lines: readonly OrderLine[]) =>
   lines.some((line) => line.lineType === "discount" && line.parentLineId === null);
 
-/** An item and its option lines (not its discounts), as a save would carry them. */
+/**
+ * An item and its option lines (a combo's picks with theirs), not its discounts, as a save
+ * would carry them.
+ */
 export const itemTree = (lines: readonly OrderLine[], itemId: string): OrderLine[] =>
-  lines.filter(
-    (line) =>
-      line.id === itemId ||
-      (line.parentLineId === itemId &&
-        line.lineType !== "discount" &&
-        line.reversesLineId === null),
+  subtreeOf(lines, itemId).filter(
+    (line) => line.id === itemId || (line.lineType !== "discount" && line.reversesLineId === null),
   );

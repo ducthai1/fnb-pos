@@ -10,7 +10,7 @@ import {
   negateVnd,
 } from "@fnb/domain";
 import type { PrintBlock, PrintDocument } from "../layout/print-document";
-import { formatClock, formatQuantity, formatRate } from "./format-print-values";
+import { childIndent, formatClock, formatQuantity, formatRate } from "./format-print-values";
 import { PRINT_LABELS_VI as L } from "./print-labels-vi";
 
 export interface BillLineChild {
@@ -20,6 +20,8 @@ export interface BillLineChild {
   readonly quantity: Quantity;
   /** What it adds to the line, or null when it is free and shown for the barista's sake. */
   readonly amount: Vnd | null;
+  /** 1 under the item (the default), 2 under a pick of a combo (its sugar, its ice). */
+  readonly depth?: number;
 }
 
 export interface BillLine {
@@ -110,9 +112,10 @@ function lineBlocks(line: BillLine): PrintBlock[] {
     ...line.children.map((child) => {
       const units = child.quantity === QUANTITY_SCALE ? "" : ` x${formatQuantity(child.quantity)}`;
       const name = `+ ${child.name}${units}`;
+      const indent = childIndent(child.depth);
       return child.amount === null
-        ? ({ kind: "text", text: name, indent: 2 } as const)
-        : pair(name, formatVnd(child.amount), { indent: 2 });
+        ? ({ kind: "text", text: name, indent } as const)
+        : pair(name, formatVnd(child.amount), { indent });
     }),
     ...(line.note === null
       ? []

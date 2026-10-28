@@ -1,6 +1,6 @@
 import { type LocalClockParts, type Quantity, QUANTITY_SCALE, formatGrams } from "@fnb/domain";
 import type { PrintBlock, PrintDocument } from "../layout/print-document";
-import { formatQuantity, formatTimeOfDay } from "./format-print-values";
+import { childIndent, formatQuantity, formatTimeOfDay } from "./format-print-values";
 import { PRINT_LABELS_VI as L } from "./print-labels-vi";
 
 export type KitchenTicketLineKind = "new" | "cancel" | "note_changed";
@@ -15,8 +15,15 @@ export interface KitchenTicketPrintLine {
   readonly note: string | null;
   /** The note the station last saw; only read for `note_changed`. */
   readonly previousNote: string | null;
-  /** Toppings and combo picks, per one unit of the item. */
-  readonly children: readonly { readonly name: string; readonly quantity: Quantity }[];
+  /**
+   * Toppings and combo picks, per one unit of the item; depth 2 for an option of a pick
+   * (1, the default, under the item itself).
+   */
+  readonly children: readonly {
+    readonly name: string;
+    readonly quantity: Quantity;
+    readonly depth?: number;
+  }[];
 }
 
 export interface KitchenTicketInput {
@@ -40,7 +47,11 @@ function itemBlocks(line: KitchenTicketPrintLine): PrintBlock[] {
   const prefix = line.kind === "cancel" ? `${L.cancelPrefix} ` : "";
   const children = line.children.map((child) => {
     const units = child.quantity === QUANTITY_SCALE ? "" : ` x${formatQuantity(child.quantity)}`;
-    return { kind: "text", text: `+ ${child.name}${units}`, indent: 2 } as const;
+    return {
+      kind: "text",
+      text: `+ ${child.name}${units}`,
+      indent: childIndent(child.depth),
+    } as const;
   });
   const notes: PrintBlock[] =
     line.kind === "note_changed"

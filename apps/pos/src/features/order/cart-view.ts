@@ -5,6 +5,7 @@ import {
   addVnd,
   isDomainError,
   measureUnitOf,
+  subtreeOf,
 } from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 import { vi } from "../../messages/vi";
@@ -62,13 +63,12 @@ export function cartView(
   }
 }
 
-/** What one item costs with its options, as the domain priced each of those lines. */
+/**
+ * What one item costs with its options (and a combo with its picks and theirs), as the
+ * domain priced each of those lines.
+ */
 export function lineAmountOf(priced: PricedCounterOrder, lineId: string): Vnd {
-  const ids = new Set(
-    priced.lines
-      .filter((line) => line.id === lineId || line.parentLineId === lineId)
-      .map((line) => line.id),
-  );
+  const ids = new Set(subtreeOf(priced.lines, lineId).map((line) => line.id));
   return addVnd(
     ...priced.totals.lines.filter((line) => ids.has(line.lineId)).map((line) => line.gross),
   );

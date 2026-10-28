@@ -7,6 +7,7 @@ import {
   findProductVariant,
   measureUnitOf,
   quantity,
+  resolveComboPicks,
   validateModifierSelection,
   weighedQuantity,
 } from "@fnb/domain";
@@ -36,18 +37,82 @@ function productOf(menu: TillMenu, line: CartLine): PosProduct {
   return product;
 }
 
+const optionNames = (product: PosProduct) =>
+  new Map(
+    product.modifierGroups.flatMap((group) =>
+      group.options.map((option) => [option.id, option.name]),
+    ),
+  );
+
+/** Option lines under `parentLineId`, each at its own price per one unit of that parent. */
+function optionLines(
+  parentLineId: string,
+  product: PosProduct,
+  selections: ReturnType<typeof validateModifierSelection>,
+  taxRate: PosProduct["taxRate"],
+): OrderLine[] {
+  const names = optionNames(product);
+  return selections.map((choice): OrderLine => ({
+    id: newId(),
+    parentLineId,
+    lineType: "modifier",
+    productId: null,
+    variantId: null,
+    modifierOptionId: choice.optionId,
+    nameSnapshot: names.get(choice.optionId) ?? "",
+    unitPrice: choice.unitPriceDelta,
+    quantity: quantity(choice.quantity),
+    taxRate,
+    note: null,
+    priceSource: "base",
+    reversesLineId: null,
+  }));
+}
+
+/**
+ * A combo's picks as the server stores them under it: one unit per combo at the slot's
+ * upcharge, then the pick's own options, all at the combo's tax rate. A pick the menu no
+ * longer has is refused by the domain, which makes the line unpriceable.
+ */
+function pickLines(menu: TillMenu, product: PosProduct, line: CartLine): OrderLine[] {
+  const picks = line.comboPicks ?? [];
+  if (product.kind !== "combo" && picks.length === 0) return [];
+  const productOfPick = (id: string) => menu.productsById.get(id);
+  return resolveComboPicks(product, productOfPick, picks).flatMap((pick) => {
+    const id = newId();
+    const component: OrderLine = {
+      id,
+      parentLineId: line.lineId,
+      lineType: "combo_component",
+      productId: pick.product.id,
+      variantId: pick.variantId,
+      modifierOptionId: null,
+      nameSnapshot: pick.name,
+      unitPrice: pick.upcharge,
+      quantity: quantity(1),
+      taxRate: product.taxRate,
+      note: null,
+      priceSource: "base",
+      reversesLineId: null,
+    };
+    const own = menu.productsById.get(pick.product.id);
+    return [
+      component,
+      ...(own === undefined ? [] : optionLines(id, own, pick.modifiers, product.taxRate)),
+    ];
+  });
+}
+
 /**
  * The cart's lines priced the way the server prices the draft: the unit price the domain
- * resolves at `at`, each option at its own price per unit of the item, every line taxed at
- * its product's rate. A domain error (an option the menu dropped) is thrown as it is.
+ * resolves at `at`, each option at its own price per unit of the item, a combo's picks at
+ * their upcharges, every line taxed at its product's rate. A domain error (an option the
+ * menu dropped) is thrown as it is.
  */
 export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLine[] {
   const product = productOf(menu, line);
   const unit = unitPriceOf(menu, product, line.variantId, at, line.enteredPrice);
   const variant = findProductVariant(product, line.variantId);
-  const options = new Map(
-    product.modifierGroups.flatMap((group) => group.options.map((option) => [option.id, option])),
-  );
   const common = { variantId: null, reversesLineId: null, taxRate: product.taxRate } as const;
   return [
     {
@@ -64,21 +129,13 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
       note: line.note,
       priceSource: unit.source,
     },
-    ...validateModifierSelection(product, line.variantId, line.modifiers).map(
-      (choice): OrderLine => ({
-        ...common,
-        id: newId(),
-        parentLineId: line.lineId,
-        lineType: "modifier",
-        productId: null,
-        modifierOptionId: choice.optionId,
-        nameSnapshot: options.get(choice.optionId)?.name ?? "",
-        unitPrice: choice.unitPriceDelta,
-        quantity: quantity(choice.quantity),
-        note: null,
-        priceSource: "base",
-      }),
+    ...optionLines(
+      line.lineId,
+      product,
+      validateModifierSelection(product, line.variantId, line.modifiers),
+      product.taxRate,
     ),
+    ...pickLines(menu, product, line),
   ];
 }
 

@@ -4,7 +4,7 @@ import type { TillMenu } from "../menu/till-menu";
 import type { TillPlace } from "../order/till-command";
 import { billSlip } from "./bill-slip";
 import { cupLabelSlip } from "./cup-label-slip";
-import { kitchenSlips } from "./kitchen-slips";
+import { kitchenSlips, recordablePart } from "./kitchen-slips";
 import type { PaidSale } from "./paid-sale";
 import { jobReportedCommand, markSentCommand, withSent } from "./print-commands";
 import type { PrintJob, PrintOutcome, PrinterPort } from "./printer-port";
@@ -61,12 +61,15 @@ export async function printSaleSlips(input: {
   const printed: PrintedSlip[] = [];
   let sent: readonly SentLineState[] = sale.sent ?? [];
   const recorded = { order: sale.order, priced: sale.priced, state: paidState(sale) };
+  const unprinted = new Set<string>();
   for (const ticket of tickets) {
     const outcome = await printOne(printer, ticket.job);
     printed.push({ job: ticket.job, outcome });
-    if (outcome.status === "printed") {
-      sent = withSent(sent, ticket.sent);
-      await record(markSentCommand(place, recorded, ticket, sent, now()));
+    if (outcome.status !== "printed") unprinted.add(ticket.job.jobId);
+    const part = outcome.status === "printed" ? recordablePart(ticket, unprinted) : null;
+    if (part !== null) {
+      sent = withSent(sent, part.sent);
+      await record(markSentCommand(place, recorded, part, sent, now()));
     }
     if (outcome.status !== "preview_only")
       await record(jobReportedCommand(place, sale.order.orderId, ticket.job, outcome, now()));

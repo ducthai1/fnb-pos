@@ -249,7 +249,7 @@
 
 ### T03-05 UI combo
 - **Test chung T03-03…05:** `e2e/backoffice/build-milk-tea-menu.spec.ts` — dựng 1 món trà sữa đủ size/đường/đá/topping, xem trước, lưu, mở lại đúng.
-- **Trạng thái:** todo — domain `resolveCombo` có (T02-04); trang quản lý chưa sửa được combo, máy quầy ẩn món combo (D-048).
+- **Trạng thái:** done (2026-10-28) — trang quản lý tạo/sửa combo (phần, giới hạn, món theo size, phụ thu, xem trước bằng domain; lỗi ở đúng dòng/phần — D-116); `order.save_draft` mang `comboPicks`, máy chủ tính lại bằng `resolveComboPicks`, lưu cây combo → món → tùy chọn, từ chối món ngoài phần, quá số, hết món, ngừng bán (D-113); máy quầy bán combo bằng màn chọn phần + tùy chọn riêng của từng món, phiếu bếp chia theo trạm của từng món, bill/tem ly có món trong combo (D-114); hủy/hoàn theo nguyên combo (D-115). Test: `packages/domain/src/catalog/resolve-combo-picks.test.ts`, `packages/domain/src/kitchen/diff-kitchen-ticket-combo.test.ts`, `apps/api/test/integration/sync/sync-save-draft-sells-combos.test.ts`, `apps/api/src/sync/draft-line-locks-combo.test.ts`, `apps/pos/src/screens/sale/combo-picker-screen.test.tsx`, `apps/pos/src/features/order/combo-cart-line.test.ts`, `apps/backoffice/src/components/menu/product-editor/product-editor-combo.test.tsx`. Chưa có e2e trình duyệt cho combo (Backlog).
 
 ### T03-06 Bảng giá
 - **Test:** `e2e/backoffice/happy-hour-price-list.spec.ts`.
@@ -473,6 +473,13 @@
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
+
+- 2026-10-28 · Combo: e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp) — hiện chỉ có test component/API. Gợi ý: cùng đợt e2e R1.
+- 2026-10-28 · Combo: hủy riêng **một món trong combo** và sửa món trong combo ngay trên dòng của đơn (hiện xóa/hủy nguyên combo, D-115). Gợi ý: R2.
+- 2026-10-28 · Combo: cờ **món mặc định** cho phần có nhiều lựa chọn (Toast có), báo cáo bán theo **món trong combo** (dòng `combo_component` đã lưu), trừ kho theo thành phần khi có kho. Gợi ý: R2 / phase kho.
+- 2026-10-28 · Combo: API lưu món chưa từ chối phần combo trỏ tới **combo khác** hoặc món đã ngừng bán (trang quản lý không cho chọn; máy quầy/máy chủ từ chối lúc bán) — thêm kiểm ở `PUT /catalog/products/:id`. Gợi ý: phase 03.
+- 2026-10-28 · Phiếu bếp combo chia nhiều trạm: một trạm in lỗi thì lần gửi sau in lại combo ở **mọi** trạm (D-114) — khi có máy in thật, cân nhắc ghi "đã gửi" theo từng phần (từng trạm). Gợi ý: phase in ấn native.
+- 2026-10-28 · Trang sửa món: ô **Danh mục** và **Trạm** còn là ô chọn của trình duyệt (`SelectField`), chưa dùng `Listbox` như ô Loại / Cách tính giá.
 
 - 2026-10-28 · Hủy món **bán theo cân** đã gửi bếp (bàn): màn Hủy món và `VoidRequest.units` đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp (trước khi gửi thì Xóa món được) — cho hủy nguyên lần cân (số lượng của dòng).
 - 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn: máy đọc lại gam và in bill theo đơn vị **hiện tại** của món ⇒ đổi đơn vị khi còn đơn mở / in lại bill cũ là sai đơn vị. Cột `sales_order_line.measure_unit` + snapshot.

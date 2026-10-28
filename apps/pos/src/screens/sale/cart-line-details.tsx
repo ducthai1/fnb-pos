@@ -34,14 +34,21 @@ export function CartLineDetails(props: {
     <>
       {children.length === 0 ? null : (
         <ul className="pos-cart-line__children">
-          {children.map((child) => (
-            <li key={child.id} className="pos-wrap">
-              + {child.nameSnapshot}
-              {child.quantity === QUANTITY_SCALE
-                ? ""
-                : ` ×${quantityToDecimalString(child.quantity)}`}
-            </li>
-          ))}
+          {children.map((child) => {
+            // A combo's pick carries its own options (sugar, ice), written after its name.
+            const own = priced.filter((candidate) => candidate.parentLineId === child.id);
+            return (
+              <li key={child.id} className="pos-wrap" data-line-type={child.lineType}>
+                + {child.nameSnapshot}
+                {child.quantity === QUANTITY_SCALE
+                  ? ""
+                  : ` ×${quantityToDecimalString(child.quantity)}`}
+                {own.length === 0
+                  ? ""
+                  : ` · ${own.map((option) => option.nameSnapshot).join(", ")}`}
+              </li>
+            );
+          })}
         </ul>
       )}
       {line.note === null ? null : (

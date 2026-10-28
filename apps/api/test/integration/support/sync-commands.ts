@@ -38,6 +38,15 @@ export interface LineIntent {
   enteredPrice?: number;
   /** A manager's approval of that typed price on this very line. */
   priceApprovalId?: string;
+  /** What was put in each place of a combo. */
+  comboPicks?: {
+    slotId: string;
+    productId: string;
+    variantId: string | null;
+    modifiers: { groupId: string; optionId: string; quantity: number }[];
+    /** Sent by some tills for display; the server must never read it. */
+    upcharge?: number;
+  }[];
 }
 
 export const line = (productId: string, overrides: Partial<LineIntent> = {}): LineIntent => ({

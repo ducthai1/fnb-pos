@@ -34,6 +34,8 @@ export interface ProductSummary {
   readonly archivedAt: string | null;
   /** The photo's address under the API; null or absent without one. */
   readonly imageUrl?: string | null;
+  /** Its live sizes, in order; empty for a product sold in one form. */
+  readonly variants?: readonly { readonly id: string; readonly name: string }[];
 }
 
 /** A product switched off at a branch (all channels when channelKey is null). */
@@ -67,7 +69,27 @@ const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
   if (basePrice === null && item.basePrice !== null) return null;
   const imageUrl = nullableTextOf(item, "imageUrl") ?? null;
   const measureUnit = nullableTextOf(item, "measureUnit") ?? null;
-  return { id, name, kind, categoryId, basePrice, pricingMode: mode, measureUnit, version, archivedAt, imageUrl };
+  const variants = Array.isArray(item.variants)
+    ? item.variants.flatMap((variant: unknown) => {
+        if (typeof variant !== "object" || variant === null) return [];
+        const variantId = textOf(variant as Record<string, unknown>, "id");
+        const variantName = textOf(variant as Record<string, unknown>, "name");
+        return variantId && variantName ? [{ id: variantId, name: variantName }] : [];
+      })
+    : [];
+  return {
+    id,
+    name,
+    kind,
+    categoryId,
+    basePrice,
+    pricingMode: mode,
+    measureUnit,
+    version,
+    archivedAt,
+    imageUrl,
+    variants,
+  };
 };
 
 const readSoldOut = (item: Record<string, unknown>): SoldOut | null => {

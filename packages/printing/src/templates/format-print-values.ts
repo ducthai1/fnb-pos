@@ -37,3 +37,6 @@ export function formatRate(rate: BasisPoints): string {
 export function formatSignedVnd(amount: Vnd): string {
   return amount > 0n ? `+${formatVnd(amount)}` : formatVnd(amount);
 }
+
+/** Columns a child line is indented by: two under the item, two more under a combo's pick. */
+export const childIndent = (depth: number | undefined) => 2 * Math.max(1, depth ?? 1);

@@ -38,8 +38,11 @@ export interface SyncMenu {
   coffee: { id: string; extraShot: string; saltedCream: string; extrasGroup: string };
   /** Trà đào in M (35.000đ) and L (45.000đ). */
   peachTea: { id: string; sizeM: string; sizeL: string };
-  /** A combo product, which drafts cannot carry yet. */
-  combo: string;
+  /**
+   * Combo sáng, 50.000đ: one drink (cà phê sữa, trà đào M, or trà đào L for 10.000đ more)
+   * and up to two extra cà phê sữa at 15.000đ each.
+   */
+  combo: { id: string; drinkSlot: string; extraSlot: string };
 }
 
 export interface SyncShop {
@@ -133,15 +136,15 @@ export async function syncShop(
       shop.otherBranchId,
       await signedInTill(app, otherDeviceId, shop.otherBranchDeviceToken, elsewhere.json().staffId),
     ),
-    menu: await createMenu(app, pool, shop, brandId),
+    menu: await createMenu(app, shop, brandId),
   };
 }
 
-async function createMenu(app: FastifyInstance, pool: pg.Pool, shop: StaffedShop, brandId: string) {
+async function createMenu(app: FastifyInstance, shop: StaffedShop, brandId: string) {
   const menu: SyncMenu = {
     coffee: { id: newId(), extraShot: newId(), saltedCream: newId(), extrasGroup: newId() },
     peachTea: { id: newId(), sizeM: newId(), sizeL: newId() },
-    combo: newId(),
+    combo: { id: newId(), drinkSlot: newId(), extraSlot: newId() },
   };
   const put = (url: string, payload: object, status = 201) =>
     expectStatus(
@@ -191,13 +194,33 @@ async function createMenu(app: FastifyInstance, pool: pg.Pool, shop: StaffedShop
       },
     ],
   });
-  // Written directly: a combo's slots do not matter to a draft that refuses combos.
-  await withTenant(pool, shop.tenantId, (client) =>
-    client.query(
-      "INSERT INTO product (id, tenant_id, brand_id, kind, name, base_price, pricing_mode) " +
-        "VALUES ($1, $2, $3, 'combo', 'Combo sáng', 50000, 'fixed')",
-      [menu.combo, shop.tenantId, brandId],
-    ),
-  );
+  await put(`/catalog/products/${menu.combo.id}`, {
+    ...product,
+    kind: "combo",
+    name: "Combo sáng",
+    basePrice: 50_000,
+    combo: {
+      slots: [
+        {
+          id: menu.combo.drinkSlot,
+          name: "Đồ uống",
+          minSelect: 1,
+          maxSelect: 1,
+          options: [
+            { productId: menu.coffee.id, variantId: null, upcharge: 0 },
+            { productId: menu.peachTea.id, variantId: menu.peachTea.sizeM, upcharge: 0 },
+            { productId: menu.peachTea.id, variantId: menu.peachTea.sizeL, upcharge: 10_000 },
+          ],
+        },
+        {
+          id: menu.combo.extraSlot,
+          name: "Ly thêm",
+          minSelect: 0,
+          maxSelect: 2,
+          options: [{ productId: menu.coffee.id, variantId: null, upcharge: 15_000 }],
+        },
+      ],
+    },
+  });
   return menu;
 }

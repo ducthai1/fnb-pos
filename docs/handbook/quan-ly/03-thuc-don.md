@@ -1,5 +1,5 @@
 ---
-title: Thực đơn — món, size, nhóm tùy chọn, danh mục, hết món
+title: Thực đơn — món, size, nhóm tùy chọn, combo, danh mục, hết món
 audience: quan-ly
 screens:
   - /menu
@@ -12,6 +12,8 @@ decisions:
   - D-044
   - D-048
   - D-106
+  - D-113
+  - D-116
 tests:
   - apps/backoffice/src/components/ui/table-pager.test.tsx
   - apps/backoffice/src/components/menu/menu-lists.test.tsx
@@ -20,6 +22,10 @@ tests:
   - apps/backoffice/src/components/menu/product-editor/product-editor-screen.test.tsx
   - apps/backoffice/src/components/menu/product-editor/product-editor-pricing-mode.test.tsx
   - apps/backoffice/src/components/menu/product-editor/product-editor-group-rules.test.tsx
+  - apps/backoffice/src/components/menu/product-editor/product-editor-combo.test.tsx
+  - apps/backoffice/src/components/menu/product-editor/product-editor-parts.test.tsx
+  - apps/api/test/integration/catalog/catalog-combo-product.test.ts
+  - packages/domain/src/catalog/validate-combo-config.test.ts
   - apps/backoffice/src/components/menu/product-editor/check-product-draft.test.ts
   - apps/backoffice/src/components/menu/product-editor/preview-outcome.test.ts
   - apps/backoffice/src/components/menu/product-editor/server-refusal-errors.test.ts
@@ -35,7 +41,7 @@ tests:
   - e2e/backoffice/move-products-to-a-category.spec.ts
 ---
 
-# Thực đơn — món, size, nhóm tùy chọn, danh mục, hết món
+# Thực đơn — món, size, nhóm tùy chọn, combo, danh mục, hết món
 
 ## Dùng để làm gì
 
@@ -65,7 +71,7 @@ Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu
 
 ![Trang sửa món](../images/quan-ly/sua-mon.webp)
 
-Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin · Giá & thuế · Size · Tùy chọn · Xem trước**.
+Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin · Giá & thuế · Size · Tùy chọn · Xem trước**; món **Combo** có **Thông tin · Giá & thuế · Phần combo · Xem trước** (xem mục [Combo](#combo) bên dưới).
 
 1. **Thông tin chung**: ảnh món (xem [Ảnh món](04-anh-mon.md)), **Tên món**, **Loại** (Đồ uống pha chế, Món làm tại quán, Hàng bán sẵn, Dịch vụ, Combo), **Danh mục**, **Trạm pha chế/bếp (chi nhánh đang xem)** — phiếu của món in ở trạm này, và ba ô tick **In tem dán ly**, **Theo dõi tồn kho**, **Tích điểm**.
 2. **Giá & thuế**: **Cách tính giá** (Giá cố định / Thu ngân nhập giá / Bán theo cân) — chọn trong danh sách của trang, dưới ô có một câu nói máy quầy bán món này thế nào; **Giá bán (đồng)**; **Thuế VAT (%)**.
@@ -82,6 +88,19 @@ Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin 
 
 6. Bấm **Lưu món**. Còn chỗ sai thì trang báo "Còn chỗ chưa đúng, đã đánh dấu bên dưới. Sửa rồi lưu lại." và đánh dấu từng ô.
 7. **Ngừng bán món**: bấm nút đỏ, xác nhận. Món biến khỏi menu của mọi máy quầy; đơn cũ vẫn giữ món này.
+
+### Combo
+
+Combo là một món gồm nhiều **phần** (ví dụ "Combo sáng" = 1 đồ uống + tối đa 2 bánh); thu ngân chọn món cho từng phần ở máy quầy.
+
+1. Tạo **món mới**, chọn **Loại** = **Combo**. Trang ẩn phần Size và Tùy chọn (combo không có size hay nhóm tùy chọn riêng — tùy chọn như đường, đá nằm ở món bên trong combo) và hiện phần **Các phần combo** với sẵn một phần.
+2. **Giá & thuế**: combo luôn **giá cố định** — nhập **Giá bán (đồng)** là giá khi khách giữ các món không phụ thu, và **Thuế VAT (%)** (mọi món trong combo tính theo thuế của combo).
+3. Mỗi **phần combo** có **Tên phần** (Đồ uống, Bánh…), **Chọn tối thiểu (0 = không bắt buộc)** và **Chọn tối đa**. Phần mới mặc định "chọn 1, bắt buộc".
+4. Trong phần, mỗi dòng **Món** là một món được chọn: chọn **Món** trong danh sách (chỉ có món của thương hiệu, không có combo khác và không có chính combo này); món có size thì chọn thêm **Size** — mỗi size là **một dòng riêng** (Trà sữa M phụ thu 0, Trà sữa L phụ thu 10.000); **Phụ thu (đồng)** là số cộng vào giá combo khi khách chọn món đó (0 = món mặc định). Bấm **Thêm món vào phần này** / **Xóa** để thêm, bớt dòng; **Thêm phần combo** / **Xóa** để thêm, bớt phần.
+5. **Xem trước**: chọn thử món cho từng phần như thu ngân (phần chọn 1: tick; phần chọn nhiều: nút − / +); dòng cuối ghi **Khách trả mỗi combo: 60.000 ₫** hoặc lỗi của đúng phần đó ("Phần combo này bắt buộc chọn."…).
+6. Bấm **Lưu món**. Lỗi hiện ngay ở dòng hoặc phần bị sai.
+
+Combo đã lưu thì **không đổi loại** được nữa ("Món đã lưu không đổi sang hoặc khỏi loại Combo được: tạo món mới nếu cần."), món thường đã lưu cũng không đổi thành combo.
 
 ### Danh mục
 
@@ -111,8 +130,8 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 - Nhóm tùy chọn: tối thiểu ≥ 0, tối đa ≥ 1, tối thiểu không lớn hơn tối đa; nhóm bắt buộc phải có tùy chọn; giá cộng thêm không âm; nếu khách **không thể** chọn đủ số tối thiểu (ít tùy chọn, không cho chọn trùng) thì không lưu được.
 - **Không xóa cứng** món, size hay tùy chọn: bỏ đi thì chúng được lưu trữ vì đơn cũ còn trỏ tới.
 - Hai người sửa cùng một món: người lưu sau bị từ chối với "Có người đã sửa món này trước bạn. Tải lại để xem bản mới nhất — thay đổi chưa lưu của bạn sẽ mất." Bấm **Tải lại món**.
-- Món **combo**: trang này chưa sửa được các phần combo ("Món combo: các phần combo chưa sửa được ở trang này và được giữ nguyên khi lưu.").
-- Máy quầy bán món giá cố định, **giá nhập tay** và **bán theo cân** (xem [Bán tại quầy](../may-quay/03-ban-tai-quay.md)); combo chưa bán ở máy quầy.
+- **Combo**: giá cố định; phần combo có tối thiểu ≥ 0, tối đa ≥ 1, tối thiểu không lớn hơn tối đa; phần bắt buộc phải có ít nhất một món; một món (cùng size) chỉ có **một dòng** trong một phần; phụ thu không âm; món có size phải chọn size. Cùng một món có thể nằm ở hai phần khác nhau. Một món được chọn nhiều lần trong một phần (2 ly trà sữa ở phần "2 đồ uống") tính phụ thu mỗi lần.
+- Máy quầy bán món giá cố định, **giá nhập tay**, **bán theo cân** và **combo** (xem [Bán tại quầy](../may-quay/03-ban-tai-quay.md)). Món trong combo bị **ngừng bán** thì máy quầy không còn đưa món đó vào combo; phần bắt buộc không còn món nào thì combo không bán được tới khi sửa.
 - **Không nên đổi đơn vị** (kg ↔ 100 g) của món bán theo cân khi còn đơn đang mở có món đó: máy đọc lại cân nặng theo đơn vị mới.
 - Hết món đặt tay ở trang này không tự bật lại theo giờ.
 
@@ -131,6 +150,12 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 | Không tìm thấy món này. Có thể món đã bị xóa khỏi thương hiệu. | Quay về danh sách món |
 | Mục này đang được món hoặc bảng giá dùng. Gỡ khỏi chúng trước khi xóa. | (khi xóa danh mục) chuyển món sang danh mục khác trước |
 | Danh mục, trạm hoặc món được chọn không còn tồn tại. Tải lại rồi chọn lại. | Tải lại trang |
+| Chọn món cho dòng này. / Món này bán theo size: chọn size. | (combo) chọn món, chọn size cho dòng |
+| Một món bị lặp trong cùng phần combo. | Xóa dòng lặp (dòng được đánh dấu là dòng thứ hai) |
+| Phần combo bắt buộc nhưng chưa có món. | Thêm món vào phần, hoặc đặt tối thiểu 0 |
+| Giới hạn chọn của một phần combo không hợp lệ. | Sửa tối thiểu / tối đa của phần |
+| Phụ thu đổi món trong combo không được âm. | Sửa phụ thu |
+| Chưa có món nào khác để đưa vào combo. Thêm món ở danh sách món trước. | Tạo các món lẻ trước rồi quay lại |
 | Vai trò của bạn không có quyền làm việc này. Nhờ chủ quán cấp quyền. | Cần quyền Sửa menu |
 
 ## Mất mạng thì sao
@@ -140,7 +165,7 @@ Trang quản lý cần mạng để lưu. Máy quầy đang mất mạng vẫn b
 ## Chưa làm / sắp có
 
 - **Bảng giá** (giá theo kênh, giá theo khung giờ): máy chủ đã có, nhưng **chưa có màn hình** trong trang quản lý; công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng.
-- Chưa sửa được phần combo; chưa bán combo ở máy quầy.
+- Combo: chưa có **món mặc định** đánh dấu sẵn (máy quầy chỉ tự chọn khi phần bắt buộc có đúng một món), chưa có combo **giá nhập tay / theo cân**, chưa có combo trong combo, chưa đổi một món lẻ thành combo (hay ngược lại) sau khi lưu. Các ô **Loại** dùng danh sách của trang; **Danh mục** và **Trạm** vẫn là ô chọn của trình duyệt.
 - Chưa có cách **bán lại** món đã ngừng bán (xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)).
 - Hết món có giờ tự có lại (máy chủ có trường này) chưa có trên màn hình.
 - Công thức/định lượng và tồn kho: chưa làm (kho thuộc giai đoạn sau); ô "Theo dõi tồn kho" chỉ lưu lại lựa chọn.

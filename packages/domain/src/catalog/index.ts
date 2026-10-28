@@ -31,3 +31,8 @@ export {
   type ResolvedComboComponent,
   resolveCombo,
 } from "./resolve-combo";
+export {
+  type ComboPickInput,
+  type ResolvedComboPick,
+  resolveComboPicks,
+} from "./resolve-combo-picks";

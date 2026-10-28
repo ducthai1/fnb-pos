@@ -41,6 +41,27 @@ export interface DraftGroup {
   readonly variantRules: Readonly<Record<string, DraftVariantRule>>;
 }
 
+/** A product a combo slot offers. `key` names the row (its product can still change). */
+export interface DraftSlotOption {
+  readonly key: string;
+  /** "" until a product is chosen for the row. */
+  readonly productId: string;
+  readonly variantId: string | null;
+  readonly upcharge: string;
+}
+
+export interface DraftSlot {
+  readonly id: string;
+  readonly name: string;
+  readonly minSelect: string;
+  readonly maxSelect: string;
+  readonly options: readonly DraftSlotOption[];
+}
+
+export interface DraftCombo {
+  readonly slots: readonly DraftSlot[];
+}
+
 /** A photo uploaded for the product: the stored file's name and its address under the API. */
 export interface DraftPhoto {
   readonly key: string;
@@ -72,8 +93,8 @@ export interface ProductDraft {
   readonly photo: DraftPhoto | null;
   readonly variants: readonly DraftVariant[];
   readonly modifierGroups: readonly DraftGroup[];
-  /** Kept as read: combos are not edited on this page yet, and saving must not drop them. */
-  readonly combo: ProductBody["combo"];
+  /** Present exactly on a combo: its slots and what each offers. */
+  readonly combo: DraftCombo | null;
 }
 
 export const newId = (): string => uuidv7();
@@ -108,6 +129,23 @@ export function emptyDraft(id: string, brandId: string): ProductDraft {
 export function draftOfDocument(document: ProductDocument): ProductDraft {
   return {
     ...document,
+    combo:
+      document.combo === null
+        ? null
+        : {
+            slots: document.combo.slots.map((slot) => ({
+              id: slot.id,
+              name: slot.name,
+              minSelect: String(slot.minSelect),
+              maxSelect: String(slot.maxSelect),
+              options: slot.options.map((option) => ({
+                key: newId(),
+                productId: option.productId,
+                variantId: option.variantId,
+                upcharge: amountInputText(option.upcharge),
+              })),
+            })),
+          },
     basePrice: amountInputText(document.basePrice),
     measureUnit: document.measureUnit ?? "kg",
     taxRate: String(document.taxRateBp / 100),

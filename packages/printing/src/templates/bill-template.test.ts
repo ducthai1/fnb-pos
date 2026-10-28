@@ -25,6 +25,27 @@ describe("bill", () => {
     );
   });
 
+  it("prints a combo's picks under it and each pick's options under the pick", () => {
+    const combo = {
+      name: "Combo sáng",
+      quantity: quantity(1),
+      unitPrice: vnd(50_000),
+      amount: vnd(65_000),
+      note: null,
+      children: [
+        { name: "Trà sữa (L)", quantity: quantity(1), amount: vnd(10_000), depth: 1 },
+        { name: "Trân châu", quantity: quantity(1), amount: vnd(5_000), depth: 2 },
+      ],
+    };
+    const preview = renderPreview(buildBill({ ...TABLE_BILL, lines: [combo] }), "80mm");
+    const lines = preview.split("\n");
+    const pick = lines.find((line) => line.includes("+ Trà sữa (L)")) ?? "";
+    const topping = lines.find((line) => line.includes("+ Trân châu")) ?? "";
+    expect(pick.indexOf("+")).toBe(2);
+    expect(topping.indexOf("+")).toBe(4);
+    expect(topping.replace(/\u00a0/g, " ")).toContain("5.000 ₫");
+  });
+
   it("prints hostile data folded to ASCII on 58mm as in its golden files", () => {
     const bill = buildBill(HOSTILE_BILL);
     expectGolden("bill-hostile-58mm.txt", renderPreview(bill, "58mm", ASCII_FOLD));
@@ -62,14 +83,17 @@ describe("bill", () => {
       amount: vnd(112_320),
     } as const;
     const bill = { ...TABLE_BILL, lines: [strawberries, beans, ...TABLE_BILL.lines] };
-    const read = (paper: PaperWidth) => renderPreview(buildBill(bill), paper).replace(/\u00a0/g, " ");
+    const read = (paper: PaperWidth) =>
+      renderPreview(buildBill(bill), paper).replace(/\u00a0/g, " ");
     expect(read("80mm")).toMatch(/353 g x 200\.000 ₫\/kg +70\.600 ₫/);
     expect(read("80mm")).toMatch(/351 g x 32\.000 ₫\/100 g +112\.320 ₫/);
     expect(read("80mm")).toContain("2 x 35.000 ₫");
     // Too long for 58mm beside its amount: the weight keeps the amount, the price goes under.
     expect(read("58mm")).toMatch(/ 351 g +112\.320 ₫\n +x 32\.000 ₫\/100 g\n/);
     for (const paper of papers) {
-      expect(overflowingLines(renderPreview(buildBill(bill), paper), PAPER_COLUMNS[paper])).toEqual([]);
+      expect(overflowingLines(renderPreview(buildBill(bill), paper), PAPER_COLUMNS[paper])).toEqual(
+        [],
+      );
     }
   });
 
