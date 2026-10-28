@@ -11,9 +11,11 @@ decisions:
   - D-057
   - D-094
   - D-110
+  - D-114
 tests:
   - apps/pos/src/features/history/order-history.test.ts
   - apps/pos/src/screens/history/history-table.test.tsx
+  - packages/domain/src/time/format-business-date.test.ts
   - apps/api/test/integration/sync/sync-pay-order.test.ts
   - apps/pos/src/app/refund-from-history.test.tsx
   - apps/pos/src/app/staff-session-on-the-till.test.tsx
@@ -33,7 +35,7 @@ Mọi nhân viên đã đăng nhập đều xem được, **sau khi máy đã m�
 
 ## Các bước
 
-1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn **mới nhất ở trên** (theo giờ trả; đơn nháp theo giờ mở).
+1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm/yyyy** (ngày kinh doanh, ví dụ **Ngày 21/10/2026** — ngày tháng năm như trên phiếu in), đơn **mới nhất ở trên** (theo giờ trả; đơn nháp theo giờ mở).
 
    ![Lịch sử đơn](../images/may-quay/order-history.webp)
 

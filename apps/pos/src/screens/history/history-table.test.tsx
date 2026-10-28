@@ -45,9 +45,15 @@ function orderView(
 
 // 10:15 and 10:05 in Vietnam for the sales, a draft opened at 10:40 and not paid.
 const VIEWS = [
-  orderView(1, "paid", { openedAt: "2026-10-20T03:01:00.000Z", paidAt: "2026-10-20T03:15:00.000Z" }),
+  orderView(1, "paid", {
+    openedAt: "2026-10-20T03:01:00.000Z",
+    paidAt: "2026-10-20T03:15:00.000Z",
+  }),
   orderView(2, "draft", { openedAt: "2026-10-20T03:40:00.000Z" }),
-  orderView(3, "paid", { openedAt: "2026-10-20T02:58:00.000Z", paidAt: "2026-10-20T03:05:00.000Z" }),
+  orderView(3, "paid", {
+    openedAt: "2026-10-20T02:58:00.000Z",
+    paidAt: "2026-10-20T03:05:00.000Z",
+  }),
 ];
 
 function showHistory() {
@@ -56,7 +62,7 @@ function showHistory() {
   render(
     <OrderHistoryScreen
       header={null}
-      day="20/10/2026"
+      day={TODAY}
       entries={entries}
       filter="all"
       search=""
@@ -73,6 +79,12 @@ function showHistory() {
 }
 
 describe("the order history as a table", () => {
+  it("names the business day it lists day/month/year, as Vietnamese write it", () => {
+    showHistory();
+    expect(screen.getByText(H.day(TODAY)).textContent).toBe("Ngày 20/10/2026");
+    expect(screen.queryByText(/2026-10-20/)).toBeNull();
+  });
+
   it("has the columns time, number, where, status and total", () => {
     const { table } = showHistory();
     const heads = within(table)
