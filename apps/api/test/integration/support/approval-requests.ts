@@ -13,6 +13,7 @@ export interface WireAction {
   difference?: string;
   refundAmount?: string;
   voidedQuantity?: string;
+  enteredPrice?: string;
   subject?: { orderId?: string; lineId?: string; shiftId?: string };
 }
 

@@ -1,4 +1,5 @@
 import { v7 as uuidv7 } from "uuid";
+import type { MeasureUnit } from "@fnb/domain";
 import type { ProductBody, ProductDocument } from "../../../lib/catalog/product-document";
 import { amountInputText } from "../../../lib/format/amount-text";
 
@@ -57,6 +58,11 @@ export interface ProductDraft {
   readonly name: string;
   readonly basePrice: string;
   readonly pricingMode: ProductBody["pricingMode"];
+  /**
+   * What the price is per if the product is sold by weight. Kept while another mode is
+   * chosen, so switching back and forth does not lose it; saved only on a weighed product.
+   */
+  readonly measureUnit: MeasureUnit;
   /** Percent text, e.g. "8" for 8% VAT. */
   readonly taxRate: string;
   readonly stationId: string | null;
@@ -86,6 +92,7 @@ export function emptyDraft(id: string, brandId: string): ProductDraft {
     name: "",
     basePrice: "",
     pricingMode: "fixed",
+    measureUnit: "kg",
     taxRate: "0",
     stationId: null,
     trackStock: false,
@@ -102,6 +109,7 @@ export function draftOfDocument(document: ProductDocument): ProductDraft {
   return {
     ...document,
     basePrice: amountInputText(document.basePrice),
+    measureUnit: document.measureUnit ?? "kg",
     taxRate: String(document.taxRateBp / 100),
     photo:
       document.imageKey === null || document.imageUrl === null

@@ -10,6 +10,10 @@ export type ProductKind = "prepared_item" | "prepared_drink" | "retail_item" | "
  */
 export type PricingMode = "fixed" | "open_price" | "weighed";
 
+/** What a weighed product's price is per: a kilogram, or 100 g (a "lạng"). */
+export const MEASURE_UNITS = ["kg", "100g"] as const;
+export type MeasureUnit = (typeof MEASURE_UNITS)[number];
+
 export interface Product {
   readonly id: string;
   readonly categoryId: string | null;
@@ -17,6 +21,11 @@ export interface Product {
   readonly name: string;
   readonly basePrice: Vnd | null;
   readonly pricingMode: PricingMode;
+  /**
+   * Set on a weighed product only: what its price is per. Absent (or null) on every other
+   * product, and on the copy of a product a till stored before units existed.
+   */
+  readonly measureUnit?: MeasureUnit | null;
   /** Empty when the product is sold in a single form; otherwise a variant must be chosen. */
   readonly variants: readonly Variant[];
   readonly modifierGroups: readonly ModifierGroup[];

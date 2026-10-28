@@ -34,6 +34,7 @@ interface ApprovalBody {
     difference?: string;
     refundAmount?: string;
     voidedQuantity?: string;
+    enteredPrice?: string;
     subject?: { orderId?: string; lineId?: string; shiftId?: string };
   };
   approverStaffId: string;
@@ -59,6 +60,8 @@ const approvalBody = {
         // What a refund hands back, and the units a void takes back from the kitchen.
         refundAmount: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
         voidedQuantity: { type: "string", pattern: "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,3})?$" },
+        // The price a cashier typed for one unit of an open-price line.
+        enteredPrice: { type: "string", pattern: "^(0|[1-9][0-9]{0,18})$" },
         // What the approval is for; which of these a key needs is the catalog's to say.
         subject: {
           type: "object",
@@ -113,6 +116,9 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
         ...(sent.voidedQuantity === undefined
           ? {}
           : { voidedQuantity: quantity(sent.voidedQuantity) }),
+        ...(sent.enteredPrice === undefined
+          ? {}
+          : { enteredPrice: vnd(BigInt(sent.enteredPrice)) }),
         ...(sent.subject === undefined ? {} : { subject: sent.subject }),
       };
       try {
@@ -162,6 +168,7 @@ export function registerApprovalRoutes(app: FastifyInstance, context: ApiContext
             amount: action.amount,
             difference: action.difference,
             refundAmount: action.refundAmount,
+            enteredPrice: action.enteredPrice,
             voidedQuantity:
               action.voidedQuantity === undefined
                 ? undefined

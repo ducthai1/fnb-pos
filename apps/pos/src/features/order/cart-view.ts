@@ -1,4 +1,11 @@
-import { type OrderLine, type Vnd, addVnd, isDomainError } from "@fnb/domain";
+import {
+  type MeasureUnit,
+  type OrderLine,
+  type Vnd,
+  addVnd,
+  isDomainError,
+  measureUnitOf,
+} from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 import { vi } from "../../messages/vi";
 import type { CartLine, CounterOrder } from "./counter-order";
@@ -19,6 +26,8 @@ export type CartView = (
   nameOf(line: CartLine): string;
   /** The line's product photo, when the menu has one. */
   photoOf(line: CartLine): string | undefined;
+  /** What the line's product is priced per when it is sold by weight; null otherwise. */
+  unitOf(line: CartLine): MeasureUnit | null;
 };
 
 export function cartView(
@@ -33,6 +42,10 @@ export function cartView(
     pricesIncludeTax: chargeProfile.pricesIncludeTax,
     nameOf: (line: CartLine) => menu.productsById.get(line.productId)?.name ?? "",
     photoOf: (line: CartLine) => menu.productsById.get(line.productId)?.imageUrl,
+    unitOf: (line: CartLine) => {
+      const product = menu.productsById.get(line.productId);
+      return product === undefined ? null : measureUnitOf(product);
+    },
   };
   try {
     return {

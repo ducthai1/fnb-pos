@@ -181,6 +181,55 @@
   margin-top: 1px;
 }
 
+/* What the cashier typed for the line (a weighing, a typed price): a brand-tinted pill under
+   the name, a button that types it again while the line can change. */
+.pos-cart-line__entry {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--sp-1);
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 28px;
+  margin: 2px 0 0;
+  padding: 3px var(--sp-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+
+.pos-cart-line__entry > .pos-icon {
+  flex: none;
+}
+
+.pos-cart-line__entry--edit {
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    border-color var(--t-tap) var(--ease-out),
+    background-color var(--t-tap) var(--ease-out);
+}
+
+.pos-cart-line__entry--edit:hover {
+  border-color: var(--c-brand);
+}
+
+.pos-cart-line__entry--edit:active {
+  background: var(--c-brand-soft-pressed);
+}
+
+.pos-cart-line__entry--edit:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
 .pos-cart-line__sub {
   display: flex;
   justify-content: space-between;

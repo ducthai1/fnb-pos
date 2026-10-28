@@ -3,7 +3,7 @@ import {
   type SaveDraftPayload,
   saveDraftPayloadSchema,
 } from "@fnb/contracts";
-import { assertLinesEditable, validateLineTree } from "@fnb/domain";
+import { type OrderLine, assertLinesEditable, validateLineTree } from "@fnb/domain";
 import { readDeviceOrderSettings } from "./device-order-settings";
 import { itemsAdding, newlyTypedPrices, refuseSoldOut } from "./draft-additions";
 import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
@@ -59,9 +59,7 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   }
   const adding = itemsAdding(before, lines);
   await refuseSoldOut(client, device.branchId, payload.channelKey, adding, recordedAt);
-  if (newlyTypedPrices(before, lines).length > 0) {
-    await requirePermission(context, { key: "open_price" }, payload.approvalId);
-  }
+  await requireTypedPrices(context, payload, newlyTypedPrices(before, lines));
   if (existing === null) {
     const { chargeProfile } = await readDeviceOrderSettings(client, device.deviceId);
     const table =
@@ -86,6 +84,28 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   const write = { tenantId: device.tenantId, orderId: payload.orderId, staffId };
   await writeOrderLines(client, write, before, lines);
   return payload.orderId;
+}
+
+/**
+ * Each price typed anew needs the staff member's own open_price, or a manager's approval of
+ * exactly that price on that line of this order: the line's own approval, or the draft's
+ * for a line naming none. An approval is used once, so one approval never covers two lines.
+ */
+async function requireTypedPrices(
+  context: SyncCommandContext,
+  payload: SaveDraftPayload,
+  typed: readonly OrderLine[],
+) {
+  const intents = new Map(payload.lines.map((line) => [line.lineId, line]));
+  for (const line of typed) {
+    const approvalId = intents.get(line.id)?.priceApprovalId ?? payload.approvalId;
+    const action = {
+      key: "open_price",
+      enteredPrice: line.unitPrice,
+      subject: { orderId: payload.orderId, lineId: line.id },
+    } as const;
+    await requirePermission(context, action, approvalId);
+  }
 }
 
 export const saveDraftCommand = defineSyncCommand(

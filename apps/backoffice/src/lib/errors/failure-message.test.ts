@@ -43,6 +43,8 @@ describe("error code to Vietnamese sentence", () => {
   it.each([
     ...Object.values(CATALOG_ERROR_CODES),
     PRICING_ERROR_CODES.missingBasePrice,
+    PRICING_ERROR_CODES.measureUnitMissing,
+    PRICING_ERROR_CODES.measureUnitOnUnweighedProduct,
     PRICING_ERROR_CODES.scopeVariantNotOnProduct,
     ...Object.values(PERMISSIONS_ERROR_CODES).filter((code) => !code.endsWith("ACTION_VALUE")),
   ])("has a sentence for the domain rule %s", (code) => {

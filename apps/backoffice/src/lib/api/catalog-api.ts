@@ -28,6 +28,8 @@ export interface ProductSummary {
   readonly categoryId: string | null;
   readonly basePrice: number | null;
   readonly pricingMode: string;
+  /** What a weighed product's price is per ("kg", "100g"); null or absent on any other. */
+  readonly measureUnit?: string | null;
   readonly version: number;
   readonly archivedAt: string | null;
   /** The photo's address under the API; null or absent without one. */
@@ -64,7 +66,8 @@ const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
   if (categoryId === undefined || archivedAt === undefined) return null;
   if (basePrice === null && item.basePrice !== null) return null;
   const imageUrl = nullableTextOf(item, "imageUrl") ?? null;
-  return { id, name, kind, categoryId, basePrice, pricingMode: mode, version, archivedAt, imageUrl };
+  const measureUnit = nullableTextOf(item, "measureUnit") ?? null;
+  return { id, name, kind, categoryId, basePrice, pricingMode: mode, measureUnit, version, archivedAt, imageUrl };
 };
 
 const readSoldOut = (item: Record<string, unknown>): SoldOut | null => {

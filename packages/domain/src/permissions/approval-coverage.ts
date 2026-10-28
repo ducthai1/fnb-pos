@@ -30,7 +30,7 @@ export type ApprovalJudgement = "covers" | "another_action" | "another_subject";
 /**
  * Whether an approval given for `approved` lets `attempted` through. Both must name their
  * subject, the same one, and the same figures to the đồng (an approval for 600.000 đ covers
- * neither 500.000 đ nor 800.000 đ): the manager agreed to what they were shown. The one
+ * neither 500.000 đ nor 800.000 đ; a cake typed at 150.000 đ is not one at 15.000 đ): the manager agreed to what they were shown. The one
  * exception is a discount rate: bound to its order (and line), an approval is "up to" its
  * rate, because another till adding goods to the order lowers the share the same discount
  * takes, which needs no new approval; a higher share was never agreed to. Who approved is not
@@ -50,7 +50,8 @@ export function judgeApproval(
     approved.amount === attempted.amount &&
     approved.difference === attempted.difference &&
     approved.refundAmount === attempted.refundAmount &&
-    approved.voidedQuantity === attempted.voidedQuantity;
+    approved.voidedQuantity === attempted.voidedQuantity &&
+    approved.enteredPrice === attempted.enteredPrice;
   return sameFigures && rateCovered(approved, attempted) ? "covers" : "another_action";
 }
 
@@ -82,5 +83,6 @@ function figureNamed(kind: ApprovalFigureKind | undefined, action: PermissionAct
   if (kind === "difference") return action.difference !== undefined;
   if (kind === "refund_amount") return action.refundAmount !== undefined;
   if (kind === "voided_quantity") return action.voidedQuantity !== undefined;
+  if (kind === "entered_price") return action.enteredPrice !== undefined;
   return true;
 }

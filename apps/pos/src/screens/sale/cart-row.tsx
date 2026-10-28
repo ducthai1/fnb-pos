@@ -5,6 +5,7 @@ import { type CartView, lineAmountOf } from "../../features/order/cart-view";
 import type { OrderLine } from "@fnb/domain";
 import { vi } from "../../messages/vi";
 import { CartLineDetails } from "./cart-line-details";
+import { CartLineEntry } from "./cart-line-entry";
 import { type LineAdjustments, LineMenuButton, LineTools } from "./cart-line-tools";
 import { ProductMark } from "./product-photo";
 import { QuantityStepper } from "./quantity-stepper";
@@ -16,6 +17,8 @@ const S = vi.sale;
 export interface CartRowActions {
   onQuantity(lineId: string, quantity: number): void;
   onRemove(lineId: string): void;
+  /** Types the line's price again, or weighs it again; offered while the line can change. */
+  onEntry?: ((lineId: string) => void) | undefined;
 }
 
 /**
@@ -45,6 +48,9 @@ export function CartRow(
   const priceOf = (lineId: string) =>
     props.view.kind === "priced" ? formatVnd(lineAmountOf(props.view.priced, lineId)) : "";
   const remove = locked ? undefined : () => props.onRemove(line.lineId);
+  // A weighing is one: more of it is weighed again, never counted up with a stepper.
+  const weighed = line.grams !== undefined;
+  const onEntry = props.onEntry;
   const hasTools = remove !== undefined || props.adjust !== undefined;
   // Esc inside the open actions closes them and puts the focus back on the "…".
   const closeOnEscape = (event: KeyboardEvent) => {
@@ -67,12 +73,19 @@ export function CartRow(
         )}
         <span className="pos-cart-line__name pos-wrap">
           {name}
-          {locked ? ` ×${line.quantity}` : ""}
+          {locked && !weighed ? ` ×${line.quantity}` : ""}
         </span>
         <div className="pos-cart-line__details">
+          <CartLineEntry
+            line={line}
+            name={name}
+            item={item}
+            unit={props.view.unitOf(line)}
+            onEntry={locked || onEntry === undefined ? undefined : () => onEntry(line.lineId)}
+          />
           <CartLineDetails line={line} priced={priced} priceOf={priceOf} badge={props.badge} />
         </div>
-        {locked ? null : (
+        {locked || weighed ? null : (
           <div className="pos-cart-line__step">
             <QuantityStepper
               compact

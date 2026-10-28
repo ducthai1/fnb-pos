@@ -10,8 +10,8 @@ decisions:
   - D-031
   - D-057
   - D-094
-  - D-110
-  - D-114
+  - D-108
+  - D-112
 tests:
   - apps/pos/src/features/history/order-history.test.ts
   - apps/pos/src/screens/history/history-table.test.tsx

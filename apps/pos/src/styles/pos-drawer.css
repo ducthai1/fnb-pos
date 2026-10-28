@@ -92,6 +92,8 @@
   font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
   line-height: 26px;
+  /* A product's name is in some titles (the price and weight drawers): it wraps, whole. */
+  overflow-wrap: anywhere;
 }
 
 .pos-drawer__subtitle {

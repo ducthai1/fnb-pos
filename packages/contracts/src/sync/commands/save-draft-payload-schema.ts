@@ -14,7 +14,9 @@ const modifierSelectionSchema = z.object({
  * What the cashier chose, never what it costs: any price the till sends along (it shows
  * one on screen) is stripped here, and the server prices the line from its catalog. The
  * one exception is a product sold at an open price, whose price is whatever the cashier
- * typed; the domain refuses it on any other product, and a negative one, with its codes.
+ * typed; the domain refuses it on any other product, a negative one and one past its cap,
+ * with its codes. A product sold by weight carries its weight as the quantity, in the unit
+ * its price is per (0.35 for 350 g of a product priced per kg).
  */
 const lineIntentSchema = z.object({
   lineId: uuidSchema,
@@ -24,6 +26,12 @@ const lineIntentSchema = z.object({
   quantity: z.string().regex(/^\d{1,9}(\.\d{1,3})?$/),
   note: z.string().max(500).nullable(),
   enteredPrice: wholeDongSchema.optional(),
+  /**
+   * A manager's approval of exactly this typed price on this line of this order, for a
+   * staff member who may not type prices alone. Each typed line names its own: one approval
+   * covers one line and one price.
+   */
+  priceApprovalId: uuidSchema.optional(),
 });
 
 /**
@@ -42,7 +50,10 @@ export const saveDraftPayloadSchema = z
     tableId: uuidSchema.nullable().default(null),
     tableTag: tableTagSchema.nullable().default(null),
     lines: z.array(lineIntentSchema).max(200),
-    /** A manager's approval for open prices the staff member may not type alone. */
+    /**
+     * A manager's approval of a typed price, for a line that names none of its own (see
+     * priceApprovalId); it covers one line only, like the line's own would.
+     */
     approvalId: uuidSchema.optional(),
     /**
      * The version of the order this draft was edited from (0 for one the till opens now).

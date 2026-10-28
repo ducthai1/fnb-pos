@@ -118,6 +118,7 @@ describe("running a menu import", () => {
       name: "Trà sữa",
       basePrice: 30_000,
       pricingMode: "fixed",
+      measureUnit: null,
       taxRateBp: 800,
       stationId: null,
       trackStock: false,

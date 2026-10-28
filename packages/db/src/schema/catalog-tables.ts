@@ -28,6 +28,8 @@ export const product = pgTable("product", {
   name: text("name").notNull(),
   basePrice: money("base_price"),
   pricingMode: text("pricing_mode").notNull(),
+  /** "kg" or "100g": what a weighed product's price is per; null on every other product. */
+  measureUnit: text("measure_unit"),
   taxRateBp: integer("tax_rate_bp").notNull().default(0),
   stationId: uuid("station_id"),
   trackStock: boolean("track_stock").notNull().default(false),

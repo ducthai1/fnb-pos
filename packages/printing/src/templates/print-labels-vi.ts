@@ -15,6 +15,8 @@ export const PRINT_LABELS_VI = {
   lookupCode: "Mã tra cứu",
   phone: "ĐT",
   ticketOrder: "Đơn",
+  /** What a weighed item's price is per, after the price: "200.000 ₫/kg"; never split. */
+  measureUnits: { kg: "kg", "100g": "100\u00a0g" },
   sectionNew: "MÓN MỚI",
   sectionCancel: "*** HỦY MÓN ***",
   sectionNoteChanged: "ĐỔI GHI CHÚ",

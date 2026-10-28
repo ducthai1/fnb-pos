@@ -14,6 +14,7 @@ import { lineAmountOf } from "../order/cart-view";
 import type { PricedCounterOrder } from "../order/price-counter-order";
 import type { PaidSale } from "./paid-sale";
 import type { PrintJob } from "./printer-port";
+import { weighedOnSlip } from "./weighed-print";
 import { PRINTER_KEYS, RECEIPT_PRINTER } from "./printer-profiles";
 import { type SlipOrder, childrenOf, itemsOf, slipHead } from "./sale-order";
 
@@ -23,12 +24,16 @@ export interface BillLookup {
   readonly url: string;
 }
 
-/** Each item with its options, every amount as the domain priced the line. */
-export function billLinesOf(priced: PricedCounterOrder): BillLine[] {
+/**
+ * Each item with its options, every amount as the domain priced the line; a weighed item
+ * with its grams and what its price is per, read from the menu's unit for it.
+ */
+export function billLinesOf(menu: TillMenu, priced: PricedCounterOrder): BillLine[] {
   const grossOf = new Map(priced.totals.lines.map((line) => [line.lineId, line.gross]));
   return itemsOf(priced.lines).map((item) => ({
     name: item.nameSnapshot,
     quantity: item.quantity,
+    weighed: weighedOnSlip(menu, item.productId, item.quantity),
     unitPrice: item.unitPrice,
     amount: lineAmountOf(priced, item.id),
     children: childrenOf(priced.lines, item.id)
@@ -62,7 +67,7 @@ export function billBody(
     tableName: head.tableName,
     cashierName,
     printedAt: head.printedAt,
-    lines: billLinesOf(sale.priced),
+    lines: billLinesOf(menu, sale.priced),
     subtotal: totals.grossTotal,
     // Every discount of the order as one line: the item each came off is not the bill's concern.
     discounts:

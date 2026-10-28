@@ -1,3 +1,4 @@
+import { quantity } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
 import { PAPER_COLUMNS } from "../layout/print-document";
 import { renderEscPosChunks } from "../render/render-escpos";
@@ -42,6 +43,23 @@ describe("kitchen and bar ticket", () => {
     expect(preview).toContain("HỦY 1 x Cà phê sữa đá");
     expect(preview).not.toContain("HỦY 2 x Trà sữa");
     expect(preview).toContain("Cũ: Ít đá\n  Mới: Không đá");
+  });
+
+  it("writes a weighed item as the grams to make up, a counted one as its units", () => {
+    const beans = {
+      kind: "new",
+      name: "Cà phê hạt Robusta",
+      quantity: quantity("3.51"),
+      grams: 351,
+      note: null,
+      previousNote: null,
+      children: [],
+    } as const;
+    const ticket = { ...BAR_TICKET, lines: [...BAR_TICKET.lines, beans] };
+    const preview = renderPreview(buildKitchenTicket(ticket), "58mm").replace(/\u00a0/g, " ");
+    expect(preview).toContain("351 g x Cà phê hạt Robusta");
+    expect(preview).not.toContain("3,51 x Cà phê hạt");
+    expect(preview).toContain("2 x Trà sữa trân châu");
   });
 
   it("leaves out a section with nothing in it", () => {

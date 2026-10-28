@@ -42,6 +42,14 @@ describe("saveDraftPayloadSchema", () => {
     });
   });
 
+  it("carries a line's own approval of its typed price", () => {
+    const parsed = saveDraftPayloadSchema.parse({
+      ...draft,
+      lines: [{ ...lineIntent, enteredPrice: 150_000, priceApprovalId: id(8) }],
+    });
+    expect(parsed.lines[0]?.priceApprovalId).toBe(id(8));
+  });
+
   it.each([
     ["a quantity with four decimals", { lines: [{ ...lineIntent, quantity: "1.2345" }] }],
     ["a quantity as a number", { lines: [{ ...lineIntent, quantity: 1 }] }],
@@ -49,6 +57,10 @@ describe("saveDraftPayloadSchema", () => {
     ["an unknown service type", { serviceType: "drive_through" }],
     ["a device order number of zero", { deviceOrderNo: 0 }],
     ["an approval id that is not a uuid", { approvalId: "manager" }],
+    [
+      "a line's price approval that is not a uuid",
+      { lines: [{ ...lineIntent, enteredPrice: 1, priceApprovalId: "manager" }] },
+    ],
   ])("refuses %s", (_label, change) => {
     expect(outcomeOf(saveDraftPayloadSchema, { ...draft, ...change }).ok).toBe(false);
   });

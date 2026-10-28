@@ -36,7 +36,7 @@ export interface TillAuthority {
  * units as a decimal quantity, and the order (and line) or shift it is done to.
  */
 export function actionOnWire(action: PermissionAction): ApprovalRequest["action"] {
-  const { refundAmount, voidedQuantity, subject } = action;
+  const { refundAmount, voidedQuantity, enteredPrice, subject } = action;
   return {
     key: action.key,
     ...(action.discountRate === undefined ? {} : { discountRate: action.discountRate }),
@@ -46,6 +46,7 @@ export function actionOnWire(action: PermissionAction): ApprovalRequest["action"
     ...(voidedQuantity === undefined
       ? {}
       : { voidedQuantity: quantityToDecimalString(voidedQuantity) }),
+    ...(enteredPrice === undefined ? {} : { enteredPrice: enteredPrice.toString() }),
     ...(subject === undefined ? {} : { subject: { ...subject } }),
   };
 }

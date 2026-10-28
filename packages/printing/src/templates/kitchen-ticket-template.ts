@@ -1,4 +1,4 @@
-import { type LocalClockParts, type Quantity, QUANTITY_SCALE } from "@fnb/domain";
+import { type LocalClockParts, type Quantity, QUANTITY_SCALE, formatGrams } from "@fnb/domain";
 import type { PrintBlock, PrintDocument } from "../layout/print-document";
 import { formatQuantity, formatTimeOfDay } from "./format-print-values";
 import { PRINT_LABELS_VI as L } from "./print-labels-vi";
@@ -10,6 +10,8 @@ export interface KitchenTicketPrintLine {
   readonly name: string;
   /** Units to make, to stop making, or whose note changed. */
   readonly quantity: Quantity;
+  /** Sold by weight: the grams to make up (or to stop), printed in place of the units. */
+  readonly grams?: number | null;
   readonly note: string | null;
   /** The note the station last saw; only read for `note_changed`. */
   readonly previousNote: string | null;
@@ -49,8 +51,12 @@ function itemBlocks(line: KitchenTicketPrintLine): PrintBlock[] {
       : line.note === null
         ? []
         : [{ kind: "text", text: `${L.note}: ${line.note}`, indent: 2, bold: true }];
+  const units =
+    line.grams === undefined || line.grams === null
+      ? formatQuantity(line.quantity)
+      : formatGrams(line.grams);
   return [
-    { kind: "text", text: `${prefix}${formatQuantity(line.quantity)} x ${line.name}`, bold: true },
+    { kind: "text", text: `${prefix}${units} x ${line.name}`, bold: true },
     ...children,
     ...notes,
   ];

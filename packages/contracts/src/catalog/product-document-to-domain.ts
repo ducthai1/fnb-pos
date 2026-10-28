@@ -15,6 +15,7 @@ export function productDocumentToDomain(id: string, input: ProductDocumentInput)
     name: input.name,
     basePrice: input.basePrice === null ? null : vnd(input.basePrice),
     pricingMode: input.pricingMode,
+    measureUnit: input.measureUnit,
     variants: input.variants.map((variant) => ({
       id: variant.id,
       name: variant.name,

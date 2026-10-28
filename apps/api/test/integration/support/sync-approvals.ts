@@ -63,6 +63,13 @@ export const refundOf = (orderId: string, amount: number): WireAction => ({
   subject: { orderId },
 });
 
+/** What a manager is shown for selling line `lineId` of order `orderId` at a typed price. */
+export const openPriceOf = (orderId: string, lineId: string, price: number): WireAction => ({
+  key: "open_price",
+  enteredPrice: String(price),
+  subject: { orderId, lineId },
+});
+
 /** When the server recorded the approval, in epoch ms. */
 export async function approvedAt(pool: pg.Pool, tenantId: string, approvalId: string) {
   return withTenant(pool, tenantId, async (client) => {

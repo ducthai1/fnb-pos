@@ -23,6 +23,12 @@ export interface ResolveUnitPriceInput {
 
 export type UnitPriceSource = "base" | "price_list" | "manual";
 
+/**
+ * The most a cashier may type for one unit of an open-price product: 100.000.000 đ. A custom
+ * cake or a catering tray costs a few million; nine digits typed is a slip of the finger.
+ */
+export const MAX_ENTERED_PRICE = 100_000_000n;
+
 export interface ResolvedUnitPrice {
   readonly unitPrice: Vnd;
   readonly source: UnitPriceSource;
@@ -96,6 +102,13 @@ function enteredPriceOf(input: ResolveUnitPriceInput): Vnd {
       PRICING_ERROR_CODES.negativeEnteredPrice,
       `an entered price cannot be negative: ${enteredPrice}`,
       { productId: product.id, enteredPrice },
+    );
+  }
+  if (enteredPrice > MAX_ENTERED_PRICE) {
+    throw new DomainError(
+      PRICING_ERROR_CODES.enteredPriceTooLarge,
+      `an entered price above ${MAX_ENTERED_PRICE}: ${enteredPrice}`,
+      { productId: product.id, enteredPrice, maxEnteredPrice: MAX_ENTERED_PRICE },
     );
   }
   return enteredPrice;

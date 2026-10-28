@@ -35,6 +35,7 @@ export function milkTeaDraft(): ProductDraft {
     name: "Trà sữa trân châu",
     basePrice: "35.000",
     pricingMode: "fixed",
+    measureUnit: "kg",
     taxRate: "8",
     stationId: null,
     trackStock: false,

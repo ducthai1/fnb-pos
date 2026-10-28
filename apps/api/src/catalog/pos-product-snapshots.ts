@@ -16,6 +16,7 @@ interface ProductRow {
   name: string;
   base_price: string | null;
   pricing_mode: PosProductWire["pricingMode"];
+  measure_unit: NonNullable<PosProductWire["measureUnit"]> | null;
   tax_rate_bp: number;
   track_stock: boolean;
   earns_points: boolean;
@@ -38,6 +39,7 @@ export async function readPosProducts(
   const byBrand = "brandId" in scope;
   const products = await client.query<ProductRow>(
     "SELECT id, brand_id, category_id, station_id, kind, name, base_price, pricing_mode, " +
+      "measure_unit, " +
       "tax_rate_bp, track_stock, earns_points, print_cup_label, tenant_id, image_key FROM product " +
       `WHERE ${byBrand ? "brand_id = $1" : "id = ANY($1::uuid[])"} AND archived_at IS NULL ` +
       "ORDER BY name, id",
@@ -66,6 +68,7 @@ export async function readPosProducts(
       name: row.name,
       basePrice: row.base_price === null ? null : amountOf(row.base_price),
       pricingMode: row.pricing_mode,
+      measureUnit: row.measure_unit,
       taxRate: row.tax_rate_bp,
       trackStock: row.track_stock,
       earnsPoints: row.earns_points,

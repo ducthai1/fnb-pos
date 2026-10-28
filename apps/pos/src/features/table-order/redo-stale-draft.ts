@@ -1,8 +1,9 @@
 import { SYNC_ORDER_VERSION_ERROR_CODES, saveDraftPayloadSchema } from "@fnb/contracts";
+import { quantity, vnd } from "@fnb/domain";
 import type { LocalCommand, RejectedCommand } from "@fnb/sync-client";
 import type { TillMenu } from "../menu/till-menu";
 import type { CartLine } from "../order/counter-order";
-import { openingFromStored } from "../order/order-opening";
+import { entryOfStored, openingFromStored } from "../order/order-opening";
 import { priceCounterOrder } from "../order/price-counter-order";
 import { saveDraftCommand } from "../order/save-draft-command";
 import { type StoredOrder, readStoredOrder } from "../order/stored-order";
@@ -16,18 +17,30 @@ type Refused = Pick<RejectedCommand, "code" | "command" | "serverSnapshot">;
 export const isStaleDraft = (refused: Pick<RejectedCommand, "code" | "command">) =>
   refused.command.type === "order.save_draft" && refused.code === ORDER_VERSION_STALE;
 
-/** The items a refused draft asked for, as the cart lines that save them. */
-function cartAsked(refused: Refused): CartLine[] {
+/**
+ * The items a refused draft asked for, as the cart lines that save them: a typed price with
+ * the approval it carried, a weight read back into grams in the product's unit.
+ */
+function cartAsked(menu: TillMenu, refused: Refused): CartLine[] {
   const payload = saveDraftPayloadSchema.safeParse(refused.command.payload);
   if (!payload.success) return [];
-  return payload.data.lines.map((line) => ({
-    lineId: line.lineId,
-    productId: line.productId,
-    variantId: line.variantId,
-    modifiers: line.modifiers,
-    quantity: Number(line.quantity),
-    note: line.note,
-  }));
+  return payload.data.lines.map((line) => {
+    const item = {
+      productId: line.productId,
+      quantity: quantity(line.quantity),
+      unitPrice: vnd(line.enteredPrice ?? 0),
+      priceSource: line.enteredPrice === undefined ? "base" : "manual",
+    } as const;
+    return {
+      lineId: line.lineId,
+      productId: line.productId,
+      variantId: line.variantId,
+      modifiers: line.modifiers,
+      ...entryOfStored(menu, item),
+      note: line.note,
+      ...(line.priceApprovalId === undefined ? {} : { priceApprovalId: line.priceApprovalId }),
+    };
+  });
 }
 
 /** The items of the order as the server held it when it refused, as cart lines. */
@@ -52,7 +65,7 @@ export function redoneCart(
 ): CartLine[] | null {
   const held = openingFromStored(menu, latest).order.lines;
   const taken = new Set(held.map((line) => line.lineId));
-  const asked = refused.map(cartAsked);
+  const asked = refused.map((entry) => cartAsked(menu, entry));
   const ours = new Set(asked.flat().map((line) => line.lineId));
   const added: CartLine[] = [];
   const add = (line: CartLine) => {

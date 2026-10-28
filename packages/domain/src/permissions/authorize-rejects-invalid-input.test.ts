@@ -91,6 +91,9 @@ describe("authorize rejects an action without the value its key is judged by", (
     ["a refund amount as a number", { key: "refund", refundAmount: 25_000 }],
     ["voided units on another key", { key: "refund", voidedQuantity: 1000n }],
     ["no voided units", { key: "void_after_sent", voidedQuantity: 0n }],
+    ["a typed price on another key", { key: "refund", enteredPrice: 15_000n }],
+    ["a negative typed price", { key: "open_price", enteredPrice: -1n }],
+    ["a typed price as a number", { key: "open_price", enteredPrice: 15_000 }],
   ])("%s", (_, action) => {
     const grants = [{ key: "line_discount" }, { key: "cash_move" }, { key: "refund" }] as Grant[];
     expect(codeOf(corrupt<PermissionAction>(action), grants)).toBe(
@@ -106,5 +109,7 @@ describe("authorize rejects an action without the value its key is judged by", (
     // A shortfall is a negative difference: the sign is the figure, not a malformed amount.
     const short = { key: "accept_close_difference", difference: vnd(-29_000) } as const;
     expect(authorize(short, [{ key: "accept_close_difference" }])).toBe("allowed");
+    const free = { key: "open_price", enteredPrice: vnd(0) } as const;
+    expect(authorize(free, [{ key: "open_price" }])).toBe("allowed");
   });
 });

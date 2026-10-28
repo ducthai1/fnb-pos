@@ -7,7 +7,7 @@ import type {
   PosProduct,
   PosStation,
 } from "@fnb/contracts";
-import type { PriceListItem } from "@fnb/domain";
+import { type PriceListItem, measureUnitOf } from "@fnb/domain";
 import type { BootstrapSnapshot } from "../bootstrap/bootstrap-source";
 
 /** The copy each menu entity of the change feed carries, in its parsed (domain) form. */
@@ -51,11 +51,14 @@ export interface TillMenu {
 }
 
 /**
- * Combos need slot choices and open or weighed prices need a typed amount, neither of which
- * a draft line carries yet: the server refuses them, so the counter does not offer them.
+ * Combos need slot choices, which a draft line does not carry yet: the server refuses them,
+ * so the counter does not offer them. An open-price product is sold at the price the cashier
+ * types, a weighed one at what it weighs; a weighed product whose copy names no unit (stored
+ * before units existed) cannot say what its price is per, so it waits for a newer copy.
  */
 export function sellableOnCounter(product: PosProduct): boolean {
-  return product.kind !== "combo" && product.pricingMode === "fixed";
+  if (product.kind === "combo") return false;
+  return product.pricingMode !== "weighed" || measureUnitOf(product) !== null;
 }
 
 /**

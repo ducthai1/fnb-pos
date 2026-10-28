@@ -21,6 +21,7 @@ export function validateProductConfig(
   priceList: readonly PriceListItem[] = [],
 ): void {
   const variantIds = assertVariants(product);
+  assertMeasureUnit(product);
   assertCombo(product);
   const groupIds = new Set<string>();
   for (const group of product.modifierGroups) {
@@ -80,6 +81,17 @@ function assertVariants(product: Product): ReadonlySet<string> {
 function assertPriced(product: Product, variantId: string | null, price: bigint | null): void {
   if (product.pricingMode !== "open_price" && price === null) {
     fail(PRICING_ERROR_CODES.missingBasePrice, product, { variantId });
+  }
+}
+
+/** A weighed product says what its price is per; on any other a unit would mean nothing. */
+function assertMeasureUnit(product: Product): void {
+  const unit = product.measureUnit ?? null;
+  if (product.pricingMode === "weighed" && unit === null) {
+    fail(PRICING_ERROR_CODES.measureUnitMissing, product, {});
+  }
+  if (product.pricingMode !== "weighed" && unit !== null) {
+    fail(PRICING_ERROR_CODES.measureUnitOnUnweighedProduct, product, { measureUnit: unit });
   }
 }
 

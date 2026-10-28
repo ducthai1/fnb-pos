@@ -1,0 +1,118 @@
+/* The drawer that takes a typed price or a weight (screens/sale/line-entry-drawer.tsx): the
+   number in big type on a tinted card, quick keys, what the line comes to, the number keys.
+   It shares the payment drawer's surfaces and keys, so typing a price feels like taking cash. */
+
+.pos-entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.pos-entry__readout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  transition:
+    border-color var(--t-state) var(--ease-out),
+    box-shadow var(--t-state) var(--ease-out);
+}
+
+.pos-entry__readout:focus-within {
+  border-color: var(--c-brand);
+  box-shadow: var(--ring);
+}
+
+.pos-entry__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.pos-entry__input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-brand-strong);
+  font: inherit;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-entry__input:focus {
+  outline: none;
+}
+
+.pos-entry__input::placeholder {
+  color: var(--c-text-3);
+}
+
+.pos-entry__input[aria-invalid="true"] {
+  color: var(--c-danger);
+}
+
+.pos-entry__unit {
+  flex: none;
+  color: var(--c-text-2);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+}
+
+/* What the line comes to, by the domain: the sum on the right, how it was reached under it. */
+.pos-entry__amount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-3);
+  margin: 0;
+  padding: var(--sp-2) var(--sp-1);
+  border-bottom: 1px dashed var(--c-border);
+}
+
+.pos-entry__amount strong {
+  color: var(--c-text);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pos-entry__how {
+  flex: 1 0 100%;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-entry__scale {
+  align-self: flex-start;
+  gap: var(--sp-2);
+}
+
+.pos-entry .pos-quick-cash__key[aria-pressed="true"] {
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  box-shadow: inset 0 0 0 1px var(--c-brand);
+  color: var(--c-brand-strong);
+}
+
+/* The usual price's key says what it is beside the amount. */
+.pos-entry__chip-label {
+  margin-right: var(--sp-2);
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}

@@ -25,6 +25,16 @@ export const VI_SYNC_ERRORS = {
     "Đơn này khách không trả bằng chuyển khoản nên chỉ hoàn được bằng tiền mặt từ két.",
   DOMAIN_ORDER_TOTAL_MISMATCH:
     "Tổng tiền trên máy khác tổng máy chủ tính (đơn hoặc giá vừa đổi ở nơi khác). Mở lại đơn để tính lại.",
+  DOMAIN_PRICING_ENTERED_PRICE_REQUIRED:
+    "Món giá nhập tay chưa có giá. Chạm vào món trong đơn để gõ giá rồi lưu lại.",
+  DOMAIN_PRICING_ENTERED_PRICE_TOO_LARGE:
+    "Giá gõ vượt 100.000.000 ₫ cho một món nên máy chủ không nhận. Gõ lại giá.",
+  DOMAIN_PRICING_ENTERED_PRICE_NOT_ALLOWED:
+    "Món này đã có giá trên thực đơn nên không gõ giá được (thực đơn vừa đổi). Xóa món rồi thêm lại.",
+  DOMAIN_PRICING_WEIGHT_NOT_POSITIVE: "Món bán theo cân cần cân nặng lớn hơn 0 g. Cân lại món.",
+  DOMAIN_PRICING_WEIGHT_NOT_WHOLE_GRAMS:
+    "Cân nặng không tròn gam theo đơn vị của món (đơn vị vừa đổi). Cân lại món.",
+  DOMAIN_PRICING_WEIGHT_TOO_LARGE: "Một lần cân tối đa 100 kg. Cân lại món.",
   DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION:
     "Mã QR đã đổi trạng thái (đã được trả, đã hết hạn hoặc đã gỡ) nên không làm được thao tác này.",
   SYNC_ORDER_NOT_FOUND: "Máy chủ không tìm thấy đơn này ở chi nhánh của máy.",

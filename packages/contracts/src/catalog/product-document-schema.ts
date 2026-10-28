@@ -1,3 +1,4 @@
+import { MEASURE_UNITS } from "@fnb/domain";
 import { z } from "zod";
 import {
   amountSchema,
@@ -80,6 +81,11 @@ export const productDocumentSchema = z
     name: nameSchema,
     basePrice: amountSchema.nullable(),
     pricingMode: z.enum(["fixed", "open_price", "weighed"]),
+    /**
+     * What a weighed product's price is per; the domain requires it on a weighed product
+     * and refuses it on any other, so a body that leaves it out saves only unweighed ones.
+     */
+    measureUnit: z.enum(MEASURE_UNITS).nullable().default(null),
     taxRateBp: countSchema.default(0),
     stationId: idSchema.nullable().default(null),
     trackStock: z.boolean().default(false),

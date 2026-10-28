@@ -43,7 +43,9 @@ export const VI_DOMAIN_ERRORS: Readonly<Record<string, string>> = {
   DOMAIN_CATALOG_TOO_MANY_COMBO_SELECTIONS: "Chọn quá số món của phần combo.",
   DOMAIN_CATALOG_REQUIRED_COMBO_SLOT_MISSING: "Phần combo này bắt buộc chọn.",
   DOMAIN_PRICING_MISSING_BASE_PRICE:
-    "Món bán giá cố định cần có giá: nhập giá món, hoặc giá cho từng size.",
+    "Món bán giá cố định hoặc theo cân cần có giá: nhập giá món, hoặc giá cho từng size.",
+  DOMAIN_PRICING_MEASURE_UNIT_MISSING: "Món bán theo cân cần chọn giá tính cho mỗi kg hay mỗi 100 g.",
+  DOMAIN_PRICING_MEASURE_UNIT_ON_UNWEIGHED_PRODUCT: "Chỉ món bán theo cân mới chọn đơn vị cân.",
   DOMAIN_PRICING_SCOPE_VARIANT_NOT_ON_PRODUCT: "Bảng giá trỏ tới một size không còn trong món.",
   DOMAIN_PRICING_SCOPE_PRODUCT_MISMATCH: "Bảng giá của món trỏ tới món khác.",
   DOMAIN_MONEY_INVALID_RATE: "Tỉ lệ phải từ 0 đến 100%, tối đa 2 chữ số thập phân.",

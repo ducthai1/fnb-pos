@@ -86,5 +86,7 @@ export function storedDocument(
   version: number,
 ) {
   const rest = Object.fromEntries(Object.entries(body).filter(([key]) => key !== "version"));
-  return { id, version, archivedAt: null, imageKey: null, imageUrl: null, ...rest };
+  // A body that names no unit saves a product without one, as an unweighed product is.
+  const stored = { archivedAt: null, imageKey: null, imageUrl: null, measureUnit: null };
+  return { id, version, ...stored, ...rest };
 }

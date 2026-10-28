@@ -1,4 +1,4 @@
-import { formatVnd, vnd } from "@fnb/domain";
+import { formatVnd, quantity, vnd } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
 import { PAPER_COLUMNS, type PaperWidth } from "../layout/print-document";
 import { PRINTING_ERROR_CODES as C } from "../printing-error-codes";
@@ -42,6 +42,36 @@ describe("bill", () => {
       expect(lettersOf(preview)).toContain(lettersOf(HOSTILE.longName));
     },
   );
+
+  it("prints a weighed line as its grams times the price per unit, at the domain's amount", () => {
+    const strawberries = {
+      name: "Dâu tây Đà Lạt",
+      quantity: quantity("0.353"),
+      weighed: { grams: 353, per: "kg" },
+      unitPrice: vnd(200_000),
+      amount: vnd(70_600),
+      children: [],
+      note: null,
+    } as const;
+    const beans = {
+      ...strawberries,
+      name: "Cà phê hạt",
+      quantity: quantity("3.51"),
+      weighed: { grams: 351, per: "100g" },
+      unitPrice: vnd(32_000),
+      amount: vnd(112_320),
+    } as const;
+    const bill = { ...TABLE_BILL, lines: [strawberries, beans, ...TABLE_BILL.lines] };
+    const read = (paper: PaperWidth) => renderPreview(buildBill(bill), paper).replace(/\u00a0/g, " ");
+    expect(read("80mm")).toMatch(/353 g x 200\.000 ₫\/kg +70\.600 ₫/);
+    expect(read("80mm")).toMatch(/351 g x 32\.000 ₫\/100 g +112\.320 ₫/);
+    expect(read("80mm")).toContain("2 x 35.000 ₫");
+    // Too long for 58mm beside its amount: the weight keeps the amount, the price goes under.
+    expect(read("58mm")).toMatch(/ 351 g +112\.320 ₫\n +x 32\.000 ₫\/100 g\n/);
+    for (const paper of papers) {
+      expect(overflowingLines(renderPreview(buildBill(bill), paper), PAPER_COLUMNS[paper])).toEqual([]);
+    }
+  });
 
   it("puts each amount at the right margin of its line", () => {
     const lines = renderPreview(buildBill(TABLE_BILL), "80mm").split("\n");

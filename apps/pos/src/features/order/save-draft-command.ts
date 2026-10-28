@@ -1,12 +1,27 @@
 import { type SaveDraftPayload, saveDraftPayloadSchema } from "@fnb/contracts";
+import { quantityToDecimalString } from "@fnb/domain";
 import type { LocalCommand } from "@fnb/sync-client";
-import type { CounterOrder } from "./counter-order";
+import type { CartLine, CounterOrder } from "./counter-order";
 import { type TillOrderState, tillOrderSnapshot } from "./order-snapshot-for-till";
 import type { PricedCounterOrder } from "./price-counter-order";
-import { type TillPlace, tillCommand } from "./till-command";
+import { type TillPlace, moneyToWire, tillCommand } from "./till-command";
 
-/** The draft as the contract carries it: lines of intent, no price anywhere. */
-export function draftPayload(order: CounterOrder): SaveDraftPayload {
+/**
+ * The quantity a line is sent with: its units, or, sold by weight, its weight in the unit the
+ * product's price is per, exactly as the till priced it (`priced` holds that item line).
+ */
+function quantitySent(line: CartLine, priced: PricedCounterOrder | undefined): string {
+  if (line.grams === undefined) return String(line.quantity);
+  const item = priced?.lines.find((candidate) => candidate.id === line.lineId);
+  if (item === undefined) throw new Error(`weighed line ${line.lineId} was not priced`);
+  return quantityToDecimalString(item.quantity);
+}
+
+/**
+ * The draft as the contract carries it: lines of intent, no price but the one the cashier
+ * typed (and the manager's approval of it, if one was needed).
+ */
+export function draftPayload(order: CounterOrder, priced?: PricedCounterOrder): SaveDraftPayload {
   return {
     orderId: order.orderId,
     deviceOrderNo: order.deviceOrderNo,
@@ -23,8 +38,10 @@ export function draftPayload(order: CounterOrder): SaveDraftPayload {
         optionId,
         quantity,
       })),
-      quantity: String(line.quantity),
+      quantity: quantitySent(line, priced),
       note: line.note,
+      ...(line.enteredPrice === undefined ? {} : { enteredPrice: moneyToWire(line.enteredPrice) }),
+      ...(line.priceApprovalId === undefined ? {} : { priceApprovalId: line.priceApprovalId }),
     })),
   };
 }
@@ -46,7 +63,10 @@ export function saveDraftCommand(
     place,
     "order.save_draft",
     saveDraftPayloadSchema,
-    { ...draftPayload(order), ...(expectedVersion === undefined ? {} : { expectedVersion }) },
+    {
+      ...draftPayload(order, priced),
+      ...(expectedVersion === undefined ? {} : { expectedVersion }),
+    },
     at,
     {
       entity: "order",

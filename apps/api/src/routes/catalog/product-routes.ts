@@ -78,8 +78,8 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.brandNotFound);
         }
         const products = await client.query(
-          "SELECT id, name, kind, category_id, base_price, pricing_mode, version, archived_at, " +
-            "tenant_id, image_key " +
+          "SELECT id, name, kind, category_id, base_price, pricing_mode, measure_unit, version, " +
+            "archived_at, tenant_id, image_key " +
             "FROM product WHERE brand_id = $1 ORDER BY name, id",
           [brandId],
         );
@@ -93,6 +93,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           categoryId: row.category_id,
           basePrice: row.base_price === null ? null : amountOf(row.base_price),
           pricingMode: row.pricing_mode,
+          measureUnit: row.measure_unit,
           version: row.version,
           archivedAt: row.archived_at === null ? null : row.archived_at.toISOString(),
           imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),

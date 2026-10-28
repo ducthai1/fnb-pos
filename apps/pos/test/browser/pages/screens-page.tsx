@@ -12,6 +12,7 @@ import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import "../../../src/styles/pos-styles";
 import { CHECKOUT_SCREENS } from "./checkout-screens";
 import { HISTORY_REFUND_SCREENS } from "./history-refund-screens";
+import { LINE_ENTRY_SCREENS } from "./line-entry-screens";
 import { OPERATIONS_SCREENS } from "./operations-screens";
 import { PHOTO_SALE_SCREENS } from "./photo-sale-screens";
 import { QR_AND_INVOICE_SCREENS } from "./qr-and-invoice-screens";
@@ -85,6 +86,7 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ...SALE_SCREENS,
   ...PHOTO_SALE_SCREENS,
   ...CHECKOUT_SCREENS,
+  ...LINE_ENTRY_SCREENS,
   ...QR_AND_INVOICE_SCREENS,
   ...TABLE_SCREENS,
   ...OPERATIONS_SCREENS,
