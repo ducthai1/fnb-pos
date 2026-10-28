@@ -92,7 +92,7 @@ Chưa có: bất kỳ flow thao tác nào của KiotViet / Sapo FnB / iPOS / Cuk
 - `uuid` do máy tạo (khóa khi offline);
 - `device_order_no` = chi nhánh-máy-số thứ tự theo máy (không cần mạng);
 - `official_no` do server cấp lúc thanh toán, liên tục, dùng cho hóa đơn.
-- `call_number` (số gọi món cho quầy trà sữa/cafe): server cấp theo ca theo chi nhánh; khi offline thì thêm tiền tố máy. [F] Odoo để trùng giữa các máy.
+- `call_number` (số gọi món cho quầy trà sữa/cafe): server cấp theo ca theo chi nhánh; khi offline thì thêm tiền tố máy. [F] Odoo để trùng giữa các máy. **R1 làm khác (D-048):** số gọi tính trên máy, `((số đơn của máy − 1) mod 100) + 1`, không theo ca, không tiền tố; chi nhánh nhiều máy chờ D-082.
 
 **Đơn từ QR tại bàn / kiosk** [F][A]
 - Chế độ: `menu_only` | `order_pay_later` (theo bàn) | `order_pay_first` (quầy/kiosk).
@@ -103,7 +103,7 @@ Chưa có: bất kỳ flow thao tác nào của KiotViet / Sapo FnB / iPOS / Cuk
 
 - Sơ đồ khu vực, bàn có số ghế. [A][F]
 - **Tối đa 1 đơn đang mở trên 1 bàn** (server ép). [F] Hai máy cùng mở một bàn ⇒ đè dữ liệu ⇒ cần khóa phiên bản (§20).
-- Chuyển sang bàn trống: đơn đi theo. Chuyển sang bàn đang có khách = **gộp đơn**; trạng thái đã gửi bếp đi theo từng dòng nên không in lại. [F]
+- Chuyển sang bàn trống: đơn đi theo. Chuyển sang bàn đang có khách = **gộp đơn**; trạng thái đã gửi bếp đi theo từng dòng nên không in lại. [F] **R1 làm khác (D-056):** chỉ chuyển sang bàn trống; bàn có khách bị từ chối ("Máy chưa gộp được hai bàn"), gộp bàn để R2 (FT-102).
 - Ghép bàn vật lý (bàn đoàn): bàn con trỏ về bàn cha. [F] `parent_id`.
 - Tách món sang bàn khác = chia bill (§8).
 - [QĐ] Bàn là khóa ngoại + lưu tên bàn lúc bán. [E] CukCuk chỉ lưu chuỗi tên bàn, báo cáo theo bàn sẽ kém.
@@ -122,7 +122,7 @@ Chưa có: bất kỳ flow thao tác nào của KiotViet / Sapo FnB / iPOS / Cuk
 
 **Cấu trúc** [A][D][E][F]
 - `payment_intent` (yêu cầu thu, vd QR động: số tiền, mã nội dung, trạng thái `pending|paid|partial|overpaid|expired`) tách khỏi `payment` (tiền đã thu thật) và `bank_transaction` (webhook thô từ SePay/PayOS/Casso, **unique(gateway, reference_code)** để không ghi trùng). [D]
-- Một đơn có nhiều `payment` (nhiều phương thức, trả nhiều lần). [E] CukCuk `InvoicePayment` 1-n.
+- Một đơn có nhiều `payment` (nhiều phương thức, trả nhiều lần). [E] CukCuk `InvoicePayment` 1-n. **R1 làm khác (D-073, D-080):** máy quầy chọn MỘT cách trả mỗi đơn (tiền mặt hoặc QR); ngoại lệ duy nhất là thu nốt phần QR chuyển thiếu bằng tiền mặt hoặc QR thứ hai. Bảng `payment` vẫn 1-n.
 - Phương thức: tiền mặt, QR chuyển khoản, thẻ (máy POS ngân hàng rời), ví (MoMo/ZaloPay/VNPay), thẻ trả trước/ví nội bộ, voucher, ghi nợ. [E] CukCuk `PaymentType` 1–7.
 - **Gift card / ví nội bộ là phương thức thanh toán**, không phải giảm giá: không tính thuế lại, không hoàn dòng nạp tiền. [F]
 
@@ -158,8 +158,8 @@ Ba đường khác nhau, không dùng chung một trạng thái: [A][D][F]
 
 ## 10. Ca & két tiền
 
-- Trạng thái ca: `opening` (đếm tiền đầu) → `open` → `closing` (đếm cuối) → `closed`. [F]
-- Một ca cho một quầy, nhiều máy dùng chung được. [F]
+- Trạng thái ca: `opening` (đếm tiền đầu) → `open` → `closing` (đếm cuối) → `closed`. [F] **R1 làm khác:** ca chỉ có `open` và `closed`; tiền đếm đầu/cuối ca nằm trong lệnh mở/đóng.
+- Một ca cho một quầy, nhiều máy dùng chung được. [F] **R1 làm khác (D-041):** một ca chưa đóng cho MỖI máy; máy chủ từ chối ca thứ hai của cùng máy.
 - Thu/chi ngoài bán hàng (`cash_move`: loại, số tiền, lý do, người làm). [F][E] POS365 `PosPayoutTypes`.
 - Tiền dự kiến = đầu ca + tiền mặt bán − tiền mặt hoàn ± thu/chi. Đếm theo mệnh giá. [A] Toast Expected Deposit; [E] POS365 `Denominations`.
 - Chênh lệch: **một** ngưỡng cho tiền mặt (`shift_close_difference_tolerance`, mặc định 0 đ, chỉnh ở trang Cài đặt); vượt ngưỡng cần người duyệt, trong ngưỡng vẫn ghi lại chênh lệch. Không có ngưỡng theo phương thức: két chỉ có tiền mặt, QR khớp bằng ngân hàng (D-078). [F]
@@ -277,8 +277,8 @@ Ba đường khác nhau, không dùng chung một trạng thái: [A][D][F]
 ## 20. Offline & đồng bộ
 
 - Khi mất mạng, quầy **vẫn bán**: tạo đơn, tiền mặt, in bếp qua cầu nối cục bộ, hàng đợi đơn/hóa đơn. [D]
-- Khi mất mạng, **khóa**: sửa menu/giá/hết món, tích điểm, khuyến mãi theo mã dùng một lần, chốt ca, hoàn tiền. [D] Toast/Loyverse.
-- QR chuyển khoản offline: không xác nhận tự động được ⇒ thu ngân xác nhận tay + đánh dấu đối soát sau. [QĐ]
+- Khi mất mạng, **khóa**: sửa menu/giá/hết món, tích điểm, khuyến mãi theo mã dùng một lần, chốt ca, hoàn tiền. [D] Toast/Loyverse. **R1 làm khác:** đóng ca và hoàn tiền KHÔNG bị khóa theo mạng; chỉ bước xin quản lý duyệt cần mạng.
+- QR chuyển khoản offline: không xác nhận tự động được ⇒ thu ngân xác nhận tay + đánh dấu đối soát sau. [QĐ] **R1 làm khác:** máy quầy không có xác nhận tay; chuyển khoản chỉ được ghi khi ngân hàng báo về qua QR của đơn (mất mạng ⇒ thu tiền mặt).
 - Đồng bộ: server là nguồn thật; realtime chỉ báo "có thay đổi" rồi máy đọc lại. [F]
 - [QĐ] Mỗi đơn có `version` (khóa lạc quan); xung đột trên cùng bàn báo **ngay khi lưu**. [F] Odoo dùng `write_date` 1 giây và người ghi sau thắng.
 - Quán có bàn + bếp cần **máy chủ/cầu nối cục bộ trong LAN** để bếp vẫn nhận phiếu khi mất internet. [D] Toast bắt buộc hub có dây.
@@ -305,6 +305,8 @@ Dữ liệu cho thấy: khác biệt nằm ở **tổ hợp công tắc**, khôn
 | Hóa đơn từ máy tính tiền | bắt buộc | bắt buộc | bắt buộc | bắt buộc | bắt buộc |
 
 Ràng buộc giữa công tắc (ví dụ): course cần sơ đồ bàn + `dine_in`; trả trước loại trừ "trả sau theo bàn" trên cùng kênh; `auto_86_when_stock_zero` cần `track_stock`; QR `order_pay_later` cần sơ đồ bàn.
+
+**R1 làm khác:** chưa có mẫu theo loại quán (T03-10) — mọi công tắc mặc định tắt trừ `pay_first_counter`; `pay_first_counter` và `tables` không ràng buộc nhau. Ràng buộc thật nằm ở `packages/feature-flags/src/feature-flag-catalog.ts`.
 
 ## 22. Ngoài phạm vi v1
 

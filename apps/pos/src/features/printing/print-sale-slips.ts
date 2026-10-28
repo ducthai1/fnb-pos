@@ -53,7 +53,9 @@ export async function printSaleSlips(input: {
   const { menu, place, sale, printer, record, now } = input;
   const at = now();
   const tickets = kitchenSlips(menu, sale, at);
-  // A table's drinks were labelled when they went to the bar, rounds ago.
+  // Cup labels are for counter orders, handed over at the counter. A table's drinks are
+  // carried to the table, so a table order never prints labels, now or when its rounds go
+  // to the bar.
   const labels = sale.order.table === null ? cupLabelSlip(menu, sale, at) : null;
   const others = [labels, billSlip(menu, sale, at)].flatMap((job) => (job === null ? [] : [job]));
   const printed: PrintedSlip[] = [];
