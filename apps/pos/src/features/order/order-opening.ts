@@ -9,6 +9,7 @@ import {
 } from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 import { commandMadeLines, itemTree, referencedItemIds } from "./command-made-lines";
+import { storedComboPicks } from "./combo-picks";
 import type { CartLine, CounterOrder, CounterServiceType } from "./counter-order";
 import type { Recorded } from "./order-session-types";
 import type { KeptLines, PricedCounterOrder } from "./price-counter-order";
@@ -98,13 +99,16 @@ export function openingFromStored(menu: TillMenu, stored: StoredOrder): OrderOpe
     const tree = itemTree(stored.lines, item.id);
     if (held.has(item.id)) kept.set(item.id, tree);
     asStored.push(...tree);
+    const comboPicks = storedComboPicks(menu, item, tree);
     return {
       lineId: item.id,
       productId: item.productId ?? "",
       variantId: item.variantId,
+      // The item's own options; a combo pick's options travel with the pick.
       modifiers: tree
-        .filter((line) => line.lineType === "modifier")
+        .filter((line) => line.lineType === "modifier" && line.parentLineId === item.id)
         .map((line) => modifierOf(menu, item, line)),
+      ...(comboPicks === undefined ? {} : { comboPicks }),
       ...entryOfStored(menu, item),
       note: item.note,
     };

@@ -31,6 +31,29 @@ export interface KitchenTicketJob {
   }[];
   /** The sent state of this ticket's lines once it is printed. */
   readonly sent: readonly SentLineState[];
+  /**
+   * A combo made at several stations is on each of their tickets, and reported (in `lines`
+   * and `sent`) by the last of them only: by line id, the jobs of its earlier parts, which
+   * must all have printed too (see recordablePart).
+   */
+  readonly earlierParts: ReadonlyMap<string, readonly string[]>;
+}
+
+/**
+ * What a printed ticket may record as sent, given the jobs of the same send that did not
+ * print: a combo whose part for another station was lost stays owed, so the next send prints
+ * it again at every station (a second ticket at the bar beats no food from the kitchen).
+ * Null when nothing of the ticket is left to record.
+ */
+export function recordablePart(
+  ticket: KitchenTicketJob,
+  unprinted: ReadonlySet<string>,
+): KitchenTicketJob | null {
+  const complete = (lineId: string) =>
+    (ticket.earlierParts.get(lineId) ?? []).every((jobId) => !unprinted.has(jobId));
+  const lines = ticket.lines.filter((line) => complete(line.lineId));
+  if (lines.length === 0) return null;
+  return { ...ticket, lines, sent: ticket.sent.filter((state) => complete(state.lineId)) };
 }
 
 /**
@@ -64,7 +87,24 @@ export function kitchenSlips(
   const tickets = diff.tickets
     .map((ticket) => ({ ...ticket, lines: ticket.lines.filter(only) }))
     .filter((ticket) => ticket.lines.length > 0);
-  return tickets.map((ticket) => {
+  const jobIds = tickets.map(() => newId());
+  const ticketsOfLine = new Map<string, number[]>();
+  tickets.forEach((ticket, index) => {
+    for (const line of ticket.lines) {
+      ticketsOfLine.set(line.lineId, [...(ticketsOfLine.get(line.lineId) ?? []), index]);
+    }
+  });
+  return tickets.map((ticket, index) => {
+    const parts = (lineId: string) => ticketsOfLine.get(lineId) ?? [index];
+    const reported = ticket.lines.filter((line) => parts(line.lineId).at(-1) === index);
+    const earlierParts = new Map(
+      reported.flatMap((line) => {
+        const before = parts(line.lineId).filter((other) => other !== index);
+        return before.length === 0
+          ? []
+          : [[line.lineId, before.map((other) => jobIds[other] ?? "")]];
+      }),
+    );
     const document = buildKitchenTicket({
       stationName: menu.stations.get(ticket.stationId)?.name ?? "",
       orderNumber: head.orderNumber,
@@ -78,26 +118,31 @@ export function kitchenSlips(
         grams: weighedOnSlip(menu, productIdOf(sale, line.lineId), line.quantity)?.grams ?? null,
         note: line.note,
         previousNote: line.previousNote,
-        children: line.children.map((child) => ({ name: child.name, quantity: child.quantity })),
+        children: line.children.map((child) => ({
+          name: child.name,
+          quantity: child.quantity,
+          depth: child.depth,
+        })),
       })),
     });
-    const ids = new Set(ticket.lines.map((line) => line.lineId));
+    const ids = new Set(reported.map((line) => line.lineId));
     return {
       job: {
-        jobId: newId(),
+        jobId: jobIds[index] ?? newId(),
         kind: "kitchen",
         printerKey: PRINTER_KEYS.station(ticket.stationId),
         preview: renderPreview(document, RECEIPT_PRINTER.paper),
         chunks: renderEscPosChunks(document, RECEIPT_PRINTER),
       },
       stationId: ticket.stationId,
-      lines: ticket.lines.map((line) => ({
+      lines: reported.map((line) => ({
         lineId: line.lineId,
         kind: line.kind,
         quantity: quantityToDecimalString(line.quantity),
         note: line.note,
       })),
       sent: diff.sentState.filter((state) => ids.has(state.lineId)),
+      earlierParts,
     };
   });
 }

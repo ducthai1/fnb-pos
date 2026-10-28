@@ -4,6 +4,7 @@ import {
   QUANTITY_SCALE,
   type SentLineState,
   diffKitchenTicket,
+  subtreeOf,
 } from "@fnb/domain";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import type { TillMenu } from "../menu/till-menu";
@@ -11,7 +12,7 @@ import type { CounterOrder, SeatedTable } from "../order/counter-order";
 import type { PricedCounterOrder } from "../order/price-counter-order";
 import { serverCopyNow } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
-import { kitchenSlips, stationRoutingOf } from "../printing/kitchen-slips";
+import { kitchenSlips, recordablePart, stationRoutingOf } from "../printing/kitchen-slips";
 import { preBillSlip } from "../printing/pre-bill-slip";
 import { jobReportedCommand, markSentCommand, withSent } from "../printing/print-commands";
 import { type PrintedSlip, printOne } from "../printing/print-sale-slips";
@@ -75,7 +76,7 @@ const unitsOwed = (units: bigint): number =>
   Number(units > 0n ? (units + QUANTITY_SCALE - 1n) / QUANTITY_SCALE : units / QUANTITY_SCALE);
 
 const treeOf = (priced: PricedCounterOrder, itemId: string): readonly OrderLine[] =>
-  priced.lines.filter((line) => line.id === itemId || line.parentLineId === itemId);
+  subtreeOf(priced.lines, itemId);
 
 /** A job's outcome, reported for the backoffice's log when a real printer answered. */
 export async function report(
@@ -105,15 +106,18 @@ export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip
   let sent = settled.sent ?? [];
   let version = settled.state.version;
   const locked = new Map<string, readonly OrderLine[]>();
+  const unprinted = new Set<string>();
   for (const ticket of tickets) {
     const slip = { job: ticket.job, outcome: await printOne(input.printer, ticket.job) };
     printed.push(slip);
-    if (slip.outcome.status === "printed") {
-      sent = withSent(sent, ticket.sent);
+    if (slip.outcome.status !== "printed") unprinted.add(ticket.job.jobId);
+    const part = slip.outcome.status === "printed" ? recordablePart(ticket, unprinted) : null;
+    if (part !== null) {
+      sent = withSent(sent, part.sent);
       const recorded = { ...settled, state: { ...settled.state, version } };
-      await session.record(markSentCommand(place, recorded, ticket, sent, input.now()));
+      await session.record(markSentCommand(place, recorded, part, sent, input.now()));
       version += 1;
-      for (const line of ticket.lines) locked.set(line.lineId, treeOf(settled.priced, line.lineId));
+      for (const line of part.lines) locked.set(line.lineId, treeOf(settled.priced, line.lineId));
     }
     await report(input, settled.order.orderId, slip, session.record);
   }

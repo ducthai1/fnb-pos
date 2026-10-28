@@ -1,7 +1,7 @@
 import type { KitchenTicketLine, VoidRecord } from "@fnb/domain";
 import { vi } from "../../messages/vi";
 import { serverCopyOf } from "../order/server-copy";
-import { kitchenSlips } from "../printing/kitchen-slips";
+import { kitchenSlips, recordablePart } from "../printing/kitchen-slips";
 import { markSentCommand, withSent } from "../printing/print-commands";
 import { type PrintedSlip, printOne } from "../printing/print-sale-slips";
 import { type RoundInput, report } from "./table-order-rounds";
@@ -39,13 +39,16 @@ export async function printVoidCancelTickets(
   const slips: PrintedSlip[] = [];
   let sent = settled.sent ?? [];
   let version = settled.state.version;
+  const unprinted = new Set<string>();
   for (const ticket of kitchenSlips(input.menu, settled, input.now(), only)) {
     const slip = { job: ticket.job, outcome: await printOne(input.printer, ticket.job) };
     slips.push(slip);
-    if (slip.outcome.status === "printed" && stored !== null) {
-      sent = withSent(sent, ticket.sent);
+    if (slip.outcome.status !== "printed") unprinted.add(ticket.job.jobId);
+    const part = slip.outcome.status === "printed" ? recordablePart(ticket, unprinted) : null;
+    if (part !== null && stored !== null) {
+      sent = withSent(sent, part.sent);
       const recorded = { ...settled, state: { ...settled.state, version } };
-      await session.record(markSentCommand(place, recorded, ticket, sent, input.now()));
+      await session.record(markSentCommand(place, recorded, part, sent, input.now()));
       version += 1;
     }
     await report(input, settled.order.orderId, slip, session.record);

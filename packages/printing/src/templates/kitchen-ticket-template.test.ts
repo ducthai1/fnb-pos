@@ -62,6 +62,22 @@ describe("kitchen and bar ticket", () => {
     expect(preview).toContain("2 x Trà sữa trân châu");
   });
 
+  it("prints a combo's picks under it and each pick's options under the pick", () => {
+    const combo = {
+      kind: "new",
+      name: "Combo sáng",
+      quantity: quantity(1),
+      note: null,
+      previousNote: null,
+      children: [
+        { name: "Trà sữa (L)", quantity: quantity(1), depth: 1 },
+        { name: "Ít đường", quantity: quantity(1), depth: 2 },
+      ],
+    } as const;
+    const preview = renderPreview(buildKitchenTicket({ ...BAR_TICKET, lines: [combo] }), "80mm");
+    expect(preview).toContain("1 x Combo sáng\n  + Trà sữa (L)\n    + Ít đường");
+  });
+
   it("leaves out a section with nothing in it", () => {
     const preview = renderPreview(buildKitchenTicket(onlyKind("new")), "80mm");
     expect(preview).toContain("MÓN MỚI");

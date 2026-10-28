@@ -1,5 +1,5 @@
 ---
-title: Bán tại quầy — chọn món, tùy chọn, ghi chú, tìm món, phím tắt
+title: Bán tại quầy — chọn món, tùy chọn, combo, ghi chú, tìm món, phím tắt
 audience:
   - thu-ngan
   - pha-che
@@ -9,6 +9,7 @@ screens:
   - sale-long-cart
   - modifier-picker
   - modifier-picker-photo
+  - combo-picker
   - line-entry-price
   - line-entry-weight
 decisions:
@@ -26,6 +27,9 @@ decisions:
   - D-105
   - D-106
   - D-107
+  - D-113
+  - D-114
+  - D-115
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
@@ -39,6 +43,11 @@ tests:
   - apps/pos/src/app/menu-keeps-its-place.test.tsx
   - apps/pos/src/screens/sale/sale-screen.test.tsx
   - apps/pos/src/screens/sale/modifier-picker-screen.test.tsx
+  - apps/pos/src/screens/sale/combo-picker-screen.test.tsx
+  - apps/pos/src/features/order/combo-cart-line.test.ts
+  - packages/domain/src/catalog/resolve-combo-picks.test.ts
+  - apps/api/test/integration/sync/sync-save-draft-sells-combos.test.ts
+  - apps/api/src/sync/draft-line-locks-combo.test.ts
   - apps/pos/src/screens/sale/quick-notes.test.tsx
   - apps/pos/src/screens/sale/live-menu.test.tsx
   - apps/pos/src/screens/sale/product-photo-tiles.test.tsx
@@ -89,6 +98,7 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
 2. **Chạm vào món**:
    - Món **không có size, không có tùy chọn** (ví dụ chai nước): chạm là vào đơn ngay, chạm lần nữa là thêm một.
    - Món **có size hoặc tùy chọn**: máy mở màn chọn tùy chọn (bước 3).
+   - Món **combo**: máy luôn mở màn chọn combo (bước 3b), kể cả khi combo không có gì để chọn — để thu ngân thấy trong combo có những gì.
    - Món **giá nhập tay** (ô món ghi **Nhập giá**) hoặc **bán theo cân** (ô món ghi giá kèm đơn vị, ví dụ **32.000 ₫/100 g**): máy mở ngăn **nhập giá** / **nhập cân nặng** (bước 3a); món có size/tùy chọn thì chọn trước, nút ở màn chọn đổi thành **Tiếp tục: nhập giá** / **Tiếp tục: nhập cân nặng**.
 3. **Chọn tùy chọn** trên màn của món:
 
@@ -100,6 +110,12 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - **Số lượng**: số ly giống hệt nhau.
    - **Ghi chú**: gõ tự do, hoặc chạm **Ghi chú nhanh**: *Ít đá · Không đá · Ít đường · Không đường · Đá riêng · Mang về riêng*. Chạm lần nữa vào cùng ghi chú nhanh là bỏ nó ra.
    - Bấm **Thêm vào đơn · 100.000 đ** (số tiền là giá của các ly đó đã gồm tùy chọn). Bấm **Quay lại** hoặc phím **Esc** để thôi.
+3b. **Chọn combo**: mỗi **phần** của combo (ví dụ **Đồ uống** · Chọn 1 · Bắt buộc, **Bánh** · Chọn tối đa 2) là một thẻ, có đếm **Đã chọn 1/2**:
+   - Mỗi món của phần là một nút; món đổi có **phụ thu** ghi ngay trên nút (**Trà sữa trân châu (L) +10.000 ₫**). Phần **chọn 1**: chạm món khác là đổi. Phần **chọn nhiều**: chạm thêm lần nữa là thêm một (×2), nút **Bớt …** để bớt; chạm quá số tối đa thì báo "“Bánh” chỉ lấy 2 món. Bớt một món trước khi chọn món khác.".
+   - Món đã chọn mà có tùy chọn riêng (đường, đá, topping) thì hiện ngay dưới phần đó một ô **Tùy chọn của …** với các nhóm như màn tùy chọn thường; hai ly giống nhau trong một phần thì có hai ô (**· phần 1**, **· phần 2**), mỗi ly chọn riêng.
+   - Phần **bắt buộc** chỉ có **một** món còn bán thì máy chọn sẵn món đó; còn lại máy **không chọn hộ**.
+   - Món **Hết món** hiện xám với nhãn **Hết món**, không chạm được; phần bắt buộc mà mọi món đều hết thì báo "Món của “…” đang hết, chưa bán được combo này.".
+   - **Số lượng** và **Ghi chú** như món thường (ghi chú là của cả combo). Nút **Thêm vào đơn · 60.000 ₫** ghi giá combo đã cộng phụ thu và tùy chọn của từng món; còn thiếu thì báo đúng chỗ, ví dụ "Chưa chọn “Đồ uống” — phần này bắt buộc." hoặc "Trà sữa trân châu (L): Chưa chọn “Đường” — mục này bắt buộc.".
 3a. **Nhập giá hoặc cân nặng** trong ngăn kéo mở từ bên phải (giống ngăn thanh toán):
 
    ![Nhập cân nặng cho món bán theo cân](../images/may-quay/line-entry-weight.webp)
@@ -109,6 +125,7 @@ Mọi nhân viên đã đăng nhập đều bán được. Giảm giá, hủy m�
    - Đóng ngăn bằng **×**, phím **Esc** hoặc chạm ra ngoài: món không vào đơn.
 4. **Sửa đơn** ở cột bên phải: mỗi món một dòng — nút **−** / **+** ở đầu dòng để bớt / thêm một, rồi tên món, số tiền; tùy chọn hiện thành các nhãn nhỏ dưới tên, ghi chú là nhãn vàng. Bấm nút **⋯** cuối dòng để mở thao tác của món đó (**Xóa món**, **Hủy món**, **Giảm giá** — xem [06](06-huy-giam-hoan-va-duyet.md)); dòng đang mở chuyển nền đậm hơn. Cột đơn hẹp (máy tính bảng dựng đứng, điện thoại) thì nút − / + và ⋯ nằm ở hàng dưới tên.
    - Món **giá nhập tay** có nhãn **Giá nhập · 150.000 ₫** dưới tên: chạm vào để **đổi giá** (giá mới cần duyệt lại nếu người bán không có quyền). Nút − / + vẫn dùng được (2 cái bánh cùng giá).
+   - **Combo** có các món đã chọn thành nhãn nhỏ dưới tên, mỗi món kèm tùy chọn của nó (**+ Trà sữa trân châu (L) · 50% đường, Trân châu đen**); số tiền của dòng là giá combo đã cộng phụ thu và tùy chọn. Muốn đổi món trong combo chưa gửi bếp thì xóa combo rồi chọn lại.
    - Món **bán theo cân** có nhãn **351 g × 32.000 ₫/100 g** dưới tên và **không có** nút − / +: một dòng là một lần cân; chạm nhãn để **cân lại**, muốn thêm phần khác thì chạm món lần nữa (thành dòng mới).
 5. **Tìm món**: bấm vào ô tìm hoặc phím **F2**, gõ tên — **không dấu cũng được** ("tra sua" tìm ra "Trà sữa", "d" khớp cả "đ"). Máy tìm trong danh mục đang chọn; chọn **Tất cả** để tìm khắp thực đơn.
 6. Bấm **Thanh toán** hoặc phím **F9** — xem [04-thanh-toan.md](04-thanh-toan.md).
@@ -162,7 +179,8 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
 - Bảng giá theo giờ (ví dụ giờ vàng) áp theo **giờ của máy lúc bán**.
 - Món **Hết món** (bật ở trang quản lý) hiện ảnh xám với con dấu **Hết món**, giá gạch ngang, không chạm được. Món **Chưa có giá** cũng không chạm được. Món hết hoặc chưa có giá không có nút **+** và không mang nhãn **Bán chạy**.
-- Máy quầy bán món **giá cố định**, **giá nhập tay** và **bán theo cân**; **combo không hiện** trên máy quầy. Món theo cân mà bản sao trên máy chưa có đơn vị (từ trước khi có đơn vị) thì chưa hiện, tới lần đồng bộ sau.
+- Máy quầy bán món **giá cố định**, **giá nhập tay**, **bán theo cân** và **combo**. Món theo cân mà bản sao trên máy chưa có đơn vị (từ trước khi có đơn vị) thì chưa hiện, tới lần đồng bộ sau; combo chưa có phần nào (bản sao cũ) cũng chưa hiện.
+- **Combo**: tiền = giá combo (kể cả giá theo khung giờ) + phụ thu của từng món đã chọn + tùy chọn của từng món; mọi món trong combo tính **thuế của combo**. Máy chủ tính lại toàn bộ và từ chối combo chọn sai phần, quá số món, thiếu phần bắt buộc, có món đã ngừng bán hoặc **hết món** (kể cả khi đổi món trong combo đã có trên đơn). Combo đã gửi bếp thì khóa như món thường: thêm số combo được, đổi món trong combo thì không — phải **Hủy món** cả combo (hủy và trả hàng combo luôn theo **nguyên combo**, các món bên trong đi theo).
 - **Giá nhập tay**: lớn hơn 0 ₫, tối đa **100.000.000 ₫ một món**; gõ quá thì báo "Giá tối đa 100.000.000 ₫ cho một món." và không thêm được. Máy chủ tính lại tiền theo giá đã gõ và **chỉ nhận lần duyệt đúng đơn, đúng món, đúng giá** — một lần duyệt không dùng cho món thứ hai hay cho giá khác.
 - **Bán theo cân**: cân nặng là **số gam nguyên**, từ 1 g tới **100 kg (100.000 g)** một dòng; quá thì báo "Một lần cân tối đa 100 kg (100.000 g).". Tiền dòng = giá mỗi kg (hoặc mỗi 100 g) × cân nặng, **làm tròn tới đồng (nửa đồng làm tròn lên)**, đúng như máy chủ tính; phiếu pha chế và hóa đơn in **"351 g x …"**.
 - **Đơn dài** (nhiều món): cột đơn tự cuộn, phần tổng tiền, **Giảm giá đơn**, **Hủy đơn** và **Thanh toán** luôn đứng yên ở dưới.
@@ -185,6 +203,12 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 | “Kem cheese” chỉ chọn được một lần. / “Trân châu đen” tối đa 2 phần mỗi món. | Chọn một lựa chọn quá số lần cho phép | Bớt đi |
 | “Topping” không áp dụng cho size này. / Chọn size trước. | Nhóm không dùng cho size đang chọn / chưa chọn size | Chọn size phù hợp |
 | Món này vừa đổi trên thực đơn. Đóng lại và chọn lại món. | Quản lý vừa sửa món trong lúc đang chọn | Bấm Quay lại, chạm lại món |
+| Chưa chọn “Đồ uống” — phần này bắt buộc. / “Bánh” cần chọn ít nhất 1 món. / “Bánh” chỉ được chọn tối đa 2 món. | (combo) Thiếu / thừa món ở một phần | Chọn lại cho đúng số |
+| “Bánh” chỉ lấy 2 món. Bớt một món trước khi chọn món khác. | (combo) Chạm thêm món khi phần đã đủ | Bấm **Bớt …** rồi chọn món khác |
+| Trà sữa trân châu (L): Chưa chọn “Đường” — mục này bắt buộc. | (combo) Món trong combo thiếu tùy chọn bắt buộc của nó | Chọn trong ô **Tùy chọn của …** |
+| Món của “…” đang hết, chưa bán được combo này. | (combo) Mọi món của một phần bắt buộc đều hết | Bán món khác; báo quản lý |
+| Combo vừa đổi trên thực đơn. Đóng lại và chọn lại combo. | (combo) Quản lý vừa sửa combo trong lúc đang chọn | Bấm Quay lại, chạm lại combo |
+| Combo vừa đổi trên thực đơn: một món đã chọn không còn trong combo. … / Combo còn thiếu một phần bắt buộc … / Combo có nhiều món hơn thực đơn cho phép … | Máy chủ từ chối combo vì thực đơn đổi khi máy mất mạng (hiện ở **Cần xử lý**) | Mở lại đơn, xóa combo rồi chọn lại |
 | Có món vừa bị gỡ khỏi thực đơn. Xóa món đó khỏi đơn rồi thanh toán. | Món trong đơn vừa bị gỡ | Xóa món đó rồi thanh toán |
 | Không lưu được đơn trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý. | Máy không ghi được đơn vào bộ nhớ máy | Thử lại; tải lại trang; báo quản lý |
 | Món đã gửi bếp, đã giảm giá hoặc đã hủy một phần nên không bớt, đổi hay xóa được: muốn bớt thì hủy món. … | Sửa món đã khóa | Dùng **Hủy món** |
@@ -197,11 +221,11 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 
 ## Mất mạng thì sao
 
-Bán tại quầy **không cần mạng**: thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bán theo cân và giá nhập tay của người **có quyền** cũng bán được khi mất mạng; người **không có quyền** gõ giá thì cần mạng để quản lý duyệt (màn duyệt báo "Duyệt cần mạng…"). Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md). Đổi giao diện không cần mạng.
+Bán tại quầy **không cần mạng** (cả combo): thực đơn, giá, ảnh đã có sẵn trên máy; đơn lưu vào máy và tự gửi lên khi có mạng. Món bán theo cân và giá nhập tay của người **có quyền** cũng bán được khi mất mạng; người **không có quyền** gõ giá thì cần mạng để quản lý duyệt (màn duyệt báo "Duyệt cần mạng…"). Món bị đổi giá hay hết món ở trang quản lý trong lúc mất mạng thì máy chỉ biết khi có mạng lại. Xem [09-mat-mang-va-dong-bo.md](09-mat-mang-va-dong-bo.md). Đổi giao diện không cần mạng.
 
 ## Chưa làm / sắp có
 
-- Bán **combo** trên máy quầy.
+- Combo: chưa có **món mặc định** chọn sẵn khi phần còn nhiều lựa chọn; chưa **hủy riêng một món** trong combo (hủy nguyên combo); chưa sửa món trong combo ngay trên dòng (xóa rồi chọn lại).
 - **Cân điện tử** nối với máy: chưa có; ngăn nhập cân đã chừa nút **Đọc cân** (chỉ hiện khi máy có cân), hiện thu ngân gõ số gam cân hiện.
 - **Hủy món bán theo cân đã gửi bếp** (bàn): màn **Hủy món** đếm theo số món nguyên nên chưa hủy được một lần cân đã gửi bếp; trước khi gửi bếp thì **Xóa món** bình thường.
 - In lại hóa đơn cũ của món theo cân đọc đơn vị **hiện tại** của món; đổi đơn vị (kg ↔ 100 g) khi còn đơn đang mở hoặc cần in lại thì phiếu ghi sai đơn vị.

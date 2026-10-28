@@ -33,6 +33,7 @@ import "./pos-cart-totals.css";
 import "./pos-cart-controls.css";
 import "./pos-picker.css";
 import "./pos-chips.css";
+import "./pos-combo-picker.css";
 import "./pos-note-counter.css";
 import "./pos-payment.css";
 import "./pos-keypad.css";

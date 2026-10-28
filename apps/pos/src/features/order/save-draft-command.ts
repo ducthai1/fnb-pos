@@ -38,6 +38,20 @@ export function draftPayload(order: CounterOrder, priced?: PricedCounterOrder): 
         optionId,
         quantity,
       })),
+      ...(line.comboPicks === undefined
+        ? {}
+        : {
+            comboPicks: line.comboPicks.map(({ slotId, productId, variantId, modifiers }) => ({
+              slotId,
+              productId,
+              variantId,
+              modifiers: modifiers.map(({ groupId, optionId, quantity }) => ({
+                groupId,
+                optionId,
+                quantity,
+              })),
+            })),
+          }),
       quantity: quantitySent(line, priced),
       note: line.note,
       ...(line.enteredPrice === undefined ? {} : { enteredPrice: moneyToWire(line.enteredPrice) }),

@@ -59,5 +59,21 @@ export function slipHead(menu: TillMenu, sale: Pick<SlipOrder, "order">, at: num
 export const childrenOf = (lines: readonly OrderLine[], itemId: string) =>
   lines.filter((line) => line.parentLineId === itemId);
 
+/**
+ * Everything printed under an item, each with its depth: its options and a combo's picks at
+ * 1, a pick's own options at 2 right under their pick. Discounts are not printed as children.
+ */
+export function treeUnder(
+  lines: readonly OrderLine[],
+  itemId: string,
+): { readonly line: OrderLine; readonly depth: number }[] {
+  return childrenOf(lines, itemId)
+    .filter((child) => child.lineType !== "discount")
+    .flatMap((child) => [
+      { line: child, depth: 1 },
+      ...childrenOf(lines, child.id).map((grandchild) => ({ line: grandchild, depth: 2 })),
+    ]);
+}
+
 export const itemsOf = (lines: readonly OrderLine[]) =>
   lines.filter((line) => line.lineType === "item" && line.parentLineId === null);

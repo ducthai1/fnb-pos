@@ -16,7 +16,7 @@ import type { PaidSale } from "./paid-sale";
 import type { PrintJob } from "./printer-port";
 import { weighedOnSlip } from "./weighed-print";
 import { PRINTER_KEYS, RECEIPT_PRINTER } from "./printer-profiles";
-import { type SlipOrder, childrenOf, itemsOf, slipHead } from "./sale-order";
+import { type SlipOrder, itemsOf, slipHead, treeUnder } from "./sale-order";
 
 /** The e-invoice's lookup code and the page to look it up on, printed as text and as a QR. */
 export interface BillLookup {
@@ -36,16 +36,15 @@ export function billLinesOf(menu: TillMenu, priced: PricedCounterOrder): BillLin
     weighed: weighedOnSlip(menu, item.productId, item.quantity),
     unitPrice: item.unitPrice,
     amount: lineAmountOf(priced, item.id),
-    children: childrenOf(priced.lines, item.id)
-      .filter((child) => child.lineType !== "discount")
-      .map((child) => {
-        const gross = grossOf.get(child.id) ?? ZERO_VND;
-        return {
-          name: child.nameSnapshot,
-          quantity: child.quantity,
-          amount: compareVnd(gross, ZERO_VND) === 0 ? null : gross,
-        };
-      }),
+    children: treeUnder(priced.lines, item.id).map(({ line: child, depth }) => {
+      const gross = grossOf.get(child.id) ?? ZERO_VND;
+      return {
+        name: child.nameSnapshot,
+        quantity: child.quantity,
+        amount: compareVnd(gross, ZERO_VND) === 0 ? null : gross,
+        depth,
+      };
+    }),
     note: item.note,
   }));
 }

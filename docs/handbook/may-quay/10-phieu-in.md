@@ -14,11 +14,15 @@ decisions:
   - D-056
   - D-063
   - D-106
+  - D-114
+  - D-115
 tests:
   - apps/pos/src/features/printing/print-sale-slips.test.ts
   - packages/printing/src/layout/lay-out-document.test.ts
   - packages/printing/src/templates/bill-template.test.ts
   - packages/printing/src/templates/kitchen-ticket-template.test.ts
+  - packages/domain/src/kitchen/diff-kitchen-ticket-combo.test.ts
+  - apps/pos/src/features/order/combo-cart-line.test.ts
   - apps/pos/src/features/order/typed-and-weighed-lines.test.ts
   - apps/pos/src/app/table-rounds.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
@@ -80,9 +84,11 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 ## Luật và giới hạn
 
 - **Phiếu pha chế chia theo trạm** của món (trạm đặt ở trang quản lý). Mỗi lượt gửi bếp ở bàn chỉ in **phần mới** của từng trạm.
+- **Combo**: mỗi món trong combo in ở **trạm của chính món đó** — phiếu bar ghi "1 x Combo sáng / + Trà sữa trân châu (L) / + 50% đường" (tùy chọn của món thụt vào thêm một nấc), phiếu bếp ghi cùng combo với "+ Bánh croissant"; món không có trạm in ở trạm của combo. Combo chỉ thành "Đã gửi bếp" khi **mọi** phiếu có combo đó đều đã in; một phiếu kẹt thì lần gửi sau in lại combo ở mọi trạm của nó (trạm đã nhận có thể nhận trùng). Phiếu hủy combo in ở mọi trạm đã làm một phần của combo.
+- **Bill** của combo: dòng combo với giá combo, dưới đó từng món (món có phụ thu ghi số tiền phụ thu) và tùy chọn của món thụt vào thêm một nấc.
 - **Món chỉ được đánh dấu "Đã gửi bếp" khi máy in nhận phiếu.** Phiếu chỉ xem trên màn, hoặc máy in kẹt, thì món **vẫn "Chưa gửi bếp"** và lần gửi sau in lại. Hệ quả hiện nay (chưa có máy in): ở bàn, món không bao giờ chuyển sang "Đã gửi bếp", nên **bớt / xóa món vẫn tự do** và không có phiếu hủy.
 - **Phiếu tạm tính**: in hoặc chỉ xem trên màn đều tính là khách đã được đưa phiếu (bàn sang "Đã in tạm tính"); máy in kẹt thì không tính.
-- **Tem dán ly**: một tem cho **mỗi ly** (ghi "1/4", "2/4"…), chỉ cho món được đánh dấu "in tem ly" ở trang quản lý, và **chỉ cho đơn quầy**. Đơn bàn: lúc thanh toán máy bỏ tem (vì coi như đã có lúc gửi bếp), nhưng lúc gửi bếp hiện cũng chưa làm tem — nên đơn bàn **không có tem ly** nào.
+- **Tem dán ly**: một tem cho **mỗi ly** (ghi "1/4", "2/4"…), chỉ cho món được đánh dấu "in tem ly" ở trang quản lý — kể cả **ly nằm trong combo** (tem ghi tên đồ uống, tùy chọn của nó và ghi chú của combo) — và **chỉ cho đơn quầy**. Tem chỉ ghi tùy chọn, không ghi giảm giá của món. Đơn bàn: lúc thanh toán máy bỏ tem (vì coi như đã có lúc gửi bếp), nhưng lúc gửi bếp hiện cũng chưa làm tem — nên đơn bàn **không có tem ly** nào.
 - Khổ giấy đang dùng để dựng phiếu: bill **80 mm**, tem ly **40 × 30 mm**. Khi in thật, chữ được in **không dấu** cho tới khi cài được bảng mã tiếng Việt của từng máy in (bảng mã sai thì mọi chữ có dấu thành ký tự lạ).
 - **Tên món dài tự xuống dòng; số tiền luôn nằm cùng dòng đầu của tên.** Tên hoặc ghi chú có dấu xuống dòng ở đầu (thường do dán từ Excel) không còn đẩy số tiền lên một dòng trống phía trên tên.
 - Thông tin người mua hóa đơn điện tử **không in** lên bill.

@@ -3,7 +3,7 @@ import { formatVnd } from "@fnb/domain";
 import { Check } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { newId } from "../../features/ids/new-id";
-import { type CartLine, MAX_LINE_QUANTITY, cleanNote } from "../../features/order/counter-order";
+import { type CartLine, cleanNote } from "../../features/order/counter-order";
 import { modifierErrorMessage } from "../../features/order/modifier-error-message";
 import {
   type Choices,
@@ -19,10 +19,10 @@ import { vi } from "../../messages/vi";
 import { useTillKey } from "../shared/use-till-key";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { ComboPickerScreen } from "./combo-picker-screen";
 import { ModifierGroupField } from "./modifier-group-field";
 import { PickerProductHead } from "./picker-product-head";
-import { QuickNotes } from "./quick-notes";
-import { QuantityStepper } from "./quantity-stepper";
+import { PickerMoreSection } from "./picker-more-section";
 
 const P = vi.sale.picker;
 
@@ -35,8 +35,17 @@ export interface ModifierPickerScreenProps {
   onCancel(): void;
 }
 
+/** The picker a tapped product opens: a combo's slots, or an item's size and options. */
+export function ModifierPickerScreen(props: ModifierPickerScreenProps) {
+  return props.product.kind === "combo" ? (
+    <ComboPickerScreen {...props} />
+  ) : (
+    <ItemOptionsPicker {...props} />
+  );
+}
+
 /** Size, options by the group rules, how many, a note; refusals explained by the domain. */
-export function ModifierPickerScreen({
+function ItemOptionsPicker({
   header,
   menu,
   product,
@@ -110,7 +119,11 @@ export function ModifierPickerScreen({
               className="pos-button pos-button--primary pos-button--lg pos-wrap"
               onClick={add}
             >
-              {entry !== null ? P.next[entry] : total === null ? P.addNoPrice : P.add(formatVnd(total))}
+              {entry !== null
+                ? P.next[entry]
+                : total === null
+                  ? P.addNoPrice
+                  : P.add(formatVnd(total))}
             </button>
           </div>
         </>
@@ -153,32 +166,13 @@ export function ModifierPickerScreen({
           onFewer={(optionId) => setChoices(dropOptionUnit(group, optionId, choices))}
         />
       ))}
-      <section className="pos-card pos-picker__more">
-        {entry === "weight" ? null : (
-          <div className="pos-picker__quantity">
-            <span className="pos-field__label">{P.quantity}</span>
-            <QuantityStepper
-              label={P.quantity}
-              name={product.name}
-              value={quantity}
-              max={MAX_LINE_QUANTITY}
-              onChange={setQuantity}
-            />
-          </div>
-        )}
-        <label className="pos-field">
-          <span className="pos-field__label">{vi.sale.note}</span>
-          <textarea
-            className="pos-input pos-note"
-            rows={2}
-            maxLength={500}
-            placeholder={P.notePlaceholder}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-          />
-        </label>
-        <QuickNotes note={note} onChange={setNote} />
-      </section>
+      <PickerMoreSection
+        name={product.name}
+        quantity={entry === "weight" ? null : quantity}
+        onQuantity={setQuantity}
+        note={note}
+        onNote={setNote}
+      />
     </ScreenFrame>
   );
 }

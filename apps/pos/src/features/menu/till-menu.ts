@@ -51,13 +51,13 @@ export interface TillMenu {
 }
 
 /**
- * Combos need slot choices, which a draft line does not carry yet: the server refuses them,
- * so the counter does not offer them. An open-price product is sold at the price the cashier
+ * A combo is sold with its slots, so one without any (a copy stored before combos could be
+ * set up) waits for a newer copy. An open-price product is sold at the price the cashier
  * types, a weighed one at what it weighs; a weighed product whose copy names no unit (stored
  * before units existed) cannot say what its price is per, so it waits for a newer copy.
  */
 export function sellableOnCounter(product: PosProduct): boolean {
-  if (product.kind === "combo") return false;
+  if (product.kind === "combo") return (product.combo?.slots.length ?? 0) > 0;
   return product.pricingMode !== "weighed" || measureUnitOf(product) !== null;
 }
 

@@ -12,9 +12,12 @@ export const plainLine = (product: PosProduct): CartLine => ({
   note: null,
 });
 
-/** Whether a tap rings the product up at once, as a cashier expects of a bottle of water. */
+/**
+ * Whether a tap rings the product up at once, as a cashier expects of a bottle of water. A
+ * combo always opens its picker, which shows what goes in it even when nothing is to choose.
+ */
 export const needsNoChoice = (product: PosProduct): boolean =>
-  product.variants.length === 0 && product.modifierGroups.length === 0;
+  product.kind !== "combo" && product.variants.length === 0 && product.modifierGroups.length === 0;
 
 /** What the cashier must type before the line goes on the order: its price, or its weight. */
 export function entryNeeded(product: PosProduct): "price" | "weight" | null {

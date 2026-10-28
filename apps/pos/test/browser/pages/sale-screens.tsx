@@ -9,6 +9,7 @@ import { SellingModeSwitch } from "../../../src/screens/till/selling-mode-switch
 import { TillBarNav } from "../../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../../src/screens/till/till-header";
 import { TillTools } from "../../../src/screens/till/till-tools";
+import { HOSTILE_COMBO } from "../../../src/test-support/combo-menu";
 import { HOSTILE_PRODUCT, hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
@@ -99,6 +100,16 @@ export const SALE_SCREENS = {
       header={header}
       menu={menu}
       product={posProductSchema.parse(HOSTILE_PRODUCT)}
+      now={Date.now()}
+      onAdd={() => {}}
+      onCancel={() => {}}
+    />
+  ),
+  "combo-picker": () => (
+    <ModifierPickerScreen
+      header={header}
+      menu={menu}
+      product={posProductSchema.parse(HOSTILE_COMBO)}
       now={Date.now()}
       onAdd={() => {}}
       onCancel={() => {}}

@@ -12,6 +12,7 @@ export const SCREEN_NAMES = [
   "sale-long-cart",
   "modifier-picker",
   "modifier-picker-photo",
+  "combo-picker",
   "line-entry-price",
   "line-entry-weight",
   "payment",

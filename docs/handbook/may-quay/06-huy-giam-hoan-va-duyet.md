@@ -12,6 +12,7 @@ screens:
   - cancel-order
   - refund
 decisions:
+  - D-115
   - D-028
   - D-029
   - D-031
@@ -151,6 +152,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
 ## Luật và giới hạn
 
+- **Combo** hủy và trả hàng theo **nguyên combo** (chọn số combo); các món bên trong và tùy chọn của chúng đi theo, không hủy riêng một món trong combo. Phiếu hủy in ở mọi trạm đã làm một phần của combo.
 - **Ngưỡng tính cộng dồn**, không tính từng lần:
   - Giảm giá: so **tổng phần trăm mọi giảm giá cùng loại** trên món đó (hoặc trên đơn) **sau khi** thêm lần này, **làm tròn lên**. Ví dụ thu ngân giới hạn 10% đã giảm 10% cho một ly, giảm thêm 5% nữa là 15% ⇒ phải xin duyệt; màn duyệt ghi "(tổng giảm sau lần này: 15%)".
   - Thu/chi két: so **tổng số tiền đã thu và đã chi khỏi két trong cả ca** (mọi nhân viên trên két đó cộng chung, lấy độ lớn — rút 400.000 rồi bỏ lại 400.000 là 800.000 đ). Màn duyệt ghi "(két đã thu và chi trong ca, kể cả lần này: …)".

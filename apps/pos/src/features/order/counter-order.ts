@@ -1,4 +1,4 @@
-import type { ModifierSelectionInput, Vnd } from "@fnb/domain";
+import type { ComboPickInput, ModifierSelectionInput, Vnd } from "@fnb/domain";
 
 export type CounterServiceType = "takeaway" | "dine_in";
 
@@ -9,6 +9,8 @@ export interface CartLine {
   readonly variantId: string | null;
   /** As validateModifierSelection returned them: catalog order, one entry per option. */
   readonly modifiers: readonly ModifierSelectionInput[];
+  /** On a combo: what was put in each place, each pick with its own options. */
+  readonly comboPicks?: readonly ComboPickInput[];
   /** Whole units: cups, cakes. A line sold by weight is one weighing: always 1. */
   readonly quantity: number;
   readonly note: string | null;
@@ -93,12 +95,13 @@ export function setLineQuantity(order: CounterOrder, lineId: string, quantity: n
 export function withEntry(line: CartLine, entry: LineEntry): CartLine {
   if (entry.kind === "weight") return { ...line, grams: entry.grams, quantity: 1 };
   // Built afresh: an approval of an older price must not ride along with the new one.
-  const { lineId, productId, variantId, modifiers, quantity, note } = line;
+  const { lineId, productId, variantId, modifiers, quantity, note, comboPicks } = line;
   return {
     lineId,
     productId,
     variantId,
     modifiers,
+    ...(comboPicks === undefined ? {} : { comboPicks }),
     quantity,
     note,
     enteredPrice: entry.price,
