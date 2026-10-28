@@ -49,6 +49,16 @@
   border-bottom: 1px dashed var(--bo-border);
 }
 
+/* A combo row: the product picker takes the room, its size and upcharge sit beside it. */
+.bo-combo-option {
+  align-items: flex-start;
+}
+
+.bo-combo-option__product {
+  flex: 2 1 220px;
+  min-width: 0;
+}
+
 .bo-entry > .bo-field__error {
   flex-basis: 100%;
 }

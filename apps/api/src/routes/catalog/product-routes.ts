@@ -77,10 +77,15 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
         if (brand.rowCount === 0) {
           throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.brandNotFound);
         }
+        // Each product's live sizes too: a combo names a product by its size, and the
+        // backoffice picks them from this list without opening every product.
         const products = await client.query(
-          "SELECT id, name, kind, category_id, base_price, pricing_mode, measure_unit, version, " +
-            "archived_at, tenant_id, image_key " +
-            "FROM product WHERE brand_id = $1 ORDER BY name, id",
+          "SELECT p.id, p.name, p.kind, p.category_id, p.base_price, p.pricing_mode, " +
+            "p.measure_unit, p.version, p.archived_at, p.tenant_id, p.image_key, " +
+            "COALESCE((SELECT json_agg(json_build_object('id', v.id, 'name', v.name) " +
+            "ORDER BY v.sort_order, v.id) FROM product_variant v " +
+            "WHERE v.product_id = p.id AND v.archived_at IS NULL), '[]'::json) AS variants " +
+            "FROM product p WHERE p.brand_id = $1 ORDER BY p.name, p.id",
           [brandId],
         );
         return products.rows;
@@ -97,6 +102,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           version: row.version,
           archivedAt: row.archived_at === null ? null : row.archived_at.toISOString(),
           imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),
+          variants: row.variants,
         })),
       );
     }),

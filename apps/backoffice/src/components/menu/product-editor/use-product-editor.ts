@@ -9,6 +9,7 @@ import { useSession } from "../../shell/session-context";
 import { type Loaded, loadFailure } from "../../shell/use-api-load";
 import { checkProductDraft } from "./check-product-draft";
 import type { DraftErrors } from "./draft-error-paths";
+import type { SizesOf } from "./draft-to-product-body";
 import { serverRefusalErrors } from "./server-refusal-errors";
 import { type ProductDraft, draftOfDocument, emptyDraft } from "./product-draft";
 import type { DraftEdit } from "./product-draft-edits";
@@ -26,7 +27,13 @@ export interface EditorNotice {
  * saving it whole under its version, and archiving it. A save based on an old version is
  * refused by the API (409): the person is told and offered the newer one, never merged.
  */
-export function useProductEditor(productId: string, isNew: boolean, brandId: string | null) {
+export function useProductEditor(
+  productId: string,
+  isNew: boolean,
+  brandId: string | null,
+  /** The sizes of the brand's other products, for a combo's rows; unknown until loaded. */
+  sizesOf?: SizesOf,
+) {
   const api = useApi();
   const { signedOut } = useSession();
   const [loaded, setLoaded] = useState<Loaded<true>>({ state: "loading" });
@@ -63,7 +70,10 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
     setLoaded({ state: "ready", value: true });
   }, [isNew, load, productId, brandId]);
 
-  const check = useMemo(() => (draft === null ? null : checkProductDraft(draft)), [draft]);
+  const check = useMemo(
+    () => (draft === null ? null : checkProductDraft(draft, sizesOf)),
+    [draft, sizesOf],
+  );
   const edit = useCallback((change: DraftEdit) => {
     setRefusal(null);
     setDraft((current) => (current === null ? current : change(current)));
@@ -88,7 +98,7 @@ export function useProductEditor(productId: string, isNew: boolean, brandId: str
     if (result.status === 409 && result.code === VERSION_CONFLICT) {
       setNotice({ kind: "conflict", message: T.conflict });
     } else {
-      setRefusal(serverRefusalErrors(result));
+      setRefusal(serverRefusalErrors(result, draft.combo));
       fail(result);
     }
     return false;

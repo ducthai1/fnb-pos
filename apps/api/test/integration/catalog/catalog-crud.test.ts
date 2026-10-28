@@ -152,6 +152,11 @@ describe("listing and archiving products", () => {
       version: 2,
       archivedAt: archived.json().archivedAt,
       imageUrl: null,
+      // In order, so a combo's editor offers the sizes as the product lists them.
+      variants: [
+        { id: ids.sizeM, name: "M" },
+        { id: ids.sizeL, name: "L" },
+      ],
     });
     const read = await expectStatus(shop.call("GET", url), 200);
     expect(read.json()).toMatchObject({ archivedAt: archived.json().archivedAt, version: 2 });

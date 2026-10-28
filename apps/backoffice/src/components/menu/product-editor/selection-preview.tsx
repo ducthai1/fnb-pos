@@ -4,7 +4,9 @@ import { type ModifierGroup, type Product, effectiveModifierGroupRule, formatVnd
 import { useState } from "react";
 import { nameMark } from "../../../lib/format/name-mark";
 import { vi } from "../../../messages/vi";
+import type { ProductSummary } from "../../../lib/api/catalog-api";
 import { CheckField } from "../../ui/select-field";
+import { ComboPreview } from "./combo-preview";
 import { EDITOR_SECTIONS } from "./editor-sections";
 import { type PreviewCounts, countKey, previewMessage, previewOutcome } from "./preview-outcome";
 
@@ -14,7 +16,16 @@ const T = vi.menu.preview;
  * Lets the person pick as a customer would, judged by the domain's validateModifierSelection
  * exactly as the till judges it: a refusal shows on the group it is about.
  */
-export function SelectionPreview({ product, branchId }: { product: Product | null; branchId: string }) {
+export function SelectionPreview({
+  product,
+  branchId,
+  products = [],
+}: {
+  product: Product | null;
+  branchId: string;
+  /** The brand's products, to name what a combo's slots offer. */
+  products?: readonly ProductSummary[];
+}) {
   const [chosenVariant, setChosenVariant] = useState<string | null>(null);
   const [counts, setCounts] = useState<PreviewCounts>({});
 
@@ -23,6 +34,15 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
       <section className="bo-card" aria-label={T.title} id={EDITOR_SECTIONS.preview}>
         <h2 className="bo-subtitle">{T.title}</h2>
         <p className="bo-muted">{T.notReady}</p>
+      </section>
+    );
+  }
+  if (product.kind === "combo") {
+    return (
+      <section className="bo-card bo-preview" aria-label={T.title} aria-live="polite" id={EDITOR_SECTIONS.preview}>
+        <h2 className="bo-subtitle">{T.title}</h2>
+        <PreviewHead product={product} />
+        <ComboPreview product={product} products={products} />
       </section>
     );
   }
@@ -40,13 +60,7 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
     <section className="bo-card bo-preview" aria-label={T.title} aria-live="polite" id={EDITOR_SECTIONS.preview}>
       <h2 className="bo-subtitle">{T.title}</h2>
       <p className="bo-muted">{T.hint}</p>
-      <div className="bo-preview__head" aria-hidden="true">
-        <span className="bo-preview__mark" data-initial={nameMark(product.name)} />
-        <span className="bo-stack">
-          <strong className="bo-wrap">{product.name}</strong>
-          {product.basePrice !== null && <span className="bo-muted">{formatVnd(product.basePrice)}</span>}
-        </span>
-      </div>
+      <PreviewHead product={product} />
       {product.variants.length > 0 && (
         <fieldset className="bo-fieldset bo-row">
           <legend>{T.variant}</legend>
@@ -86,6 +100,18 @@ export function SelectionPreview({ product, branchId }: { product: Product | nul
         </p>
       )}
     </section>
+  );
+}
+
+function PreviewHead({ product }: { product: Product }) {
+  return (
+    <div className="bo-preview__head" aria-hidden="true">
+      <span className="bo-preview__mark" data-initial={nameMark(product.name)} />
+      <span className="bo-stack">
+        <strong className="bo-wrap">{product.name}</strong>
+        {product.basePrice !== null && <span className="bo-muted">{formatVnd(product.basePrice)}</span>}
+      </span>
+    </div>
   );
 }
 

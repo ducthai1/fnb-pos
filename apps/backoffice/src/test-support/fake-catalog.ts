@@ -47,6 +47,23 @@ export function fakeCatalog(categories: Category[] = []) {
     }),
     listCategories: async () => ok([...categories]),
     listStations: async () => ok([]),
+    // Every product saved so far, as the list route sums them up (sizes included).
+    listProducts: async () =>
+      ok(
+        [...products.values()].map((product) => ({
+          id: product.id,
+          name: product.name,
+          kind: product.kind,
+          categoryId: product.categoryId,
+          basePrice: product.basePrice,
+          pricingMode: product.pricingMode,
+          measureUnit: product.measureUnit,
+          version: product.version,
+          archivedAt: product.archivedAt,
+          imageUrl: product.imageUrl,
+          variants: product.variants.map((variant) => ({ id: variant.id, name: variant.name })),
+        })),
+      ),
   };
 
   /** Someone else saved the product meanwhile: its version moves on. */

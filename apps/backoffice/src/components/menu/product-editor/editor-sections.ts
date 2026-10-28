@@ -4,5 +4,6 @@ export const EDITOR_SECTIONS = {
   price: "editor-price",
   variants: "editor-variants",
   groups: "editor-groups",
+  combo: "editor-combo",
   preview: "editor-preview",
 } as const;

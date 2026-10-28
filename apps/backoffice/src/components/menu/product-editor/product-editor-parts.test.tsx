@@ -26,7 +26,10 @@ describe("the parts of the product editor", () => {
     expect(within(price).getByLabelText(T.basePrice)).toBeTruthy();
     expect(within(price).getByLabelText(T.taxRate)).toBeTruthy();
     expect(within(document.getElementById(EDITOR_SECTIONS.info)!).queryByLabelText(T.basePrice)).toBeNull();
-    for (const id of Object.values(EDITOR_SECTIONS)) expect(document.getElementById(id)).not.toBeNull();
+    // Every part an item has; a combo's slots are on a combo's page only.
+    const parts = Object.values(EDITOR_SECTIONS).filter((id) => id !== EDITOR_SECTIONS.combo);
+    for (const id of parts) expect(document.getElementById(id)).not.toBeNull();
+    expect(document.getElementById(EDITOR_SECTIONS.combo)).toBeNull();
   });
 
   it("goes to a part from its segment and marks it", async () => {

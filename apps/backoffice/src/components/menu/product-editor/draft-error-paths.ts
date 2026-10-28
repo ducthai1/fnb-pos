@@ -16,6 +16,11 @@ export const optionPath = (groupId: string, optionId: string, field?: string) =>
 export const rulePath = (groupId: string, variantId: string, field?: string) =>
   `${groupPath(groupId)}.rule.${variantId}${field === undefined ? "" : `.${field}`}`;
 
+export const slotPath = (slotId: string, field?: string) =>
+  field === undefined ? `slot.${slotId}` : `slot.${slotId}.${field}`;
+export const slotOptionPath = (slotId: string, key: string, field?: string) =>
+  `${slotPath(slotId)}.option.${key}${field === undefined ? "" : `.${field}`}`;
+
 /** The first error recorded at a path wins: it is the one to fix first. */
 export class DraftErrorList {
   private readonly errors: Record<string, string> = {};
