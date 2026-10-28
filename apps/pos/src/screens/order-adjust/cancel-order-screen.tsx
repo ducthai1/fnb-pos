@@ -1,5 +1,10 @@
 import { type ReactNode, useState } from "react";
-import { CANCEL_REASONS, type ReasonCode } from "../../features/order-adjust/reason-codes";
+import {
+  CANCEL_REASONS,
+  type ChosenReason,
+  type ReasonCode,
+  chosenReason,
+} from "../../features/order-adjust/reason-codes";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { ReasonPicker } from "./reason-picker";
@@ -10,10 +15,12 @@ const T = vi.adjust.cancel;
 export function CancelOrderScreen(props: {
   header: ReactNode;
   orderNo: number;
-  onConfirm(reasonCode: ReasonCode): Promise<string | null>;
+  onConfirm(reason: ChosenReason): Promise<string | null>;
   onBack(): void;
 }) {
-  const [reason, setReason] = useState<ReasonCode | null>(null);
+  const [code, setCode] = useState<ReasonCode | null>(null);
+  const [note, setNote] = useState("");
+  const reason = chosenReason(code, note);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
@@ -48,7 +55,13 @@ export function CancelOrderScreen(props: {
     >
       {props.header}
       <p className="pos-hint">{T.hint}</p>
-      <ReasonPicker reasons={CANCEL_REASONS} chosen={reason} onChoose={setReason} />
+      <ReasonPicker
+        reasons={CANCEL_REASONS}
+        chosen={code}
+        onChoose={setCode}
+        note={note}
+        onNote={setNote}
+      />
     </ScreenFrame>
   );
 }

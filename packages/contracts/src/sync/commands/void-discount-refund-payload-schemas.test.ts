@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { ZodType, ZodTypeDef } from "zod";
 import { domainCodesOf, outcomeOf } from "../../zod-issue-test-helpers";
 import { applyDiscountPayloadSchema } from "./apply-discount-payload-schema";
 import { cancelOrderPayloadSchema } from "./cancel-order-payload-schema";
+import { reasonNeedsNote } from "./command-payload-parts";
 import { refundOrderPayloadSchema } from "./refund-order-payload-schema";
 import { removeDiscountPayloadSchema } from "./remove-discount-payload-schema";
 import { voidLinePayloadSchema } from "./void-line-payload-schema";
@@ -109,5 +111,47 @@ describe("refundOrderPayloadSchema", () => {
     ["a shift that is not a uuid", { shiftId: "ca-sang" }],
   ])("refuses %s", (_label, change) => {
     expect(outcomeOf(refundOrderPayloadSchema, { ...refund, ...change }).ok).toBe(false);
+  });
+});
+
+/** A command payload that carries a reason, read for its note. */
+type NotedSchema = ZodType<{ reasonNote?: string | undefined }, ZodTypeDef, unknown>;
+
+describe("the note of an 'other' reason, on a void, a cancel and a refund", () => {
+  const payloads: [string, NotedSchema, Record<string, unknown>][] = [
+    ["a void", voidLinePayloadSchema, { orderId: id(1), lineId: id(2), quantity: "1" }],
+    ["a cancel", cancelOrderPayloadSchema, { orderId: id(1) }],
+    [
+      "a refund",
+      refundOrderPayloadSchema,
+      {
+        refundOrderId: id(1),
+        saleOrderId: id(2),
+        deviceOrderNo: 12,
+        lines: [{ lineId: id(3), quantity: "1", restock: false }],
+        payouts: [{ method: "cash", amount: -29_000 }],
+      },
+    ],
+  ];
+
+  it.each(payloads)("is kept trimmed on %s, up to 120 characters", (_label, schema, base) => {
+    const read = schema.parse({ ...base, reasonCode: "other", reasonNote: "  Ly bị đổ \n" });
+    expect(read.reasonNote).toBe("Ly bị đổ");
+    const longest = "ắ".repeat(120);
+    expect(schema.parse({ ...base, reasonCode: "other", reasonNote: longest }).reasonNote).toBe(
+      longest,
+    );
+    expect(schema.parse({ ...base, reasonCode: "other" }).reasonNote).toBeUndefined();
+  });
+
+  it.each(payloads)("is refused on %s when blank or longer than 120", (_label, schema, base) => {
+    for (const reasonNote of ["", "   ", "ắ".repeat(121)]) {
+      expect(outcomeOf(schema, { ...base, reasonCode: "other", reasonNote }).ok).toBe(false);
+    }
+  });
+
+  it("is needed for the 'other' reason only", () => {
+    expect(reasonNeedsNote("other")).toBe(true);
+    expect(reasonNeedsNote("customer_left")).toBe(false);
   });
 });

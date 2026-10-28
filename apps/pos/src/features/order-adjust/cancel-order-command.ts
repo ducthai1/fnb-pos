@@ -4,6 +4,7 @@ import type { LocalCommand } from "@fnb/sync-client";
 import { tillOrderSnapshot } from "../order/order-snapshot-for-till";
 import type { AdjustableOrder } from "../order/order-session-types";
 import { type TillPlace, tillCommand } from "../order/till-command";
+import { type ChosenReason, reasonOnWire } from "./reason-codes";
 
 /**
  * Whether the kitchen has units of the order nobody cancelled: the server refuses to cancel
@@ -36,11 +37,14 @@ export function cancelNeedsManager(settled: AdjustableOrder, row: EntitySnapshot
   return kitchenHadIt || shownABill;
 }
 
-/** order.cancel of a draft nobody will pay for, with why (and the manager who agreed). */
+/**
+ * order.cancel of a draft nobody will pay for, with why (an "other" reason with its note) and
+ * the manager who agreed.
+ */
 export function cancelOrderCommand(
   place: TillPlace,
   settled: AdjustableOrder,
-  reasonCode: string,
+  reason: ChosenReason,
   approvalId: string | null,
   at: number,
 ): LocalCommand {
@@ -48,11 +52,15 @@ export function cancelOrderCommand(
   const state = {
     ...settled.state,
     status: "cancelled" as const,
-    reasonCode,
+    reasonCode: reason.code,
     version: settled.state.version + 1,
     sent: settled.sent,
   };
-  const payload = { orderId, reasonCode, ...(approvalId === null ? {} : { approvalId }) };
+  const payload = {
+    orderId,
+    ...reasonOnWire(reason),
+    ...(approvalId === null ? {} : { approvalId }),
+  };
   return tillCommand(place, "order.cancel", cancelOrderPayloadSchema, payload, at, {
     entity: "order",
     entityId: orderId,

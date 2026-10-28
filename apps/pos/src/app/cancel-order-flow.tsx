@@ -25,7 +25,7 @@ export function CancelOrderFlow(props: AdjustContext) {
       header={props.header}
       orderNo={settled.order.deviceOrderNo}
       onBack={() => props.onDone({ kind: "back" })}
-      onConfirm={(reasonCode) =>
+      onConfirm={(reason) =>
         attempt(async () => {
           if (kitchenStillHasItems(settled)) return vi.errors.SYNC_ORDER_HAS_SENT_ITEMS;
           if ((await paidQrOfOrder(props.client, orderId)) !== null) {
@@ -44,7 +44,7 @@ export function CancelOrderFlow(props: AdjustContext) {
           const now = await session.adjustable();
           if (now === null) return vi.adjust.notSaved;
           await session.record(
-            cancelOrderCommand(props.place, now, reasonCode, approvalId, Date.now()),
+            cancelOrderCommand(props.place, now, reason, approvalId, Date.now()),
           );
           props.onDone({ kind: "cancelled" });
           return null;

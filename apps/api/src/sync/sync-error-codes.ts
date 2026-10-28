@@ -63,6 +63,8 @@ export const SYNC_ERROR_CODES = {
   discountRateRaised: "SYNC_DISCOUNT_RATE_RAISED",
   /** The kitchen has units of the order that were never voided; void them first. */
   orderHasSentItems: "SYNC_ORDER_HAS_SENT_ITEMS",
+  /** A void, cancel or refund for "other" reason with no note saying what happened. */
+  reasonNoteRequired: "SYNC_REASON_NOTE_REQUIRED",
 } as const;
 
 /** Thrown by a command handler: the command is answered `rejected` with `code` and stored. */

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { wholeDongSchema } from "../../primitives/money-schema";
 import { quantitySchema } from "../../primitives/quantity-schema";
 import { uuidSchema } from "../../primitives/uuid-schema";
-import { paymentMethodSchema, reasonCodeSchema } from "./command-payload-parts";
+import { paymentMethodSchema, reasonCodeSchema, reasonNoteSchema } from "./command-payload-parts";
 
 /**
  * order.refund: gives back part or all of a paid sale as a refund order of its own, paid
@@ -20,6 +20,8 @@ export const refundOrderPayloadSchema = z.object({
     .min(1)
     .max(200),
   reasonCode: reasonCodeSchema,
+  /** What happened, in the staff member's words; needed when the reason is "other". */
+  reasonNote: reasonNoteSchema.optional(),
   /** What left the drawer, as the refund's own payments: negative, like its lines. */
   payouts: z
     .array(z.object({ method: paymentMethodSchema, amount: wholeDongSchema.nonpositive() }))

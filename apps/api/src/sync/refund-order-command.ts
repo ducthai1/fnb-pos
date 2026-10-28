@@ -14,6 +14,7 @@ import { orderOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
 import { paidTimesOf } from "./paid-times";
 import { announceShiftCash, shiftForPayment } from "./payment-shift";
+import { assertReasonExplained } from "./reason-note";
 import { insertRefundAmounts } from "./refund-amounts-store";
 import { insertRefundHeader } from "./refund-order-writes";
 import { SHIFT_SYNC_ERROR_CODES } from "./shift-sync-error-codes";
@@ -54,6 +55,7 @@ async function assertRefundGoesBackTheWayItCame(
 
 async function refundOrder(context: SyncCommandContext, payload: RefundOrderPayload) {
   const { client, device, staffId, time } = context;
+  assertReasonExplained(payload);
   const sale = await orderOfBranch(context, payload.saleOrderId);
   await assertRefundGoesBackTheWayItCame(context, sale.order.id, payload.payouts);
   if ((await readStoredOrder(client, payload.refundOrderId, false)) !== null) {

@@ -19,6 +19,10 @@ export const VI_REASONS: Readonly<Record<ReasonCode, string>> = {
 
 export const VI_ORDER_ADJUST = {
   reason: "Lý do",
+  reasonNote: "Ghi chú lý do",
+  reasonNoteHint: "Ví dụ: khách làm đổ ly, gọi nhầm quán",
+  reasonNoteRequired: "Chọn “Lý do khác” thì phải ghi vài chữ chuyện gì đã xảy ra.",
+  reasonNoteCount: (written: number, most: number) => `${written}/${most} ký tự`,
   back: "Quay lại đơn",
   checking: "Đang đọc đơn…",
   notSaved: "Đơn chưa lưu xong trên máy (hoặc lần lưu vừa rồi lỗi). Quay lại đơn rồi thử lại.",
@@ -72,6 +76,8 @@ export const VI_ORDER_ADJUST = {
 } as const;
 
 export const VI_ORDER_ADJUST_ERRORS = {
+  SYNC_REASON_NOTE_REQUIRED:
+    "Chọn “Lý do khác” mà không ghi chú nên máy chủ không nhận thao tác. Làm lại và ghi vài chữ chuyện gì đã xảy ra.",
   SYNC_ORDER_HAS_SENT_ITEMS:
     "Bếp đã có món của đơn này chưa được hủy. Hủy từng món đã gửi bếp (in phiếu hủy) trước, rồi mới hủy đơn.",
   SYNC_DISCOUNT_RATE_RAISED:

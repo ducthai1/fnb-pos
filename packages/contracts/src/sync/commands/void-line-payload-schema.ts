@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { quantitySchema } from "../../primitives/quantity-schema";
 import { uuidSchema } from "../../primitives/uuid-schema";
-import { reasonCodeSchema } from "./command-payload-parts";
+import { reasonCodeSchema, reasonNoteSchema } from "./command-payload-parts";
 
 /**
  * order.void_line: cancel units of a sold item on a draft. The intent only: the server
@@ -12,6 +12,8 @@ export const voidLinePayloadSchema = z.object({
   lineId: uuidSchema,
   quantity: quantitySchema,
   reasonCode: reasonCodeSchema,
+  /** What happened, in the staff member's words; needed when the reason is "other". */
+  reasonNote: reasonNoteSchema.optional(),
   /** A manager's approval, needed when units the kitchen has are cancelled. */
   approvalId: uuidSchema.optional(),
 });

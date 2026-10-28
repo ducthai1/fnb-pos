@@ -46,6 +46,8 @@ export const salesOrder = pgTable("sales_order", {
   refundPricesIncludeTax: boolean("refund_prices_include_tax"),
   refundServiceChargeTaxRateBp: integer("refund_service_charge_tax_rate_bp"),
   reasonCode: text("reason_code"),
+  /** What the staff member wrote when the reason is "other"; see 0035. */
+  reasonNote: text("reason_note"),
   /** When the money was taken, as the server reads the till's time; null while a draft. */
   paidAt: timestamp("paid_at", { withTimezone: true }),
   /** What the till's clock showed when it took the money; see 0024. */
@@ -113,6 +115,7 @@ export const lineVoidRecord = pgTable("line_void_record", {
   fromUnsent: quantity("from_unsent").notNull(),
   fromSent: quantity("from_sent").notNull(),
   reasonCode: text("reason_code").notNull(),
+  reasonNote: text("reason_note"),
   staffId: uuid("staff_id").notNull(),
   approvedByStaffId: uuid("approved_by_staff_id"),
   approvalId: uuid("approval_id"),

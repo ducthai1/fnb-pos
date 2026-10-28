@@ -20,8 +20,9 @@ export async function insertRefundHeader(
   const inserted = await client.query(
     "INSERT INTO sales_order (id, tenant_id, branch_id, device_id, status, service_type, " +
       "channel_key, business_date, refund_of_order_id, device_order_no, charge_profile, " +
-      "refund_prices_include_tax, refund_service_charge_tax_rate_bp, reason_code, created_by) " +
-      "VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) " +
+      "refund_prices_include_tax, refund_service_charge_tax_rate_bp, reason_code, created_by, " +
+      "reason_note) VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13, " +
+      "$14, $15) " +
       "ON CONFLICT ON CONSTRAINT sales_order_device_order_no_once DO NOTHING",
     [
       refund.id,
@@ -38,6 +39,7 @@ export async function insertRefundHeader(
       amounts.serviceChargeTaxRate,
       payload.reasonCode,
       staffId,
+      payload.reasonNote ?? null,
     ],
   );
   return inserted.rowCount === 1;

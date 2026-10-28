@@ -1,6 +1,11 @@
 import { type Vnd, formatVnd } from "@fnb/domain";
 import { type ReactNode, useState } from "react";
-import { REFUND_REASONS, type ReasonCode } from "../../features/order-adjust/reason-codes";
+import {
+  type ChosenReason,
+  REFUND_REASONS,
+  type ReasonCode,
+  chosenReason,
+} from "../../features/order-adjust/reason-codes";
 import { REFUND_METHODS, type RefundMethod } from "../../features/refund/refund-command";
 import type { RefundSelection, RefundableLine } from "../../features/refund/refund-plan";
 import { vi } from "../../messages/vi";
@@ -20,7 +25,7 @@ export interface RefundScreenProps {
   preview(selection: RefundSelection): RefundPreview;
   onConfirm(
     selection: RefundSelection,
-    reason: ReasonCode,
+    reason: ChosenReason,
     method: RefundMethod,
   ): Promise<string | null>;
   /** Whether the customer paid the sale by QR transfer: only then can it go back by transfer. */
@@ -32,7 +37,9 @@ export interface RefundScreenProps {
 export function RefundScreen(props: RefundScreenProps) {
   const [chosen, setChosen] = useState<ReadonlyMap<string, number>>(new Map());
   const [method, setMethod] = useState<RefundMethod>(REFUND_METHODS.cash);
-  const [reason, setReason] = useState<ReasonCode | null>(null);
+  const [code, setCode] = useState<ReasonCode | null>(null);
+  const [note, setNote] = useState("");
+  const reason = chosenReason(code, note);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const any = [...chosen.values()].some((units) => units > 0);
@@ -112,7 +119,13 @@ export function RefundScreen(props: RefundScreenProps) {
         </ul>
         <p className="pos-hint">{method === REFUND_METHODS.cash ? R.cashNote : R.transferNote}</p>
       </fieldset>
-      <ReasonPicker reasons={REFUND_REASONS} chosen={reason} onChoose={setReason} />
+      <ReasonPicker
+        reasons={REFUND_REASONS}
+        chosen={code}
+        onChoose={setCode}
+        note={note}
+        onNote={setNote}
+      />
     </ScreenFrame>
   );
 }

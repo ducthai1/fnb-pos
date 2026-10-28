@@ -25,6 +25,7 @@ decisions:
   - D-081
   - D-110
   - D-111
+  - D-113
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -32,6 +33,9 @@ tests:
   - apps/pos/src/app/table-cancel-needs-a-manager.test.tsx
   - apps/pos/src/app/refund-from-history.test.tsx
   - apps/pos/src/app/table-refusals.test.tsx
+  - apps/pos/src/screens/order-adjust/other-reason-needs-a-note.test.tsx
+  - apps/api/test/integration/sync/other-reason-needs-a-note.test.ts
+  - packages/contracts/src/sync/commands/void-discount-refund-payload-schemas.test.ts
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/screens/approval/approval-sheet.test.tsx
   - apps/pos/src/features/permissions/till-authority.test.ts
@@ -108,7 +112,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
    ![Hủy món](../images/may-quay/void-line.webp)
 
-2. Chọn **Số lượng hủy** và **Lý do**: *Khách đổi ý · Nhập nhầm món · Pha/làm sai món · Hết nguyên liệu · Lý do khác*.
+2. Chọn **Số lượng hủy** và **Lý do**: *Khách đổi ý · Nhập nhầm món · Pha/làm sai món · Hết nguyên liệu · Lý do khác*. Chọn **Lý do khác** thì máy mở ô **Ghi chú lý do**: ghi vài chữ chuyện gì đã xảy ra (1–120 ký tự) — chưa ghi thì nút hủy chưa bấm được.
 3. Bấm **Hủy 1 món**. Phần **chưa gửi bếp** được hủy trước; phần đã gửi bếp cần duyệt (nếu chi nhánh bật) và in **phiếu hủy** cho trạm đã làm món đó.
 4. Trên đơn, món bị hủy hiện thêm dòng "Đã hủy 1 (đã gửi bếp)".
 
@@ -128,7 +132,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 
    ![Hủy đơn](../images/may-quay/cancel-order.webp)
 
-2. Chọn **Lý do**: *Khách không mua nữa · Đơn bị trùng · Đơn thử · Lý do khác*. Bấm **Hủy đơn này**.
+2. Chọn **Lý do**: *Khách không mua nữa · Đơn bị trùng · Đơn thử · Lý do khác* (**Lý do khác** cần **Ghi chú lý do**, như khi hủy món). Bấm **Hủy đơn này**.
 3. Đơn chưa từng in tạm tính, chưa từng gửi bếp: thu ngân tự hủy. Đơn **đã in tạm tính** hoặc **đã gửi bếp**: cần duyệt (chặn kiểu "in tạm tính → thu tiền khách → hủy đơn").
 
 ### Hoàn tiền đơn đã trả
@@ -136,7 +140,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 1. **Lịch sử đơn** → chọn đơn đã trả → **Hoàn tiền đơn số …** (xem [08-lich-su-don.md](08-lich-su-don.md)).
 2. Chọn số lượng hoàn của từng món (mỗi món ghi **Đã bán 2 · còn hoàn được 2**). Máy tính **số tiền hoàn theo đúng giá đã bán** (đã trừ giảm giá) — thu ngân không gõ số tiền.
 3. Chọn **Hoàn bằng**: **Tiền mặt từ két** (két của ca đang mở giảm đúng số này) hoặc **Chuyển khoản** (máy chỉ ghi lại; thu ngân tự chuyển từ tài khoản cửa hàng; két không đổi). Nút **Chuyển khoản** chỉ có khi khách đã trả đơn đó bằng **chuyển khoản QR**; đơn trả toàn tiền mặt chỉ hoàn bằng tiền mặt.
-4. Chọn **Lý do**: *Khách trả lại món · Pha/làm sai món · Món không đạt · Tính tiền nhầm · Lý do khác*. Bấm **Hoàn 50.000 ₫**.
+4. Chọn **Lý do**: *Khách trả lại món · Pha/làm sai món · Món không đạt · Tính tiền nhầm · Lý do khác* (**Lý do khác** cần **Ghi chú lý do**). Bấm **Hoàn 50.000 ₫**.
 
    ![Hoàn tiền](../images/may-quay/refund.webp)
 
@@ -162,6 +166,7 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 - **Hoàn về đúng đường khách đã trả**: hoàn bằng chuyển khoản chỉ khi đơn gốc có khoản **chuyển khoản QR**; đơn trả toàn tiền mặt mà máy gửi hoàn bằng chuyển khoản thì máy chủ từ chối.
 - Hoàn tiền tạo một **đơn hoàn riêng** gắn với đơn gốc; số còn hoàn được trừ cả những lần hoàn trước. Hoàn **không nhập lại kho**. Chỉ hoàn được đơn **đã trả**.
 - **Hoàn tiền luôn thuộc một ca**, như thanh toán: tiền hoàn ra khỏi két của ca đang mở và vào báo cáo của ca đó. Máy quầy chỉ mở được **Lịch sử đơn** sau khi đã mở ca, nên lần hoàn luôn ghi vào ca đang mở. Lệnh hoàn không nêu ca, tới từ máy không có ca nào đang mở (máy bản cũ), bị máy chủ từ chối; lần hoàn đã ghi trước đây giữ nguyên.
+- **Lý do khác phải có ghi chú** khi hủy món, hủy đơn, hoàn tiền: 1–120 ký tự, bỏ khoảng trắng hai đầu (ghi toàn dấu cách là chưa ghi). Ghi chú lưu cùng lý do trên máy chủ (đơn bị hủy, đơn hoàn, bản ghi hủy món). Máy chủ từ chối lệnh "Lý do khác" không kèm ghi chú (máy quầy bản cũ). Các lý do có sẵn trong danh sách thì không cần ghi chú.
 - Giảm theo % gõ được số lẻ tới 2 chữ số sau dấu phẩy (ví dụ `12,5`), từ trên 0 đến 100.
 
 ## Khi có lỗi
@@ -181,6 +186,8 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 | Lần duyệt này dành cho đơn, món hoặc ca khác với thao tác máy gửi. Làm lại thao tác và nhờ quản lý duyệt lại. | Lần duyệt cho đơn/món/ca khác (hoặc cho từ trước khi duyệt gắn với đơn) | Làm lại và xin duyệt cho đúng đơn |
 | Yêu cầu duyệt không nói rõ đơn hoặc ca nào nên máy chủ không nhận. Cập nhật ứng dụng bán hàng rồi làm lại thao tác. | Máy quầy bản cũ | Cập nhật ứng dụng, làm lại |
 | Hủy món đã gửi bếp cần quản lý duyệt. | — | Xin duyệt |
+| Chọn “Lý do khác” thì phải ghi vài chữ chuyện gì đã xảy ra. | Chọn Lý do khác mà ô ghi chú còn trống (nút xác nhận chưa bấm được) | Ghi chú lý do |
+| Chọn “Lý do khác” mà không ghi chú nên máy chủ không nhận thao tác. Làm lại và ghi vài chữ chuyện gì đã xảy ra. | Lệnh "Lý do khác" không kèm ghi chú (máy quầy bản cũ) | Làm lại, ghi chú lý do |
 | Số lượng hủy nhiều hơn số còn lại trên đơn. | Hủy quá số | Giảm số lượng hủy |
 | Món đang được giảm giá: gỡ giảm giá của món trước rồi mới hủy. | — | Gỡ giảm giá |
 | Hủy món làm phần giảm giá toàn đơn lớn hơn mức bạn được tự giảm. Gỡ giảm giá đơn trước, hủy món, rồi giảm lại. | — | Làm theo câu báo |

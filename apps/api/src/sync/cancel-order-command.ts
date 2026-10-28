@@ -3,6 +3,7 @@ import { appendAudit } from "@fnb/db";
 import { reversedQuantityOf, transitionOrder } from "@fnb/domain";
 import { assertNoPaidQrLeftOut, withdrawPendingIntents } from "../payments/qr-transfer-tenders";
 import { orderOfBranch } from "./editable-order";
+import { assertReasonExplained } from "./reason-note";
 import { requirePermission } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -12,7 +13,8 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  * order.cancel: drops a draft nobody will pay for. While the kitchen has units nobody
  * voided, the order is refused: cancelling it would hide food that was made, which is what
  * a void (with its approver) is for. So is an order a QR of which the bank already paid:
- * the customer's money would go nowhere. Who cancelled and why goes to the audit trail.
+ * the customer's money would go nowhere. Who cancelled and why goes to the audit trail; an
+ * "other" reason comes with the staff member's note, kept on the order.
  *
  * Once guests were shown a bill (a pre-bill printed, even of an earlier version) or the
  * kitchen was sent part of the order (even if all of it was voided since), cancelling it
@@ -22,6 +24,7 @@ import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
  */
 async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayload) {
   const { client, staffId } = context;
+  assertReasonExplained(payload);
   const stored = await orderOfBranch(context, payload.orderId);
   const cancelled = transitionOrder(stored.order, "cancelled");
   const { lines } = stored.order;
@@ -43,9 +46,15 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
   await assertNoPaidQrLeftOut(context, payload.orderId);
   await withdrawPendingIntents(context, payload.orderId);
   await client.query(
-    "UPDATE sales_order SET status = $2, reason_code = $3, version = $4, updated_at = now() " +
-      "WHERE id = $1",
-    [payload.orderId, cancelled.status, payload.reasonCode, cancelled.version],
+    "UPDATE sales_order SET status = $2, reason_code = $3, reason_note = $5, version = $4, " +
+      "updated_at = now() WHERE id = $1",
+    [
+      payload.orderId,
+      cancelled.status,
+      payload.reasonCode,
+      cancelled.version,
+      payload.reasonNote ?? null,
+    ],
   );
   await appendAudit(client, {
     actor: { kind: "staff", id: staffId },
@@ -54,6 +63,7 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
     entityId: payload.orderId,
     payload: {
       reasonCode: payload.reasonCode,
+      ...(payload.reasonNote === undefined ? {} : { reasonNote: payload.reasonNote }),
       ...(spent === null
         ? {}
         : { approvalId: spent.approvalId, approvedByStaffId: spent.approvedByStaffId }),

@@ -79,7 +79,7 @@ export function RefundFlow(props: RefundFlowProps) {
         }
       }}
       onBack={props.onBack}
-      onConfirm={(selection, reasonCode, method) =>
+      onConfirm={(selection, reason, method) =>
         attempt(async () => {
           const refund = plan(selection);
           const amount = formatVnd(refund.payout);
@@ -102,7 +102,7 @@ export function RefundFlow(props: RefundFlowProps) {
               sale,
               refund,
               deviceOrderNo: refundNo,
-              reasonCode,
+              reason,
               method,
               approvalId: approval?.approvalId ?? null,
               shiftId: props.shiftId,
