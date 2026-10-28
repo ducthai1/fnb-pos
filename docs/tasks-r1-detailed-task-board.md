@@ -62,21 +62,26 @@
 ### T00-01 Hồ sơ quán thí điểm — `user`
 - **Cần biết:** tên/loại quán; số quầy, số bàn, số khu; giờ mở/đóng (có qua nửa đêm?); số nhân viên + vai trò; nhân viên có order tại bàn không, bằng gì (⇒ kéo FT-105 vào R1?); thiết bị đang có (máy tính, tablet, máy POS, máy in bill/tem: hãng, model, LAN/USB/Bluetooth, két); phần mềm đang dùng; nhà cung cấp hóa đơn điện tử đang dùng; ngân hàng nhận chuyển khoản; có bán qua GrabFood/ShopeeFood không; menu hiện tại (ảnh/Excel).
 - **Xong khi:** điền đủ vào `research/pilot-cafe-profile.md`.
+- **Trạng thái:** user — chờ chủ dự án chọn quán thí điểm.
 
 ### T00-02 Dùng thử KiotViet FnB — `user` đăng ký → Claude làm
 - **Làm:** Claude điều khiển Chrome đi qua: món + topping + combo, bàn, gửi bếp, chuyển/gộp/tách bàn, hủy món, thanh toán nhiều phương thức, ca, kiểm kê, định lượng, khuyến mãi, phân quyền, báo cáo.
 - **Xong khi:** `research/research-g-dung-thu-kiotviet-fnb.md` có từng flow theo mẫu của file A; mục "khác với catalog" ghi rõ.
+- **Trạng thái:** user — chờ tài khoản dùng thử KiotViet FnB.
 
 ### T00-03 Dùng thử CukCuk — `user` đăng ký → Claude làm
 - Như T00-02, file `research/research-h-dung-thu-cukcuk.md`.
+- **Trạng thái:** user — chờ tài khoản dùng thử CukCuk.
 
 ### T00-04 Phỏng vấn quán thí điểm — `user` (Claude soạn kịch bản)
 - **Hỏi:** một ngày làm việc; giờ cao điểm; 10 thao tác dùng nhiều nhất; lỗi hay gặp ở phần mềm cũ; câu 7–11 [catalog §23](logic-catalog-flows-rules-and-design-decisions.md).
 - **Xong khi:** câu trả lời ghi vào `research/pilot-cafe-profile.md`; decision-log cập nhật D-011, D-012.
+- **Trạng thái:** user — chờ quán thí điểm (kịch bản phỏng vấn đã có ở catalog §23).
 
 ### T00-05 Hỏi kế toán thuế — `user`
 - **Hỏi:** câu 12–15 catalog §23 + "mã hóa đơn từ máy tính tiền có sinh được trên máy khi offline không".
 - **Xong khi:** trả lời ghi vào catalog §18 kèm tên người trả lời + ngày.
+- **Trạng thái:** user — chờ kế toán trả lời.
 
 ### T00-06 Tạo repo + khung monorepo — Claude
 - **Làm:** `git init` ở nơi user chốt; pnpm workspace + Turborepo; `apps/` `packages/` rỗng theo [bản đồ code](code-structure-and-conventions.md); `tsconfig.base.json`, eslint, prettier, vitest workspace; CI chạy `pnpm verify`; đăng ký repo vào `repos/registry.json` + `sources/<key>.md`.
@@ -96,13 +101,16 @@
 - **Làm:** `spikes/printing/`: mã hóa ESC/POS (tiếng Việt có dấu: thử code page và chế độ ảnh raster) + TSPL (tem); gửi qua TCP 9100 từ Tauri và Capacitor; Bluetooth trên Android; Sunmi nếu có; mở két.
 - **Xong khi:** in đúng trên ≥ 2 máy in thật của quán; đo thời gian bấm → ra giấy; ghi model nào chạy được.
 - **Phụ thuộc:** T00-01 (biết model), T00-06.
+- **Trạng thái:** blocked (cần máy in thật + vỏ Windows/Android) — mã hóa ESC/POS tiếng Việt + xem trước giấy đã có ở `packages/printing` (T04-11).
 
 ### T00-09 Spike S3: VietQR + webhook — Claude, `user` mở sandbox SePay hoặc PayOS
 - **Làm:** sinh payload EMVCo + CRC; nhận webhook sandbox; khớp theo mã nội dung; ca thiếu/thừa/sai/trùng.
 - **Xong khi:** chọn được cổng (SePay/PayOS) + biết cách kiểm chữ ký.
+- **Trạng thái:** done phần Claude (2026-10-20) — VietQR EMVCo + webhook SePay kiểm chữ ký + khớp mã nội dung (T05-01…03), `pnpm dev:bank-notice` giả thông báo ngân hàng; thử sandbox thật chờ tài khoản.
 
 ### T00-10 Spike S4: hóa đơn điện tử — Claude, `user` mở sandbox nhà cung cấp
 - **Xong khi:** biết chắc luồng phát hành, mã, gửi cuối ngày, hoàn tiền, hành vi khi offline của nhà cung cấp đã chọn.
+- **Trạng thái:** blocked (chờ sandbox nhà cung cấp HĐĐT) — interface + bản giả ở T05-06.
 
 ### T00-11 Chốt phạm vi R1 — Claude + `user`
 - **Làm:** cập nhật catalog, kiến trúc, decision-log, feature-map theo T00-01…10; khóa các [SPIKE].
@@ -111,6 +119,7 @@
 ---
 
 ## Phase 01 — Nền móng ([phase](phase-01-nen-mong-tenant-xac-thuc-quyen-thiet-bi.md))
+- **Trạng thái:** user — chờ T00-01…10.
 
 ### T01-01 Tooling monorepo
 - **Làm:** turbo pipeline `verify/test:unit/test:api/test:sync/e2e/build`; eslint 0 warning; path alias; script `pnpm verify`.
@@ -238,23 +247,30 @@
 
 ### T03-05 UI combo
 - **Test chung T03-03…05:** `e2e/backoffice/build-milk-tea-menu.spec.ts` — dựng 1 món trà sữa đủ size/đường/đá/topping, xem trước, lưu, mở lại đúng.
+- **Trạng thái:** todo — domain `resolveCombo` có (T02-04); trang quản lý chưa sửa được combo, máy quầy ẩn món combo (D-048).
 
 ### T03-06 Bảng giá
 - **Test:** `e2e/backoffice/happy-hour-price-list.spec.ts`.
+- **Trạng thái:** một phần (2026-10-20) — schema + API bảng giá (`price-list-routes.ts`, `price-list-roundtrip.test.ts`), máy quầy áp giá theo bảng (`apps/pos/src/features/menu/menu-prices.ts`); trang quản lý chưa có màn bảng giá.
 
 ### T03-07 Trạm pha chế/bếp + gán món
+- **Trạng thái:** một phần (2026-10-20) — API trạm (`category-and-station-routes.ts`), gán món → trạm trong trình sửa món, phiếu theo trạm (T04-10); trang quản lý chưa có màn thêm/sửa trạm.
+
 ### T03-08 Hết món bật tay
 - **Test:** `apps/api/test/integration/catalog/manual-86-hides-item-on-pos.test.ts`.
-- **Trạng thái:** done phía API (2026-10-20) — `PUT /catalog/availability`; UI chưa.
+- **Trạng thái:** done (2026-10-20) — `PUT /catalog/availability`; màn "Hết món" ở trang quản lý (`apps/backoffice/src/components/menu/availability-screen.tsx`).
 
 ### T03-09 Ảnh món
 - **Test:** `apps/api/test/integration/catalog/image-upload-validates-type-and-size.test.ts`.
+- **Trạng thái:** done (2026-10-21, `b0c93d6`) — D-072, migration 0031: upload ở trang quản lý, thẻ món có ảnh trên máy quầy, giữ ảnh khi mất mạng (`e2e/backoffice/attach-product-photo.spec.ts`, `e2e/pos/product-photo-on-the-till.spec.ts`).
 
 ### T03-10 Mẫu loại quán
 - **Test:** `packages/shop-templates/src/apply-template-is-idempotent.test.ts` — chạy 2 lần không nhân đôi.
+- **Trạng thái:** todo.
 
 ### T03-11 Nhập/xuất Excel
 - **Test:** `apps/api/test/integration/catalog/menu-excel-roundtrip.test.ts`.
+- **Trạng thái:** done (2026-10-21) — nhập menu từ Excel + tải bảng menu (`e2e/backoffice/import-menu-from-excel.spec.ts`, `download-menu-sheet.ts`).
 
 ### T03-12 Dữ liệu xấu ở backoffice
 - **Test:** `e2e/backoffice/hostile-menu-data.spec.ts` — 360px/800px, không tràn ở phần tử đang cuộn.
@@ -262,6 +278,7 @@
 ---
 
 ## Phase 04 — Bán tại quầy ([phase](phase-04-ban-tai-quay-offline-dong-bo-in-an-ca-ket.md))
+- **Trạng thái:** done (2026-10-21) — `e2e/backoffice/hostile-menu-data-layout.spec.ts`, `hostile-operations-pages-layout.spec.ts`.
 
 ### T04-01 Schema đơn / thanh toán / ca / in / hủy (server + SQLite)
 - **Test:** `apps/api/test/integration/order/paid-order-is-immutable.test.ts`.
@@ -290,6 +307,7 @@
 
 ### T04-07 Tổng tiền + giảm tay + giá nhập tay + theo cân
 - **Test:** `e2e/pos/manual-discount-over-threshold-needs-approval.spec.ts`.
+- **Trạng thái:** một phần (2026-10-21) — giảm dòng/đơn + duyệt vượt ngưỡng (D-057, `e2e/pos/void-discount-refund-with-approval.spec.ts`); giá nhập tay + món theo cân chưa (máy quầy ẩn, D-048).
 
 ### T04-08 Thanh toán
 - **Làm:** tiền mặt (gợi ý mệnh giá, tiền thừa), QR động (xác nhận tay), thẻ (ghi nhận tay), nhiều phương thức.
@@ -298,6 +316,7 @@
 
 ### T04-09 Số đơn 3 lớp + số gọi món
 - **Test:** `packages/domain/src/order/order-numbering.test.ts`; `packages/sync-client/test/scenarios/offline-orders-get-unique-numbers.test.ts`.
+- **Trạng thái:** một phần (2026-10-20) — số đơn theo máy + số gọi tạm tính trên máy (D-048); số gọi khi chi nhánh có ≥ 2 máy (D-082) chưa.
 
 ### T04-10 Phiếu pha chế theo trạm
 - **Làm:** domain `diffKitchenTicket(order, sent)` → dòng mới/sửa ghi chú/hủy theo trạm; bảng `kitchen_ticket(_line)`.
@@ -310,11 +329,15 @@
 - **Trạng thái:** done (2026-10-20) — `@fnb/printing`: ESC/POS + TSPL + Windows-1258 + ascii-fold, QR, mẫu bill/tem ly/phiếu bếp/chốt ca, golden (`pnpm --filter @fnb/printing golden:update`). Chưa thử máy in thật (T00-08).
 
 ### T04-12 Vỏ Tauri (Windows)
+- **Trạng thái:** blocked — cần máy Windows + máy in thật để thử (T00-08).
+
 ### T04-13 Vỏ Capacitor (Android/iOS)
 - **Test chung:** `e2e/hardware-checklist.md` — chạy tay trên máy in của quán, ghi kết quả + ngày.
+- **Trạng thái:** blocked — cần thiết bị Android/iOS + máy in thật.
 
 ### T04-14 Backoffice: máy in + gán trạm → máy in
 - **Test:** `e2e/backoffice/assign-station-printer.spec.ts`.
+- **Trạng thái:** todo.
 
 ### T04-15 Hàng đợi in + in lại + báo lỗi
 - **Test:** `apps/pos/src/features/printing/print-queue-retries-and-surfaces-failures.test.ts` — máy in tắt: job `failed`, hiện cảnh báo, bật lại in được, không mất phiếu.
@@ -342,12 +365,18 @@
 - **Trạng thái:** done phía API (2026-10-20) — `/floor/areas`, `/floor/tables` (x/y/w/h/shape, số ghế, archive khi đã dùng); UI backoffice chưa.
 
 ### T4B-02 POS: màn sơ đồ bàn (trạng thái, thời gian ngồi)
+- **Trạng thái:** done (2026-10-20) — D-056, sơ đồ từ bootstrap + feed (D-070), giao diện mới 2026-10-28; `e2e/pos/table-service.spec.ts`.
+
 ### T4B-03 Mở bàn, nhiều lượt, gửi pha chế
 - **Trạng thái:** done phía server (2026-10-20) — `order.save_draft` nhận tableId (dine_in), đơn giữ bàn suốt đời, đổi bàn chỉ qua transfer.
 
 ### T4B-04 Tạm tính, in lại
+- **Trạng thái:** done (2026-10-20) — D-056, tạm tính mang version (D-063); `e2e/pos/table-service.spec.ts`.
+
 ### T4B-05 Trả sau tại bàn, đóng bàn
 - **Test chung T4B-02…05:** `e2e/pos/table-two-rounds-pay-later.spec.ts` — lượt 2 chỉ in món mới; tạm tính = thanh toán.
+- **Trạng thái:** done (2026-10-20) — D-056, F9 thanh toán ở bàn (D-074); `e2e/pos/table-service.spec.ts`.
+
 ### T4B-06 Chuyển sang bàn trống
 - **Test:** `packages/domain/src/table/transfer-to-empty-table.test.ts` — chuyển sang bàn có khách bị chặn (gộp để R2).
 - **Trạng thái:** done phía server (2026-10-20) — `table.transfer` sang bàn trống (quyền transfer_table).
@@ -367,6 +396,7 @@
 ---
 
 ## Phase 05 — QR, hóa đơn, chốt ngày ⇒ R1 ([phase](phase-05-thanh-toan-qr-hoa-don-dien-tu-chot-ngay-bao-cao.md))
+- **Trạng thái:** done theo cách khác (2026-10-21) — thay "máy mở bàn giữ bàn" bằng `expectedVersion` + làm lại trên bản server + báo xung đột (D-069), sơ đồ dựng từ bootstrap + feed nên mất mạng vẫn có (D-070).
 
 ### T05-01 `payment_intent` + payload VietQR
 - **Test:** `packages/domain/src/payment/vietqr-payload-crc.test.ts` — so với QR mẫu của ngân hàng.
@@ -403,6 +433,8 @@
 - **Trạng thái:** done (2026-10-20) — einvoice_daily_batch gửi theo ngày kinh doanh.
 
 ### T05-10 Hoàn tiền sau khi có hóa đơn (theo T00-05)
+- **Trạng thái:** blocked — chờ kế toán (T00-05).
+
 ### T05-11 Chốt ngày kinh doanh
 - **Test:** `apps/api/test/integration/day-close/end-of-day-close.test.ts` — còn ca mở thì không chốt.
 - **Trạng thái:** done phía API (2026-10-20) — `POST /branches/:id/day-close` (view_reports + accept_close_difference).
@@ -417,12 +449,22 @@
 ---
 
 ## Phase 11 (phần vận hành, xong trước R1) ([phase](phase-11-saas-thuong-mai-dang-ky-goi-cuoc-van-hanh.md))
+- **Trạng thái:** user — chờ quán thí điểm + vỏ máy quầy + máy in thật.
 
 ### T11-01 Giám sát lỗi client + server (có tenant_id, không log dữ liệu cá nhân)
+- **Trạng thái:** một phần (2026-10-21) — lỗi 500 của server ghi log kèm tenant, che bí mật (D-064, `apps/api/src/http/server-error-report.test.ts`); chưa thu lỗi phía máy quầy / trang quản lý.
+
 ### T11-02 Backup tự động + diễn tập khôi phục — ghi `infra/restore-drill.md`
+- **Trạng thái:** done (2026-10-21, `9071dae`) — D-067: `pnpm ops:backup|ops:restore`, cron backup, `infra/restore-drill.md`; URL ping + đích rclone chờ chủ dự án.
+
 ### T11-03 Staging + dữ liệu giả (gồm bộ dữ liệu xấu)
+- **Trạng thái:** một phần (2026-10-20) — `pnpm dev:stack` có quán mẫu "Cà phê Mẫu"; staging cần server thật (chủ dự án).
+
 ### T11-04 Cập nhật app quầy: nóng, chặn giữa ca, quay lui
+- **Trạng thái:** todo.
+
 ### T11-05 Pipeline deploy (staging tự động, production bấm tay)
+- **Trạng thái:** một phần (2026-10-21) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); chưa có pipeline.
 
 ---
 
