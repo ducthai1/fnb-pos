@@ -6,6 +6,7 @@ export type {
 } from "./price-list-types";
 export { PRICING_ERROR_CODES } from "./pricing-error-codes";
 export {
+  MAX_ENTERED_PRICE,
   type ResolveUnitPriceInput,
   type ResolvedUnitPrice,
   type UnitPriceSource,

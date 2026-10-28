@@ -23,6 +23,7 @@ decisions:
   - D-063
   - D-076
   - D-081
+  - D-105
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -43,6 +44,7 @@ tests:
   - apps/api/test/integration/sync/sync-apply-discount-judges-the-cumulative-rate.test.ts
   - apps/api/test/integration/sync/sync-approval-is-timed-by-the-server.test.ts
   - apps/api/test/integration/sync/sync-approval-is-used-once-by-whoever-asked.test.ts
+  - apps/api/test/integration/sync/sync-save-draft-open-price-needs-the-permission.test.ts
   - apps/api/test/integration/sync/sync-void-line-takes-unsent-units-first.test.ts
   - apps/api/test/integration/sync/cancel-shown-or-served-draft-needs-a-manager.test.ts
   - apps/api/test/integration/sync/sync-refund-gives-back-what-the-sale-took.test.ts
@@ -78,6 +80,7 @@ Quyền nằm ở **vai trò** của nhân viên (chủ quán sửa ở trang qu
 | Hủy đơn đã in tạm tính / đã gửi bếp (`close_unpaid_table`) | phải xin duyệt | có | có |
 | Hoàn tiền (`refund`) | phải xin duyệt | có | có |
 | Thu/chi két (`cash_move`) | tự làm tới **500.000 đ** cộng dồn trong ca | không giới hạn | không giới hạn |
+| Bán món giá nhập tay (`open_price`) | có | có | có |
 | Chuyển bàn (`transfer_table`) | có | có | có |
 | Chấp nhận lệch két khi đóng ca (`accept_close_difference`) | phải xin duyệt | có | có |
 
@@ -144,8 +147,8 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
   - Giảm giá: so **tổng phần trăm mọi giảm giá cùng loại** trên món đó (hoặc trên đơn) **sau khi** thêm lần này, **làm tròn lên**. Ví dụ thu ngân giới hạn 10% đã giảm 10% cho một ly, giảm thêm 5% nữa là 15% ⇒ phải xin duyệt; màn duyệt ghi "(tổng giảm sau lần này: 15%)".
   - Thu/chi két: so **tổng số tiền đã thu và đã chi khỏi két trong cả ca** (mọi nhân viên trên két đó cộng chung, lấy độ lớn — rút 400.000 rồi bỏ lại 400.000 là 800.000 đ). Màn duyệt ghi "(két đã thu và chi trong ca, kể cả lần này: …)".
 - **Duyệt dùng một lần**, cho đúng thao tác, **đúng chỗ** và **đúng con số** quản lý đã thấy trên màn duyệt:
-  - Đúng chỗ: giảm giá món và hủy món đã gửi bếp gắn với **món đó của đơn đó**; giảm giá đơn, hủy đơn đã in tạm tính / đã gửi bếp, hoàn tiền gắn với **đơn đó**; thu/chi két, chấp nhận lệch két gắn với **ca đó**. Duyệt "Hoàn 25.000 ₫ cho đơn số 12" không dùng được cho đơn khác, kể cả trong 10 phút.
-  - Đúng con số: hoàn tiền đúng **số tiền trả khách**; hủy món đã gửi bếp đúng **số món bếp đã có**; thu/chi két đúng **tổng thu + chi trong ca**; đóng ca đúng **số lệch**. Khác một đồng là phải xin lại.
+  - Đúng chỗ: giảm giá món, hủy món đã gửi bếp và giá nhập tay gắn với **món đó của đơn đó**; giảm giá đơn, hủy đơn đã in tạm tính / đã gửi bếp, hoàn tiền gắn với **đơn đó**; thu/chi két, chấp nhận lệch két gắn với **ca đó**. Duyệt "Hoàn 25.000 ₫ cho đơn số 12" không dùng được cho đơn khác, kể cả trong 10 phút.
+  - Đúng con số: giá nhập tay đúng **giá đã gõ** (duyệt 150.000 ₫ không dùng cho 15.000 ₫, cũng không dùng cho món giá nhập tay thứ hai); hoàn tiền đúng **số tiền trả khách**; hủy món đã gửi bếp đúng **số món bếp đã có**; thu/chi két đúng **tổng thu + chi trong ca**; đóng ca đúng **số lệch**. Khác một đồng là phải xin lại.
   - Riêng giảm giá: duyệt là **tối đa** phần trăm đó cho món/đơn đó. Máy khác thêm món làm tổng giảm tụt từ 20% xuống 19% thì vẫn dùng được, không phải xin lại; cao hơn mức đã duyệt thì phải xin lại.
   - Máy quầy bản cũ xin duyệt mà không gửi đơn/ca thì máy chủ không nhận (xem bảng lỗi): cập nhật ứng dụng bán hàng.
 - **Hạn duyệt**: thao tác phải được ghi trong **10 phút** sau khi duyệt (cho phép đồng hồ máy chậm 2 phút), và phải tới máy chủ trong **12 giờ** (máy mất mạng cả buổi vẫn giữ được lần duyệt, vì lần duyệt chỉ dùng được cho đúng việc đã duyệt).

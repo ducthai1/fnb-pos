@@ -5,6 +5,7 @@ import { errorOf } from "../catalog/catalog-test-helpers";
 import { PEARL_MILK_TEA } from "../catalog/pearl-milk-tea-test-fixture";
 import { multiplyVndByQuantity, quantity, vnd } from "../money";
 import { PRICING_ERROR_CODES } from "./pricing-error-codes";
+import { MAX_ENTERED_PRICE } from "./resolve-price";
 import { percentOff, priceListItem, priceOf } from "./pricing-test-helpers";
 
 const STRAWBERRIES: Product = {
@@ -117,6 +118,15 @@ describe("resolveUnitPrice: weighed and open-price products", () => {
       priceOf({ product: CUSTOM_CAKE, variantId: null, enteredPrice: vnd(-1) }),
     );
     expect(negative.code).toBe(PRICING_ERROR_CODES.negativeEnteredPrice);
+  });
+
+  it("takes a typed price up to 100.000.000 đ and refuses one đồng more", () => {
+    const at = (price: bigint) => () =>
+      priceOf({ product: CUSTOM_CAKE, variantId: null, enteredPrice: vnd(price) });
+    expect(at(MAX_ENTERED_PRICE)().unitPrice).toBe(100_000_000n);
+    const error = errorOf(at(MAX_ENTERED_PRICE + 1n));
+    expect(error.code).toBe(PRICING_ERROR_CODES.enteredPriceTooLarge);
+    expect(error.details).toMatchObject({ enteredPrice: 100_000_001n });
   });
 
   it("rejects a typed price on a product that has a catalog price", () => {

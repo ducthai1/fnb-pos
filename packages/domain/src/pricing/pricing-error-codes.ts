@@ -5,6 +5,7 @@ export const PRICING_ERROR_CODES = {
   enteredPriceRequired: "DOMAIN_PRICING_ENTERED_PRICE_REQUIRED",
   enteredPriceNotAllowed: "DOMAIN_PRICING_ENTERED_PRICE_NOT_ALLOWED",
   negativeEnteredPrice: "DOMAIN_PRICING_NEGATIVE_ENTERED_PRICE",
+  enteredPriceTooLarge: "DOMAIN_PRICING_ENTERED_PRICE_TOO_LARGE",
   // Price list configuration
   fixedPriceOnBroadScope: "DOMAIN_PRICING_FIXED_PRICE_ON_BROAD_SCOPE",
   negativeFixedPrice: "DOMAIN_PRICING_NEGATIVE_FIXED_PRICE",

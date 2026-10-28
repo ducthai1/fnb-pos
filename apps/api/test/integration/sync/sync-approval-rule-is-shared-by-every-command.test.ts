@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { expectStatus } from "../support/catalog-shop";
 import { cashMove, freshTill, openedShift, pushShift } from "../support/shift-commands";
-import { approve, hireManager, justNow, signInAs } from "../support/sync-approvals";
+import { approve, hireManager, justNow, openPriceOf, signInAs } from "../support/sync-approvals";
 import { line, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -48,9 +48,19 @@ afterAll(async () => {
   await pool.end();
 });
 
-/** A waiter's draft typing a price, with the approval named where `where` says. */
-function typedPrice(where: { payload?: string; envelope?: string }) {
-  const sent = saveDraft(s.tillB, [line(cake, { enteredPrice: 42_000 })]);
+/** A new order with one cake, and what a manager is shown to sell it at 42.000 đ. */
+function cakeOrder() {
+  const orderId = newId();
+  const cakeLine = line(cake, { enteredPrice: 42_000 });
+  return { orderId, cakeLine, action: openPriceOf(orderId, cakeLine.lineId, 42_000) };
+}
+
+/** A waiter's draft of `order` typing its price, with the approval named where `where` says. */
+function typedPrice(
+  order: ReturnType<typeof cakeOrder>,
+  where: { payload?: string; envelope?: string },
+) {
+  const sent = saveDraft(s.tillB, [order.cakeLine], { orderId: order.orderId });
   return {
     ...sent,
     createdAt: justNow(),
@@ -59,7 +69,6 @@ function typedPrice(where: { payload?: string; envelope?: string }) {
   };
 }
 
-const openPrice = { key: "open_price" };
 
 /** A till whose cashier has a shift open and has already moved 450.000 đ out alone. */
 async function tillNearTheCashCap(): Promise<{ till: Till; shiftId: string }> {
@@ -87,8 +96,9 @@ const usesOf = (approvalId: string) =>
 
 describe("the one approval rule of order and shift commands", () => {
   it("takes an approval named on the envelope of an order command", async () => {
-    const approvalId = await approve(app, s.tillB, managerId, openPrice);
-    const result = await pushOne(app, s.tillB, typedPrice({ envelope: approvalId }));
+    const order = cakeOrder();
+    const approvalId = await approve(app, s.tillB, managerId, order.action);
+    const result = await pushOne(app, s.tillB, typedPrice(order, { envelope: approvalId }));
     expect(result.status).toBe("accepted");
     expect(await usesOf(approvalId)).toEqual(["order.save_draft"]);
   });
@@ -102,12 +112,13 @@ describe("the one approval rule of order and shift commands", () => {
   });
 
   it("refuses a command whose payload and envelope name two different approvals", async () => {
-    const inPayload = await approve(app, s.tillB, managerId, openPrice);
-    const onEnvelope = await approve(app, s.tillB, managerId, openPrice);
+    const cakes = cakeOrder();
+    const inPayload = await approve(app, s.tillB, managerId, cakes.action);
+    const onEnvelope = await approve(app, s.tillB, managerId, cakes.action);
     const order = await pushOne(
       app,
       s.tillB,
-      typedPrice({ payload: inPayload, envelope: onEnvelope }),
+      typedPrice(cakes, { payload: inPayload, envelope: onEnvelope }),
     );
     expect(order).toMatchObject({ status: "rejected", code: "SYNC_INVALID_PAYLOAD" });
     const { till, shiftId } = await tillNearTheCashCap();

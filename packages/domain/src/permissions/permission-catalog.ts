@@ -46,7 +46,11 @@ export type PermissionThresholdKind = "max_rate" | "max_amount";
 export type ApprovalSubjectKind = "order_line" | "order" | "shift";
 
 /** The figure an approval of a key names besides its rate or cash total. */
-export type ApprovalFigureKind = "difference" | "refund_amount" | "voided_quantity";
+export type ApprovalFigureKind =
+  | "difference"
+  | "refund_amount"
+  | "voided_quantity"
+  | "entered_price";
 
 export interface PermissionDefinition {
   /**
@@ -59,7 +63,7 @@ export interface PermissionDefinition {
   /**
    * The figure an action of this key names, which an approval is given for and must match:
    * not a cap, just what was agreed to (the close difference a manager accepted, the money a
-   * refund hands back, the units a void takes back from the kitchen).
+   * refund hands back, the units a void takes back from the kitchen, the price a cashier typed).
    */
   readonly figure?: ApprovalFigureKind;
   /** What an approval of this key is bound to; none for keys whose use names nothing. */
@@ -72,7 +76,7 @@ export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDe
   line_discount: { approvable: true, threshold: "max_rate", subject: "order_line" },
   order_discount: { approvable: true, threshold: "max_rate", subject: "order" },
   price_override: { approvable: true },
-  open_price: { approvable: true },
+  open_price: { approvable: true, figure: "entered_price", subject: "order_line" },
   comp_item: { approvable: true },
   cash_move: { approvable: true, threshold: "max_amount", subject: "shift" },
   open_drawer: { approvable: true, subject: "shift" },

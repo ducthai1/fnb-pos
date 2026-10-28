@@ -57,5 +57,10 @@ describe("what the staff member at the till may do alone", () => {
     expect(
       actionOnWire({ key: "void_after_sent", voidedQuantity: quantity("1.5"), subject }),
     ).toEqual({ key: "void_after_sent", voidedQuantity: "1.5", subject });
+    expect(actionOnWire({ key: "open_price", enteredPrice: vnd(150_000), subject })).toEqual({
+      key: "open_price",
+      enteredPrice: "150000",
+      subject,
+    });
   });
 });

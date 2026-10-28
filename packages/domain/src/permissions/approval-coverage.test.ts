@@ -39,6 +39,7 @@ describe("what an approval must name", () => {
       ["void_after_sent", "order_line"],
       ["line_discount", "order_line"],
       ["order_discount", "order"],
+      ["open_price", "order_line"],
       ["cash_move", "shift"],
       ["open_drawer", "shift"],
       ["accept_close_difference", "shift"],
@@ -82,6 +83,9 @@ describe("what an approval must name", () => {
     expect(
       missingApprovalTerm({ key: "accept_close_difference", subject: { shiftId: SHIFT_1 } }),
     ).toBe("figure");
+    expect(missingApprovalTerm({ key: "open_price", subject: { orderId: ORDER_A, lineId: LINE_1 } }))
+      .toBe("figure");
+    expect(missingApprovalTerm({ key: "open_price", enteredPrice: vnd(150_000n) })).toBe("subject");
     expect(missingApprovalTerm(refund(ORDER_A, 25_000n))).toBeNull();
     expect(missingApprovalTerm({ key: "transfer_table" })).toBeNull();
   });
@@ -146,6 +150,29 @@ describe("judging an approval at use", () => {
     expect(judgeApproval(cash(SHIFT_1, 550_000n), cash(SHIFT_1, 550_000n))).toBe("covers");
     expect(judgeApproval(cash(SHIFT_1, 550_000n), cash(SHIFT_1, 500_000n))).toBe("another_action");
     expect(judgeApproval(cash(SHIFT_1, 550_000n), cash(SHIFT_2, 550_000n))).toBe("another_subject");
+  });
+
+  it("covers only the price typed on its own line, to the đồng", () => {
+    const typed = (lineId: string, price: bigint, orderId = ORDER_A): PermissionAction => ({
+      key: "open_price",
+      enteredPrice: vnd(price),
+      subject: { orderId, lineId },
+    });
+    expect(judgeApproval(typed(LINE_1, 150_000n), typed(LINE_1, 150_000n))).toBe("covers");
+    // A typed price is no ceiling: a lower one is another price the manager did not see.
+    expect(judgeApproval(typed(LINE_1, 150_000n), typed(LINE_1, 15_000n))).toBe(
+      "another_action",
+    );
+    expect(judgeApproval(typed(LINE_1, 150_000n), typed(LINE_1, 1_500_000n))).toBe(
+      "another_action",
+    );
+    expect(judgeApproval(typed(LINE_1, 150_000n), typed(LINE_2, 150_000n))).toBe(
+      "another_subject",
+    );
+    expect(judgeApproval(typed(LINE_1, 150_000n), typed(LINE_1, 150_000n, ORDER_B))).toBe(
+      "another_subject",
+    );
+    expect(judgeApproval({ key: "open_price" }, typed(LINE_1, 150_000n))).toBe("another_subject");
   });
 
   it("refuses another key whatever it names", () => {

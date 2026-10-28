@@ -147,12 +147,14 @@ function approvedAction(approval: ApprovalRow): PermissionAction | null {
     const amount = storedVnd(payload.amount);
     const difference = storedVnd(payload.difference);
     const refundAmount = storedVnd(payload.refundAmount);
+    const enteredPrice = storedVnd(payload.enteredPrice);
     return {
       key: approval.action_key,
       ...(discountRate === undefined ? {} : { discountRate: discountRate as BasisPoints }),
       ...(amount === undefined ? {} : { amount }),
       ...(difference === undefined ? {} : { difference }),
       ...(refundAmount === undefined ? {} : { refundAmount }),
+      ...(enteredPrice === undefined ? {} : { enteredPrice }),
       ...(voidedQuantity === undefined ? {} : { voidedQuantity: quantity(voidedQuantity) }),
       ...(subject === undefined ? {} : { subject: subjectOf(subject) }),
     };

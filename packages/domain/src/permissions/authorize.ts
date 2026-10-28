@@ -41,6 +41,8 @@ export interface PermissionAction {
   readonly refundAmount?: Vnd;
   /** For void_after_sent: the units taken back from the kitchen, which a manager approves. */
   readonly voidedQuantity?: Quantity;
+  /** For open_price: the price typed for one unit of the line, which a manager approves. */
+  readonly enteredPrice?: Vnd;
   /**
    * What the action is done to (see PermissionDefinition.subject). It decides nothing here,
    * but an approval is given for one subject and covers no other (approval-coverage).
@@ -111,7 +113,7 @@ function measuredValue(
       reason,
     });
   };
-  const { discountRate, amount, difference, refundAmount, voidedQuantity } = action;
+  const { discountRate, amount, difference, refundAmount, voidedQuantity, enteredPrice } = action;
   // Optional here: whether a key is held does not depend on them (a backoffice check asks
   // just that). An approval for the key must name them, which the approval route enforces.
   if (difference !== undefined) {
@@ -128,6 +130,12 @@ function measuredValue(
     if (definition.figure !== "voided_quantity") fail("unexpected voided quantity");
     if (typeof voidedQuantity !== "bigint" || voidedQuantity <= 0n) {
       fail("voided quantity must be positive");
+    }
+  }
+  if (enteredPrice !== undefined) {
+    if (definition.figure !== "entered_price") fail("unexpected entered price");
+    if (typeof enteredPrice !== "bigint" || enteredPrice < 0n) {
+      fail("entered price must be a non-negative amount");
     }
   }
   if (definition.threshold !== "max_rate" && discountRate !== undefined) fail("unexpected rate");

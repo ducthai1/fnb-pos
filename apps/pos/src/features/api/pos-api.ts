@@ -35,6 +35,8 @@ export interface ApprovalRequest {
     readonly refundAmount?: string;
     /** The units a void takes back from the kitchen, as a decimal quantity. */
     readonly voidedQuantity?: string;
+    /** The price typed for one unit of an open-price line, as a decimal string. */
+    readonly enteredPrice?: string;
     readonly subject?: {
       readonly orderId?: string;
       readonly lineId?: string;

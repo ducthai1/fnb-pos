@@ -36,6 +36,8 @@ export interface LineIntent {
   unitPrice?: number;
   /** The price the cashier typed, for a product sold at an open price. */
   enteredPrice?: number;
+  /** A manager's approval of that typed price on this very line. */
+  priceApprovalId?: string;
 }
 
 export const line = (productId: string, overrides: Partial<LineIntent> = {}): LineIntent => ({
