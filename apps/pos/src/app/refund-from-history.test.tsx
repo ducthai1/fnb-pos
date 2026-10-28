@@ -1,5 +1,5 @@
 import { formatVnd, vnd } from "@fnb/domain";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { vi as text } from "../messages/vi";
 import { counterWithManager, managerApproves, pushedOf, tap } from "../test-support/approval-cafe";
@@ -42,6 +42,16 @@ async function refundOne() {
 }
 
 describe("refunding a paid sale from the day's history", () => {
+  it("is reached only once the shift is open, so every refund pays out of a drawer", async () => {
+    const server = counterWithManager();
+    await signedInTill(server, { openShift: false });
+    await screen.findByRole("button", { name: text.checkout.openShift.open });
+    expect(screen.queryByRole("button", { name: text.history.open })).toBeNull();
+    tap(text.checkout.openShift.open);
+    await screen.findByRole("region", { name: text.sale.menuLabel });
+    expect(screen.getByRole("button", { name: text.history.open })).toBeTruthy();
+  });
+
   it("offers only cash for a sale the customer paid in cash", async () => {
     const server = counterWithManager();
     await paidThenHistory(server);
@@ -105,6 +115,30 @@ describe("refunding a paid sale from the day's history", () => {
     await screen.findByRole("heading", { name: R.title(1) });
     await waitFor(() => expect(server.state.calls.pulls).toBeGreaterThan(5));
     expect(pushedOf(server, "order.refund")).toEqual([]);
+  });
+
+  it("refunds for a reason the list has no word for with the note the cashier wrote", async () => {
+    const server = counterWithManager();
+    server.state.grants.set(server.state.grants.keys().next().value!, [{ key: "refund" }]);
+    await paidThenHistory(server);
+    tap(text.history.refund(1));
+    await screen.findByRole("heading", { name: R.title(1) });
+    tap(text.sale.more(COFFEE));
+    tap(text.reasons.other);
+    expect(screen.getByRole("button", { name: R.confirm(money(29_000)) })).toHaveProperty(
+      "disabled",
+      true,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: text.adjust.reasonNote }), {
+      target: { value: "Khách dị ứng sữa, quên dặn" },
+    });
+    tap(R.confirm(money(29_000)));
+    await screen.findByRole("heading", { name: R.doneTitle });
+    await waitFor(() => expect(pushedOf(server, "order.refund")).toHaveLength(1));
+    expect(pushedOf(server, "order.refund")[0]?.payload).toMatchObject({
+      reasonCode: "other",
+      reasonNote: "Khách dị ứng sữa, quên dặn",
+    });
   });
 
   it("offers nothing more to refund once every unit came back", async () => {

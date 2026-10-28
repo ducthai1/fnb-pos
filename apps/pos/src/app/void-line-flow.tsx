@@ -4,6 +4,7 @@ import {
   planVoid,
   voidAdjustment,
 } from "../features/order-adjust/void-line-adjustment";
+import type { ChosenReason } from "../features/order-adjust/reason-codes";
 import { useTillPermissions } from "../features/permissions/till-permissions-context";
 import { useApprovalGate } from "../features/permissions/use-approval-gate";
 import type { TillMenu } from "../features/menu/till-menu";
@@ -29,9 +30,9 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
   const sent = settled.sent.find((line) => line.lineId === lineId)?.sentQuantity ?? 0n;
   const name = nameOn(settled, lineId);
 
-  const confirm = (count: number, reasonCode: string) =>
+  const confirm = (count: number, reason: ChosenReason) =>
     attempt(async () => {
-      const request = { lineId, units: count, reasonCode, staffId: authority.staffId };
+      const request = { lineId, units: count, reason, staffId: authority.staffId };
       const plan = planVoid(settled, request);
       const raised = plan.raisedOrderDiscountRate;
       if (

@@ -23,10 +23,12 @@ decisions:
   - D-078
   - D-080
   - D-098
+  - D-112
 tests:
   - apps/pos/src/app/counter-checkout.test.tsx
   - apps/pos/src/app/counter-payment-drawer.test.tsx
   - apps/pos/src/app/counter-qr-checkout.test.tsx
+  - apps/pos/src/app/counter-qr-excess-handed-back.test.tsx
   - apps/pos/src/app/counter-qr-expiry-and-refusal.test.tsx
   - apps/pos/src/app/counter-invoice-buyer.test.tsx
   - apps/pos/src/app/sale-invoice-reprint.test.tsx
@@ -100,7 +102,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
    Khách không trả nữa (muốn lấy lại tiền): bấm **Thu cách khác**, thu đủ bằng tiền mặt; khoản đã chuyển nằm trong danh sách **cần hoàn** ở trang quản lý.
 6. Khách **chuyển thừa** (ví dụ 60.000 ₫ cho đơn 50.000 ₫): máy báo "Khách chuyển thừa 10.000 ₫." và có:
-   - **Thối lại 10.000 ₫ tiền mặt**: đơn đóng bằng chuyển khoản **50.000 ₫** (đúng số của đơn); lấy 10.000 ₫ trong két đưa khách. Máy ghi luôn một khoản **chi két** "Trả lại tiền chuyển thừa" vào ca đang mở (tiền dự kiến của ca giảm 10.000 ₫) và đánh dấu khoản thừa **đã hoàn** — không phải nhờ quản lý.
+   - **Thối lại 10.000 ₫ tiền mặt**: đơn đóng bằng chuyển khoản **50.000 ₫** (đúng số của đơn); lấy 10.000 ₫ trong két đưa khách. Máy ghi luôn một khoản **chi két** "Trả lại tiền chuyển thừa" vào ca đang mở (tiền dự kiến của ca giảm 10.000 ₫) và đánh dấu khoản thừa **đã hoàn**. Trong ngưỡng thu/chi két của người đứng quầy thì không phải nhờ ai. **Vượt ngưỡng**: trước khi đóng đơn, máy hiện màn **Cần quản lý duyệt** ghi "Thối lại 10.000 ₫ khách chuyển thừa, chi từ két" (đã có khoản thu/chi khác trong ca thì kèm "két đã thu và chi trong ca, kể cả lần này: …"); quản lý chọn tên, nhập PIN ⇒ đơn đóng và khoản thối được ghi kèm lần duyệt. Bấm **Không làm nữa** ⇒ máy không ghi gì, quay lại đúng thẻ QR này để chọn lại (ví dụ **Đóng đơn, quản lý hoàn sau**) — **đừng đưa tiền cho khách trước khi được duyệt**.
    - **Đóng đơn, quản lý hoàn sau**: két không có tiền lẻ để thối — đơn vẫn đóng bằng 50.000 ₫, phần thừa 10.000 ₫ nằm trong danh sách **cần hoàn** ở trang quản lý.
 
 ### Thu bằng ví ZaloPay (khi chi nhánh bật ZaloPay)
@@ -137,7 +139,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 - Không ghi được "chuyển khoản tay": tiền chuyển khoản chỉ được ghi khi ngân hàng báo về qua đúng mã QR của đơn.
 - Mã QR có hiệu lực **15 phút**, tính theo **giờ máy chủ** (đồng hồ máy quầy sai cũng không kéo dài được). Mỗi đơn chỉ có **một mã QR đang chờ**. Nội dung chuyển khoản là **FNB + 8 ký tự**, không dùng lại trong **7 ngày**.
 - Khách chuyển **thiếu**: đơn **không** tự đóng. Ngoại lệ duy nhất của luật "không trộn tiền mặt với QR": khoản chuyển thiếu được tính **đúng số ngân hàng báo về**, phần còn lại thu bằng tiền mặt hoặc **một mã QR mới đúng bằng phần còn lại** (máy chủ tính: tổng đơn trừ các khoản QR chuyển thiếu của đơn chưa hoàn cho khách; mã QR khác số đó bị từ chối). Đơn chỉ đóng khi các khoản cộng lại **đúng bằng** tổng máy chủ tính — không có "bớt cho khách" tự động; muốn bớt thì dùng giảm giá đơn. Khoản chuyển thiếu đã dùng trả đơn thì **ra khỏi** danh sách cần hoàn; khoản quản lý đã đánh dấu "đã hoàn cho khách" thì không dùng trả đơn được nữa.
-- Khách chuyển **thừa**: đơn **không** tự đóng; thu ngân chọn đóng đơn. Khoản chuyển khoản tính **đúng số của mã QR**, phần thừa là tiền của khách, **không** phải doanh thu. **Thối lại tiền mặt** là **một** thao tác ghi cả hai: khoản chi két của ca đang mở của máy (lý do cố định "Trả lại tiền chuyển thừa", gắn với mã QR) và "đã hoàn" trên mã QR — số tiền đúng bằng phần thừa ngân hàng báo về (máy chủ kiểm), mỗi mã chỉ một lần. Cần quyền **thu/chi két** theo **ngưỡng cộng dồn của ca** như mọi khoản chi (xem [07-thu-chi-va-dong-ca.md](07-thu-chi-va-dong-ca.md)); vượt ngưỡng hoặc máy không có ca mở thì máy chủ từ chối khoản thối, đơn vẫn đã đóng và phần thừa nằm ở danh sách **cần hoàn**.
+- Khách chuyển **thừa**: đơn **không** tự đóng; thu ngân chọn đóng đơn. Khoản chuyển khoản tính **đúng số của mã QR**, phần thừa là tiền của khách, **không** phải doanh thu. **Thối lại tiền mặt** là **một** thao tác ghi cả hai: khoản chi két của ca đang mở của máy (lý do cố định "Trả lại tiền chuyển thừa", gắn với mã QR) và "đã hoàn" trên mã QR — số tiền đúng bằng phần thừa ngân hàng báo về (máy chủ kiểm), mỗi mã chỉ một lần. Cần quyền **thu/chi két** theo **ngưỡng cộng dồn của ca** như mọi khoản chi (xem [07-thu-chi-va-dong-ca.md](07-thu-chi-va-dong-ca.md)); vượt ngưỡng thì phải có quản lý duyệt tại chỗ, và lần duyệt gắn với **ca đó** và **đúng tổng thu + chi trong ca** kể cả khoản thối này (khác một đồng là máy chủ từ chối). Máy chủ từ chối khoản thối không kèm lần duyệt khi vượt ngưỡng; máy không có ca mở thì đơn vẫn đóng và phần thừa nằm ở danh sách **cần hoàn**.
 - Khách **đã chuyển đủ qua QR** mà thu ngân lại thu tiền mặt / hủy đơn / tạo QR mới: máy chủ từ chối. Trả lại tiền mặt cho khách, rồi bấm **Đóng đơn bằng QR đã nhận**.
 - Tiền chuyển đến **sau khi mã hết hạn**: không tự trả đơn; quản lý khớp tay ở trang quản lý.
 - Chỉ **tiền mặt** đi vào két của ca. Đơn tính vào ca **lúc thanh toán**.
@@ -192,6 +194,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 - **Tiền mặt**: thu bình thường, đơn tự gửi lên khi có mạng.
 - **QR**: máy vẫn vẽ được mã (nội dung chuyển khoản do máy tạo), nhưng **chỉ biết khách đã chuyển khi có mạng** (tin ngân hàng đi qua máy chủ). Mất mạng thì nên thu tiền mặt.
+- **Thối lại tiền chuyển thừa** vượt ngưỡng: bước xin quản lý duyệt cần mạng (máy báo "Duyệt cần mạng…"); không có mạng thì bấm **Không làm nữa** rồi **Đóng đơn, quản lý hoàn sau**.
 - **Ví ZaloPay**: cần mạng — mã do máy chủ xin ZaloPay, không vẽ được trên máy. Máy báo mất kết nối thì thẻ ZaloPay ghi rõ lý do; thu tiền mặt hoặc QR.
 - Hóa đơn điện tử: máy chủ phát hành khi nhận được đơn; mất mạng thì chờ.
 

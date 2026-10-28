@@ -1,3 +1,4 @@
+import { newId } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
@@ -113,6 +114,32 @@ describe("cash paid out for a refund", () => {
     const again = shifts[0]?.snapshot as ShiftSnapshot;
     expect(again.cashRecordedAfterClose).toBe(-29_000);
     expect(again.close).toMatchObject({ expectedCash: 329_000, difference: 0 });
+  });
+
+  it("is refused from a till with no shift open that names none, and goes through once one is", async () => {
+    const counter = await freshTill(app, s);
+    const handheld = await freshTill(app, s, managerId);
+    const counterShift = await openedShift(app, counter, 0);
+    const sale = await coffeeSoldForCash(handheld, counterShift);
+    const sent = coffeeGivenBack(handheld, sale);
+    const refused = await pushOne(app, handheld, sent);
+    expect(refused).toMatchObject({ status: "rejected", code: "SYNC_REFUND_NEEDS_SHIFT" });
+    expect(await payoutsOf(sale.orderId)).toEqual([]);
+    const refunds = await rowsOf(
+      pool,
+      s.shop.tenantId,
+      "SELECT id FROM sales_order WHERE refund_of_order_id = $1",
+      [sale.orderId],
+    );
+    expect(refunds).toEqual([]);
+
+    // The same refund goes through once the till opened its shift, out of that drawer.
+    const opened = await openedShift(app, handheld, 50_000);
+    const resent = { ...sent, commandId: newId(), deviceSeq: handheld.nextSeq++ };
+    expect((await pushOne(app, handheld, resent)).status).toBe("accepted");
+    expect(await payoutsOf(sale.orderId)).toEqual([
+      { shift_id: opened, late: false, amount: -29_000, order_shift: opened },
+    ]);
   });
 
   it("is refused into a shift of another branch, and nothing is paid out", async () => {

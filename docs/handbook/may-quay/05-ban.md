@@ -17,6 +17,8 @@ decisions:
   - D-069
   - D-070
   - D-074
+  - D-076
+  - D-111
 tests:
   - apps/pos/src/app/table-floor.test.tsx
   - apps/pos/src/app/table-floor-from-bootstrap.test.tsx
@@ -96,7 +98,7 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 ### Chuyển bàn
 
 1. Trong đơn của bàn, bấm **Chuyển bàn**.
-2. Chọn **một bàn trống**. Món đã gửi bếp đi theo khách, **không in lại**.
+2. Chọn **một bàn trống**. Món đã gửi bếp đi theo khách, **không in lại**. Người không tự chuyển bàn được (không có quyền `transfer_table`): máy hiện màn **Cần quản lý duyệt** ghi "Chuyển khách từ bàn T02 sang bàn T04"; quản lý chọn tên mình, nhập PIN, máy chuyển ngay. Bấm **Không làm nữa** thì khách ở lại bàn cũ, máy không ghi gì.
 
    ![Chuyển khách sang bàn khác](../images/may-quay/transfer-table.webp)
 
@@ -108,6 +110,7 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 - **Hai máy cùng thêm món vào một bàn**: máy lưu sau tự gộp lại một lần trên bản mới nhất, **giữ món của cả hai máy** (ưu tiên không mất món; một món vừa xóa có thể hiện lại, xóa lại là được). Gộp xong vẫn lệch thì máy dừng lưu và báo.
 - Món **đã gửi bếp** chỉ còn đọc: không sửa, không bớt bằng nút −; gọi thêm thì thành dòng mới; muốn bớt thì **Hủy món** (có phiếu hủy cho bếp).
 - **Chuyển bàn chỉ sang bàn trống.** Bàn đang có khách thì máy từ chối (chưa gộp được hai bàn).
+- **Duyệt chuyển bàn gắn với đơn đó**, dùng một lần: quản lý duyệt chuyển đơn của bàn T02 thì lần duyệt không dùng được để chuyển đơn khác, kể cả trong 10 phút (máy chủ từ chối). Máy quầy bản cũ xin duyệt mà không nêu đơn thì máy chủ không nhận.
 - Tạm tính **in hay chỉ xem trên màn đều tính là đã đưa khách xem** (bàn chuyển sang "Đã in tạm tính"); máy in kẹt giấy thì **không** tính.
 - Sơ đồ bàn có sẵn trên máy (tải về khi ghép máy và cập nhật khi đồng bộ), trạng thái bàn lấy từ đơn máy đang giữ.
 - Số đơn của bàn lấy từ dãy số đơn của chính máy mở bàn đó (giống tại quầy).
@@ -138,7 +141,7 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 
 - Sơ đồ bàn **vẫn hiện** (đã có trên máy), mở bàn, gọi món, gửi bếp, in tạm tính, thu tiền mặt đều được trên máy đang dùng.
 - Máy **không thấy** bàn mà máy khác vừa mở hay vừa trả trong lúc mất mạng; hai máy cùng đụng một bàn thì khi có mạng lại, máy chủ quyết định và máy báo bằng các câu ở bảng trên.
-- Chuyển bàn khi mất mạng: máy ghi lại và gửi khi có mạng; nếu bàn đích đã có khách thì khách ở lại bàn cũ và máy báo.
+- Chuyển bàn khi mất mạng: máy ghi lại và gửi khi có mạng; nếu bàn đích đã có khách thì khách ở lại bàn cũ và máy báo. Riêng bước **xin quản lý duyệt** cần mạng (máy chủ kiểm PIN); duyệt xong thì lệnh chuyển gửi sau cũng được, trong 12 giờ.
 
 ## Chưa làm / sắp có
 

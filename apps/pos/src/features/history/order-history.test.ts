@@ -52,7 +52,7 @@ function refundOf(sale: Record<string, unknown>, no: number) {
     sale: stored,
     refund,
     deviceOrderNo: no,
-    reasonCode: "customer_returned",
+    reason: { code: "customer_returned", note: null },
     method: "cash",
     approvalId: null,
     shiftId: tid(0x9999),

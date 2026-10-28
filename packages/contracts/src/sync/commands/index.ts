@@ -3,7 +3,14 @@ export {
   applyDiscountPayloadSchema,
 } from "./apply-discount-payload-schema";
 export { type CancelOrderPayload, cancelOrderPayloadSchema } from "./cancel-order-payload-schema";
-export { paymentMethodSchema, reasonCodeSchema } from "./command-payload-parts";
+export {
+  OTHER_REASON_CODE,
+  REASON_NOTE_MAX_LENGTH,
+  paymentMethodSchema,
+  reasonCodeSchema,
+  reasonNeedsNote,
+  reasonNoteSchema,
+} from "./command-payload-parts";
 export {
   type MarkSentToKitchenPayload,
   type SentTicketLine,

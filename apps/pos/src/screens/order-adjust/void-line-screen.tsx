@@ -1,5 +1,10 @@
 import { type ReactNode, useState } from "react";
-import { type ReasonCode, VOID_REASONS } from "../../features/order-adjust/reason-codes";
+import {
+  type ChosenReason,
+  type ReasonCode,
+  VOID_REASONS,
+  chosenReason,
+} from "../../features/order-adjust/reason-codes";
 import { vi } from "../../messages/vi";
 import { QuantityStepper } from "../sale/quantity-stepper";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
@@ -15,14 +20,16 @@ export interface VoidLineScreenProps {
   /** Units of those the kitchen has. */
   sentUnits: number;
   /** Records the void; answers why it did not, or null once recorded (or nobody approved). */
-  onConfirm(units: number, reasonCode: ReasonCode): Promise<string | null>;
+  onConfirm(units: number, reason: ChosenReason): Promise<string | null>;
   onBack(): void;
 }
 
 /** "Hủy món": how many, and why. Units the kitchen has are cancelled last, with a ticket. */
 export function VoidLineScreen(props: VoidLineScreenProps) {
   const [units, setUnits] = useState(1);
-  const [reason, setReason] = useState<ReasonCode | null>(null);
+  const [code, setCode] = useState<ReasonCode | null>(null);
+  const [note, setNote] = useState("");
+  const reason = chosenReason(code, note);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -76,7 +83,13 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
         max={Math.max(1, props.remaining)}
         onChange={setUnits}
       />
-      <ReasonPicker reasons={VOID_REASONS} chosen={reason} onChoose={setReason} />
+      <ReasonPicker
+        reasons={VOID_REASONS}
+        chosen={code}
+        onChoose={setCode}
+        note={note}
+        onNote={setNote}
+      />
     </ScreenFrame>
   );
 }

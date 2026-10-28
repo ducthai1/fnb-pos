@@ -1,6 +1,7 @@
 import { refundOrderPayloadSchema } from "@fnb/contracts";
 import { type RefundAmounts, quantityToDecimalString } from "@fnb/domain";
 import type { LocalCommand } from "@fnb/sync-client";
+import { type ChosenReason, reasonOnWire } from "../order-adjust/reason-codes";
 import { lineRowsOf } from "../order/order-snapshot-for-till";
 import type { StoredOrder } from "../order/stored-order";
 import { type TillPlace, businessDateAt, moneyToWire, tillCommand } from "../order/till-command";
@@ -37,7 +38,7 @@ export function refundCommand(input: {
   sale: StoredOrder;
   refund: TillRefund;
   deviceOrderNo: number;
-  reasonCode: string;
+  reason: ChosenReason;
   method: RefundMethod;
   approvalId: string | null;
   shiftId: string;
@@ -55,7 +56,7 @@ export function refundCommand(input: {
       quantity: quantityToDecimalString(line.quantity),
       restock: line.restock,
     })),
-    reasonCode: input.reasonCode,
+    ...reasonOnWire(input.reason),
     payouts: [payout],
     shiftId: input.shiftId,
     ...(input.approvalId === null ? {} : { approvalId: input.approvalId }),
@@ -80,7 +81,7 @@ export function refundCommand(input: {
       tableName: null,
       tableTag: null,
       preBillPrinted: false,
-      reasonCode: input.reasonCode,
+      reasonCode: input.reason.code,
       chargeProfile: sale.chargeProfile,
       refundAmounts: amountsOnWire(order.refundAmounts),
       lines: lineRowsOf(order.lines, []),

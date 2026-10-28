@@ -1,10 +1,12 @@
 // The order history of the day and refunds; vi.ts gathers them under `vi.history` and
 // `vi.refund`.
 
+import { formatBusinessDate } from "@fnb/domain";
+
 export const VI_HISTORY = {
   title: "Lịch sử đơn",
   open: "Lịch sử đơn",
-  day: (date: string) => `Ngày ${date}`,
+  day: (date: string) => `Ngày ${formatBusinessDate(date)}`,
   search: "Tìm theo số đơn",
   filters: {
     all: "Tất cả",

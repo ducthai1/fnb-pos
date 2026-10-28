@@ -1,5 +1,5 @@
 import type { PaymentAccount, PaymentIntentSnapshot } from "@fnb/contracts";
-import { type Vnd, vnd } from "@fnb/domain";
+import { type PermissionAction, type Vnd, formatVnd, vnd } from "@fnb/domain";
 import { remainderAfterShortTransfers } from "@fnb/domain/payment";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -9,9 +9,12 @@ import {
   type DrawnQr,
   cancelQrCommand,
   drawQr,
+  excessOf,
   handBackExcessCommand,
 } from "../features/payment/qr-intent-commands";
-import { readStoredShift } from "../features/shift/stored-shift";
+import type { ApprovalOutcome } from "../features/permissions/use-approval-gate";
+import { cashMoveActionFor } from "../features/shift/shift-cash";
+import { type StoredShift, readStoredShift } from "../features/shift/stored-shift";
 import { type QrPhase, qrPhaseOf } from "../features/payment/qr-intent-phase";
 import { paidQrOfOrder, qrTenderOf, shortQrsOfOrder } from "../features/payment/settled-qr";
 import type { Tender } from "../features/payment/tenders";
@@ -33,6 +36,10 @@ export interface CounterQrInput {
   record(command: LocalCommand): Promise<void>;
   /** Closes the order with the transfer the bank confirmed. */
   onPaid(tenders: readonly Tender[]): Promise<void>;
+  /** Who is at the till: cash they hand back is judged against what they may move alone. */
+  staffId: string;
+  /** The till's approval gate: a manager approves cash out past the staff member's limit. */
+  approve(action: PermissionAction, description: string): Promise<ApprovalOutcome>;
 }
 
 export interface CounterQr {
@@ -59,8 +66,21 @@ export interface CounterQr {
   /**
    * Closes the order with an over-paid QR at its own amount, then, when `handBack`, hands
    * the excess back from the drawer (one command: the QR marked, the drawer's cash out).
+   * Past the staff member's cash limit a manager approves that cash out first; asked and not
+   * approved, nothing is recorded and the cashier chooses again.
    */
   closeOver(handBack: boolean): Promise<void>;
+}
+
+/** The shift as the till holds it now, or null when it has none. */
+async function shiftNow(client: SyncClient, shiftId: string): Promise<StoredShift | null> {
+  try {
+    const view = await client.snapshot("shift", shiftId);
+    return view === null ? null : readStoredShift(view.snapshot);
+  } catch (failure) {
+    console.error(failure);
+    return null;
+  }
 }
 
 /**
@@ -69,6 +89,7 @@ export interface CounterQr {
  */
 export function useCounterQr(input: CounterQrInput): CounterQr {
   const { client, place, orderId, shiftId, amountDue, account, record, onPaid } = input;
+  const { staffId, approve } = input;
   const [drawn, setDrawn] = useState<DrawnQr | null>(null);
   const [amount, setAmount] = useState<Vnd>(amountDue);
   const [error, setError] = useState<string | null>(null);
@@ -147,6 +168,28 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
     }
   }
 
+  /**
+   * Whether the cashier may hand the excess back: null alone, a manager's approval of that
+   * cash out of the shift (judged on all the drawer moved in it, as the server judges it),
+   * or undefined when it was not given and nothing may be recorded.
+   */
+  async function handBackApproval(
+    shift: StoredShift,
+    over: PaymentIntentSnapshot,
+  ): Promise<{ readonly approvalId: string } | null | undefined> {
+    const excess = excessOf(over);
+    const action = cashMoveActionFor(shift, staffId, "out", excess);
+    const total = action.amount ?? excess;
+    const said = vi.approval.actions.handBackExcess(formatVnd(excess));
+    const described =
+      total === excess ? said : `${said} (${vi.approval.actions.cashInShift(formatVnd(total))})`;
+    const outcome = await approve(action, described);
+    if (outcome.kind === "allowed") return null;
+    if (outcome.kind === "approved") return outcome;
+    if (outcome.kind === "denied") setError(vi.approval.denied);
+    return undefined;
+  }
+
   return {
     drawn,
     amount,
@@ -162,13 +205,16 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
     },
     closeOver: async (handBack: boolean) => {
       if (intent === null || intent.status !== "overpaid" || paying.current) return;
+      if (!handBack) return pay(intent);
+      const shift = await shiftNow(client, shiftId);
+      // No shift on the till: the order closes and the excess stays listed for a manager.
+      const approval = shift === null ? null : await handBackApproval(shift, intent);
+      if (approval === undefined) return;
       await pay(intent);
-      if (!handBack || !paying.current) return;
+      if (shift === null || !paying.current) return;
       try {
-        const view = await client.snapshot("shift", shiftId);
-        const shift = view === null ? null : readStoredShift(view.snapshot);
-        // No shift on the till: the excess stays listed for a manager to refund.
-        if (shift !== null) await record(handBackExcessCommand(place, shift, intent, Date.now()));
+        const approvalId = approval?.approvalId ?? null;
+        await record(handBackExcessCommand(place, shift, intent, Date.now(), approvalId));
       } catch (failure) {
         console.error(failure);
       }

@@ -39,6 +39,20 @@ describe("the commands the server refused for good", () => {
     ).toBeTruthy();
   });
 
+  it("says a refund refused for want of a shift is done again from the history once one is open", () => {
+    render(
+      <NeedsAttentionScreen
+        rejected={[refusal("order.refund", "SYNC_REFUND_NEEDS_SHIFT", "5")]}
+        onBack={() => {}}
+      />,
+    );
+    expect(screen.getByText(text.errors.SYNC_REFUND_NEEDS_SHIFT)).toBeTruthy();
+    expect(text.errors.SYNC_REFUND_NEEDS_SHIFT).toContain("Mở ca");
+    expect(
+      screen.getByText(text.needsAttention.commandLine("Hoàn đơn", "SYNC_REFUND_NEEDS_SHIFT")),
+    ).toBeTruthy();
+  });
+
   it("shows a command it has no name for as it came, with the general sentence", () => {
     render(
       <NeedsAttentionScreen

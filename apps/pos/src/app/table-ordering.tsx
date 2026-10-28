@@ -19,12 +19,12 @@ import { RoundSlipsScreen } from "../screens/table-order/round-slips-screen";
 import { TableOrderActions } from "../screens/table-order/table-order-actions";
 import { TableOrderNotices } from "../screens/table-order/table-order-notices";
 import { TableOrderScreen } from "../screens/table-order/table-order-screen";
-import { TransferTableScreen } from "../screens/table-order/transfer-table-screen";
 import { cancelTicketsScreen } from "../features/table-order/void-cancel-tickets";
 import { UnderLayer } from "../screens/shared/under-layer";
 import { CounterCheckout } from "./counter-checkout";
 import { OrderAdjustmentFlow, adjustmentsFor } from "./order-adjustment-flow";
 import type { TableOrderPhase } from "./table-order-phase";
+import { TransferTableFlow } from "./transfer-table-flow";
 import type { CounterSaleProps } from "./counter-sale";
 
 export interface TableOrderingProps extends Omit<CounterSaleProps, "session" | "modeSwitch"> {
@@ -107,15 +107,15 @@ export function TableOrdering(props: TableOrderingProps) {
       );
     case "transfer":
       return (
-        <TransferTableScreen
+        <TransferTableFlow
           header={header}
+          orderId={order.orderId}
           from={table}
           areas={props.areas}
           tables={props.tables}
           onBack={back}
-          onMove={async (to) => {
-            if (await moveGuests(rounds, to)) onLeave(vi.tables.floor.moved(table.name, to.name));
-          }}
+          move={(to, approvalId) => moveGuests(rounds, to, approvalId)}
+          onMoved={(to) => onLeave(vi.tables.floor.moved(table.name, to.name))}
         />
       );
   }

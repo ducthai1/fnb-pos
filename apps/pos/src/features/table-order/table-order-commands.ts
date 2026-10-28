@@ -47,20 +47,22 @@ export function preBillPrintedCommand(
 
 /**
  * table.transfer to a free table. Moving changes no amount, so a current pre-bill stays
- * current; what the kitchen has goes with the guests and is not printed again.
+ * current; what the kitchen has goes with the guests and is not printed again. A manager's
+ * approval, when the staff member may not move guests alone, is for this order.
  */
 export function transferTableCommand(
   place: TillPlace,
   settled: SettledTableOrder,
   to: SeatedTable,
   at: number,
+  approvalId: string | null = null,
 ): LocalCommand {
   const orderId = settled.order.orderId;
   return tillCommand(
     place,
     "table.transfer",
     transferTablePayloadSchema,
-    { orderId, toTableId: to.id },
+    { orderId, toTableId: to.id, ...(approvalId === null ? {} : { approvalId }) },
     at,
     { entity: "order", entityId: orderId, optimistic: expectedRow(place, settled, { table: to }) },
   );

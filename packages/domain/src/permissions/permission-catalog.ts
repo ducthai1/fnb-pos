@@ -78,7 +78,7 @@ export const PERMISSION_DEFINITIONS: Readonly<Record<PermissionKey, PermissionDe
   open_drawer: { approvable: true, subject: "shift" },
   accept_close_difference: { approvable: true, figure: "difference", subject: "shift" },
   reopen_paid_order: { approvable: true },
-  transfer_table: { approvable: true },
+  transfer_table: { approvable: true, subject: "order" },
   close_unpaid_table: { approvable: true, subject: "order" },
   stock_adjust: { approvable: true },
   // Reports are access to data, not a one-off action: approving one would show the whole

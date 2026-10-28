@@ -4,9 +4,12 @@ import type { LocalCommand, SyncClient } from "@fnb/sync-client";
 import type { ReactNode } from "react";
 import type { TillPlace } from "../features/order/till-command";
 import type { Tender } from "../features/payment/tenders";
+import { useTillPermissions } from "../features/permissions/till-permissions-context";
+import { useApprovalGate } from "../features/permissions/use-approval-gate";
 import { PaymentDrawer } from "../screens/payment/payment-drawer";
 import { QrPanel } from "../screens/payment/qr-panel";
 import { WalletPanel } from "../screens/payment/wallet-panel";
+import { CoverLayer, UnderLayer } from "../screens/shared/under-layer";
 import { vi } from "../messages/vi";
 import { useCounterQr } from "./use-counter-qr";
 import { useCounterWallet } from "./use-counter-wallet";
@@ -31,13 +34,36 @@ export interface CounterPaymentDrawerProps {
 
 /**
  * The payment drawer of an order, with its VietQR drawn and watched while the QR is chosen,
- * and a wallet payment opened on the server and watched while a wallet is.
+ * and a wallet payment opened on the server and watched while a wallet is. A manager asked to
+ * approve handing a QR's excess back takes the whole screen; the drawer waits under it as it
+ * was, its QR card still up, so a cashier who does not get the approval chooses again there.
  */
 export function CounterPaymentDrawer(props: CounterPaymentDrawerProps) {
-  const { account, amountDue } = props;
-  const qr = useCounterQr(props);
+  const gate = useApprovalGate();
+  const { authority } = useTillPermissions();
+  const qr = useCounterQr({ ...props, staffId: authority.staffId, approve: gate.require });
   const wallet = useCounterWallet(props);
   const online = useNavigatorOnline();
+  const asking = gate.sheet !== null;
+  return (
+    <>
+      <UnderLayer covered={asking}>
+        <div style={{ display: asking ? "none" : "contents" }}>
+          {drawerOf(props, qr, wallet, online)}
+        </div>
+      </UnderLayer>
+      {asking ? <CoverLayer>{gate.sheet}</CoverLayer> : null}
+    </>
+  );
+}
+
+function drawerOf(
+  props: CounterPaymentDrawerProps,
+  qr: ReturnType<typeof useCounterQr>,
+  wallet: ReturnType<typeof useCounterWallet>,
+  online: boolean,
+) {
+  const { account, amountDue } = props;
   return (
     <PaymentDrawer
       subtitle={props.subtitle}

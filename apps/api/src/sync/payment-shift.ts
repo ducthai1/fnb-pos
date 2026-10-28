@@ -6,7 +6,7 @@ import type { SyncCommandContext } from "./sync-command-context";
 import { CommandRejection } from "./sync-error-codes";
 
 export interface PaymentShift {
-  /** Null when the till names no shift and has none open: order.pay refuses a sale so. */
+  /** Null when the till names no shift and has none open: pay and refund are refused so. */
   readonly shiftId: string | null;
   /** The shift had already closed when the payment reached the server. */
   readonly afterClose: boolean;

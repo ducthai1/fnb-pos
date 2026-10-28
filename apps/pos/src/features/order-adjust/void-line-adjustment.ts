@@ -13,12 +13,13 @@ import { hasOrderDiscount, itemTree } from "../order/command-made-lines";
 import type { AdjustableOrder, Adjusted } from "../order/order-session-types";
 import type { TillPlace } from "../order/till-command";
 import { adjustedWith, draftOrderOf } from "./adjusted-order";
+import { type ChosenReason, reasonOnWire } from "./reason-codes";
 
 export interface VoidRequest {
   readonly lineId: string;
   /** Whole units of the item, as the cart counts them. */
   readonly units: number;
-  readonly reasonCode: string;
+  readonly reason: ChosenReason;
   readonly staffId: string;
 }
 
@@ -33,7 +34,7 @@ function run(settled: AdjustableOrder, request: VoidRequest, approval: Approval 
   return voidLine(draftOrderOf(settled), {
     lineId: request.lineId,
     quantity: quantity(request.units),
-    reasonCode: request.reasonCode,
+    reasonCode: request.reason.code,
     staffId: request.staffId,
     approvedByStaffId: approval?.approverStaffId ?? null,
     sentQuantity: sent ?? quantity(0),
@@ -88,7 +89,7 @@ export function voidAdjustment(
     orderId: settled.order.orderId,
     lineId: request.lineId,
     quantity: quantityToDecimalString(quantity(request.units)),
-    reasonCode: request.reasonCode,
+    ...reasonOnWire(request.reason),
     ...(approval === null ? {} : { approvalId: approval.approvalId }),
   };
   const adjusted = adjustedWith(

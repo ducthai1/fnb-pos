@@ -34,7 +34,10 @@ const businessDayOpens = (date: string): number =>
  * is not a day or the range runs backwards. Business days, not calendar days: a slip that
  * jammed at 01:00 belongs to the day the pickers call "today" until 04:00.
  */
-export function shopDaysWindow(fromDate: string, toDate: string): { from: string; to: string } | null {
+export function shopDaysWindow(
+  fromDate: string,
+  toDate: string,
+): { from: string; to: string } | null {
   if (!isCalendarDate(fromDate) || !isCalendarDate(toDate) || fromDate > toDate) return null;
   return {
     from: new Date(businessDayOpens(fromDate)).toISOString(),
@@ -61,12 +64,8 @@ export function firstOfLastDays(last: string, days: number): string {
   return first;
 }
 
-/** "20/10/2026" for "2026-10-20"; the text itself when it is not a day. */
-export function formatBusinessDate(text: string): string {
-  if (!isCalendarDate(text)) return text;
-  const [year, month, day] = text.split("-");
-  return `${day}/${month}/${year}`;
-}
+/** "20/10/2026" for "2026-10-20"; the text itself when it is not a day (as on the till). */
+export { formatBusinessDate } from "@fnb/domain";
 
 /** An amount of whole đồng from an answer, written the domain's way ("35.000 ₫"). */
 export const vndText = (amount: number): string => formatVnd(vnd(BigInt(amount)));

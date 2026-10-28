@@ -60,6 +60,46 @@ describe("cancelling an item on the counter's order", () => {
   });
 });
 
+describe("a reason none of the list's words fit", () => {
+  const writeNote = (said: string) =>
+    fireEvent.change(screen.getByRole("textbox", { name: T.reasonNote }), {
+      target: { value: said },
+    });
+
+  it("voids and cancels with the note the cashier wrote, sent trimmed beside 'other'", async () => {
+    const server = counterWithManager();
+    await twoCoffees(server);
+    tap(T.tools.lineMenu(COFFEE));
+    tap(T.tools.void(COFFEE));
+    await screen.findByRole("heading", { name: T.void.title });
+    tap(text.reasons.other);
+    expect(screen.getByRole("button", { name: T.void.confirm(1) })).toHaveProperty(
+      "disabled",
+      true,
+    );
+    writeNote(" Ly bị đổ ");
+    tap(T.void.confirm(1));
+    await waitFor(() => expect(pushedOf(server, "order.void_line")).toHaveLength(1));
+    expect(pushedOf(server, "order.void_line")[0]?.payload).toMatchObject({
+      reasonCode: "other",
+      reasonNote: "Ly bị đổ",
+    });
+
+    tap(T.tools.cancelOrder);
+    await screen.findByRole("heading", { name: T.cancel.title(1) });
+    tap(text.reasons.other);
+    writeNote("Khách đi mất, không trả");
+    tap(T.cancel.confirm);
+    await waitFor(() => expect(pushedOf(server, "order.cancel")).toHaveLength(1));
+    const draft = pushedOf(server, "order.save_draft").at(-1)?.payload as { orderId: string };
+    expect(pushedOf(server, "order.cancel")[0]?.payload).toEqual({
+      orderId: draft.orderId,
+      reasonCode: "other",
+      reasonNote: "Khách đi mất, không trả",
+    });
+  });
+});
+
 describe("cancelling the counter's draft", () => {
   it("drops it with the reason and starts the next customer's order", async () => {
     const server = counterWithManager();

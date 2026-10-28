@@ -13,6 +13,7 @@ import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
 import { touchOrder } from "./draft-order-writes";
 import { draftOfBranch } from "./editable-order";
 import { writeOrderLines } from "./order-line-writes";
+import { assertReasonExplained } from "./reason-note";
 import { grantsOfStaff } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -27,6 +28,7 @@ import { defineSyncCommand } from "./sync-command-definition";
  */
 async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePayload) {
   const { client, device, staffId } = context;
+  assertReasonExplained(payload);
   const stored = await draftOfBranch(context, payload.orderId);
   const request = (approvedByStaffId: string | null, needsApprover: boolean): VoidLineRequest => ({
     lineId: payload.lineId,
@@ -64,7 +66,7 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
   await client.query(
     "INSERT INTO line_void_record (id, tenant_id, order_id, line_id, quantity, from_unsent, " +
       "from_sent, reason_code, staff_id, approved_by_staff_id, approval_id, reversal_line_id, " +
-      "created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $9)",
+      "created_by, reason_note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $9, $13)",
     [
       newId(),
       device.tenantId,
@@ -78,6 +80,7 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
       record.approvedByStaffId,
       approvalId ?? null,
       record.reversalLineId,
+      payload.reasonNote ?? null,
     ],
   );
   await touchOrder(client, order.id);

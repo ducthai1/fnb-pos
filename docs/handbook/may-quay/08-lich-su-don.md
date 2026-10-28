@@ -10,9 +10,12 @@ decisions:
   - D-031
   - D-057
   - D-094
+  - D-110
+  - D-114
 tests:
   - apps/pos/src/features/history/order-history.test.ts
   - apps/pos/src/screens/history/history-table.test.tsx
+  - packages/domain/src/time/format-business-date.test.ts
   - apps/api/test/integration/sync/sync-pay-order.test.ts
   - apps/pos/src/app/refund-from-history.test.tsx
   - apps/pos/src/app/staff-session-on-the-till.test.tsx
@@ -28,11 +31,11 @@ Xem lại các đơn của **ngày kinh doanh hôm nay** trên máy: tìm đơn 
 
 ## Ai dùng, cần quyền gì
 
-Mọi nhân viên đã đăng nhập đều xem được. Hoàn tiền cần quyền `refund` hoặc quản lý duyệt (xem [06](06-huy-giam-hoan-va-duyet.md)). In lại và mở lại đơn chưa trả không cần quyền riêng.
+Mọi nhân viên đã đăng nhập đều xem được, **sau khi máy đã mở ca** (chưa mở ca thì máy hiện màn **Mở ca** trước, chưa có nút **Lịch sử đơn**): tiền hoàn luôn ra khỏi két của ca đang mở. Hoàn tiền cần quyền `refund` hoặc quản lý duyệt (xem [06](06-huy-giam-hoan-va-duyet.md)). In lại và mở lại đơn chưa trả không cần quyền riêng.
 
 ## Các bước
 
-1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm** (ngày kinh doanh), đơn **mới nhất ở trên** (theo giờ trả; đơn nháp theo giờ mở).
+1. Trên thanh trên cùng bấm **Lịch sử đơn**. Màn ghi **Ngày dd/mm/yyyy** (ngày kinh doanh, ví dụ **Ngày 21/10/2026** — ngày tháng năm như trên phiếu in), đơn **mới nhất ở trên** (theo giờ trả; đơn nháp theo giờ mở).
 
    ![Lịch sử đơn](../images/may-quay/order-history.webp)
 

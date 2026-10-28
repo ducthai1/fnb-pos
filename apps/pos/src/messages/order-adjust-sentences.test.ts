@@ -11,6 +11,7 @@ const CODES = [
   SYNC_ERROR_CODES.discountLineIdsTooFew,
   SYNC_ERROR_CODES.discountLineNotFound,
   SYNC_ERROR_CODES.lineLocked,
+  SYNC_ERROR_CODES.reasonNoteRequired,
   ORDER_ERROR_CODES.voidBlockedByWholeLineDiscount,
   ORDER_ERROR_CODES.voidExceedsRemaining,
   ORDER_ERROR_CODES.voidNeedsApproval,
