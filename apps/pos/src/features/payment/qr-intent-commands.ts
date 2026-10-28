@@ -111,16 +111,24 @@ export function excessOf(intent: PaymentIntentSnapshot): Vnd {
 /**
  * payment.hand_back_excess: the order was closed with an over-paid QR at its own amount and
  * the cashier hands the excess back from the drawer; the till expects the shift's drawer to
- * hold that much less. The server checks the excess against the bank's figures.
+ * hold that much less. The server checks the excess against the bank's figures, and the cash
+ * taken out against the cash_move limit, so past it the command carries a manager's approval
+ * of exactly that cash out of that shift.
  */
 export function handBackExcessCommand(
   place: TillPlace,
   shift: StoredShift,
   intent: PaymentIntentSnapshot,
   at: number,
+  approvalId: string | null = null,
 ): LocalCommand {
   const excess = excessOf(intent);
-  const payload = { intentId: intent.id, cashMoveId: newId(), amount: moneyToWire(excess) };
+  const payload = {
+    intentId: intent.id,
+    cashMoveId: newId(),
+    amount: moneyToWire(excess),
+    ...(approvalId === null ? {} : { approvalId }),
+  };
   return tillCommand(
     place,
     "payment.hand_back_excess",

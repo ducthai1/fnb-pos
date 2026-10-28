@@ -17,9 +17,12 @@ export const SHOP_ACCOUNT = {
 export type QrServer = ReturnType<typeof fakeServer>;
 
 /** The pilot café's server with Lan (PIN 4826), the branch's settings being `settings`. */
-export function cafeServerWith(settings: Record<string, unknown>): QrServer {
+export function cafeServerWith(
+  settings: Record<string, unknown>,
+  staff: { id: string; displayName: string; active: boolean }[] = [LAN],
+): QrServer {
   const { config } = tillBootstrapWire();
-  const server = fakeServer(tillBootstrap({ staff: [LAN], config: { ...config, settings } }));
+  const server = fakeServer(tillBootstrap({ staff, config: { ...config, settings } }));
   server.state.pins.set(LAN.id, "4826");
   return server;
 }

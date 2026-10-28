@@ -11,7 +11,15 @@ import {
   putWebhookSecret,
   sendFakeNotice,
 } from "../support/payment-webhooks";
-import { expectedCashOf, rowsOf } from "../support/shift-commands";
+import {
+  CASHIER_PIN,
+  expectedCashOf,
+  freshTill,
+  openedShift,
+  rowsOf,
+} from "../support/shift-commands";
+import { hire } from "../support/staffed-shop";
+import { approve, hireManager } from "../support/sync-approvals";
 import { command, pushOne } from "../support/sync-commands";
 import { type SyncShop, shiftOf, syncShop } from "../support/sync-shop";
 
@@ -110,5 +118,35 @@ describe("a QR transfer that came over, the excess handed back from the drawer",
     expect((await owed()).map((row) => row.id)).toEqual(
       expect.arrayContaining([qr.intentId, open.intentId]),
     );
+  });
+
+  it("past the cashier's cash limit takes a manager's approval of exactly that cash out", async () => {
+    const cashierId = await hire(app, s.shop, CASHIER_PIN, s.shop.roleIds.cashier);
+    const till = await freshTill(app, s, cashierId);
+    const shiftId = await openedShift(app, till, 1_000_000);
+    const managerId = await hireManager(app, s);
+    const qr = await liveQrOf39k(app, s, till);
+    // 561.000 đ over: more than the 500.000 đ a cashier moves through a drawer alone.
+    await customerPays(qr.contentCode, 600_000);
+    const paid = await pushOne(app, till, payByQr(till, qr.orderId, qr.intentId, 39_000));
+    expect(paid.status).toBe("accepted");
+    const sent = (approvalId?: string) =>
+      command(till, "payment.hand_back_excess", {
+        intentId: qr.intentId,
+        cashMoveId: newId(),
+        amount: 561_000,
+        ...(approvalId === undefined ? {} : { approvalId }),
+      });
+    const cashOut = (amount: string) => ({ key: "cash_move", amount, subject: { shiftId } });
+
+    expect((await pushOne(app, till, sent())).code).toBe("SYNC_APPROVAL_REQUIRED");
+    const otherFigure = await approve(app, till, managerId, cashOut("500000"));
+    expect((await pushOne(app, till, sent(otherFigure))).code).toBe(
+      "SYNC_APPROVAL_FOR_ANOTHER_ACTION",
+    );
+    const exact = await approve(app, till, managerId, cashOut("561000"));
+    expect((await pushOne(app, till, sent(exact))).status).toBe("accepted");
+    expect(await expectedCashOf(pool, s.shop.tenantId, shiftId)).toBe(439_000);
+    expect((await owed()).map((row) => row.id)).not.toContain(qr.intentId);
   });
 });
