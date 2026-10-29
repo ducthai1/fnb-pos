@@ -58,12 +58,36 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
     },
   },
   {
+    route: "POST /catalog/products/:id/unarchive",
+    status: 200,
+    prepare: async (shop) => {
+      const product = await savedProduct(shop);
+      await expectStatus(shop.call("POST", `${product.url}/archive`), 200);
+      const stored = (await expectStatus(shop.call("GET", product.url), 200)).json() as { version: number };
+      const request = { method: "POST", url: `${product.url}/unarchive`, payload: { version: stored.version } } as const;
+      return { request, effect: { method: "GET", url: product.url } };
+    },
+  },
+  {
     route: "PUT /catalog/price-lists/:id",
     status: 201,
     prepare: async (shop) => {
       const url = `/catalog/price-lists/${newId()}`;
       const payload = { version: null, brandId: shop.brandId, name: "Giờ vàng", items: [] };
       return { request: { method: "PUT", url, payload }, effect: { method: "GET", url } };
+    },
+  },
+  {
+    route: "DELETE /catalog/price-lists/:id",
+    status: 204,
+    prepare: async (shop) => {
+      const url = `/catalog/price-lists/${newId()}`;
+      const payload = { version: null, brandId: shop.brandId, name: "Giờ vàng", items: [] };
+      await expectStatus(shop.call("PUT", url, payload), 201);
+      return {
+        request: { method: "DELETE", url },
+        effect: { method: "GET", url: `/catalog/price-lists?brandId=${shop.brandId}` },
+      };
     },
   },
   {

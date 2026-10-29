@@ -24,12 +24,15 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/menu", group: "menu", label: vi.shell.nav.products, requires: null },
   { href: "/menu/categories", group: "menu", label: vi.shell.nav.categories, requires: null },
   { href: "/menu/availability", group: "menu", label: vi.shell.nav.availability, requires: null },
+  { href: "/menu/price-lists", group: "menu", label: vi.shell.nav.priceLists, requires: null },
+  { href: "/menu/stations", group: "menu", label: vi.shell.nav.stations, requires: null },
   { href: "/reports/daily-sales", group: "sales", label: vi.shell.nav.dailySales, requires: "view_reports" },
   { href: "/day-close", group: "sales", label: vi.shell.nav.dayClose, requires: "view_reports" },
   { href: "/payments", group: "sales", label: vi.shell.nav.transfers, requires: "view_reports" },
   { href: "/reports/print-failures", group: "sales", label: vi.shell.nav.printFailures, requires: "view_reports" },
   { href: "/floor", group: "shop", label: vi.shell.nav.floor, requires: "manage_settings" },
   { href: "/settings", group: "shop", label: vi.shell.nav.settings, requires: "manage_settings" },
+  { href: "/settings/templates", group: "shop", label: vi.shell.nav.shopTemplates, requires: "manage_settings" },
 ];
 
 /** The section a path belongs to, with its group, or null for the home page and unknown paths. */

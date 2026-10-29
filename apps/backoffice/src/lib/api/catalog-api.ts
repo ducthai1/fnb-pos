@@ -18,6 +18,7 @@ export interface Station {
   readonly id: string;
   readonly branchId: string;
   readonly name: string;
+  readonly version: number;
 }
 
 /** A row of the product list of a brand. */
@@ -55,7 +56,8 @@ const readCategory = (item: Record<string, unknown>): Category | null => {
 
 const readStation = (item: Record<string, unknown>): Station | null => {
   const [id, branchId, name] = [textOf(item, "id"), textOf(item, "branchId"), textOf(item, "name")];
-  return id === null || branchId === null || name === null ? null : { id, branchId, name };
+  const version = wholeNumberOf(item, "version");
+  return id === null || branchId === null || name === null || version === null ? null : { id, branchId, name, version };
 };
 
 const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
@@ -108,10 +110,14 @@ export interface CatalogApi {
   ): Promise<ApiResult<Category>>;
   deleteCategory(id: string): Promise<ApiResult<true>>;
   listStations(branchId: string): Promise<ApiResult<Station[]>>;
+  putStation(id: string, body: { version: number | null; branchId: string; name: string }): Promise<ApiResult<Station>>;
+  deleteStation(id: string): Promise<ApiResult<true>>;
   listProducts(brandId: string): Promise<ApiResult<ProductSummary[]>>;
   getProduct(id: string): Promise<ApiResult<ProductDocument>>;
   putProduct(id: string, body: ProductBody): Promise<ApiResult<ProductDocument>>;
   archiveProduct(id: string): Promise<ApiResult<true>>;
+  /** `POST /catalog/products/:id/unarchive` `{ version }`: the product sells again; answers its new version. */
+  resumeProduct(id: string, version: number): Promise<ApiResult<{ readonly version: number }>>;
   listSoldOut(branchId: string): Promise<ApiResult<SoldOut[]>>;
   setAvailable(input: { productId: string; branchId: string; available: boolean }): Promise<ApiResult<true>>;
 }
@@ -133,11 +139,25 @@ export function httpCatalogApi(base: string, fetchImpl: FetchLike): CatalogApi {
       return resultOf(await requestJson(fetchImpl, url(`/categories/${id}`), { method: "DELETE" }), noContent);
     },
     listStations: (branchId) => get(`/stations${query("branchId", branchId)}`, list(readStation)),
+    async putStation(id, body) {
+      const answer = await requestJson(fetchImpl, url(`/stations/${id}`), { method: "PUT", body });
+      return resultOf(answer, (reply) => (isRecord(reply) ? readStation(reply) : null));
+    },
+    async deleteStation(id) {
+      return resultOf(await requestJson(fetchImpl, url(`/stations/${id}`), { method: "DELETE" }), noContent);
+    },
     listProducts: (brandId) => get(`/products${query("brandId", brandId)}`, list(readSummary)),
     getProduct: (id) => get(`/products/${id}`, readProductDocument),
     async putProduct(id, body) {
       const answer = await requestJson(fetchImpl, url(`/products/${id}`), { method: "PUT", body });
       return resultOf(answer, readProductDocument);
+    },
+    async resumeProduct(id, version) {
+      const answer = await requestJson(fetchImpl, url(`/products/${id}/unarchive`), { method: "POST", body: { version } });
+      return resultOf(answer, (reply) => {
+        const next = isRecord(reply) && reply.archivedAt === null ? wholeNumberOf(reply, "version") : null;
+        return next === null ? null : { version: next };
+      });
     },
     async archiveProduct(id) {
       return resultOf(await requestJson(fetchImpl, url(`/products/${id}/archive`), { method: "POST" }), noContent);

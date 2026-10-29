@@ -92,6 +92,27 @@
   font-weight: var(--fw-semibold);
 }
 
+/* A station of a branch: its icon, its name, its tools. */
+.bo-station-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.bo-station-row__icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
+
+.bo-station-row__name {
+  font-weight: var(--fw-semibold);
+}
+
 /* An on/off switch: a real checkbox, invisible over the track drawn beside it, so a tap,
    a click or the space bar all toggle it and a screen reader reads a checkbox. */
 .bo-toggle {

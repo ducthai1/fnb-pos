@@ -42,6 +42,7 @@ import "./backoffice-menu.css";
 import "./backoffice-product-photo.css";
 import "./backoffice-menu-import.css";
 import "./backoffice-menu-bulk.css";
+import "./backoffice-price-lists.css";
 import "./backoffice-settings.css";
 import "./backoffice-login.css";
 import "./backoffice-motion.css";

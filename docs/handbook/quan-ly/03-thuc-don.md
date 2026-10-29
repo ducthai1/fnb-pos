@@ -14,6 +14,7 @@ decisions:
   - D-106
   - D-113
   - D-116
+  - D-120
 tests:
   - apps/backoffice/src/components/ui/table-pager.test.tsx
   - apps/backoffice/src/components/menu/menu-lists.test.tsx
@@ -39,6 +40,9 @@ tests:
   - packages/contracts/src/catalog/weighed-product-unit-schemas.test.ts
   - e2e/backoffice/build-milk-tea-menu.spec.ts
   - e2e/backoffice/move-products-to-a-category.spec.ts
+  - apps/backoffice/src/components/menu/product-editor/product-editor-resume.test.tsx
+  - apps/api/test/integration/catalog/catalog-resume-archived-product.test.ts
+  - e2e/backoffice/sell-an-archived-product-again.spec.ts
 ---
 
 # Thực đơn — món, size, nhóm tùy chọn, combo, danh mục, hết món
@@ -47,7 +51,7 @@ tests:
 
 Nhóm **Thực đơn** trên menu có ba trang: **Món** (danh sách + trang sửa từng món), **Danh mục** và **Hết món**. Mọi thay đổi ở đây tự tới mọi máy quầy của thương hiệu ở lần đồng bộ kế tiếp — không cần làm gì trên máy quầy.
 
-Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu bán cùng một menu. Riêng **trạm pha chế/bếp** và **hết món** là theo từng chi nhánh.
+Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu bán cùng một menu. Riêng **trạm pha chế/bếp** (xem [Trạm pha chế/bếp](15-tram-pha-che.md)) và **hết món** là theo từng chi nhánh.
 
 ## Ai dùng, cần quyền gì
 
@@ -88,6 +92,7 @@ Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin 
 
 6. Bấm **Lưu món**. Còn chỗ sai thì trang báo "Còn chỗ chưa đúng, đã đánh dấu bên dưới. Sửa rồi lưu lại." và đánh dấu từng ô.
 7. **Ngừng bán món**: bấm nút đỏ, xác nhận. Món biến khỏi menu của mọi máy quầy; đơn cũ vẫn giữ món này.
+8. **Bán lại món đã ngừng**: tick **Hiện cả món đã ngừng bán** ở danh sách, mở món, bấm **Bán lại món** ở khung vàng "Món đã ngừng bán". Món có lại trên menu của mọi máy quầy ở lần đồng bộ kế tiếp, giữ nguyên size, tùy chọn và giá. Những gì bạn đã gõ trên trang trước khi bấm vẫn còn, bấm **Lưu món** để lưu tiếp. Lưu món đã ngừng bán **không** tự bán lại nó.
 
 ### Combo
 
@@ -157,6 +162,7 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 | Phụ thu đổi món trong combo không được âm. | Sửa phụ thu |
 | Chưa có món nào khác để đưa vào combo. Thêm món ở danh sách món trước. | Tạo các món lẻ trước rồi quay lại |
 | Vai trò của bạn không có quyền làm việc này. Nhờ chủ quán cấp quyền. | Cần quyền Sửa menu |
+| Có người đã sửa món này trước bạn. Tải lại để xem bản mới nhất — thay đổi chưa lưu của bạn sẽ mất. (khi bấm **Bán lại món**) | Bấm **Tải lại món**, xem món rồi bán lại |
 
 ## Mất mạng thì sao
 
@@ -164,8 +170,7 @@ Trang quản lý cần mạng để lưu. Máy quầy đang mất mạng vẫn b
 
 ## Chưa làm / sắp có
 
-- **Bảng giá** (giá theo kênh, giá theo khung giờ): máy chủ đã có, nhưng **chưa có màn hình** trong trang quản lý; công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng.
+- **Bảng giá** (giờ vàng, giá theo chi nhánh / ngày) có trang riêng: xem [Bảng giá](14-bang-gia.md). Công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng (bảng giá áp dụng không cần nó).
 - Combo: chưa có **món mặc định** đánh dấu sẵn (máy quầy chỉ tự chọn khi phần bắt buộc có đúng một món), chưa có combo **giá nhập tay / theo cân**, chưa có combo trong combo, chưa đổi một món lẻ thành combo (hay ngược lại) sau khi lưu. Các ô **Loại** dùng danh sách của trang; **Danh mục** và **Trạm** vẫn là ô chọn của trình duyệt.
-- Chưa có cách **bán lại** món đã ngừng bán (xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)).
 - Hết món có giờ tự có lại (máy chủ có trường này) chưa có trên màn hình.
 - Công thức/định lượng và tồn kho: chưa làm (kho thuộc giai đoạn sau); ô "Theo dõi tồn kho" chỉ lưu lại lựa chọn.

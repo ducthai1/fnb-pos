@@ -1,0 +1,98 @@
+import { fireEvent, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi as mock } from "vitest";
+import type { Station } from "../../lib/api/catalog-api";
+import { vi } from "../../messages/vi";
+import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
+import { HOSTILE_MENU } from "../../test-support/hostile-catalog";
+import { renderSignedIn } from "../../test-support/render-signed-in";
+import { StationsScreen } from "./stations-screen";
+
+const T = vi.stations;
+const BRANCH = BRANCHES[0]?.id ?? "";
+const station = (id: string, name: string, version = 1): Station => ({ id, branchId: BRANCH, name, version });
+
+/** The station routes over a list in memory: a write moves the version on, a stale one is a 409. */
+function stationServer(start: Station[]) {
+  let list = [...start];
+  const putStation = mock.fn(async (id: string, body: { version: number | null; branchId: string; name: string }) => {
+    const stored = list.find((each) => each.id === id);
+    if (stored !== undefined && stored.version !== body.version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+    const saved = station(id, body.name, (stored?.version ?? 0) + 1);
+    list = [...list.filter((each) => each.id !== id), saved].sort((a, b) => a.name.localeCompare(b.name));
+    return ok(saved);
+  });
+  const deleteStation = mock.fn(async (id: string) => {
+    list = list.filter((each) => each.id !== id);
+    return ok(true as const);
+  });
+  return { api: { listStations: async () => ok([...list]), putStation, deleteStation }, putStation, deleteStation };
+}
+
+describe("the stations page", () => {
+  it("says there are none and adds the first, refusing an empty name on its field", async () => {
+    const server = stationServer([]);
+    await renderSignedIn(<StationsScreen />, server.api);
+    await screen.findByText(T.empty);
+    fireEvent.click(screen.getByRole("button", { name: T.add }));
+    await screen.findByText(vi.common.nameMissing);
+    expect(server.putStation).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(T.newLabel), { target: { value: "  Bar  " } });
+    fireEvent.click(screen.getByRole("button", { name: T.add }));
+    await screen.findByText(T.added("Bar"));
+    expect(server.putStation.mock.calls[0]?.[1]).toEqual({ version: null, branchId: BRANCH, name: "Bar" });
+    expect(await screen.findByText("Bar")).toBeTruthy();
+  });
+
+  it("renames under the version it read", async () => {
+    const server = stationServer([station("s1", "Bar", 3)]);
+    await renderSignedIn(<StationsScreen />, server.api);
+    fireEvent.click(await screen.findByRole("button", { name: T.renameLabel("Bar") }));
+    fireEvent.change(screen.getByLabelText(T.nameLabel), { target: { value: "Bar pha chế" } });
+    fireEvent.click(screen.getByRole("button", { name: vi.common.save }));
+    await screen.findByText(T.renamed("Bar pha chế"));
+    expect(server.putStation).toHaveBeenCalledWith("s1", { version: 3, branchId: BRANCH, name: "Bar pha chế" });
+  });
+
+  it("reloads and says so when someone else renamed it first", async () => {
+    const server = stationServer([station("s1", "Bar", 3)]);
+    const stale = { ...server.api, putStation: async () => refused(409, "API_CATALOG_VERSION_CONFLICT") };
+    await renderSignedIn(<StationsScreen />, stale);
+    fireEvent.click(await screen.findByRole("button", { name: T.renameLabel("Bar") }));
+    fireEvent.change(screen.getByLabelText(T.nameLabel), { target: { value: "Khác" } });
+    fireEvent.click(screen.getByRole("button", { name: vi.common.save }));
+    await screen.findByText(T.conflict);
+  });
+
+  it("asks before deleting, then deletes an unused station", async () => {
+    const server = stationServer([station("s1", "Bar"), station("s2", "Bếp")]);
+    await renderSignedIn(<StationsScreen />, server.api);
+    fireEvent.click(await screen.findByRole("button", { name: T.deleteLabel("Bếp") }));
+    expect(server.deleteStation).not.toHaveBeenCalled();
+    await screen.findByText(T.deleteTitle("Bếp"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.deleted("Bếp"));
+    expect(server.deleteStation).toHaveBeenCalledWith("s2");
+  });
+
+  it("explains why a station still in use stays, and keeps it listed", async () => {
+    const server = stationServer([station("s1", "Bar")]);
+    await renderSignedIn(<StationsScreen />, { ...server.api, deleteStation: async () => refused(409, "API_CATALOG_IN_USE") });
+    fireEvent.click(await screen.findByRole("button", { name: T.deleteLabel("Bar") }));
+    await screen.findByText(T.deleteTitle("Bar"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.inUse);
+    expect(screen.getAllByText("Bar").length).toBeGreaterThan(0);
+  });
+
+  it("shows 60 stations with hostile names without breaking the rows", async () => {
+    const many = Array.from({ length: 60 }, (_, at) => station(`s${at}`, at % 2 === 0 ? `${HOSTILE_MENU.productName}${at}` : `${HOSTILE_MENU.emoji} ${at}`));
+    await renderSignedIn(<StationsScreen />, stationServer(many).api);
+    await screen.findAllByRole("button", { name: /^Đổi tên / });
+    expect(within(screen.getByRole("list", { name: T.title })).getAllByRole("listitem")).toHaveLength(60);
+  });
+
+  it("shows a failed load with a retry", async () => {
+    await renderSignedIn(<StationsScreen />, { listStations: async () => refused(null) });
+    await screen.findByText(vi.errors.network);
+  });
+});

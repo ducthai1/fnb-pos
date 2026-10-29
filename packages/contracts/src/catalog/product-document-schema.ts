@@ -104,3 +104,8 @@ export const productDocumentSchema = z
   .strict();
 
 export type ProductDocumentInput = z.infer<typeof productDocumentSchema>;
+
+/** Selling an archived product again: the version the caller saw, which must still be current. */
+export const resumeProductBodySchema = z
+  .object({ version: z.number().int().positive() })
+  .strict();

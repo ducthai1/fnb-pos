@@ -1,5 +1,6 @@
 import { newId } from "@fnb/db";
 import { type BackofficeCall, ensureNamed } from "./backoffice-caller";
+import { seedSampleCombo } from "./seed-sample-combo";
 import {
   GROUP_OPTIONS,
   type GroupKind,
@@ -24,7 +25,8 @@ const GROUP_RULES: Readonly<
 /**
  * Categories, the bar station and the products, through the same catalog routes the
  * backoffice's menu editor saves with (so every product passes the domain's checks), then
- * the sold-out product switched off at the branch. Returns the product ids by name.
+ * the sold-out product switched off at the branch, and the combo made of some of them.
+ * Returns the product ids by name, the combo's among them.
  */
 export async function seedSampleMenu(
   call: BackofficeCall,
@@ -79,6 +81,7 @@ export async function seedSampleMenu(
       unavailableUntil: null,
     });
   }
+  for (const [name, id] of await seedSampleCombo(call, shop, categories)) products.set(name, id);
   return products;
 }
 

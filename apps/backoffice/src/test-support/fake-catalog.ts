@@ -39,6 +39,14 @@ export function fakeCatalog(categories: Category[] = []) {
       const stored = products.get(id);
       return stored === undefined ? refused(404, "API_CATALOG_PRODUCT_NOT_FOUND") : ok(stored);
     },
+    resumeProduct: mock.fn(async (id: string, version: number) => {
+      const stored = products.get(id);
+      if (stored === undefined) return refused(404, "API_CATALOG_PRODUCT_NOT_FOUND");
+      if (stored.version !== version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+      const next = stored.archivedAt === null ? stored.version : stored.version + 1;
+      products.set(id, { ...stored, version: next, archivedAt: null });
+      return ok({ version: next });
+    }),
     archiveProduct: mock.fn(async (id: string) => {
       const stored = products.get(id);
       if (stored === undefined) return refused(404, "API_CATALOG_PRODUCT_NOT_FOUND");

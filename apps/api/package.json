@@ -24,6 +24,7 @@
     "@fnb/db": "workspace:*",
     "@fnb/domain": "workspace:*",
     "@fnb/feature-flags": "workspace:*",
+    "@fnb/shop-templates": "workspace:*",
     "fastify": "5.12.5",
     "pg": "8.23.1",
     "tsx": "4.23.15",

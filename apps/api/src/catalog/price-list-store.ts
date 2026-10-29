@@ -112,3 +112,42 @@ function scopeOf(kind: string, scopeId: string | null) {
   if (kind === "category") return { kind, categoryId: scopeId };
   return { kind };
 }
+
+/** The brand's lists for the list screen: header and how many rules each holds. */
+export async function listPriceLists(client: pg.PoolClient, brandId: string) {
+  const result = await client.query(
+    `SELECT l.id, l.brand_id, l.name, l.version, count(i.id)::int AS item_count
+       FROM price_list l LEFT JOIN price_list_item i ON i.price_list_id = l.id
+      WHERE l.brand_id = $1 GROUP BY l.id ORDER BY l.name, l.id`,
+    [brandId],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    brandId: row.brand_id,
+    name: row.name,
+    version: row.version,
+    itemCount: row.item_count,
+  }));
+}
+
+/**
+ * Removes the list and its rules. Nothing else points at a list (an order keeps the price
+ * it was sold at), so it can always go; the brand's tills are told it is gone.
+ */
+export async function deletePriceList(
+  client: pg.PoolClient,
+  tenantId: string,
+  id: string,
+): Promise<boolean> {
+  await lockTenantChangeFeed(client, tenantId);
+  const found = await client.query<{ brand_id: string }>(
+    "SELECT brand_id FROM price_list WHERE id = $1 FOR UPDATE",
+    [id],
+  );
+  const brandId = found.rows[0]?.brand_id;
+  if (brandId === undefined) return false;
+  await client.query("DELETE FROM price_list_item WHERE price_list_id = $1", [id]);
+  await client.query("DELETE FROM price_list WHERE id = $1", [id]);
+  await recordPriceListChange(client, tenantId, brandId, id);
+  return true;
+}

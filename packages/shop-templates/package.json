@@ -1,0 +1,21 @@
+{
+  "name": "@fnb/shop-templates",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@fnb/feature-flags": "workspace:*"
+  },
+  "devDependencies": {
+    "fast-check": "4.10.2",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

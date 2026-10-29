@@ -44,6 +44,9 @@ importers:
       '@fnb/feature-flags':
         specifier: workspace:*
         version: link:../../packages/feature-flags
+      '@fnb/shop-templates':
+        specifier: workspace:*
+        version: link:../../packages/shop-templates
       fastify:
         specifier: 5.12.5
         version: 5.12.5
@@ -326,6 +329,22 @@ importers:
       '@types/node':
         specifier: 22.20.3
         version: 22.20.3
+      fast-check:
+        specifier: 4.10.2
+        version: 4.10.2
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.7
+        version: 3.2.7(@types/node@22.20.3)(jsdom@29.1.1)(tsx@4.23.15)
+
+  packages/shop-templates:
+    dependencies:
+      '@fnb/feature-flags':
+        specifier: workspace:*
+        version: link:../feature-flags
+    devDependencies:
       fast-check:
         specifier: 4.10.2
         version: 4.10.2

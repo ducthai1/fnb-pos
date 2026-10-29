@@ -65,7 +65,7 @@ Xuất: ai xem được menu. Nhập: cần quyền **Sửa menu**.
 | File không có dòng hàng hóa nào. | Kiểm tra file có dữ liệu dưới dòng tiêu đề |
 | Trùng mã với dòng N. / Trùng tên với dòng N. | Sửa hoặc xóa một trong hai dòng |
 | Đang ghi “Không cho phép bán”. | Dòng bị bỏ qua có chủ đích |
-| Trùng tên với món đã ngừng bán: bán lại món đó trong trang món. | Đổi tên trong file (hiện chưa có cách bán lại món đã ngừng — xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)) |
+| Trùng tên với món đã ngừng bán: bán lại món đó trong trang món. | Mở món đó ở [trang sửa món](03-thuc-don.md) và bấm **Bán lại món**, rồi nhập lại file; hoặc đổi tên trong file để tạo món mới |
 | Món đang có cách tính giá khác giá cố định: sửa trong trang món. | Sửa giá trong trang món |
 | Không tạo được danh mục “…”. | Thử lại; các dòng của danh mục đó không được nhập |
 | Không có dòng nào để nhập. | Mọi dòng đều lỗi, bỏ qua hoặc không đổi |

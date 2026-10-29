@@ -7,4 +7,5 @@ export * from "./payment";
 export * from "./pos";
 export * from "./primitives";
 export * from "./reports";
+export * from "./shop-templates";
 export * from "./sync";

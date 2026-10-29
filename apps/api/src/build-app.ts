@@ -43,6 +43,7 @@ import { registerListAndCreateRoleRoutes } from "./routes/roles/list-and-create-
 import { registerArchiveRoleRoute } from "./routes/roles/archive-role-route";
 import { registerUpdateAndDeleteRoleRoutes } from "./routes/roles/update-and-delete-role-routes";
 import { registerSettingsRoutes } from "./routes/settings/settings-routes";
+import { registerShopTemplateRoutes } from "./routes/shop-templates/shop-template-routes";
 import { registerCreateStaffRoute } from "./routes/staff/create-staff-route";
 import { registerStaffAccessRoutes } from "./routes/staff/staff-access-routes";
 import { registerStaffListRoute } from "./routes/staff/staff-list-route";
@@ -215,6 +216,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   const einvoiceProviders = providersByKey(dependencies.einvoiceProviders ?? []);
   registerEInvoiceProfileRoutes(app, context, einvoiceProviders);
   registerSettingsRoutes(app, context, einvoiceProviders);
+  registerShopTemplateRoutes(app, context);
   registerDayCloseRoutes(app, context, einvoiceProviders);
   const workerOptions = dependencies.einvoiceWorker;
   if (workerOptions !== undefined) {

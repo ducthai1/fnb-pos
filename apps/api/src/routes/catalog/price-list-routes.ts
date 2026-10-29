@@ -1,12 +1,13 @@
-import { catalogIdParamsSchema, priceListDocumentSchema } from "@fnb/contracts";
+import { catalogIdParamsSchema, catalogIdSchema, priceListDocumentSchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
+import { z } from "zod";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
 import { checkPriceListItems } from "../../catalog/price-list-document";
-import { readPriceList, writePriceList } from "../../catalog/price-list-store";
+import { deletePriceList, listPriceLists, readPriceList, writePriceList } from "../../catalog/price-list-store";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
 
 export function registerPriceListRoutes(app: FastifyInstance, context: ApiContext): void {
@@ -44,6 +45,34 @@ export function registerPriceListRoutes(app: FastifyInstance, context: ApiContex
         throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.priceListNotFound);
       }
       return reply.send(document);
+    }),
+  );
+
+  app.get(
+    "/catalog/price-lists",
+    read,
+    catalogHandler(async (request, reply) => {
+      const { brandId } = parseOrReject(z.object({ brandId: catalogIdSchema }), request.query);
+      const lists = await withTenant(context.pool, backofficeAuth(request).tenantId, async (client) => {
+        const brand = await client.query("SELECT 1 FROM brand WHERE id = $1", [brandId]);
+        if (brand.rowCount === 0) throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.brandNotFound);
+        return listPriceLists(client, brandId);
+      });
+      return reply.send(lists);
+    }),
+  );
+
+  app.delete(
+    "/catalog/price-lists/:id",
+    write,
+    catalogHandler(async (request, reply) => {
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
+      const tenantId = backofficeAuth(request).tenantId;
+      const removed = await withTenant(context.pool, tenantId, (client) =>
+        deletePriceList(client, tenantId, id),
+      );
+      if (!removed) throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.priceListNotFound);
+      return reply.code(204).send();
     }),
   );
 }

@@ -2,6 +2,7 @@ import {
   catalogBrandQuerySchema,
   catalogIdParamsSchema,
   productDocumentSchema,
+  resumeProductBodySchema,
 } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
@@ -134,6 +135,42 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
         throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.productNotFound);
       }
       return reply.send({ id, version: row.version, archivedAt: row.archived_at.toISOString() });
+    }),
+  );
+
+  // Puts an archived product back on the menu. The caller names the version it saw, as every
+  // other write does: a product someone else changed meanwhile is read again first.
+  app.post(
+    "/catalog/products/:id/unarchive",
+    write,
+    catalogHandler(async (request, reply) => {
+      const { id } = parseOrReject(catalogIdParamsSchema, request.params);
+      const { version } = parseOrReject(resumeProductBodySchema, request.body);
+      const writer = writeContextOf(request, context);
+      const row = await withTenant(context.pool, writer.tenantId, async (client) => {
+        await lockTenantChangeFeed(client, writer.tenantId);
+        const found = await client.query<{ version: number; archived_at: Date | null }>(
+          "SELECT version, archived_at FROM product WHERE id = $1 FOR UPDATE",
+          [id],
+        );
+        const current = found.rows[0];
+        if (current === undefined) {
+          throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.productNotFound);
+        }
+        if (current.version !== version) {
+          throw new CatalogRequestError(409, CATALOG_API_ERROR_CODES.versionConflict);
+        }
+        // Already selling: nothing to do, and the tills are told nothing new.
+        if (current.archived_at === null) return current;
+        const restored = await client.query<{ version: number }>(
+          "UPDATE product SET archived_at = NULL, updated_at = $2, version = version + 1 " +
+            "WHERE id = $1 RETURNING version",
+          [id, writer.now],
+        );
+        await recordProductChanges(client, writer.tenantId, [id]);
+        return { version: restored.rows[0]?.version ?? current.version + 1, archived_at: null };
+      });
+      return reply.send({ id, version: row.version, archivedAt: null });
     }),
   );
 }

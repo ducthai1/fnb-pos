@@ -13,7 +13,11 @@ export {
   stationBodySchema,
 } from "./category-and-station-schemas";
 export { type PriceListDocumentInput, priceListDocumentSchema } from "./price-list-document-schema";
-export { type ProductDocumentInput, productDocumentSchema } from "./product-document-schema";
+export {
+  type ProductDocumentInput,
+  productDocumentSchema,
+  resumeProductBodySchema,
+} from "./product-document-schema";
 export { productDocumentToDomain } from "./product-document-to-domain";
 export {
   type ProductImageUpload,

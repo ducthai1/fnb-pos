@@ -10,7 +10,7 @@ import { DrawerNavLinks } from "./drawer-nav-links";
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
 const N = messages.shell.nav;
-const MENU_PAGES = [N.products, N.categories, N.availability];
+const MENU_PAGES = [N.products, N.categories, N.availability, N.priceLists, N.stations];
 const REPORT_PAGES = [N.dailySales, N.dayClose, N.transfers, N.printFailures];
 
 const signedInWith = (permissionKeys: typeof OWNER.permissionKeys[number][]) => ({
@@ -23,7 +23,7 @@ const linkNames = (container: HTMLElement) =>
 describe("which pages the menu drawer and the home page offer", () => {
   it("offers the owner every page", async () => {
     await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />);
-    expect(linkNames(document.body)).toEqual([N.home, N.devices, N.staff, N.roles, ...MENU_PAGES, ...REPORT_PAGES, N.floor, N.settings]);
+    expect(linkNames(document.body)).toEqual([N.home, N.devices, N.staff, N.roles, ...MENU_PAGES, ...REPORT_PAGES, N.floor, N.settings, N.shopTemplates]);
   });
 
   it("leaves out the pages whose key the member's role lacks", async () => {
@@ -48,7 +48,7 @@ describe("which pages the menu drawer and the home page offer", () => {
 
   it("offers the floor plan and settings only with manage_settings", async () => {
     await renderSignedIn(<DrawerNavLinks onNavigate={() => {}} />, signedInWith(["manage_settings"]));
-    expect(linkNames(document.body)).toEqual([N.home, ...MENU_PAGES, N.floor, N.settings]);
+    expect(linkNames(document.body)).toEqual([N.home, ...MENU_PAGES, N.floor, N.settings, N.shopTemplates]);
   });
 
   it("offers the reports, day close and transfers only with view_reports", async () => {
@@ -63,6 +63,8 @@ describe("which pages the menu drawer and the home page offer", () => {
       "/menu",
       "/menu/categories",
       "/menu/availability",
+      "/menu/price-lists",
+      "/menu/stations",
     ]);
   });
 });

@@ -26,6 +26,7 @@ export default tseslint.config(
       "packages/feature-flags/**/*.ts",
       "packages/contracts/**/*.ts",
       "packages/printing/**/*.ts",
+      "packages/shop-templates/**/*.ts",
     ],
     rules: {
       "no-restricted-globals": [
