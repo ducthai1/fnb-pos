@@ -28,6 +28,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 8. [Lịch sử đơn](may-quay/08-lich-su-don.md)
 9. [Mất mạng và đồng bộ](may-quay/09-mat-mang-va-dong-bo.md)
 10. [Phiếu in](may-quay/10-phieu-in.md)
+11. [Màn hình sự cố](may-quay/11-man-hinh-su-co.md)
 
 ### Quản lý (trang quản lý trên trình duyệt)
 
@@ -47,6 +48,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 14. [Bảng giá — giờ vàng, giá theo chi nhánh, giá theo ngày](quan-ly/14-bang-gia.md)
 15. [Trạm pha chế/bếp](quan-ly/15-tram-pha-che.md)
 16. [Mẫu loại quán](quan-ly/16-mau-loai-quan.md)
+17. [Trang sự cố](quan-ly/17-trang-su-co.md)
 
 ### Vận hành (người dựng và giữ server)
 
@@ -54,6 +56,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 2. [Đặt hệ thống lên server cho quán](van-hanh/02-dat-len-server.md)
 3. [Sao lưu và khôi phục](van-hanh/03-sao-luu-va-khoi-phuc.md)
 4. [Giới hạn thử, kiểm Origin và dọn dẹp định kỳ](van-hanh/04-gioi-han-va-bao-mat.md)
+5. [Nhật ký lỗi từ máy quầy và trang quản lý](van-hanh/05-nhat-ky-loi-may-quay-va-trang-quan-ly.md)
 
 ### Khác
 

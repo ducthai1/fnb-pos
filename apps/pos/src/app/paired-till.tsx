@@ -64,6 +64,14 @@ export function PairedTill(props: {
     till?.sync.subscribe ?? noSubscription,
     till?.sync.current ?? initialStatus,
   );
+  useEffect(() => {
+    deps.clientErrors?.authenticate(credential.deviceToken);
+    return () => deps.clientErrors?.authenticate(null);
+  }, [deps, credential]);
+  // A pass that reached the server is the moment queued fault reports can go too.
+  useEffect(() => {
+    if (status.connection === "online") void deps.clientErrors?.flush();
+  }, [deps, status]);
   const place = useMemo(() => (snapshot === null ? null : tillPlaceOf(snapshot)), [snapshot]);
   const staff = useTillStaff(snapshot?.staff ?? NO_STAFF, till?.client ?? null);
 

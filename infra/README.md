@@ -212,5 +212,5 @@ Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng c�
 
 - Giới hạn tần suất đếm trong bộ nhớ của tiến trình API: khởi động lại là đếm lại; chạy nhiều tiến trình thì mỗi tiến trình cho đủ hạn mức (cần kho dùng chung khi mở rộng).
 - Job dọn mã ghép/phiên chạy trong API: nhiều tiến trình cùng database thì chỉ bật ở một (`FNB_CLEANUP_ENABLED=false` ở các tiến trình khác).
-- Chưa có giám sát lỗi tập trung (T11-01) và cảnh báo khi backup không chạy: kiểm `journalctl -t fnb-backup` mỗi sáng.
+- Lỗi của máy quầy và trang quản lý về cùng nhật ký với lỗi 500 của API (`journalctl -u fnb-api | grep "client error"`, xem sổ tay Vận hành 05); chưa có trang xem hay cảnh báo khi lỗi tăng. Chưa có cảnh báo khi backup không chạy: kiểm `journalctl -t fnb-backup` mỗi sáng.
 - Chưa có Content-Security-Policy (Next cần nonce cho script inline).

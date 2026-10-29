@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SignedInUser } from "../../lib/api/auth-api";
 import type { Branch } from "../../lib/api/branch-api";
+import { backofficeReporter } from "../../lib/client-errors/reporter-instance";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
@@ -81,6 +82,10 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
   useEffect(() => void checkSession(), [checkSession]);
 
   const ready = check.phase === "ready";
+  // Faults the page hit are sent once a member is signed in (the API takes them from a session).
+  useEffect(() => {
+    backofficeReporter().setSignedIn(ready);
+  }, [ready]);
   useEffect(() => {
     if (!ready) return;
     void api.listBranches().then((result) => {

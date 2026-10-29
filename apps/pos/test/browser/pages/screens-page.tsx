@@ -3,6 +3,7 @@ import { type ReactElement, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "../../../src/messages/vi";
 import { BlockedScreen } from "../../../src/screens/blocked/blocked-screen";
+import { CrashScreen } from "../../../src/screens/crash/crash-screen";
 import { BootstrapScreen } from "../../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-screen";
@@ -62,6 +63,7 @@ const settledQrRefusal: RejectedCommand = {
 
 const SCREENS: Record<ScreenName, () => ReactElement> = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={() => {}} />,
+  crash: () => <CrashScreen onReload={() => {}} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
   "bootstrap-failed": () => (
     <BootstrapScreen

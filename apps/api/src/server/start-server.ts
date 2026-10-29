@@ -4,6 +4,7 @@ import pg from "pg";
 import { type AppDependencies, buildApp } from "../build-app";
 import { FakeEInvoiceProvider } from "../einvoice/providers/fake-einvoice-provider";
 import { systemClock } from "../clock";
+import { clientErrorLines } from "../client-errors/client-error-log";
 import { installRateLimits } from "../http/rate-limit-hooks";
 import { maskSecrets, serverErrorLines } from "../http/server-error-report";
 import { installCleanupJob } from "../ops/sign-in-cleanup-job";
@@ -40,6 +41,8 @@ export async function startServer(
       ...dependenciesOf(config, pool, log),
       // Every 500, with its route and masked message, so a fault in production leaves a trace.
       onServerError: (report) => serverErrorLines(report).forEach(logError),
+      // Faults the POS and the backoffice report, in the same journal as the server's own.
+      onClientError: (entry) => clientErrorLines(entry).forEach(logError),
     });
     installRateLimits(app, config.rateLimits, systemClock);
     if (config.cleanup !== null) {

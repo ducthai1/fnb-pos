@@ -2,6 +2,7 @@ import type { RejectedCommand } from "@fnb/sync-client";
 import type { ReactElement } from "react";
 import { vi } from "../../src/messages/vi";
 import { BlockedScreen } from "../../src/screens/blocked/blocked-screen";
+import { CrashScreen } from "../../src/screens/crash/crash-screen";
 import { BootstrapScreen } from "../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../src/screens/pair-device/pair-device-screen";
@@ -38,10 +39,13 @@ const settledQr = refused(2, "order.pay", "SYNC_ORDER_HAS_SETTLED_QR");
 
 export const ENTRY_SCREENS = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={nothing} />,
+  crash: () => <CrashScreen onReload={nothing} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
   "bootstrap-failed": () => <BootstrapScreen error={vi.errors.network} onRetry={nothing} />,
   "staff-picker": () => <StaffPicker branchName={SHOP.branch} staff={staff} onChoose={nothing} />,
-  "pin-entry": () => <PinEntry staff={staff[0]!} signIn={never} onSignedIn={nothing} onBack={nothing} />,
+  "pin-entry": () => (
+    <PinEntry staff={staff[0]!} signIn={never} onSignedIn={nothing} onBack={nothing} />
+  ),
   "needs-attention": () => (
     <NeedsAttentionScreen
       rejected={[refused(1, "order.save_draft", "SYNC_TABLE_OCCUPIED"), settledQr]}

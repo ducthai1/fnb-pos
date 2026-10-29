@@ -1,0 +1,28 @@
+/* The recovery screen after a fault. Colour and type come from the tokens only. */
+
+.pos-recovery__safe {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  padding: var(--sp-4);
+  border: 1px solid var(--c-success-line);
+  border-radius: var(--r-md);
+  background: var(--c-success-soft);
+}
+
+.pos-recovery__safe-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-success);
+}
+
+.pos-recovery__safe-title {
+  margin: 0 0 var(--sp-1);
+  color: var(--c-success);
+  font-weight: var(--fw-semibold);
+}

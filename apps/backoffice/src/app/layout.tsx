@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ApiProvider } from "../components/app/api-context";
+import { ClientErrorReporting } from "../components/app/client-error-reporting";
 import { ThemeFollower } from "../components/app/theme-follower";
 import { THEME_BOOT_SCRIPT } from "../lib/theme/theme-choice";
 import { vi } from "../messages/vi";
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <ThemeFollower />
+        <ClientErrorReporting />
         <ApiProvider>{children}</ApiProvider>
       </body>
     </html>

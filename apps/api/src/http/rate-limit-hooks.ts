@@ -33,6 +33,10 @@ const accountOf = (request: FastifyRequest): string | null => {
 
 const deviceOf = (request: FastifyRequest): string | null => request.device?.deviceId ?? null;
 
+/** A till, or the backoffice session a report came from. */
+const reporterOf = (request: FastifyRequest): string | null =>
+  request.device?.deviceId ?? request.auth?.sessionId ?? null;
+
 /**
  * The routes a guess or a flood is worth sending to: sign-in (each attempt costs a password
  * hash, even against a locked account), pairing (codes are short), and the till's PIN and
@@ -55,6 +59,15 @@ function limitedRoutes(settings: RateLimitSettings): ReadonlyMap<string, Limited
     ["POST /devices/pair", { perAddress: settings.pairingPerAddress }],
     ["POST /pos/staff-sessions", till],
     ["POST /pos/approvals", till],
+    // Fault reports: a screen stuck in a loop must not bury the log, so each till and each
+    // session gets the till's budget, and none is ever answered with a retry-worthy error.
+    [
+      "POST /client-errors",
+      {
+        perAddress: settings.tillPerAddress,
+        subject: { limit: settings.tillPerDevice, of: reporterOf },
+      },
+    ],
   ]);
 }
 

@@ -52,6 +52,7 @@ Người vận hành đặt biến môi trường trong `/etc/fnb/fnb-api.env` (
 | Đăng nhập trang quản lý | 30 / phút | 10 / phút mỗi tài khoản | `FNB_RATE_LIMIT_LOGIN_PER_ADDRESS`, `…_LOGIN_PER_ACCOUNT` |
 | Ghép máy quầy | 10 / phút | — | `FNB_RATE_LIMIT_PAIRING_PER_ADDRESS` |
 | Đăng nhập PIN + duyệt tại máy | 300 / phút | 60 / phút mỗi máy | `FNB_RATE_LIMIT_TILL_PER_ADDRESS`, `…_TILL_PER_DEVICE` |
+| Gửi lỗi từ máy quầy / trang quản lý (`POST /client-errors`) | 300 / phút | 60 / phút mỗi máy hoặc mỗi phiên đăng nhập | cùng hai biến trên (xem [Nhật ký lỗi](05-nhat-ky-loi-may-quay-va-trang-quan-ly.md)) |
 
 - Vượt giới hạn ⇒ máy chủ trả **429** mã `API_RATE_LIMITED` kèm `Retry-After` (số giây chờ). Cửa sổ đổi bằng `FNB_RATE_LIMIT_WINDOW_SECONDS`.
 - **Webhook ngân hàng/cổng thanh toán không bao giờ bị giới hạn** (tiền về không được rơi).

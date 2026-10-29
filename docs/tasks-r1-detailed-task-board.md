@@ -459,7 +459,7 @@
 - **Trạng thái:** user — chờ quán thí điểm + vỏ máy quầy + máy in thật.
 
 ### T11-01 Giám sát lỗi client + server (có tenant_id, không log dữ liệu cá nhân)
-- **Trạng thái:** một phần (2026-10-21) — lỗi 500 của server ghi log kèm tenant, che bí mật (D-064, `apps/api/src/http/server-error-report.test.ts`); chưa thu lỗi phía máy quầy / trang quản lý.
+- **Trạng thái:** xong phần tự dựng (2026-10-29) — lỗi 500 của server ghi log kèm tenant, che bí mật (D-064, `apps/api/src/http/server-error-report.test.ts`); lỗi máy quầy / trang quản lý gửi `POST /client-errors`, che dữ liệu, ghi cùng nhật ký (D-122): `apps/api/src/client-errors/scrub-client-error.test.ts`, `apps/api/test/integration/client-errors/clients-report-their-faults.test.ts`, `packages/contracts/src/client-errors/client-error-report-schema.test.ts`, `apps/pos/src/features/client-errors/client-error-reporter.test.ts`, `apps/pos/src/app/{pos-error-boundary,till-reports-faults}.test.tsx`, `apps/backoffice/src/lib/client-errors/backoffice-reporter.test.ts`, `apps/backoffice/src/components/shell/crash-page.test.tsx`. Chưa: trang xem/gom lỗi, cảnh báo khi lỗi tăng, source map.
 
 ### T11-02 Backup tự động + diễn tập khôi phục — ghi `infra/restore-drill.md`
 - **Trạng thái:** done (2026-10-21, `9071dae`) — D-067: `pnpm ops:backup|ops:restore`, cron backup, `infra/restore-drill.md`; URL ping + đích rclone chờ chủ dự án.

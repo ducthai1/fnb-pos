@@ -36,6 +36,7 @@ const TILL = [
   "staff-picker",
   "pin-entry",
   "blocked",
+  "crash",
   "bootstrap-failed",
   "open-shift",
   "sale",
