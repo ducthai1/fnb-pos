@@ -459,7 +459,7 @@
 - **Trạng thái:** user — chờ quán thí điểm + vỏ máy quầy + máy in thật.
 
 ### T11-01 Giám sát lỗi client + server (có tenant_id, không log dữ liệu cá nhân)
-- **Trạng thái:** một phần (2026-10-21) — lỗi 500 của server ghi log kèm tenant, che bí mật (D-064, `apps/api/src/http/server-error-report.test.ts`); chưa thu lỗi phía máy quầy / trang quản lý.
+- **Trạng thái:** xong phần tự dựng (2026-10-29) — lỗi 500 của server ghi log kèm tenant, che bí mật (D-064, `apps/api/src/http/server-error-report.test.ts`); lỗi máy quầy / trang quản lý gửi `POST /client-errors`, che dữ liệu, ghi cùng nhật ký (D-122): `apps/api/src/client-errors/scrub-client-error.test.ts`, `apps/api/test/integration/client-errors/clients-report-their-faults.test.ts`, `packages/contracts/src/client-errors/client-error-report-schema.test.ts`, `apps/pos/src/features/client-errors/client-error-reporter.test.ts`, `apps/pos/src/app/{pos-error-boundary,till-reports-faults}.test.tsx`, `apps/backoffice/src/lib/client-errors/backoffice-reporter.test.ts`, `apps/backoffice/src/components/shell/crash-page.test.tsx`. Chưa: trang xem/gom lỗi, cảnh báo khi lỗi tăng, source map.
 
 ### T11-02 Backup tự động + diễn tập khôi phục — ghi `infra/restore-drill.md`
 - **Trạng thái:** done (2026-10-21, `9071dae`) — D-067: `pnpm ops:backup|ops:restore`, cron backup, `infra/restore-drill.md`; URL ping + đích rclone chờ chủ dự án.
@@ -468,16 +468,20 @@
 - **Trạng thái:** một phần (2026-10-20) — `pnpm dev:stack` có quán mẫu "Cà phê Mẫu"; staging cần server thật (chủ dự án).
 
 ### T11-04 Cập nhật app quầy: nóng, chặn giữa ca, quay lui
-- **Trạng thái:** todo.
+- **Trạng thái:** xong phần bản web (2026-10-29, D-123) — build đóng dấu mã bản + `version.json`; máy quầy hỏi `version.json`, bản KHÁC là có cập nhật (quay lui cũng tới máy); chính sách áp dụng là hàm thuần (`apps/pos/src/features/updates/update-policy.test.ts`), người hỏi (`release-watch.test.ts`), thẻ (`apps/pos/src/screens/update/update-banner.test.tsx`), hook + máy quầy (`apps/pos/src/app/{use-app-update,till-offers-updates}.test.tsx`), mã bản (`apps/pos/build-release.test.ts`). Quy tắc runbook: server luôn nhận lệnh bản POS ngay trước. Chưa: bản tối thiểu bắt buộc, vỏ native (xem Backlog).
 
 ### T11-05 Pipeline deploy (staging tự động, production bấm tay)
-- **Trạng thái:** một phần (2026-10-21) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); chưa có pipeline.
+- **Trạng thái:** một phần (2026-10-29) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); `pnpm release:pack` đóng gói tarball + checksum + manifest, `infra/release/{install,rollback}-release.sh` cài / đổi bản nguyên tử / tự quay về khi `/health` hỏng / từ chối quay lui qua migration, bước CI tải artifact 14 ngày (D-124): `scripts/src/release/{pack-release,install-and-rollback-scripts}.test.ts`. Chưa: job CI đẩy lên server (không có server; deploy thật cần chủ dự án), chạy thật trên Ubuntu — xem `docs/release-r1-waiting-on-real-things-checklist.md`.
 
 ---
 
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
+- 2026-10-29 · Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần khi có thay đổi hợp đồng không tương thích ngược. → T11-04.
+- 2026-10-29 · Vỏ native (Tauri/Capacitor) cần đường cập nhật riêng (cập nhật gói web trong vỏ, hoặc cập nhật vỏ); bản web dùng `version.json` chưa áp dụng được. → T11-04 / phase vỏ máy quầy.
+- 2026-10-29 · Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. Cân nhắc giữ file `assets/` của bản trước thêm một bản. → T11-04.
+- 2026-10-29 · Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ nếu thu ngân thấy vướng. → T11-04.
 
 > Nhãn `[đợt 4]`, `[đợt 5]`, `[đợt 6]` từ 2026-10-29 trở đi theo kế hoạch 6 đợt tới R1 (Bàn giao 2026-10-28 12:05: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý"). Nhãn "đợt 3…10" trên các dòng 2026-10-20/21 là cách đánh số **cũ** của tuần đầu, không phải các đợt này.
 
@@ -517,13 +521,13 @@
 - 2026-10-20 · Kiểm cấu hình nhóm tùy chọn không thể thỏa (min > số option khi không cho trùng, hoặc Σ maxQuantity < min). → T03-02.
 - 2026-10-20 · `validateComboConfig` (slot min/max, option trùng, product id không tồn tại). → T03-02.
 - 2026-10-20 · Kiểm tham chiếu cấp món: khóa `variantRules` và item bảng giá theo variant phải trỏ đúng variant của món; id item bảng giá không trùng. → T03-02.
-- 2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.
+- ~~2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.~~ **Xong** (đã có từ đợt vận hành, kiểm lại 2026-10-29): `packages/db/src/provisioning/provision-database.ts` tạo hai role + database + default privileges, chạy bằng `pnpm db:provision` (`scripts/src/provision/provision-database-cli.ts`, `infra/README.md` mục 6), test `apps/api/test/integration/infra/provision-database-runs-twice.test.ts`; `install-release.sh` gọi nó mỗi lần cài.
 - 2026-10-20 · `newId()` đang ở `@fnb/db`; POS offline cần cùng bộ sinh từ gói không phụ thuộc server ⇒ tách gói `ids` nhỏ khi bắt đầu POS. → T04-01.
 - 2026-10-20 · Đăng ký tổ chức mới chạy bằng role app hay đường riêng — quyết ở T01-04.
 - 2026-10-20 · **[gấp]** `computeOrderTotals` × dòng âm: gộp dòng hủy vào dòng nó đảo (cùng đơn), đơn hoàn (toàn dòng âm) tính đối xứng; test: hủy 1/2 ly = tổng của đơn 1 ly; hoàn toàn bộ = đúng số âm của đơn gốc. → đợt 3.
 - 2026-10-20 · Hoàn một phần đơn có giảm giá toàn đơn/khuyến mãi: dòng hoàn phải mang phần giảm đã phân bổ (dùng `allocateAmount`) để không trả lại nhiều hơn khách đã trả. → đợt 3.
 - 2026-10-20 · Gắn khóa quyền vào API backoffice (tạo mã ghép, tạo nhân viên, thu hồi thiết bị đang mở cho mọi member); kiểm `role.permission_keys` khớp danh mục; seed 6 vai trò mẫu khi tạo tổ chức. → đợt 3.
-- 2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.
+- ~~2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.~~ **Xong**: `provision-database.ts` dòng `REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` + `GRANT EXECUTE ON FUNCTIONS TO` role app (default privileges của `fnb_owner`), chạy trước migration trong `pnpm db:provision`; ghi ở `infra/README.md` mục 6.
 - 2026-10-20 · Giới hạn tần suất `/auth/login`, `/devices/pair` (theo IP/thiết bị) — API hay proxy? → T11.
 - 2026-10-20 · Job dọn mã ghép, route mã ghép, phiên hết hạn. → T11.
 - 2026-10-20 · Xác minh PIN khi offline: gửi băm PIN 4–6 số xuống máy là brute-force được (≤ 1,1 triệu khả năng) dù có salt ⇒ quyết khi làm T04-05 (khóa gắn thiết bị / chỉ online / PIN dài hơn).

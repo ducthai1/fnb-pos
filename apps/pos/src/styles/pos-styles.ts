@@ -46,4 +46,5 @@ import "./pos-floor.css";
 import "./pos-table-tile.css";
 import "./pos-floor-plan.css";
 import "./pos-operations.css";
+import "./pos-operations-notices.css";
 import "./pos-motion.css";

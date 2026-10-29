@@ -36,6 +36,7 @@ const TILL = [
   "staff-picker",
   "pin-entry",
   "blocked",
+  "crash",
   "bootstrap-failed",
   "open-shift",
   "sale",
@@ -68,6 +69,7 @@ const TILL = [
   "close-shift-slip",
   "needs-attention",
   "sale-offline",
+  "update-banner",
 ];
 const PHONE = ["sale", "modifier-picker", "payment"];
 

@@ -2,6 +2,7 @@ import type { FetchLike } from "./api-result";
 import { type AuthApi, httpAuthApi } from "./auth-api";
 import { type BranchApi, httpBranchApi } from "./branch-api";
 import { type CatalogApi, httpCatalogApi } from "./catalog-api";
+import { type ClientErrorsApi, httpClientErrorsApi } from "./client-errors-api";
 import { type DayCloseApi, httpDayCloseApi } from "./day-close-api";
 import { type DevicesApi, httpDevicesApi } from "./devices-api";
 import { type FloorApi, httpFloorApi } from "./floor-api";
@@ -28,7 +29,8 @@ export type BackofficeApi = AuthApi &
   ReportsApi &
   DayCloseApi &
   PaymentsApi &
-  FloorApi;
+  FloorApi &
+  ClientErrorsApi;
 
 /** The API under the backoffice's own origin (rewritten by Next to wherever it runs). */
 export const API_BASE = "/api";
@@ -53,5 +55,6 @@ export function httpBackofficeApi(
     ...httpDayCloseApi(root, fetchImpl),
     ...httpPaymentsApi(root, fetchImpl),
     ...httpFloorApi(root, fetchImpl),
+    ...httpClientErrorsApi(root, fetchImpl),
   };
 }

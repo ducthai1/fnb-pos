@@ -2,7 +2,16 @@ import { createHttpSyncTransport, fetchHttpSend } from "@fnb/sync-client";
 import { openBrowserLocalStore } from "@fnb/sync-client/browser";
 import { createRoot } from "react-dom/client";
 import { PosApp } from "./app/pos-app";
+import { PosErrorBoundary } from "./app/pos-error-boundary";
 import type { PosDependencies } from "./app/pos-dependencies";
+import { ClientErrorQueue, webReportStorage } from "./features/client-errors/client-error-queue";
+import {
+  createClientErrorReporter,
+  installGlobalErrorCapture,
+} from "./features/client-errors/client-error-reporter";
+import { httpSendReports } from "./features/client-errors/client-error-sender";
+import { releaseUpdateSource } from "./features/updates/release-watch";
+import { RUNNING_RELEASE } from "./features/updates/running-release";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { API_BASE } from "./features/menu/api-base";
@@ -16,6 +25,17 @@ import "./styles/pos-styles";
 // index.html already set the kept theme; from here the till also follows the device while
 // set to "Theo máy", on every screen, signed in or not.
 theTillTheme();
+
+// Faults are queued on the device and sent once the till is paired and online; the handlers
+// go in first so a fault while the rest of this file runs is still seen.
+const clientErrors = createClientErrorReporter({
+  queue: new ClientErrorQueue(webReportStorage(window.localStorage), () => Date.now()),
+  send: httpSendReports(API_BASE),
+  appVersion: RUNNING_RELEASE,
+  now: () => Date.now(),
+  route: () => window.location.pathname,
+});
+installGlobalErrorCapture(window, clientErrors);
 
 const store = openBrowserLocalStore();
 // The app reports a failed open on screen; this only keeps it from counting as unhandled.
@@ -37,6 +57,8 @@ const deps: PosDependencies = {
   // The web build prints nothing; an end-to-end build may ask for a printer that always takes.
   printer: printerForBuild(import.meta.env.VITE_FNB_SIMULATED_PRINTER),
   reload: () => window.location.reload(),
+  clientErrors,
+  updates: releaseUpdateSource(RUNNING_RELEASE, import.meta.env.BASE_URL),
   // Taken before the first render, whatever screen comes up: a till already paired ignores it.
   linkedPairingCode: takePairingCodeFromAddress(window.location, window.history),
 };
@@ -45,4 +67,8 @@ const root = document.getElementById("root");
 if (root === null) throw new Error("index.html has no #root");
 // No StrictMode: its mount-unmount-mount would start a second sync loop on the same store
 // while the first one's pass is still in flight, two batches of one till at once.
-createRoot(root).render(<PosApp deps={deps} />);
+createRoot(root).render(
+  <PosErrorBoundary reporter={clientErrors} onReload={deps.reload}>
+    <PosApp deps={deps} />
+  </PosErrorBoundary>,
+);

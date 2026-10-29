@@ -5,6 +5,7 @@ import { VI_CHECKOUT } from "./vi-checkout";
 import { VI_HISTORY, VI_REFUND } from "./vi-history-refund";
 import { VI_INVOICE } from "./vi-invoice";
 import { VI_ORDER_ADJUST, VI_ORDER_ADJUST_ERRORS, VI_REASONS } from "./vi-order-adjust";
+import { VI_CRASH, VI_UPDATE } from "./vi-operations";
 import { VI_ORDER_VERSION_ERRORS } from "./vi-order-version";
 import { VI_RATE_LIMIT_ERRORS } from "./vi-rate-limit";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
@@ -71,6 +72,8 @@ export const vi = {
   closeShift: VI_CLOSE_SHIFT,
   session: VI_SESSION,
   shell: VI_SHELL,
+  crash: VI_CRASH,
+  update: VI_UPDATE,
   theme: VI_THEME,
   tools: { label: "Công cụ của máy" },
   sales: {

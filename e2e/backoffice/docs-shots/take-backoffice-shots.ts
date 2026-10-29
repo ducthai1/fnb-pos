@@ -122,6 +122,22 @@ const SHOTS: readonly Shot[] = [
   { name: "thiet-bi", path: () => "/devices" },
   { name: "thiet-bi-ma-ghep", path: () => "/devices", act: click(text.devices.createCode) },
   { name: "so-do-ban", path: () => "/floor" },
+  {
+    name: "trang-su-co",
+    path: () => "/devices",
+    // A real fault, as one would arrive: formatting a date throws while the table redraws.
+    act: async (page) => {
+      await page.evaluate(() => {
+        Object.defineProperty(Intl.DateTimeFormat.prototype, "format", {
+          get() {
+            throw new Error("the picture's own fault");
+          },
+        });
+      });
+      await click(text.devices.createCode)(page);
+      await page.getByRole("heading", { name: text.crash.title }).waitFor({ timeout: 10_000 });
+    },
+  },
   { name: "cai-dat", path: () => "/settings" },
   {
     name: "mau-loai-quan",

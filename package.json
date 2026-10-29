@@ -20,6 +20,7 @@
     "build:server": "turbo run build --filter=@fnb/backoffice && pnpm --filter @fnb/pos exec vite build --base=/pos/",
     "api:start": "pnpm --filter @fnb/api start",
     "db:provision": "node --import tsx scripts/src/provision/provision-database-cli.ts",
+    "release:pack": "node --import tsx scripts/src/release/pack-release-cli.ts",
     "ops:backup": "node --import tsx scripts/src/ops/backup-cli.ts",
     "ops:restore": "node --import tsx scripts/src/ops/restore-cli.ts",
     "ops:new-server-generation": "node --import tsx scripts/src/ops/new-server-generation-cli.ts",
@@ -40,11 +41,13 @@
       "esbuild"
     ]
   },
+  "dependencies": {
+    "tsx": "4.23.15"
+  },
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "eslint": "9.39.5",
     "prettier": "3.9.10",
-    "tsx": "4.23.15",
     "turbo": "2.11.9",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.0"

@@ -149,6 +149,13 @@
   color: var(--c-text-2);
 }
 
+.bo-state-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+}
+
 .bo-state-card[data-state="failed"] .bo-state-card__icon {
   background: var(--c-danger-soft);
   color: var(--c-danger);

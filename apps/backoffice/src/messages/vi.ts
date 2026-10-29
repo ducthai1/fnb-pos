@@ -2,6 +2,7 @@
 
 import { VI_API_ERRORS } from "./vi-api-errors";
 import { VI_API_ERRORS_OPERATIONS } from "./vi-api-errors-operations";
+import { VI_CRASH } from "./vi-crash";
 import { VI_DAY_CLOSE, VI_TRANSFERS } from "./vi-day-close-and-payments";
 import { VI_DOMAIN_ERRORS } from "./vi-domain-errors";
 import { VI_FLOOR } from "./vi-floor";
@@ -21,6 +22,7 @@ import { VI_COMMON, VI_DAY_PICKER, VI_LOGIN, VI_SHELL, VI_TABLE } from "./vi-she
 export const vi = {
   login: VI_LOGIN,
   shell: VI_SHELL,
+  crash: VI_CRASH,
   common: VI_COMMON,
   home: VI_HOME,
   table: VI_TABLE,

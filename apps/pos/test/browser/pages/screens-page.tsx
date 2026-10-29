@@ -3,6 +3,8 @@ import { type ReactElement, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "../../../src/messages/vi";
 import { BlockedScreen } from "../../../src/screens/blocked/blocked-screen";
+import { CrashScreen } from "../../../src/screens/crash/crash-screen";
+import { UpdateBanner } from "../../../src/screens/update/update-banner";
 import { BootstrapScreen } from "../../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-screen";
@@ -62,6 +64,7 @@ const settledQrRefusal: RejectedCommand = {
 
 const SCREENS: Record<ScreenName, () => ReactElement> = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={() => {}} />,
+  crash: () => <CrashScreen onReload={() => {}} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
   "bootstrap-failed": () => (
     <BootstrapScreen
@@ -91,6 +94,19 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ...TABLE_SCREENS,
   ...OPERATIONS_SCREENS,
   ...HISTORY_REFUND_SCREENS,
+  // The card over the selling screen, with commands waiting: its longest sentence.
+  "update-banner": () => (
+    <>
+      {SALE_SCREENS.sale()}
+      <UpdateBanner
+        open
+        blockedBy="outbox"
+        pendingCommands={123_456}
+        updating={false}
+        onUpdate={() => {}}
+      />
+    </>
+  ),
 };
 
 /** Marks the page once React has rendered the screen, so the test never measures early. */

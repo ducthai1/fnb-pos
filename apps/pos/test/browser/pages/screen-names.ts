@@ -1,6 +1,7 @@
 /** The screens the layout test opens, each at phone, tablet and landscape till width. */
 export const SCREEN_NAMES = [
   "blocked",
+  "crash",
   "pairing",
   "bootstrap-failed",
   "staff-picker",
@@ -36,6 +37,7 @@ export const SCREEN_NAMES = [
   "order-history",
   "refund",
   "refund-and-close-slips",
+  "update-banner",
 ] as const;
 
 export type ScreenName = (typeof SCREEN_NAMES)[number];

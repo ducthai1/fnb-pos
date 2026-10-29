@@ -76,29 +76,50 @@ sudo nano /etc/fnb/admin.env
 #   FNB_APP_PASSWORD=<openssl rand -base64 24>
 ```
 
-## 5. Lấy code và build
+## 5. Bản phát hành: đóng gói ở máy build, cài bằng một lệnh
 
-Mỗi phiên bản một thư mục, `current` là symlink ⇒ quay lui = trỏ lại symlink.
+Mỗi phiên bản là một **tarball** làm sẵn (không build trên server). Mỗi bản ở một thư mục riêng `/srv/fnb/releases/<mã bản>`, `current` là symlink ⇒ đổi bản và quay lui = đổi symlink.
+
+**Làm tarball** (máy dev hoặc CI; CI tự làm sau `pnpm build` và đính kèm file ở mục "Artifacts" của lần chạy, giữ 14 ngày):
 
 ```bash
-V=v0.1.0                                   # tag sẽ chạy
-sudo -u fnb git clone --branch $V --depth 1 <url repo> /srv/fnb/releases/$V
-cd /srv/fnb/releases/$V
-sudo -u fnb pnpm install --frozen-lockfile
-sudo -u fnb pnpm build:server
-sudo ln -sfn /srv/fnb/releases/$V /srv/fnb/current
+pnpm install --frozen-lockfile
+pnpm release:pack            # build POS (base /pos/) + backoffice, rồi đóng gói vào tmp/release-out/
 ```
 
-`pnpm build:server` tạo đủ thứ để chạy (đã kiểm 2026-10-21, `pnpm build` thường cũng ra đúng hai thư mục này, chỉ khác POS ở base `/`):
+Ra ba file: `fnb-<mã bản>.tar.gz`, `fnb-<mã bản>.tar.gz.sha256`, `fnb-<mã bản>.manifest.json` (mã bản, mã git, giờ build, danh sách migration, sha256 từng file). Mã bản = version của `apps/pos` + mã git ngắn (đặt `FNB_RELEASE_ID` để ghi đè), cũng là cái máy quầy so để biết có bản mới (`/pos/version.json`).
 
-| Sản phẩm                 | Đường dẫn                                                   | Ai dùng                                 |
-| ------------------------ | ----------------------------------------------------------- | --------------------------------------- |
-| POS (tĩnh, base `/pos/`) | `apps/pos/dist/` (`index.html` + `assets/`)                 | Caddy `file_server`                     |
-| Backoffice (Next)        | `apps/backoffice/dist/`                                     | `fnb-backoffice.service` (`next start`) |
-| API                      | không build: `apps/api/src/server/main.ts` + `node_modules` | `fnb-api.service`                       |
-| Migration                | `packages/db/migrations/*.sql`                              | `pnpm db:provision`                     |
+Trong tarball có đủ để chạy đúng như các mục dưới đây mô tả:
 
-Đã chạy thử bố cục này trên máy dev (2026-10-21): Caddy 2.6.2 với đúng các khối `handle` của [`caddy/Caddyfile`](caddy/Caddyfile) (HTTP, cổng động), API bằng `node --import tsx src/server/main.ts` có `FNB_TRUSTED_PROXIES`, backoffice bằng `next start` trên bản build, POS từ `pnpm build:server`, quán mẫu của dev stack trên Postgres 17. Kết quả: `/api/health` 200; `/pos/` trả `index.html` với `Cache-Control: no-cache`; Chrome headless mở `/pos/`, ghép máy bằng mã, đăng nhập PIN, tới trạng thái "Đang kết nối" (đồng bộ thật qua `/api`); `/login` của backoffice hiện form; không lỗi console, không phản hồi 4xx/5xx. `caddy validate` nhận file Caddyfile mẫu. Chưa thử: TLS thật, máy Ubuntu sạch, systemd unit.
+| Thứ | Đường dẫn trong bản | Ai dùng |
+| --- | --- | --- |
+| POS (tĩnh, base `/pos/`) + `version.json` | `apps/pos/dist/` | Caddy `file_server` |
+| Backoffice (Next, đã build) | `apps/backoffice/dist/` + `next.config.mjs` | `fnb-backoffice.service` (`next start`) |
+| API: mã nguồn TypeScript + gói dùng chung | `apps/api/src/`, `packages/*/src/` | `fnb-api.service` (`node --import tsx`) |
+| Migration | `packages/db/migrations/*.sql`, danh sách ở `migrations.txt` | `pnpm db:provision` |
+| Backup, provision, preflight | `scripts/src/`, `apps/api/src/ops/` | cron, `install-release.sh` |
+| Script cài và quay lui | `infra/release/` | người vận hành |
+| `RELEASE_ID`, `SHA256SUMS` | gốc bản | install kiểm checksum |
+
+Bản **không** có: test, mã nguồn POS/backoffice, docs, bộ nhớ đệm build. `pnpm install --frozen-lockfile --prod` bỏ phụ thuộc phát triển; `tsx` là phụ thuộc chạy (API chạy thẳng TypeScript). Backoffice đọc `next.config.mjs` thay vì `next.config.ts` (đọc file TypeScript cần gói `typescript`, một phụ thuộc phát triển).
+
+**Cài lần đầu**: làm mục 2–4, rồi cài bản đầu bằng `--no-start` (dưới đây): script giải nén, cài phụ thuộc, chạy migration (mục 6: tạo role và database) và đặt `current`, chưa khởi động gì vì unit systemd và file môi trường nằm trong chính bản này. Sau đó làm tiếp mục 6 (role backup), 7, 8, 9, 10. Một lần: cho user `fnb` khởi động lại hai dịch vụ và chạy hai việc cần quyền khác của script (`visudo -f /etc/sudoers.d/fnb-release`; ba dòng dưới là mẫu, **chưa thử trên server thật**, và sudoers đòi thoát dấu `;` thành `\;` trong tham số):
+
+```
+fnb ALL=(root) NOPASSWD: /usr/bin/systemctl restart fnb-api fnb-backoffice
+fnb ALL=(root) NOPASSWD: /usr/bin/bash -c set -a; . /etc/fnb/admin.env; set +a; pnpm db:provision
+fnb ALL=(fnbbackup) NOPASSWD: /usr/bin/bash -c set -a; . /etc/fnb/backup.env; set +a; pnpm -s ops:backup
+```
+
+Chép `infra/backup.env.example` thành `/etc/fnb/backup.env` (quyền 640, root:fnbbackup). Rồi chép ba file từ máy build lên server và:
+
+```bash
+# script cài nằm trong chính tarball: lấy ra chạy
+mkdir /tmp/fnb-installer && tar -xzf fnb-<mã bản>.tar.gz -C /tmp/fnb-installer infra/release
+sudo -u fnb /tmp/fnb-installer/infra/release/install-release.sh [--no-start] /đường/dẫn/fnb-<mã bản>.tar.gz
+```
+
+Script làm: kiểm checksum tarball và từng file → giải nén vào `releases/<mã bản>` → `pnpm install --frozen-lockfile --prod` → (không phải bản đầu) backup → migration (`pnpm db:provision`) → đổi `current` bằng một phép đổi tên → khởi động lại hai dịch vụ → hỏi `/health` (cùng thứ Caddy phục vụ ở `/api/health`); **không trả lời thì tự đổi về bản trước và thoát mã 1** → giữ 5 bản mới nhất (không bao giờ xóa bản đang chạy và bản ngay trước nó). Biến môi trường chỉnh được: xem đầu `infra/release/release-common.sh`.
 
 ## 6. Database: role, database, migration
 
@@ -107,7 +128,7 @@ cd /srv/fnb/current
 sudo bash -c 'set -a; . /etc/fnb/admin.env; set +a; pnpm db:provision'
 ```
 
-Chạy lại lúc nào cũng được (lần sau không đổi gì, chỉ chạy migration mới). Nó in chuỗi `FNB_DATABASE_URL` cho API (mật khẩu ghi là `PASSWORD` = `FNB_APP_PASSWORD`).
+Chạy lại lúc nào cũng được (lần sau không đổi gì, chỉ chạy migration mới); bản cài đầu bằng `install-release.sh` đã chạy nó một lần, chạy lại để lấy chuỗi cho API. Nó in chuỗi `FNB_DATABASE_URL` cho API (mật khẩu ghi là `PASSWORD` = `FNB_APP_PASSWORD`).
 
 Role cho backup (pg_dump phải thấy mọi tenant; xem lý do trong [`restore-drill.md`](restore-drill.md)):
 
@@ -179,19 +200,25 @@ In từng dòng ĐẠT / CẢNH BÁO / KHÔNG ĐẠT, exit 1 nếu có mục kh�
 
 **Không cập nhật trong giờ bán.** Lúc API khởi động lại (vài giây) máy quầy vẫn bán offline và tự đẩy lệnh sau, nhưng:
 
-- POS mới chỉ tới máy quầy khi trang được tải lại. Tải lại giữa ca khi còn lệnh chưa đồng bộ, hoặc bản POS mới đổi dữ liệu cục bộ ⇒ có thể kẹt lệnh, lệch két. Việc "chặn cập nhật giữa ca / quay lui app quầy" chưa làm (T11-04).
+- Máy quầy tự phát hiện bản POS mới (hỏi `/pos/version.json` mỗi 5 phút, khi có mạng lại, khi trang hiện lại) và tự đổi vào lúc yên: không bao giờ khi còn lệnh chưa đồng bộ hay đang thanh toán; chưa mở ca thì tự đổi khi máy nhàn rỗi 20 giây; đang mở ca thì hiện thẻ "Có bản cập nhật — sẽ cập nhật sau khi đóng ca" kèm nút "Cập nhật ngay". Bản **khác** bản đang chạy là có cập nhật, nên quay lui một bản trên server cũng tới máy quầy theo đường này.
+- **Luật cho mọi bản phát hành: server phải nhận được lệnh của bản POS ngay trước đó** (mở rộng rồi mới thu hẹp, expand → contract): trong lúc máy quầy chưa kịp đổi bản, nó vẫn đẩy lệnh theo hợp đồng cũ. Đổi hợp đồng lệnh/đồng bộ thì làm hai bản liền nhau: bản 1 nhận cả cũ lẫn mới, bản 2 mới bỏ cái cũ.
+- Một bản POS đổi dữ liệu cục bộ (cơ sở dữ liệu trên máy) phải tự chuyển dữ liệu cũ khi mở; không có bước chuyển tay trên máy quầy.
 - Migration chạy trước khi đổi code: code cũ đang chạy phải chịu được schema mới trong khoảng đó.
 
 Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng cửa):
 
-1. Backup tay: lệnh ở mục 10.
-2. Lấy và build bản mới vào thư mục riêng (mục 5, KHÔNG đổi symlink).
-3. Migration: `cd /srv/fnb/releases/$V && sudo bash -c 'set -a; . /etc/fnb/admin.env; set +a; pnpm db:provision'`.
-4. Đổi bản chạy: `sudo ln -sfn /srv/fnb/releases/$V /srv/fnb/current && sudo systemctl restart fnb-api fnb-backoffice`.
-5. `pnpm ops:preflight` (mục 11), đăng nhập backoffice, mở `/pos/` trên một máy quầy, bán thử một đơn tiền mặt rồi hoàn.
-6. Giữ 2–3 bản cũ trong `/srv/fnb/releases`, xóa bản cũ hơn.
+1. Có `fnb-<mã bản>.tar.gz` + `.sha256` trên server (mục 5).
+2. `sudo -u fnb /srv/fnb/current/infra/release/install-release.sh fnb-<mã bản>.tar.gz` — cả chuỗi ở mục 5, gồm backup và migration. Thoát mã 0 = bản mới đã trả lời `/health`; mã 1 = đã tự về bản trước (đọc dòng cuối để biết lý do; migration của bản mới nếu đã chạy thì vẫn còn trong database, script nói tên).
+3. `pnpm ops:preflight` (mục 11), đăng nhập backoffice, mở `/pos/` trên một máy quầy, bán thử một đơn tiền mặt rồi hoàn.
+4. Máy quầy tự đổi sang bản mới lúc yên (xem trên). Đổi hợp đồng lệnh/đồng bộ thì làm **hai bản liền nhau** (mở rộng rồi mới thu hẹp): bản mới luôn nhận được lệnh của bản POS ngay trước nó.
 
-**Quay lui**: `sudo ln -sfn /srv/fnb/releases/<bản cũ> /srv/fnb/current && sudo systemctl restart fnb-api fnb-backoffice` — chỉ an toàn khi bản mới **không có migration**. Có migration thì code cũ có thể không chạy trên schema mới (preflight báo "database mới hơn code"); khi đó sửa tiến (bản vá) hoặc khôi phục backup của bước 1 (mất mọi thứ server nhận sau đó, và máy quầy phải xử lý tay — xem mục "Chưa xử lý" trong [`restore-drill.md`](restore-drill.md)) — quyết với chủ quán, đừng tự làm.
+**Quay lui**: `sudo -u fnb /srv/fnb/current/infra/release/rollback-release.sh [<mã bản>]` — về bản ngay trước (hoặc bản chỉ định), khởi động lại dịch vụ, hỏi `/health`. Script **từ chối** khi bản đang chạy đã thêm migration mà bản đích chưa có (code cũ có thể không chạy trên schema mới) và in các cách xử lý:
+
+1. Sửa tiến: phát hành bản vá trên bản đang chạy (cách nên dùng).
+2. Khôi phục backup mà `install-release.sh` đã chụp ngay trước khi cài bản đó (`restore-drill.md`: khôi phục vào database MỚI, kiểm, rồi trỏ API sang) — mọi thứ bán sau backup đó mất, quyết cùng chủ quán.
+3. Chỉ khi chắc các migration đó cộng thêm và code cũ bỏ qua được: chạy lại với `--after-migration-i-understand`.
+
+Máy quầy cũng nhận bản quay lui theo đúng cách nhận bản mới (so khác, không so mới hơn).
 
 ## 13. Checklist trước khi mở cho quán
 
@@ -212,5 +239,5 @@ Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng c�
 
 - Giới hạn tần suất đếm trong bộ nhớ của tiến trình API: khởi động lại là đếm lại; chạy nhiều tiến trình thì mỗi tiến trình cho đủ hạn mức (cần kho dùng chung khi mở rộng).
 - Job dọn mã ghép/phiên chạy trong API: nhiều tiến trình cùng database thì chỉ bật ở một (`FNB_CLEANUP_ENABLED=false` ở các tiến trình khác).
-- Chưa có giám sát lỗi tập trung (T11-01) và cảnh báo khi backup không chạy: kiểm `journalctl -t fnb-backup` mỗi sáng.
+- Lỗi của máy quầy và trang quản lý về cùng nhật ký với lỗi 500 của API (`journalctl -u fnb-api | grep "client error"`, xem sổ tay Vận hành 05); chưa có trang xem hay cảnh báo khi lỗi tăng. Chưa có cảnh báo khi backup không chạy: kiểm `journalctl -t fnb-backup` mỗi sáng.
 - Chưa có Content-Security-Policy (Next cần nonce cho script inline).

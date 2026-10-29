@@ -27,6 +27,15 @@ jobs:
       # against the real API on an embedded Postgres; no browser download, no Docker.
       - run: pnpm exec turbo run test:browser --concurrency=1
       - run: pnpm build
+      # The release as the server installs it: tarball, checksum and manifest. Nothing is
+      # pushed anywhere; the artifact is what an operator copies to a server.
+      - run: pnpm release:pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fnb-release
+          path: tmp/release-out/
+          retention-days: 14
+          if-no-files-found: error
       # The backup and restore drill needs pg_dump/pg_restore no older than the embedded
       # Postgres 17; the runner ships an older client, so 17 comes from the PGDG archive.
       - run: |

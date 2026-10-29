@@ -5,6 +5,8 @@ screens: []
 decisions:
   - D-055
   - D-067
+  - D-123
+  - D-124
 tests:
   - apps/api/src/server/server-config.test.ts
   - apps/api/src/ops/preflight-checks.test.ts
@@ -12,6 +14,9 @@ tests:
   - apps/api/test/integration/server/api-entrypoint-serves-and-stops.test.ts
   - apps/api/test/integration/server/api-entrypoint-logs-server-faults.test.ts
   - apps/api/test/integration/infra/provision-database-runs-twice.test.ts
+  - apps/pos/src/features/updates/update-policy.test.ts
+  - apps/pos/src/features/updates/release-watch.test.ts
+  - scripts/src/release/install-and-rollback-scripts.test.ts
 ---
 
 # Đặt hệ thống lên server cho quán
@@ -54,15 +59,17 @@ Một địa chỉ duy nhất (ví dụ `https://quan.example.vn`) cho cả tran
 ### Cập nhật phiên bản
 
 1. **Không cập nhật trong giờ bán** — làm sau khi chốt ngày.
-2. Backup tay → build bản mới vào thư mục riêng → `pnpm db:provision` (migration) → đổi symlink `current` → khởi động lại hai dịch vụ → `pnpm ops:preflight` → bán thử một đơn.
-3. Giữ 2–3 bản cũ để quay lui. Quay lui chỉ an toàn khi bản mới **không có migration**.
+2. `install-release.sh fnb-<mã bản>.tar.gz` làm cả chuỗi: kiểm checksum → backup → migration → đổi `current` → khởi động lại → kiểm `/health` (hỏng thì tự về bản trước); xem [Bản phát hành](06-ban-phat-hanh-va-quay-lui.md). Rồi `pnpm ops:preflight` → bán thử một đơn.
+3. Script giữ 5 bản mới nhất. `rollback-release.sh` quay lui và **từ chối** khi bản đang chạy đã thêm migration (cách xử lý in kèm). Máy quầy tự nhận bản mới (hoặc bản quay lui) lúc yên, không cần đi từng máy.
 
 ## Luật và giới hạn
 
 - API **không chạy** khi cấu hình sai hay thiếu: thiếu `FNB_ENV`, `FNB_ENV=production` mà dùng nhà cung cấp hóa đơn giả, cookie không Secure, thiếu `FNB_ALLOWED_ORIGINS`, hoặc role cơ sở dữ liệu của API là SUPERUSER/BYPASSRLS. Log chỉ ghi **tên** biến sai, không ghi giá trị.
 - `pnpm ops:preflight` thoát mã 1 khi còn mục KHÔNG ĐẠT; kiểm: cấu hình hợp lệ, production, origin chỉ https, có khóa thanh toán, API đã tin proxy (`FNB_TRUSTED_PROXIES`), job dọn dẹp bật, role API không vượt RLS, migration đủ và database không mới hơn mã, `/health` trả 200.
 - Lỗi 500 được ghi vào journal (phương thức, đường dẫn, mã, stack đã che bí mật) — không ghi nội dung yêu cầu.
-- Máy quầy chỉ nhận bản POS mới khi trang được **tải lại**; tải lại giữa ca khi còn lệnh chưa đồng bộ có thể gây kẹt lệnh.
+- Máy quầy tự biết có bản POS mới (hỏi `version.json` mỗi 5 phút) và tự đổi vào lúc yên: không tải lại khi còn lệnh chưa đồng bộ hay đang thanh toán; có ca mở thì chờ thu ngân bấm hoặc đóng ca (xem [Cập nhật bản mới của máy quầy](../may-quay/12-cap-nhat-ban-moi.md)). `index.html` và `version.json` do Caddy gửi `no-cache`, file trong `assets/` có hash và `immutable`.
+- **Máy chủ phải luôn nhận lệnh của bản POS ngay trước** (mở rộng rồi mới thu hẹp, "expand → contract"): một máy quầy chưa kịp cập nhật vẫn đẩy lệnh của bản cũ. Muốn bỏ một trường hay một loại lệnh: bản này thêm cái mới và vẫn nhận cái cũ, bản sau mới bỏ cái cũ sau khi mọi máy đã chạy bản này.
+- Máy quầy so mã bản bằng **khác nhau**: quay lui một bản trên server thì máy quầy cũng đổi về bản đó.
 - Xem log: `journalctl -u fnb-api -f`, `journalctl -u fnb-backoffice`, `journalctl -t fnb-backup`, `/var/log/caddy/fnb-access.log`.
 
 ## Khi có lỗi
@@ -81,5 +88,5 @@ Một địa chỉ duy nhất (ví dụ `https://quan.example.vn`) cho cả tran
 - Chưa thử trên máy Ubuntu sạch với TLS thật và systemd (đã thử bố cục Caddy + API + trang quản lý + POS trên máy phát triển).
 - Chưa có giám sát lỗi tập trung và cảnh báo khi backup không chạy: kiểm `journalctl -t fnb-backup` mỗi sáng.
 - Chưa có Content-Security-Policy.
-- Chưa chặn cập nhật POS giữa ca / quay lui bản POS trên máy quầy.
+- Chưa ép được bản POS tối thiểu (máy quầy cũ không bị buộc cập nhật); chưa có vỏ app cài trên máy.
 - Chạy nhiều tiến trình API chưa được hỗ trợ trọn vẹn: giới hạn tần suất đếm riêng trong từng tiến trình (cần kho đếm chung), job dọn dẹp chỉ được bật ở một tiến trình (`FNB_CLEANUP_ENABLED=false` ở các tiến trình khác).

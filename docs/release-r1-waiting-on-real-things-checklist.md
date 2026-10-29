@@ -8,7 +8,8 @@
 
 | Việc | Đã có | Còn thiếu khi có server | Task / quyết định |
 |---|---|---|---|
-| Bước CI tự đẩy bản lên server: staging tự động sau mỗi lần gộp `main`, production bấm tay có người duyệt | Đóng gói bản phát hành, script cài / đổi bản / quay lui, thử trên thư mục giả ở máy dev (đợt 4) | Server, tên miền, khóa SSH dùng riêng cho deploy (secret GitHub, không bao giờ vào repo), GitHub Environment `production` có người duyệt; viết job deploy rồi chạy thử trên staging | T11-05 |
+| Bước CI tự đẩy bản lên server: staging tự động sau mỗi lần gộp `main`, production bấm tay có người duyệt | `pnpm release:pack` (tarball + checksum + manifest), `infra/release/install-release.sh` và `rollback-release.sh`, bước CI đóng gói + tải lên artifact 14 ngày; script chạy thử trên thư mục tạm với `systemctl`/`pnpm`/`curl` giả (`scripts/src/release/install-and-rollback-scripts.test.ts`, trong `pnpm verify`) | Server, tên miền, khóa SSH dùng riêng cho deploy (secret GitHub, không bao giờ vào repo), GitHub Environment `production` có người duyệt; viết job deploy (tải artifact, chép lên, chạy `install-release.sh`) rồi chạy thử trên staging | T11-05, D-124 |
+| Chạy thật `install-release.sh` / `rollback-release.sh` trên Ubuntu: user `fnb` + sudoers, systemd restart, `/health` thật, backup và migration thật, mất điện giữa chừng | Đã thử trên thư mục tạm với lệnh giả, và `pnpm install --frozen-lockfile --prod` + `next start` + nạp module API/scripts từ bản giải nén trên máy dev | Ba dòng sudoers mẫu trong `infra/README.md` mục 5 (dấu `;` có thể cần thoát), `/etc/fnb/backup.env`, cài bản đầu bằng `--no-start`, một lần cài bản mới và một lần quay lui thật; kiểm `mv -T` đổi `current` nguyên tử trên hệ tệp của server | T11-05, D-124 |
 | Staging có dữ liệu giả (gồm bộ dữ liệu xấu) | Quán mẫu của `pnpm dev:stack` | Dựng trên server staging, nạp dữ liệu mẫu | T11-03 |
 | Chạy thử runbook trên máy Ubuntu sạch: TLS thật, systemd unit, Caddy | Đã thử bố cục trên máy dev, HTTP, cổng động | Chạy đủ `infra/README.md` mục 2–11 trên server sạch | D-067 |
 | Cảnh báo khi backup không chạy + chép backup ra ngoài server | `pnpm ops:backup` / `ops:restore`, cron, diễn tập khôi phục | URL ping (dịch vụ theo dõi cron) và đích rclone do chủ dự án chọn | T11-02, D-067 |
@@ -25,7 +26,8 @@
 | Hàng đợi in phía máy, in lại, báo lỗi | Server có `print.job_reported`, báo cáo lỗi in | Hàng đợi trên máy (cần vỏ native) | T04-15 |
 | Món bàn khóa sau khi gửi bếp | Bản web không bao giờ "đã gửi" vì không có máy in nhận (Q16) | D-097 làm bản web ở đợt 6; kiểm lại với máy in thật | D-097 |
 | Combo in lỗi ở một trạm thì lần sau in lại ở mọi trạm | Chấp nhận trùng phiếu hơn mất món | Ghi "đã gửi" theo từng trạm khi có máy in thật | D-114 |
-| Cập nhật nóng bản web bên trong vỏ native, token thiết bị trong keychain | Bản web: báo có bản mới, không cập nhật giữa ca, quay lui theo bản server đang chạy (đợt 4) | Cơ chế tải bundle của Tauri / Capacitor | T11-04, T04-05 |
+| Cập nhật bản web: Caddy gửi `no-cache` cho `index.html` + `version.json` và `immutable` cho `assets/` ngoài đời thật; máy quầy thật đổi bản lúc yên | Bản web: máy quầy hỏi `version.json`, so khác (quay lui cũng tới), không đổi khi còn lệnh chưa gửi / đang thanh toán, thẻ "sau khi đóng ca" (D-123) | Kiểm bằng `curl -I` trên server thật, và một máy quầy thật qua một lần đổi bản + một lần quay lui; file `assets/` của bản cũ biến mất khi đổi bản (backlog) | T11-04, D-123 |
+| Cập nhật nóng bản web bên trong vỏ native, token thiết bị trong keychain | Chưa có (bản web chạy trong trình duyệt) | Cơ chế tải bundle của Tauri / Capacitor; ép phiên bản tối thiểu (backlog T11-04) | T11-04, T04-05 |
 | Cân điện tử | Ngăn nhập cân + nút "Đọc cân" (`weighing-scale.ts`) | Nối qua vỏ native | Backlog 2026-10-28 |
 
 ## 3. Tài khoản, sandbox, người thật

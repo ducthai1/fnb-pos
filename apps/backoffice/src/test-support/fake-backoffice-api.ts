@@ -38,6 +38,7 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
   const base: BackofficeApi = {
     login: unexpected("login"),
     logout: async () => ok(true),
+    reportClientErrors: async () => ok(true),
     me: async () => ok({ ...OWNER }),
     listBranches: async () => ok([...BRANCHES]),
     listDevices: unexpected("listDevices"),

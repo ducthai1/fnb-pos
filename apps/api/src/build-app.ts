@@ -52,6 +52,8 @@ import { registerSyncRoutes } from "./routes/sync/register-sync-routes";
 import { registerPaymentWebhookRoute } from "./routes/webhooks/payment-webhook-route";
 import { registerWalletNoticeRoute } from "./routes/webhooks/wallet-notice-route";
 import { type ServerErrorReport, serverErrorReport } from "./http/server-error-report";
+import type { ClientErrorEntry } from "./client-errors/client-error-log";
+import { registerClientErrorRoute } from "./routes/client-errors/client-error-route";
 import { type SecretVerifier, verifySecret } from "./security/secret-hash";
 
 export interface AppDependencies {
@@ -103,6 +105,11 @@ export interface AppDependencies {
    * learns only API_INTERNAL, so this is the one trace a server fault leaves.
    */
   onServerError?: (report: ServerErrorReport) => void;
+  /**
+   * Told of every fault the POS and the backoffice report (see scrubClientError): the
+   * only place they are kept, since no outside service is sent them.
+   */
+  onClientError?: (entry: ClientErrorEntry) => void;
   /** Where product photos are kept, a directory per tenant; without it uploads answer 503. */
   mediaDirectory?: string;
 }
@@ -185,6 +192,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerProductImageRoutes(app, context);
   registerFloorRoutes(app, context);
   registerSyncRoutes(app, context);
+  registerClientErrorRoute(app, context, dependencies.onClientError);
   registerPrintFailureRoutes(app, context);
   registerDailySalesRoutes(app, context);
   const payments = {
