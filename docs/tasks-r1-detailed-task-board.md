@@ -6,7 +6,11 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, nhánh `feat/till-screens-redraw-and-listbox-search`, chưa merge, chưa push).
+- 2026-10-29 23:30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, **0,41M token** theo số đo của hệ thống, merge `d824c0e`).
+  - **Review khi gộp:** ngăn thanh toán ở 1280×800 đẩy bàn phím số xuống thấp hơn bản cũ một hàng ⇒ màn thấp (≤ 860 px) đặt hai thẻ nằm ngang, biểu tượng cạnh chữ (`aecd5fc`).
+  - **Cổng trên `main`:** unit 3.208 · `test:api` 1.802 (+1 skip) · `test:sync` 22 · `test:browser` 237 (POS 177, e2e 28 + 10, sync-client 22) · build · `release:pack` (`0.0.0+d824c0e`).
+    - `test:api` đỏ lần đầu ở bước dựng dữ liệu của `money-the-bank-brought-is-never-dropped.test.ts` (ghép máy trả 401), không liên quan đợt này (không đổi API / DB).
+    - Chạy riêng file đó 3/3 xanh, chạy lại cả bộ cũng xanh. Đã ghi Backlog `[đợt 7]`.
   - **Commit:** `f5d5cec` (ô chọn) · `0f355ba` (hiệu ứng đóng) · `ceb97b5` (đăng nhập) · `6401825` + `571bddb` (dải cập nhật) · `802300b` (ca, thu chi) · `f3ad6f7` (thanh toán).
   - **Ô chọn trang quản lý** (D-125): `Listbox` có ô tìm bỏ dấu (> 8 mục hoặc `searchable`), bàn phím đủ, "Không tìm thấy"; cả 12 `SelectField` ở 9 file đã đổi, `SelectField` gỡ (`CheckField` sang `check-field.tsx`). Test chọn dùng `test-support/pick-from-listbox.ts`, e2e dùng `choose`.
   - **Hiệu ứng đóng** (D-126): `usePresence` ở cả hai app, gỡ bằng hẹn giờ, đóng là CSS transition nên mở lại giữa chừng không nháy; áp cho danh sách `Listbox`, menu ngang, ngăn kéo menu, menu giao diện máy quầy, 6 bước phủ lên đơn (đường Quay lại).
@@ -14,9 +18,9 @@
   - **Dải cập nhật** (D-128): `TillFrame` đặt dải đầu màn, chiếm chỗ riêng, thu nhỏ được; không đổi `update-policy.ts`.
   - **Mở ca / đóng ca / thu chi** (D-129): `ShiftPanel`, hai thẻ từ 1100 px, không đổi nghiệp vụ.
   - **Ngăn thanh toán** (D-130): khối Cần thu thương hiệu, hai thẻ có dấu tích, nút gợi ý cao.
-  - **Sổ tay:** `may-quay/01, 02, 04, 07, 11, 12`, `quan-ly/01, 03, 14`; ảnh đã chụp lại cho các màn đổi (tôi sẽ chụp lại toàn bộ sau khi gộp). Ảnh mới: `update-banner-folded`.
+  - **Sổ tay:** `may-quay/01, 02, 04, 07, 11, 12`, `quan-ly/01, 03, 14`; toàn bộ ảnh chụp lại trên `main` sau khi gộp. Ảnh mới: `update-banner-folded`.
   - **Biết trước:** xem các dòng Backlog `[đợt 6]` / `[thấp]` ghi 2026-10-29 vừa thêm (đường đóng "xong việc", `usePresence` hai bản, QR / ví).
-  - **Phiên sau:** gộp + chụp lại toàn bộ ảnh sổ tay; đợt 6 theo Backlog.
+  - **Phiên sau:** đợt 6 theo Backlog (cần chủ dự án duyệt token).
 
 - 2026-10-29 22:00 — **Rà xong Backlog cũ** (không agent, chỉ sửa tài liệu).
   - Kiểm 97 dòng ghi 2026-10-20 … 10-28 bằng grep trong code.
@@ -590,6 +594,10 @@
 
 **[đợt 7] — quán giả lập kiểm luôn**
 
+- 2026-10-29 · `test:api` chập chờn: `apps/api/test/integration/payments/money-the-bank-brought-is-never-dropped.test.ts` đỏ một lần ở `beforeAll` (`pairDevice`: "pairing answered 401") khi chạy cả bộ trên `main` `d824c0e`; chạy riêng 3/3 xanh, chạy lại cả bộ xanh.
+  - Đã loại: hai test dọn mã ghép dùng database riêng; mã 8 ký tự / 30 chữ thì trùng gần như không thể; route ghép không đổi.
+  - Còn nghi: thứ gì đó sửa `device_pairing_code` / `pairing_code_route` của tenant khác trên database dùng chung, hoặc đồng hồ của app thanh toán đi trước giữa lúc cấp và lúc ghép.
+  - Lặp lại thì in body của 401 và trạng thái hàng mã trong DB lúc hỏng.
 - 2026-10-28 · Combo chưa có e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp); hiện chỉ có test component và API.
 - 2026-10-20 · Ratchet test của spike: phần hội tụ nhiều máy đã có ở `packages/sync-client/test/scenarios`. Chưa đối chiếu từng ca:
   - commit muộn (advisory lock);
