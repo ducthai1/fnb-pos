@@ -6,6 +6,18 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, nhánh `feat/till-screens-redraw-and-listbox-search`, chưa merge, chưa push).
+  - **Commit:** `f5d5cec` (ô chọn) · `0f355ba` (hiệu ứng đóng) · `ceb97b5` (đăng nhập) · `6401825` + `571bddb` (dải cập nhật) · `802300b` (ca, thu chi) · `f3ad6f7` (thanh toán).
+  - **Ô chọn trang quản lý** (D-125): `Listbox` có ô tìm bỏ dấu (> 8 mục hoặc `searchable`), bàn phím đủ, "Không tìm thấy"; cả 12 `SelectField` ở 9 file đã đổi, `SelectField` gỡ (`CheckField` sang `check-field.tsx`). Test chọn dùng `test-support/pick-from-listbox.ts`, e2e dùng `choose`.
+  - **Hiệu ứng đóng** (D-126): `usePresence` ở cả hai app, gỡ bằng hẹn giờ, đóng là CSS transition nên mở lại giữa chừng không nháy; áp cho danh sách `Listbox`, menu ngang, ngăn kéo menu, menu giao diện máy quầy, 6 bước phủ lên đơn (đường Quay lại).
+  - **Nhóm đăng nhập máy quầy** (D-127): `ScreenFrame stage` — thẻ giữa màn cho ghép máy, chọn nhân viên (30 người cuộn trong thẻ), PIN (chấm, xóa số cuối, rung khi sai), sự cố, tab khác. Test bố cục 5 khổ ở `gate-screens-centred-in-chrome.test.ts`.
+  - **Dải cập nhật** (D-128): `TillFrame` đặt dải đầu màn, chiếm chỗ riêng, thu nhỏ được; không đổi `update-policy.ts`.
+  - **Mở ca / đóng ca / thu chi** (D-129): `ShiftPanel`, hai thẻ từ 1100 px, không đổi nghiệp vụ.
+  - **Ngăn thanh toán** (D-130): khối Cần thu thương hiệu, hai thẻ có dấu tích, nút gợi ý cao.
+  - **Sổ tay:** `may-quay/01, 02, 04, 07, 11, 12`, `quan-ly/01, 03, 14`; ảnh đã chụp lại cho các màn đổi (tôi sẽ chụp lại toàn bộ sau khi gộp). Ảnh mới: `update-banner-folded`.
+  - **Biết trước:** xem các dòng Backlog `[đợt 6]` / `[thấp]` ghi 2026-10-29 vừa thêm (đường đóng "xong việc", `usePresence` hai bản, QR / ví).
+  - **Phiên sau:** gộp + chụp lại toàn bộ ảnh sổ tay; đợt 6 theo Backlog.
+
 - 2026-10-29 22:00 — **Rà xong Backlog cũ** (không agent, chỉ sửa tài liệu).
   - Kiểm 97 dòng ghi 2026-10-20 … 10-28 bằng grep trong code.
   - Khoảng 55 dòng đã xong nhưng chưa gạch. Gom vào "Đã xong khi rà", mỗi dòng kèm file hoặc quyết định làm bằng chứng.
@@ -550,6 +562,12 @@
 - 2026-10-29 · **[R2, cùng kênh giao hàng]** Quy tắc bảng giá có kênh nhập được nhưng máy quầy không bán qua kênh nào nên không áp (sổ tay 14). Khi có kênh thật: kênh thành danh sách chọn thay ô chữ, đơn mang kênh, `resolvePrice` nhận kênh. Cùng nhóm: nhóm khách, số lượng tối thiểu (T03-06).
 - 2026-10-29 · **[R2]** Mẫu loại quán chưa có giờ cắt ngày kinh doanh theo kiểu quán (bar thường 06:00; hiện 04:00 cho mọi chi nhánh, không chỉnh được) và nhóm tùy chọn mẫu (size, đường, đá, topping) — D-119, sổ tay 16.
 - 2026-10-29 · **[thấp, khi có chi nhánh ngoài Việt Nam]** Trang quản lý đổi ngày dd/mm/yyyy của bảng giá sang giờ máy chủ theo +07:00 cố định (đúng cho mọi chi nhánh trong nước vì Việt Nam không đổi giờ); giờ trong ngày đã theo giờ chi nhánh.
+
+- 2026-10-29 · **[đợt 6]** Hiệu ứng đóng còn thiếu ở đường "xong việc": các bước phủ lên đơn (hủy món, hủy đơn, giảm giá, duyệt, tùy chọn, combo) chỉ có chuyển động khi bấm **Quay lại** / Esc; khi xong việc (đã hủy, đã duyệt) luồng đổi trạng thái nên màn biến mất ngay. Cần luồng gọi `leave()` rồi mới đổi trạng thái. Thẻ xác nhận / thông báo nằm trong trang (ConfirmPanel, `.pos-confirm`) cũng chưa có chuyển động đóng.
+- 2026-10-29 · **[thấp]** `usePresence` có hai bản (trang quản lý `lib/motion/use-presence.ts`, máy quầy `screens/shared/use-leave-motion.ts`) vì chưa có gói DOM dùng chung; gộp khi có gói đó (cùng việc với code thu lỗi chép lại).
+- 2026-10-29 · **[thấp]** Dải cập nhật thu nhỏ rồi chỉ nhớ trong phiên hiện tại của màn; mở lại ca là dải mở rộng. Chưa có vuốt để tắt hẳn (cố ý: tắt hẳn làm mất tín hiệu "có bản mới").
+- 2026-10-29 · **[thấp]** Màn đăng nhập: chưa kiểm ở giao diện "Rang xay" và "Tối" trên màn dọc 1080×1920 bằng ảnh; bản chụp tay chỉ ở pastel (1024, 1366, 1920) cùng dark (768×1024) và rangxay (1920×1080). Màn khóa PIN 5 lần vẫn dùng câu lỗi chung.
+- 2026-10-29 · **[thấp]** Ngăn kéo thanh toán ở QR / ví chưa được vẽ lại riêng (chỉ khối Cần thu, hai thẻ, nút tiền mặt); panel QR giữ kiểu cũ.
 
 ### Dòng 2026-10-20 … 10-28 sau khi rà (2026-10-29)
 
