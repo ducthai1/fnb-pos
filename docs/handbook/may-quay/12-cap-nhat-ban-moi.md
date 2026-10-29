@@ -6,12 +6,14 @@ audience:
   - van-hanh
 screens:
   - update-banner
+  - update-banner-folded
 decisions:
   - D-123
 tests:
   - apps/pos/src/features/updates/update-policy.test.ts
   - apps/pos/src/features/updates/release-watch.test.ts
   - apps/pos/src/screens/update/update-banner.test.tsx
+  - apps/pos/test/browser/update-strip-covers-nothing-in-chrome.test.ts
   - apps/pos/src/app/use-app-update.test.tsx
   - apps/pos/src/app/till-offers-updates.test.tsx
   - apps/pos/build-release.test.ts
@@ -23,7 +25,11 @@ tests:
 
 Khi người vận hành đưa bản POS mới lên server, máy quầy tự biết và tự đổi sang bản mới **vào lúc không làm hỏng việc đang bán**: không bao giờ giữa lúc còn lệnh chưa gửi lên máy chủ, không giữa lúc đang thanh toán hay đang mở một bảng (duyệt, đếm tiền…). Nếu máy đang có ca mở, thẻ **"Có bản cập nhật — sẽ cập nhật sau khi đóng ca"** hiện ở góc dưới màn hình.
 
-![Thẻ cập nhật trên màn bán](../images/may-quay/update-banner.webp)
+![Dải cập nhật trên màn bán](../images/may-quay/update-banner.webp)
+
+Dải cập nhật nằm **ngang đầu màn hình**, trên thanh của máy quầy, và **chiếm chỗ riêng**: màn bán nằm dưới dải nên không có món, nút hay đơn nào bị che. Bấm mũi tên **Thu nhỏ** (góc phải dải) thì dải thành một dòng mỏng "Có bản cập nhật mới · Xem"; chạm vào dòng đó để mở lại. Thu nhỏ rồi vẫn thấy là có bản mới.
+
+![Dải cập nhật đã thu nhỏ](../images/may-quay/update-banner-folded.webp)
 
 ## Ai dùng, cần quyền gì
 
@@ -35,7 +41,7 @@ Thu ngân đang đứng quầy; không cần quyền riêng. Người vận hàn
 
 **Máy đang có ca mở**:
 
-1. Thẻ "Có bản cập nhật — sẽ cập nhật sau khi đóng ca" hiện ở góc dưới. Cứ bán bình thường.
+1. Dải "Có bản cập nhật — sẽ cập nhật sau khi đóng ca" hiện ở đầu màn hình. Cứ bán bình thường; nếu thấy vướng, bấm **Thu nhỏ**.
 2. Muốn cập nhật ngay (giờ vắng khách): bấm **Cập nhật ngay**. Nút chỉ bấm được khi **mọi lệnh đã lên máy chủ** và không có bảng nào đang mở; không thì nút mờ và thẻ nói phải chờ gì.
 3. Hoặc đóng ca như thường lệ. Sau khi đóng ca, khi máy nhàn rỗi 20 giây, máy tự cập nhật.
 
@@ -57,6 +63,7 @@ Sau khi tải lại, máy vào lại màn đăng nhập PIN (hoặc mở ca) nh�
 | "Còn N thao tác chưa gửi lên máy chủ. Chờ gửi xong rồi cập nhật." (nút Cập nhật ngay mờ) | Còn lệnh trên máy chưa tới máy chủ | Chờ máy đồng bộ xong (xem biểu tượng đồng bộ trên thanh trên); không có mạng thì có mạng lại đã |
 | "Máy đang kiểm tra thao tác chưa gửi. Chờ một chút rồi cập nhật." | Máy chưa biết còn bao nhiêu lệnh | Chờ vài giây |
 | "Xong thao tác đang làm rồi hãy cập nhật." | Đang mở một bảng (thanh toán, duyệt…) | Xong hoặc đóng bảng đó |
+| Dòng mỏng "Có bản cập nhật mới · Xem" | Dải đã thu nhỏ | Chạm để mở lại, rồi bấm **Cập nhật ngay** khi được |
 | Nút "Đang cập nhật…" | Máy đang tải lại | Chờ |
 
 ## Mất mạng thì sao

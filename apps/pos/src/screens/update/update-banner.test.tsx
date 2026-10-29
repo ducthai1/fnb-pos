@@ -38,7 +38,7 @@ describe("the update banner", () => {
   it("disables the button while a dialog is open", () => {
     banner({ blockedBy: "dialog" });
     expect(screen.getByText(words.update.waitDialog)).toBeTruthy();
-    expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: words.update.now }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("disables the button and says so while it updates", () => {
@@ -50,5 +50,27 @@ describe("the update banner", () => {
   it("draws nothing while closed", () => {
     banner({ open: false });
     expect(screen.queryByText(words.update.banner)).toBeNull();
+  });
+
+  it("folds to a thin line that still says there is a new release, and opens again", () => {
+    const { onUpdate } = banner({ blockedBy: "outbox", pendingCommands: 2 });
+    fireEvent.click(screen.getByRole("button", { name: words.update.fold }));
+    const strip = document.querySelector("[data-update-banner]")!;
+    expect(strip.hasAttribute("data-folded")).toBe(true);
+    expect(screen.getByRole("status").textContent).toContain(words.update.bannerShort);
+    expect(screen.queryByRole("button", { name: words.update.now })).toBeNull();
+    expect(onUpdate).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(words.update.bannerShort) }));
+    expect(screen.getByText(words.update.banner)).toBeTruthy();
+    expect(screen.getByText(words.update.waitOutbox(2))).toBeTruthy();
+  });
+
+  it("stays folded while the reason it waits changes, so a fold is not undone by a sync", () => {
+    const view = banner({ blockedBy: "outbox", pendingCommands: 2 });
+    fireEvent.click(screen.getByRole("button", { name: words.update.fold }));
+    view.rerender(
+      <UpdateBanner open blockedBy={null} pendingCommands={0} updating={false} onUpdate={() => {}} />,
+    );
+    expect(document.querySelector("[data-update-banner]")?.hasAttribute("data-folded")).toBe(true);
   });
 });

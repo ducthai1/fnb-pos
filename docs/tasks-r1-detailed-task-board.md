@@ -536,7 +536,7 @@
   - **Mức 2 / 3:** game tự bấm giao diện, hoặc bơm đơn vào server. Chỉ làm nếu rẻ, vì mức 3 trùng đợt 7.
   - **Cách xem repo:** đọc chỉ-đọc trước (~20–40k: engine, chỗ móc vào lúc khách gọi món, giấy phép). Lớp chuyển đổi ~100–200k.
   - **An toàn:** game và lớp chuyển đổi để **ngoài** repo này (repo public, không chép code người khác). Đọc script cài / chạy của game trước khi chạy, chạy ở thư mục cách ly.
-- 2026-10-29 · **[đợt 5]** Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ khi vẽ lại màn bán.
+~~- 2026-10-29 · **[đợt 5]** Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ khi vẽ lại màn bán.~~ **Xong** (D-128).
 ~~- 2026-10-29 · **[đợt 5]** Màn sự cố máy quầy (và màn "đang mở ở tab khác") dùng khung đăng nhập chung: thẻ nằm trên cùng, phần dưới trống. Vẽ lại cùng nhóm màn ghép máy / PIN / chọn nhân viên.~~ **Xong** (D-127).
 - 2026-10-29 · **[đợt 6]** Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần trước khi có thay đổi hợp đồng không tương thích ngược sau R1. → T11-04.
 - 2026-10-29 · **[đợt 6]** Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. `install-release.sh` chép `assets/` của bản trước sang bản mới (tên có băm, không đụng nhau). → T11-04.

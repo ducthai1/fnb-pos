@@ -1,12 +1,9 @@
-import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import type { UpdateBlock } from "../../features/updates/update-policy";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
-import { motionPlays } from "../shared/use-leave-motion";
-
-/** How long the closing movement runs; matches --t-exit in pos-tokens.css. */
-const LEAVE_MS = 120;
+import { usePresence } from "../shared/use-leave-motion";
 
 export interface UpdateBannerProps {
   /** Whether a release is waiting and a shift is open, i.e. the banner should show. */
@@ -17,38 +14,49 @@ export interface UpdateBannerProps {
   onUpdate(): void;
 }
 
-/** Stays drawn for the length of its closing movement after `open` turns false. */
-function useStillDrawn(open: boolean): boolean {
-  const [drawn, setDrawn] = useState(open);
-  useEffect(() => {
-    if (open) return setDrawn(true);
-    if (!motionPlays()) return setDrawn(false);
-    const timer = setTimeout(() => setDrawn(false), LEAVE_MS);
-    return () => clearTimeout(timer);
-  }, [open]);
-  return open || drawn;
-}
-
 /**
- * A card floating at the foot of the screen while a new release waits for the shift to end.
- * The button updates at once, but only when nothing unsent or open would be lost; when it
- * cannot, it is disabled and the card says what to wait for.
+ * A strip across the top of the till while a new release waits for the shift to end (it is
+ * drawn inside the till's frame, so it takes room and covers nothing). The button updates at
+ * once, but only when nothing unsent or open would be lost; when it cannot, it is disabled and
+ * the strip says what to wait for. It can be folded to a thin line that still says there is a
+ * new release; the cashier opens it again with a touch.
  */
 export function UpdateBanner(props: UpdateBannerProps) {
-  const drawn = useStillDrawn(props.open);
-  if (!drawn) return null;
+  const { present, leaving } = usePresence(props.open, "--t-exit");
+  const [folded, setFolded] = useState(false);
+  if (!present) return null;
   const reason =
     props.blockedBy === "outbox"
       ? vi.update.waitOutbox(props.pendingCommands)
       : props.blockedBy === "dialog"
         ? vi.update.waitDialog
         : null;
+  if (folded) {
+    return (
+      <aside
+        className="pos-update pos-update--folded"
+        role="status"
+        data-update-banner
+        data-folded
+        data-leaving={leaving ? "" : undefined}
+        inert={leaving}
+      >
+        <button type="button" className="pos-update__peek" onClick={() => setFolded(false)}>
+          <span className="pos-update__dot" aria-hidden="true" />
+          <span className="pos-update__peek-text">{vi.update.bannerShort}</span>
+          <span className="pos-update__peek-open">{vi.update.unfold}</span>
+          <Icon of={ChevronDown} size={18} />
+        </button>
+      </aside>
+    );
+  }
   return (
     <aside
       className="pos-update"
       role="status"
       data-update-banner
-      data-state={props.open ? "open" : "closed"}
+      data-leaving={leaving ? "" : undefined}
+      inert={leaving}
     >
       <span className="pos-update__mark">
         <Icon of={RefreshCw} size={22} />
@@ -61,14 +69,24 @@ export function UpdateBanner(props: UpdateBannerProps) {
           </p>
         )}
       </div>
-      <button
-        type="button"
-        className="pos-button pos-button--primary"
-        disabled={props.blockedBy !== null || props.updating}
-        onClick={props.onUpdate}
-      >
-        {props.updating ? vi.update.updating : vi.update.now}
-      </button>
+      <div className="pos-update__actions">
+        <button
+          type="button"
+          className="pos-button pos-button--primary"
+          disabled={props.blockedBy !== null || props.updating}
+          onClick={props.onUpdate}
+        >
+          {props.updating ? vi.update.updating : vi.update.now}
+        </button>
+        <button
+          type="button"
+          className="pos-button pos-button--quiet pos-update__fold"
+          aria-label={vi.update.fold}
+          onClick={() => setFolded(true)}
+        >
+          <Icon of={ChevronUp} size={22} />
+        </button>
+      </div>
     </aside>
   );
 }

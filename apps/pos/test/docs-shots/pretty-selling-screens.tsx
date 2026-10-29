@@ -1,3 +1,4 @@
+import { TillFrame } from "../../src/screens/update/till-frame";
 import { UpdateBanner } from "../../src/screens/update/update-banner";
 import { posProductSchema } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
@@ -195,22 +196,23 @@ const twoDrinks = posProductSchema.parse({
   },
 });
 
+const updateBannerOverTheSale = () => (
+  <TillFrame
+    strip={
+      <UpdateBanner open blockedBy={null} pendingCommands={0} updating={false} onUpdate={() => {}} />
+    }
+  >
+    {saleScreen()}
+  </TillFrame>
+);
+
 export const SELLING_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={tillBar()} onOpen={never} />,
   sale: () => saleScreen(),
   // Not one of the layout test's screens at this width: the card that offers a new release.
-  "update-banner": () => (
-    <>
-      {saleScreen()}
-      <UpdateBanner
-        open
-        blockedBy={null}
-        pendingCommands={0}
-        updating={false}
-        onUpdate={() => {}}
-      />
-    </>
-  ),
+  "update-banner": () => updateBannerOverTheSale(),
+  // The same strip after a tap on its fold button (handbook-shot-list.ts).
+  "update-banner-folded": () => updateBannerOverTheSale(),
   "sale-photos": () => saleScreen(),
   // Not one of the layout test's screens: the selling screen of a till that lost the network.
   "sale-offline": () => saleScreen({ connection: "offline", pending: 3, needsAttention: 1 }),

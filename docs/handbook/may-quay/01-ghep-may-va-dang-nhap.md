@@ -7,6 +7,7 @@ audience:
 screens:
   - blocked
   - pairing
+  - staff-picker-crowd
   - bootstrap-failed
   - staff-picker
   - pin-entry
