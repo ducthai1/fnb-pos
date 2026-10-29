@@ -107,7 +107,7 @@ it("keeps the bar, every group's list and the drawer inside the screen with the 
     await resize(page, width);
     await expectShopNameCutNotPushing(page, width);
     await page.getByRole("button", { name: T.openMenu }).click();
-    await expect.poll(() => nav.getByRole("link").count()).toBe(13);
+    await expect.poll(() => nav.getByRole("link").count()).toBe(16);
     expect(await outsideOfScreen(page, ".bo-drawer", false), `drawer at ${width}px`).toEqual({ outside: [], excess: 0 });
     const drawer = await nav.evaluate((element) => element.getBoundingClientRect().toJSON() as DOMRect);
     expect(drawer.bottom, `drawer ends on the screen at ${width}px`).toBeLessThanOrEqual(800);
