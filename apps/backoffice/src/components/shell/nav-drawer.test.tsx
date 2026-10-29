@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BackofficeApi } from "../../lib/api/backoffice-api";
 import { vi as messages } from "../../messages/vi";
@@ -86,5 +86,27 @@ describe("the menu drawer of a phone or a tablet", () => {
     const drawer = openDrawer(await renderNarrow(360, "/menu/categories"));
     const current = drawer.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page");
     expect(names(current)).toEqual([N.categories]);
+  });
+});
+
+describe("the menu drawer leaving", () => {
+  it("plays its leaving movement, takes nothing meanwhile, then goes at a timer", async () => {
+    const toggle = await renderNarrow(360);
+    openDrawer(toggle);
+    vi.useFakeTimers();
+    document.documentElement.style.setProperty("--t-drawer-out", "190ms");
+    try {
+      fireEvent.click(toggle);
+      const drawer = screen.getByRole("navigation", { name: T.navigation, hidden: true });
+      expect(drawer.hasAttribute("data-leaving")).toBe(true);
+      expect(drawer.hasAttribute("inert")).toBe(true);
+      act(() => void vi.advanceTimersByTime(100));
+      expect(screen.queryByRole("navigation", { name: T.navigation, hidden: true })).not.toBeNull();
+      act(() => void vi.advanceTimersByTime(200));
+      expect(screen.queryByRole("navigation", { name: T.navigation, hidden: true })).toBeNull();
+    } finally {
+      vi.useRealTimers();
+      document.documentElement.style.removeProperty("--t-drawer-out");
+    }
   });
 });

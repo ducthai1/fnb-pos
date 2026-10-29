@@ -16,7 +16,7 @@
 
 .pos-staff-button {
   width: 100%;
-  min-height: 80px;
+  min-height: 72px;
   justify-content: flex-start;
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
@@ -67,28 +67,6 @@
   overflow-wrap: anywhere;
 }
 
-.pos-signin__lead {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-}
-
-.pos-signin__mark {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-md);
-  background: var(--c-brand-soft);
-  color: var(--c-brand-strong);
-}
-
-.pos-signin__mark[data-tone="danger"] {
-  background: var(--c-danger-soft);
-  color: var(--c-danger);
-}
-
 .pos-pin {
   align-items: stretch;
 }
@@ -111,7 +89,8 @@
 }
 
 .pos-pin-pad .pos-button {
-  min-height: 68px;
+  /* Tall on a big screen, never so tall that the card outgrows a 768px-high one. */
+  min-height: clamp(52px, 7.8dvh, 76px);
   padding: var(--sp-2);
   border-color: transparent;
   border-radius: var(--r-lg);

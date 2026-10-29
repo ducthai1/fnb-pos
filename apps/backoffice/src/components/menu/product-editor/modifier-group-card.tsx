@@ -3,7 +3,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { vi } from "../../../messages/vi";
 import { Icon } from "../../ui/icon";
-import { CheckField } from "../../ui/select-field";
+import { CheckField } from "../../ui/check-field";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, groupPath } from "./draft-error-paths";
 import { ModifierOptionRow } from "./modifier-option-row";

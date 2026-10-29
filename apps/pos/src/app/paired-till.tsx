@@ -25,6 +25,7 @@ import { useTillShift } from "../features/shift/use-till-shift";
 import { INITIAL_SYNC_STATUS } from "../features/sync/till-sync-status";
 import { vi } from "../messages/vi";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
+import { TillFrame } from "../screens/update/till-frame";
 import { UpdateBanner } from "../screens/update/update-banner";
 import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice";
 import { TillClockNotice } from "../screens/sales-home/till-clock-notice";
@@ -90,7 +91,7 @@ export function PairedTill(props: {
     status.connection === "checking" ? null : status.pending,
     deps.reload,
   );
-  const banner = (
+  const strip = (
     <UpdateBanner
       open={update.decision.action === "banner"}
       blockedBy={update.decision.action === "banner" ? update.decision.blockedBy : null}
@@ -99,12 +100,7 @@ export function PairedTill(props: {
       onUpdate={update.updateNow}
     />
   );
-  const withBanner = (screen: ReactNode) => (
-    <>
-      {screen}
-      {banner}
-    </>
-  );
+  const withBanner = (screen: ReactNode) => <TillFrame strip={strip}>{screen}</TillFrame>;
   const place = useMemo(() => (snapshot === null ? null : tillPlaceOf(snapshot)), [snapshot]);
   const staff = useTillStaff(snapshot?.staff ?? NO_STAFF, till?.client ?? null);
 

@@ -6,6 +6,7 @@ import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { BRANCH_SCOPE, fakeSettings } from "../../test-support/fake-settings";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { SettingsScreen } from "./settings-screen";
+import { pickFrom } from "../../test-support/pick-from-listbox";
 
 const T = vi.settings;
 const F = T.flags;
@@ -92,7 +93,8 @@ describe("the feature switches of a branch", () => {
     const settings = fakeSettings();
     await openSettings(settings, { listDevices });
     fireEvent.click(screen.getByRole("radio", { name: T.layer.device }));
-    fireEvent.change(await screen.findByLabelText(T.deviceLabel), { target: { value: "0190a000-0000-7000-8000-00000000d001" } });
+    await screen.findByRole("combobox", { name: T.deviceLabel });
+    pickFrom(document, T.deviceLabel, "Quầy 1");
     await waitFor(() => expect(settings.getSettings).toHaveBeenLastCalledWith({ kind: "device", id: "0190a000-0000-7000-8000-00000000d001" }));
     await screen.findByRole("heading", { name: T.switchesTitle });
     expect(box("tables").disabled).toBe(true);

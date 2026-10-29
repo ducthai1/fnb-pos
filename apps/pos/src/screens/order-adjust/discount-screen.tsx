@@ -5,6 +5,7 @@ import { DISCOUNT_PRESETS, typedDiscount } from "../../features/order-adjust/typ
 import { vi } from "../../messages/vi";
 import { percentOf } from "../../messages/vi-approval";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 
 const T = vi.adjust.discount;
 
@@ -24,6 +25,8 @@ export interface DiscountScreenProps {
 
 /** A discount on one item or on the whole order: a quick rate, a typed rate, or an amount. */
 export function DiscountScreen(props: DiscountScreenProps) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
   const [mode, setMode] = useState<"percent" | "amount">("percent");
   const [typed, setTyped] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +46,7 @@ export function DiscountScreen(props: DiscountScreenProps) {
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={props.title}
       dock={
         <>
@@ -55,7 +59,7 @@ export function DiscountScreen(props: DiscountScreenProps) {
           )}
           <Alert message={error} />
           <div className="pos-actions">
-            <button type="button" className="pos-button" onClick={props.onBack}>
+            <button type="button" className="pos-button" onClick={leave}>
               {vi.adjust.back}
             </button>
             {remove === undefined ? null : (

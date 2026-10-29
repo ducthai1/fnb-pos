@@ -19,6 +19,7 @@ import { vi } from "../../messages/vi";
 import { useTillKey } from "../shared/use-till-key";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 import { ComboPickerScreen } from "./combo-picker-screen";
 import { ModifierGroupField } from "./modifier-group-field";
 import { PickerProductHead } from "./picker-product-head";
@@ -53,6 +54,8 @@ function ItemOptionsPicker({
   onAdd,
   onCancel,
 }: ModifierPickerScreenProps) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(onCancel, "--t-exit");
   const [variantId, setVariantId] = useState<string | null>(product.variants[0]?.id ?? null);
   const [choices, setChoices] = useState<Choices>([]);
   const [quantity, setQuantity] = useState(1);
@@ -70,7 +73,7 @@ function ItemOptionsPicker({
   // A price typed or a weight weighed next, in its own drawer: no total here yet, and a
   // weighing is one, so it has no quantity to count.
   const entry = entryNeeded(product);
-  useTillKey(vi.sale.keys.back, onCancel);
+  useTillKey(vi.sale.keys.back, leave);
 
   function tap(groupId: string, optionId: string) {
     const group = product.modifierGroups.find((candidate) => candidate.id === groupId);
@@ -103,12 +106,13 @@ function ItemOptionsPicker({
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={product.name}
       dock={
         <>
           <Alert message={error} />
           <div className="pos-actions pos-actions--split">
-            <button type="button" className="pos-button" onClick={onCancel}>
+            <button type="button" className="pos-button" onClick={leave}>
               {P.cancel}
               <kbd className="pos-kbd" aria-hidden>
                 {vi.sale.backKeyCap}

@@ -4,6 +4,7 @@ import type { ApiResult } from "../../features/api/api-result";
 import { failureMessage } from "../../features/api/failure-message";
 import { vi } from "../../messages/vi";
 import type { DeviceCredential } from "../../shell-bridge/device-credential-store";
+import { GateMark } from "../shared/gate-mark";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 
@@ -59,14 +60,13 @@ export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDevi
   }, []);
 
   return (
-    <ScreenFrame title={vi.pairing.title} width="narrow">
-      <form className="pos-form pos-signin" onSubmit={submit} noValidate>
-        <div className="pos-signin__lead">
-          <span className="pos-signin__mark">
-            <Icon of={MonitorSmartphone} size={26} />
-          </span>
-          <p className="pos-hint">{vi.pairing.hint}</p>
-        </div>
+    <ScreenFrame
+      title={vi.pairing.title}
+      stage="narrow"
+      stageMark={<GateMark of={MonitorSmartphone} />}
+    >
+      <form className="pos-form pos-gate__body" onSubmit={submit} noValidate>
+        <p className="pos-gate__lead">{vi.pairing.hint}</p>
         <label className="pos-field">
           <span className="pos-field__label">{vi.pairing.codeLabel}</span>
           <input
@@ -78,6 +78,7 @@ export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDevi
             autoCapitalize="characters"
             spellCheck={false}
             maxLength={16}
+            aria-invalid={error === vi.pairing.codeIncomplete ? true : undefined}
           />
         </label>
         <label className="pos-field">
@@ -93,7 +94,7 @@ export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDevi
         <Alert message={error} />
         <button
           type="submit"
-          className="pos-button pos-button--primary pos-button--block"
+          className="pos-button pos-button--primary pos-button--block pos-gate__action"
           disabled={busy}
         >
           <Icon of={KeyRound} />

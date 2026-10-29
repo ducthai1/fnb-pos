@@ -8,6 +8,7 @@ screens:
   - cash-move
   - close-shift
 decisions:
+  - D-129
   - D-013
   - D-036
   - D-041
@@ -17,6 +18,7 @@ decisions:
   - D-080
 tests:
   - apps/pos/src/app/cash-move-with-approval.test.tsx
+  - apps/pos/src/screens/shift/shift-screens.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
   - apps/pos/src/features/shift/shift-cash.test.ts
   - packages/domain/src/permissions/authorize-cumulative-limits.test.ts
@@ -49,7 +51,7 @@ tests:
 ### Thu hoặc chi tiền két
 
 1. Trên thanh trên cùng bấm **Thu/chi két**.
-2. Chọn **Thu vào két** hoặc **Chi ra khỏi két** trên công tắc hai bên (bên đang chọn nổi lên), gõ **Số tiền (đồng)**, ghi **Lý do** (ví dụ "đổi tiền lẻ", "trả tiền đá").
+2. Màn chia hai thẻ: bên trái **Thu hay chi** (hai nút to, mỗi nút một biểu tượng; **Thu vào két** chọn thì tô xanh, **Chi ra khỏi két** tô đỏ) và ô **Lý do**; bên phải **Số tiền và lý do** với bàn phím số (màn hẹp thì hai thẻ xếp dọc). Chọn **Thu vào két** hoặc **Chi ra khỏi két**, gõ **Số tiền (đồng)**, ghi **Lý do** (ví dụ "đổi tiền lẻ", "trả tiền đá").
 3. Máy hiện trước **Tiền dự kiến trong két sau đó: …**. Bấm **Thu … vào két** / **Chi … khỏi két**.
 
    ![Thu/chi két](../images/may-quay/cash-move.webp)
@@ -59,7 +61,7 @@ tests:
 ### Đóng ca
 
 1. Bấm **Đóng ca** trên thanh trên cùng.
-2. Đếm tiền trong két theo **từng mệnh giá**: mỗi lần chạm là thêm một tờ, nút **−** để bớt.
+2. Màn Đóng ca chia hai thẻ: bên trái **Tiền đếm trong két** (đếm theo **từng mệnh giá**: mỗi lần chạm là thêm một tờ, nút **−** để bớt), bên phải **Sổ tiền mặt của ca** nằm yên khi cuộn nên số chênh lệch luôn thấy khi đang đếm (màn dưới 1100 px thì xếp dọc).
 3. Dưới bảng đếm, máy liệt kê: **Tiền đầu ca**, **Thu tiền mặt**, **Hoàn tiền mặt**, **Thu vào két**, **Chi khỏi két**, **Tiền dự kiến**, **Tiền đếm được**, **Chênh lệch**. Dòng cuối màn báo **Khớp với tiền dự kiến.** hoặc **Thiếu / Thừa … so với tiền dự kiến.**
 
    ![Đóng ca: đếm được 1.790.000 đ, thiếu 9.000 đ](../images/may-quay/close-shift.webp)

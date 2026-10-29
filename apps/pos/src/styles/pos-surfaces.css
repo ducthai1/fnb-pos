@@ -40,6 +40,10 @@
   --frame-max: 440px;
 }
 
+.pos-dock--split {
+  --frame-max: 1080px;
+}
+
 .pos-dock--wide {
   --frame-max: 100%;
 }

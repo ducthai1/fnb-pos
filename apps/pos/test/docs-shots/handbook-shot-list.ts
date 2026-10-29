@@ -17,6 +17,7 @@ const TAPS: Readonly<Record<string, readonly (readonly [string, number])[]>> = {
   ],
   discount: [["Giảm 20%", 1]],
   "theme-menu": [["Giao diện", 1]],
+  "update-banner-folded": [["Thu nhỏ thẻ cập nhật", 1]],
   "order-history-order": [["Xem đơn số 26", 1]],
   "void-line": [["Pha/làm sai món", 1]],
   refund: [
@@ -70,6 +71,7 @@ const TILL = [
   "needs-attention",
   "sale-offline",
   "update-banner",
+  "update-banner-folded",
 ];
 const PHONE = ["sale", "modifier-picker", "payment"];
 

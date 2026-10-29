@@ -36,8 +36,8 @@ export function PinEntry({ staff, signIn, onSignedIn, onBack }: PinEntryProps) {
   }
 
   return (
-    <ScreenFrame title={vi.staff.pinTitle} width="narrow">
-      <form className="pos-form pos-pin pos-signin" onSubmit={submit} noValidate>
+    <ScreenFrame title={vi.staff.pinTitle} stage="narrow">
+      <form className="pos-form pos-pin pos-gate__body" onSubmit={submit} noValidate>
         <div className="pos-signin__who">
           <StaffAvatar id={staff.id} name={staff.displayName} size="lg" />
           <p className="pos-signin__name">{vi.staff.pinFor(staff.displayName)}</p>

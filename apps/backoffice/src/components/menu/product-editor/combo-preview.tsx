@@ -14,7 +14,7 @@ import { useState } from "react";
 import type { ProductSummary } from "../../../lib/api/catalog-api";
 import { messageForCode } from "../../../lib/errors/failure-message";
 import { vi } from "../../../messages/vi";
-import { CheckField } from "../../ui/select-field";
+import { CheckField } from "../../ui/check-field";
 
 const T = vi.menu.preview;
 

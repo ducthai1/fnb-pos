@@ -7,8 +7,8 @@ import { bodyOfDocument } from "../../lib/catalog/product-document";
 import { failureMessage } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
+import { Listbox } from "../ui/listbox";
 import { Icon } from "../ui/icon";
-import { SelectField } from "../ui/select-field";
 
 const T = vi.menu.products;
 const NONE = "__none";
@@ -76,7 +76,7 @@ export function ProductBulkMove({
   return (
     <div className="bo-card bo-bulk" role="region" aria-label={T.picked(picked.length)}>
       <strong className="bo-bulk__count">{T.picked(picked.length)}</strong>
-      <SelectField
+      <Listbox
         label={T.moveTo}
         value={target}
         choices={choices}

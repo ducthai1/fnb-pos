@@ -22,8 +22,18 @@
   border-radius: var(--r-md);
   background: var(--c-surface);
   box-shadow: var(--shadow-raised);
-  /* drops 4px into place like a notice (pos-motion.css) */
-  animation: pos-drop var(--t-enter) var(--ease-out);
+  /* drops 4px into place like a notice (pos-motion.css) and, as a transition that turns back
+     from where it is, lifts away on closing */
+  animation: pos-drop var(--t-enter) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.pos-theme-menu__list[data-leaving] {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
 }
 
 .pos-theme-menu__option {

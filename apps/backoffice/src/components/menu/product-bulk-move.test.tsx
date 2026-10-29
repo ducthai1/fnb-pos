@@ -6,6 +6,7 @@ import { BRANCHES, ok } from "../../test-support/fake-backoffice-api";
 import { fakeCatalog } from "../../test-support/fake-catalog";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { ProductListScreen } from "./product-list-screen";
+import { pickFrom } from "../../test-support/pick-from-listbox";
 
 const T = vi.menu.products;
 const BRAND = BRANCHES[0]?.brandId ?? "";
@@ -69,7 +70,7 @@ describe("moving several products at once", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: T.pick("Trà đào") }));
     fireEvent.click(screen.getByRole("checkbox", { name: T.pick("Trà vải") }));
     const bar = screen.getByRole("region", { name: T.picked(2) });
-    fireEvent.change(screen.getByLabelText(T.moveTo), { target: { value: TEA.id } });
+    pickFrom(document, T.moveTo, TEA.name);
     fireEvent.click(screen.getByRole("button", { name: T.move }));
     await screen.findByText(T.moved(2, "Trà"));
     expect(bar.isConnected).toBe(false);

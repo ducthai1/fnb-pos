@@ -7,6 +7,7 @@ import { vi } from "../../messages/vi";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
 import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 import { StaffAvatar } from "../shared/staff-avatar";
 
 const A = vi.approval;
@@ -28,6 +29,8 @@ export interface ApprovalSheetProps {
  * and the approver's role, so asking needs the network; a refusal says why in Vietnamese.
  */
 export function ApprovalSheet(props: ApprovalSheetProps) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(props.onCancel, "--t-exit");
   const [chosen, setChosen] = useState<BootstrapStaff | null>(null);
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -56,10 +59,11 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={A.title}
       width="narrow"
       dock={
-        <button type="button" className="pos-button" onClick={props.onCancel}>
+        <button type="button" className="pos-button" onClick={leave}>
           {A.cancel}
         </button>
       }

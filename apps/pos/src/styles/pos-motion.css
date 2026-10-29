@@ -10,6 +10,12 @@
   animation: pos-rise var(--t-enter) var(--ease-out);
 }
 
+/* ...and sinks back as it closes (the step stays for --t-exit, then the flow removes it). */
+.pos-screen[data-enter="sheet"][data-leaving] > .pos-screen__inner,
+.pos-screen[data-enter="sheet"][data-leaving] > .pos-dock {
+  animation: pos-sink var(--t-exit) var(--ease-in) forwards;
+}
+
 /* Notices, refusals and the in-place confirm appear with a short drop, so a change of state
    is seen without being looked for. */
 .pos-notice,
@@ -67,6 +73,13 @@
 
 @keyframes pos-rise {
   from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+
+@keyframes pos-sink {
+  to {
     transform: translateY(12px);
     opacity: 0;
   }

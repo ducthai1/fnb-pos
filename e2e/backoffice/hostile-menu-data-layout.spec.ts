@@ -82,7 +82,8 @@ it("keeps every backoffice page inside a phone and a computer screen with hostil
 
   await page.setViewportSize({ width: 360, height: 900 });
   await openSection(page, text.shell.nav.products);
-  await page.getByRole("link", { name: text.menu.products.edit(HOSTILE_MENU.productName) }).waitFor();
+  // Other specs sharing this stack may have saved a product with the same hostile name.
+  await page.getByRole("link", { name: text.menu.products.edit(HOSTILE_MENU.productName) }).first().waitFor();
   await expectNoOverflow(page, "the product list");
 
   for (const [link, ready] of [

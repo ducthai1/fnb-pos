@@ -14,12 +14,12 @@
   align-items: center;
   justify-content: center;
   flex: 1 0 auto;
-  min-width: 96px;
+  min-width: 112px;
   max-width: 100%;
-  min-height: var(--tap);
+  min-height: var(--tap-lg);
   padding: var(--sp-2) var(--sp-4);
   border: 1px solid var(--c-border);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
@@ -38,9 +38,16 @@
   box-shadow: var(--ring);
 }
 
+/* The first key is the exact amount owed: the one most taps are on, so it stands out. */
+.pos-quick-cash__key:first-child {
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
+
 .pos-quick-cash__amount {
   max-width: 100%;
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   font-weight: var(--fw-semibold);
   line-height: 20px;
   font-variant-numeric: tabular-nums;
@@ -58,7 +65,7 @@
   place-items: center;
   min-height: var(--tap-lg);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: var(--c-surface-3);
   color: var(--c-text);
   font: inherit;

@@ -1,7 +1,7 @@
 "use client";
 
 import { vi } from "../../../messages/vi";
-import { CheckField } from "../../ui/select-field";
+import { CheckField } from "../../ui/check-field";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, rulePath } from "./draft-error-paths";
 import type { DraftGroup, DraftVariant } from "./product-draft";

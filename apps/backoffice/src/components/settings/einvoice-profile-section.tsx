@@ -10,8 +10,9 @@ import {
   einvoiceProfileDraftOf,
 } from "../../lib/settings/einvoice-profile-draft";
 import { vi } from "../../messages/vi";
-import { CheckField, SelectField } from "../ui/select-field";
-import { TextField } from "../ui/text-field";
+import { Listbox } from "../ui/listbox";
+import { CheckField } from "../ui/check-field";
+import { FieldError, TextField } from "../ui/text-field";
 import { SettingCard } from "./setting-card";
 import type { SettingWrite } from "./use-setting-write";
 
@@ -74,25 +75,31 @@ function EInvoiceProfileForm({ entry, write }: { entry: SettingEntry; write: Set
         error={errorOf("provider")}
         onChange={(provider) => edit({ provider })}
       />
-      <SelectField
-        label={T.regimeVersion}
-        value={draft.regimeVersion}
-        choices={EINVOICE_REGIME_VERSIONS.map((version) => ({ value: version, label: version }))}
-        disabled={locked}
-        error={errorOf("regimeVersion")}
-        onChange={(regimeVersion) => edit({ regimeVersion })}
-      />
-      <SelectField
-        label={T.refundInvoicing}
-        value={draft.refundInvoicing}
-        choices={[
-          { value: "none", label: T.refundNone },
-          { value: "adjustment", label: T.refundAdjustment },
-        ]}
-        disabled={locked}
-        error={errorOf("refundInvoicing")}
-        onChange={(value) => edit({ refundInvoicing: value === "adjustment" ? "adjustment" : "none" })}
-      />
+      <div className="bo-listbox-field">
+        <Listbox
+          className="bo-listbox--field"
+          label={T.regimeVersion}
+          value={draft.regimeVersion}
+          choices={EINVOICE_REGIME_VERSIONS.map((version) => ({ value: version, label: version }))}
+          disabled={locked}
+          onChange={(regimeVersion) => edit({ regimeVersion })}
+        />
+        <FieldError message={errorOf("regimeVersion")} />
+      </div>
+      <div className="bo-listbox-field">
+        <Listbox
+          className="bo-listbox--field"
+          label={T.refundInvoicing}
+          value={draft.refundInvoicing}
+          choices={[
+            { value: "none", label: T.refundNone },
+            { value: "adjustment", label: T.refundAdjustment },
+          ]}
+          disabled={locked}
+          onChange={(value) => edit({ refundInvoicing: value === "adjustment" ? "adjustment" : "none" })}
+        />
+        <FieldError message={errorOf("refundInvoicing")} />
+      </div>
       {entry.editableHere && (
         <button type="submit" className="bo-button bo-button--primary" disabled={write.busy}>
           {write.busy ? vi.common.saving : vi.common.save}

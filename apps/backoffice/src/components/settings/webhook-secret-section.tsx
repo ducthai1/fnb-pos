@@ -6,8 +6,8 @@ import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
+import { Listbox } from "../ui/listbox";
 import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
-import { SelectField } from "../ui/select-field";
 import { TextField } from "../ui/text-field";
 
 const T = vi.settings.secret;
@@ -55,7 +55,8 @@ export function WebhookSecretSection({ branchId }: { branchId: string }) {
       </h3>
       <p className="bo-muted bo-wrap">{T.hint}</p>
       <form className="bo-stack" onSubmit={(event) => void submit(event)} noValidate>
-        <SelectField
+        <Listbox
+          className="bo-listbox--field"
           label={T.gateway}
           value={gateway}
           choices={GATEWAYS.map((key) => ({ value: key, label: T.gateways[key] ?? key }))}

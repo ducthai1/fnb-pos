@@ -15,6 +15,7 @@ import {
 } from "../../features/theme/till-theme";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
+import { usePresence } from "../shared/use-leave-motion";
 
 const T = vi.theme;
 
@@ -42,6 +43,8 @@ export function ThemeMenu({ theme = theTillTheme() }: { theme?: TillTheme }) {
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const id = useId();
+  // The list stays, inert, while it plays its leaving movement.
+  const { present, leaving } = usePresence(open, "--t-exit");
 
   useEffect(() => {
     if (!open) return undefined;
@@ -93,13 +96,15 @@ export function ThemeMenu({ theme = theTillTheme() }: { theme?: TillTheme }) {
       >
         <Icon of={Palette} />
       </button>
-      {open ? (
+      {present ? (
         <div
           ref={list}
           id={id}
           role="menu"
           aria-label={T.menuLabel}
           className="pos-theme-menu__list"
+          data-leaving={leaving ? "" : undefined}
+          inert={leaving}
           onKeyDown={moveFocus}
         >
           {THEME_CHOICES.map((option) => (

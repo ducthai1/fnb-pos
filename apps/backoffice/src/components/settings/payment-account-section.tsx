@@ -10,8 +10,8 @@ import {
 } from "../../lib/settings/payment-account-draft";
 import { VIETNAM_BANKS, bankOfBin } from "../../lib/settings/vietnam-banks";
 import { vi } from "../../messages/vi";
-import { SelectField } from "../ui/select-field";
-import { TextField } from "../ui/text-field";
+import { Listbox } from "../ui/listbox";
+import { FieldError, TextField } from "../ui/text-field";
 import { SettingCard } from "./setting-card";
 import type { SettingWrite } from "./use-setting-write";
 
@@ -49,14 +49,17 @@ function PaymentAccountForm({ entry, write }: { entry: SettingEntry; write: Sett
   const binError = errors.bankBin === undefined ? undefined : T.binInvalid;
   return (
     <form className="bo-stack" onSubmit={submit} noValidate>
-      <SelectField
-        label={T.bank}
-        value={otherBank ? OTHER : draft.bankBin}
-        choices={BANK_CHOICES}
-        disabled={locked}
-        error={otherBank ? undefined : binError}
-        onChange={chooseBank}
-      />
+      <div className="bo-listbox-field">
+        <Listbox
+          className="bo-listbox--field"
+          label={T.bank}
+          value={otherBank ? OTHER : draft.bankBin}
+          choices={BANK_CHOICES}
+          disabled={locked}
+          onChange={chooseBank}
+        />
+        <FieldError message={otherBank ? undefined : binError} />
+      </div>
       {otherBank && (
         <TextField
           label={T.bin}

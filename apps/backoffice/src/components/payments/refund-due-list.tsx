@@ -8,9 +8,9 @@ import { vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
+import { Listbox } from "../ui/listbox";
 import { SuccessNotice } from "../ui/error-notice";
 import { ConfirmPanel } from "../ui/confirm-panel";
-import { SelectField } from "../ui/select-field";
 import { TextField } from "../ui/text-field";
 
 const T = vi.transfers;
@@ -115,7 +115,8 @@ function HandBackPanel({
         <p className="bo-muted bo-wrap">{T.handBackNoOpenShift}</p>
       ) : (
         <>
-          <SelectField
+          <Listbox
+            className="bo-listbox--field"
             label={T.handBackShift}
             value={shiftId}
             choices={openShifts.map((shift) => ({ value: shift.id, label: shiftText(shift) }))}

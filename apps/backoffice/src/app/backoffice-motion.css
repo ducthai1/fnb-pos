@@ -25,9 +25,24 @@
 }
 
 /* The lists that drop from the menu's headings and from a picker fade and rise in each time
-   they show; they leave at once, as a click elsewhere expects (backoffice-listbox.css too). */
+   they show and leave faster (backoffice-listbox.css too). In is a keyframe at the moment the
+   list is shown; out is a transition on [data-leaving], which the component keeps on the page
+   for the token's time (usePresence), and which turns back from where it is if the list is
+   asked for again while it leaves. */
 .bo-topnav__panel:not([hidden]) {
-  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+  animation: bo-rise-in var(--t-enter) var(--ease-out) backwards;
+}
+
+.bo-topnav__panel {
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.bo-topnav__panel[data-leaving] {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--rise))) scale(0.98);
+  pointer-events: none;
 }
 
 /* What appears in the page once asked for: a confirm, a notice, a row's panel, a form. */
@@ -41,11 +56,26 @@
 /* The menu drawer unfolds from the start edge over a fading veil. */
 .bo-drawer {
   transform-origin: top left;
-  animation: bo-unfold-from-start var(--t-drawer-in) var(--ease-out) both;
+  animation: bo-unfold-from-start var(--t-drawer-in) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-drawer-out) var(--ease-in),
+    transform var(--t-drawer-out) var(--ease-in);
 }
 
 .bo-shell__backdrop {
-  animation: bo-fade-in var(--t-drawer-in) var(--ease-out) both;
+  animation: bo-fade-in var(--t-drawer-in) var(--ease-out) backwards;
+  transition: opacity var(--t-drawer-out) var(--ease-in);
+}
+
+.bo-drawer[data-leaving] {
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+}
+
+.bo-shell__backdrop[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* A press sinks the control a little; it comes back as the finger lifts. */

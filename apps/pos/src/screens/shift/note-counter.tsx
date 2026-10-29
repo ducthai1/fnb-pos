@@ -51,6 +51,7 @@ export function NoteCounter(props: {
           key={String(denomination)}
           className="pos-note-row"
           data-tone={NOTE_TONE.get(denomination) ?? 0}
+          data-filled={pieces > 0 ? "" : undefined}
         >
           <button
             type="button"

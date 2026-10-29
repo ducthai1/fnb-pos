@@ -10,6 +10,7 @@ import {
   signedInBackoffice,
   unexpectedProblems,
 } from "./support/backoffice-in-browser";
+import { choose } from "./support/price-list-in-browser";
 
 const stack = inject("backofficeStack");
 const T = text.menu.products;
@@ -56,7 +57,7 @@ it("moves the products a search shows to a category, each kept whole", async () 
   await page.getByLabel(T.search).fill("smoothie");
   await page.getByRole("checkbox", { name: T.pickAll }).check();
   const bar = page.getByRole("region", { name: T.picked(SMOOTHIES.length) });
-  await bar.getByLabel(T.moveTo).selectOption({ label: "Sinh tố" });
+  await choose(bar, T.moveTo, "Sinh tố");
   await expectNoOverflow(page, "the product list with ticked products");
   await page.setViewportSize({ width: 1280, height: 900 });
   await bar.getByRole("button", { name: T.move }).click();

@@ -91,6 +91,8 @@ export const VI_COMMON = {
   refresh: "Làm mới",
   loading: "Đang tải…",
   none: "Không có",
+  listSearch: "Tìm trong danh sách",
+  listNoMatch: "Không tìm thấy",
   required: "Bắt buộc nhập.",
   nameMissing: "Nhập tên.",
   nameTooLong: (max: number) => `Tên dài tối đa ${max} ký tự.`,

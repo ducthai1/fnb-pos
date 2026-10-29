@@ -5,6 +5,7 @@ export const SCREEN_NAMES = [
   "pairing",
   "bootstrap-failed",
   "staff-picker",
+  "staff-picker-crowd",
   "pin-entry",
   "needs-attention",
   "open-shift",

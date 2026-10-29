@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { vi } from "../../../src/messages/vi";
 import { BlockedScreen } from "../../../src/screens/blocked/blocked-screen";
 import { CrashScreen } from "../../../src/screens/crash/crash-screen";
+import { TillFrame } from "../../../src/screens/update/till-frame";
 import { UpdateBanner } from "../../../src/screens/update/update-banner";
 import { BootstrapScreen } from "../../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../../src/screens/needs-attention/needs-attention-screen";
@@ -38,6 +39,15 @@ const staff = [
     active: true,
   })),
 ];
+// A big shop: thirty people, long names among them, as the picker must still read.
+const crowd = Array.from({ length: 30 }, (_, i) => ({
+  id: `c${i}`,
+  displayName:
+    i % 5 === 0
+      ? `Nguyễn Thị Thanh Thảo Ca Sáng Quầy ${i + 1} Chi Nhánh Bình Thạnh`
+      : `Nhân viên ${i + 1}`,
+  active: true,
+}));
 const never = () => new Promise<never>(() => {});
 const rejected = (index: number): RejectedCommand => ({
   entity: "order",
@@ -75,6 +85,14 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   "staff-picker": () => (
     <StaffPicker branchName={HOSTILE_NAMES.branch} staff={staff} onChoose={() => {}} />
   ),
+  "staff-picker-crowd": () => (
+    <StaffPicker
+      branchName={HOSTILE_NAMES.branch}
+      staff={[staff[0]!, ...crowd]}
+      notice={vi.staff.noStaff}
+      onChoose={() => {}}
+    />
+  ),
   "pin-entry": () => (
     <PinEntry staff={staff[0]!} signIn={never} onSignedIn={() => {}} onBack={() => {}} />
   ),
@@ -96,16 +114,19 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ...HISTORY_REFUND_SCREENS,
   // The card over the selling screen, with commands waiting: its longest sentence.
   "update-banner": () => (
-    <>
+    <TillFrame
+      strip={
+        <UpdateBanner
+          open
+          blockedBy="outbox"
+          pendingCommands={123_456}
+          updating={false}
+          onUpdate={() => {}}
+        />
+      }
+    >
       {SALE_SCREENS.sale()}
-      <UpdateBanner
-        open
-        blockedBy="outbox"
-        pendingCommands={123_456}
-        updating={false}
-        onUpdate={() => {}}
-      />
-    </>
+    </TillFrame>
   ),
 };
 

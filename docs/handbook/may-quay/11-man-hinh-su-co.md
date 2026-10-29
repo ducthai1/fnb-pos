@@ -7,8 +7,10 @@ screens:
   - crash
 decisions:
   - D-122
+  - D-127
 tests:
   - apps/pos/src/app/pos-error-boundary.test.tsx
+  - apps/pos/src/screens/crash/gate-fault-screens.test.tsx
   - apps/pos/src/features/client-errors/client-error-reporter.test.ts
   - apps/pos/src/app/till-reports-faults.test.tsx
   - apps/api/test/integration/client-errors/clients-report-their-faults.test.ts
@@ -19,6 +21,8 @@ tests:
 ## Dùng để làm gì
 
 Khi một màn hình của máy quầy gặp lỗi không lường trước và không vẽ được nữa, máy không để màn trắng: nó hiện màn **"Máy bán hàng gặp sự cố"**, nói rõ **dữ liệu bán hàng vẫn an toàn trên máy**, và cho một nút **Tải lại**. Cùng lúc máy ghi lại lỗi (không kèm tên nhân viên, tên khách hay nội dung đơn) để người vận hành xem ở nhật ký máy chủ — xem [Nhật ký lỗi từ máy quầy và trang quản lý](../van-hanh/05-nhat-ky-loi-may-quay-va-trang-quan-ly.md).
+
+Màn sự cố và màn "POS đang mở ở tab khác" cùng một kiểu thẻ giữa màn hình với màn ghép máy / chọn nhân viên: dấu cảnh báo đỏ, câu giải thích, khung xanh "Dữ liệu bán hàng vẫn an toàn" (chỉ màn sự cố) và một nút to **Tải lại**.
 
 ![Màn hình sự cố](../images/may-quay/crash.webp)
 

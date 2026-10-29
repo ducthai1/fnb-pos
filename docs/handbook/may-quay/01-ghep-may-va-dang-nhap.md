@@ -7,6 +7,7 @@ audience:
 screens:
   - blocked
   - pairing
+  - staff-picker-crowd
   - bootstrap-failed
   - staff-picker
   - pin-entry
@@ -17,10 +18,12 @@ decisions:
   - D-046
   - D-060
   - D-065
+  - D-127
   - D-101
 tests:
   - apps/pos/src/screens/pair-device/pair-device-screen.test.tsx
   - apps/pos/src/screens/staff-login/staff-login-screen.test.tsx
+  - apps/pos/test/browser/gate-screens-centred-in-chrome.test.ts
   - apps/pos/src/app/staff-session-on-the-till.test.tsx
   - apps/pos/src/app/staff-list-follows-the-feed.test.tsx
   - apps/pos/src/app/staff-hand-over-with-commands-waiting.test.tsx
@@ -54,7 +57,9 @@ tests:
 1. Ở trang quản lý, mục **Thiết bị**, chủ quán tạo một mã ghép máy cho chi nhánh. Mã gồm 8 ký tự chữ và số.
 2. Trên máy mới, mở trang POS. Máy hiện màn **Ghép máy với cửa hàng**.
 
-   ![Màn ghép máy](../images/may-quay/pairing.webp)
+   Cả ba màn của phần này (ghép máy, chọn nhân viên, nhập PIN) là **một thẻ nằm giữa màn hình** trên nền nhạt, không dính lên mép trên, ở cả màn nằm ngang lẫn dựng đứng. Chi nhánh có nhiều nhân viên (30 người, tên rất dài) thì danh sách cuộn **trong thẻ**, tiêu đề và tên chi nhánh luôn ở trên; hàng cuối mờ dần báo còn nữa.
+
+![Màn ghép máy](../images/may-quay/pairing.webp)
 
 3. Gõ mã vào ô **Mã ghép máy**. Gõ chữ hoa hay chữ thường, có dấu gạch (`ABCD-EFGH`) hay dấu cách đều được — máy tự bỏ đi.
 
@@ -68,7 +73,7 @@ tests:
 
    ![Chọn nhân viên](../images/may-quay/staff-picker.webp)
 
-2. Nhập mã PIN bằng bàn phím số trên màn (hoặc bàn phím thật), bấm **Vào ca**. Bấm **Chọn người khác** nếu chạm nhầm tên.
+2. Nhập mã PIN bằng bàn phím số to trên màn (hoặc bàn phím thật), bấm **Vào ca**. Mỗi số chạm vào làm sáng thêm một chấm dưới ô PIN (tối đa 6 chấm); nút xóa nhỏ ở cuối ô PIN bỏ **số cuối**, nút **Xóa** bỏ cả mã. Nhập sai PIN thì ô PIN rung nhẹ, viền đỏ, mã bị xóa để gõ lại từ đầu và dòng báo lỗi hiện ngay dưới. Bấm **Chọn người khác** nếu chạm nhầm tên.
 
    ![Nhập PIN](../images/may-quay/pin-entry.webp)
 

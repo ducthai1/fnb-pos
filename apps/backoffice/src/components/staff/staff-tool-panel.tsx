@@ -8,8 +8,8 @@ import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { useSession } from "../shell/session-context";
+import { Listbox } from "../ui/listbox";
 import { ConfirmPanel } from "../ui/confirm-panel";
-import { SelectField } from "../ui/select-field";
 import { TextField } from "../ui/text-field";
 
 const T = vi.staffTools;
@@ -119,7 +119,8 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
       {tool === "edit" && (
         <>
           <TextField label={vi.staff.nameLabel} value={name} onChange={setName} error={fieldError} maxLength={80} />
-          <SelectField
+          <Listbox
+            className="bo-listbox--field"
             label={vi.staff.roleLabel}
             value={roleId}
             onChange={setRoleId}

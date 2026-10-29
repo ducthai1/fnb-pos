@@ -1,5 +1,6 @@
 import { RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { vi } from "../../messages/vi";
+import { GateMark } from "../shared/gate-mark";
 import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
 
@@ -10,14 +11,13 @@ import { ScreenFrame } from "../shared/screen-frame";
  */
 export function CrashScreen({ onReload }: { onReload: () => void }) {
   return (
-    <ScreenFrame title={vi.crash.title} width="narrow">
-      <div className="pos-signin pos-recovery" data-crash-screen>
-        <div className="pos-signin__lead">
-          <span className="pos-signin__mark" data-tone="danger">
-            <Icon of={TriangleAlert} size={26} />
-          </span>
-          <p className="pos-hint">{vi.crash.hint}</p>
-        </div>
+    <ScreenFrame
+      title={vi.crash.title}
+      stage="narrow"
+      stageMark={<GateMark of={TriangleAlert} tone="danger" />}
+    >
+      <div className="pos-gate__body pos-recovery" data-crash-screen>
+        <p className="pos-gate__lead">{vi.crash.hint}</p>
         <div className="pos-recovery__safe" role="note">
           <span className="pos-recovery__safe-mark">
             <Icon of={ShieldCheck} size={22} />
@@ -29,10 +29,10 @@ export function CrashScreen({ onReload }: { onReload: () => void }) {
         </div>
         <button
           type="button"
-          className="pos-button pos-button--primary pos-button--block"
+          className="pos-button pos-button--primary pos-button--block pos-gate__action"
           onClick={onReload}
         >
-          <Icon of={RefreshCw} size={18} />
+          <Icon of={RefreshCw} size={20} />
           {vi.crash.reload}
         </button>
       </div>

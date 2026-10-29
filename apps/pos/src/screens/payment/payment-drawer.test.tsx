@@ -253,4 +253,19 @@ describe("the payment drawer after a QR came short", () => {
     tap(T.finish);
     expect(paid).toEqual([[short, { method: "cash", amount: 5_000n }]]);
   });
+
+  it("draws the two ways as cards of which exactly one is chosen, and the exact amount is the first quick key", () => {
+    openDrawer(vnd(129_000), { qrAccountSet: true });
+    const cards = [...document.querySelectorAll<HTMLElement>(".pos-pay-way")];
+    expect(cards.map((each) => each.getAttribute("aria-pressed"))).toEqual(["true", "false"]);
+    expect(cards.every((each) => each.querySelector(".pos-pay-way__tick") !== null)).toBe(true);
+    const keys = [...document.querySelectorAll<HTMLElement>(".pos-quick-cash__key")];
+    expect(keys[0]?.textContent).toContain(money(129_000));
+    tap(Q.title);
+    expect([...document.querySelectorAll(".pos-pay-way")].map((each) => each.getAttribute("aria-pressed"))).toEqual([
+      "false",
+      "true",
+    ]);
+    expect(document.querySelector("[data-qr-panel]")).not.toBeNull();
+  });
 });

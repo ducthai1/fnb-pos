@@ -5,7 +5,7 @@ import { useState } from "react";
 import { nameMark } from "../../../lib/format/name-mark";
 import { vi } from "../../../messages/vi";
 import type { ProductSummary } from "../../../lib/api/catalog-api";
-import { CheckField } from "../../ui/select-field";
+import { CheckField } from "../../ui/check-field";
 import { ComboPreview } from "./combo-preview";
 import { EDITOR_SECTIONS } from "./editor-sections";
 import { type PreviewCounts, countKey, previewMessage, previewOutcome } from "./preview-outcome";

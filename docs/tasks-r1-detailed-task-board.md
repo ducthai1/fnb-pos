@@ -6,6 +6,18 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, nhánh `feat/till-screens-redraw-and-listbox-search`, chưa merge, chưa push).
+  - **Commit:** `f5d5cec` (ô chọn) · `0f355ba` (hiệu ứng đóng) · `ceb97b5` (đăng nhập) · `6401825` + `571bddb` (dải cập nhật) · `802300b` (ca, thu chi) · `f3ad6f7` (thanh toán).
+  - **Ô chọn trang quản lý** (D-125): `Listbox` có ô tìm bỏ dấu (> 8 mục hoặc `searchable`), bàn phím đủ, "Không tìm thấy"; cả 12 `SelectField` ở 9 file đã đổi, `SelectField` gỡ (`CheckField` sang `check-field.tsx`). Test chọn dùng `test-support/pick-from-listbox.ts`, e2e dùng `choose`.
+  - **Hiệu ứng đóng** (D-126): `usePresence` ở cả hai app, gỡ bằng hẹn giờ, đóng là CSS transition nên mở lại giữa chừng không nháy; áp cho danh sách `Listbox`, menu ngang, ngăn kéo menu, menu giao diện máy quầy, 6 bước phủ lên đơn (đường Quay lại).
+  - **Nhóm đăng nhập máy quầy** (D-127): `ScreenFrame stage` — thẻ giữa màn cho ghép máy, chọn nhân viên (30 người cuộn trong thẻ), PIN (chấm, xóa số cuối, rung khi sai), sự cố, tab khác. Test bố cục 5 khổ ở `gate-screens-centred-in-chrome.test.ts`.
+  - **Dải cập nhật** (D-128): `TillFrame` đặt dải đầu màn, chiếm chỗ riêng, thu nhỏ được; không đổi `update-policy.ts`.
+  - **Mở ca / đóng ca / thu chi** (D-129): `ShiftPanel`, hai thẻ từ 1100 px, không đổi nghiệp vụ.
+  - **Ngăn thanh toán** (D-130): khối Cần thu thương hiệu, hai thẻ có dấu tích, nút gợi ý cao.
+  - **Sổ tay:** `may-quay/01, 02, 04, 07, 11, 12`, `quan-ly/01, 03, 14`; ảnh đã chụp lại cho các màn đổi (tôi sẽ chụp lại toàn bộ sau khi gộp). Ảnh mới: `update-banner-folded`.
+  - **Biết trước:** xem các dòng Backlog `[đợt 6]` / `[thấp]` ghi 2026-10-29 vừa thêm (đường đóng "xong việc", `usePresence` hai bản, QR / ví).
+  - **Phiên sau:** gộp + chụp lại toàn bộ ảnh sổ tay; đợt 6 theo Backlog.
+
 - 2026-10-29 22:00 — **Rà xong Backlog cũ** (không agent, chỉ sửa tài liệu).
   - Kiểm 97 dòng ghi 2026-10-20 … 10-28 bằng grep trong code.
   - Khoảng 55 dòng đã xong nhưng chưa gạch. Gom vào "Đã xong khi rà", mỗi dòng kèm file hoặc quyết định làm bằng chứng.
@@ -536,8 +548,8 @@
   - **Mức 2 / 3:** game tự bấm giao diện, hoặc bơm đơn vào server. Chỉ làm nếu rẻ, vì mức 3 trùng đợt 7.
   - **Cách xem repo:** đọc chỉ-đọc trước (~20–40k: engine, chỗ móc vào lúc khách gọi món, giấy phép). Lớp chuyển đổi ~100–200k.
   - **An toàn:** game và lớp chuyển đổi để **ngoài** repo này (repo public, không chép code người khác). Đọc script cài / chạy của game trước khi chạy, chạy ở thư mục cách ly.
-- 2026-10-29 · **[đợt 5]** Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ khi vẽ lại màn bán.
-- 2026-10-29 · **[đợt 5]** Màn sự cố máy quầy (và màn "đang mở ở tab khác") dùng khung đăng nhập chung: thẻ nằm trên cùng, phần dưới trống. Vẽ lại cùng nhóm màn ghép máy / PIN / chọn nhân viên.
+~~- 2026-10-29 · **[đợt 5]** Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ khi vẽ lại màn bán.~~ **Xong** (D-128).
+~~- 2026-10-29 · **[đợt 5]** Màn sự cố máy quầy (và màn "đang mở ở tab khác") dùng khung đăng nhập chung: thẻ nằm trên cùng, phần dưới trống. Vẽ lại cùng nhóm màn ghép máy / PIN / chọn nhân viên.~~ **Xong** (D-127).
 - 2026-10-29 · **[đợt 6]** Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần trước khi có thay đổi hợp đồng không tương thích ngược sau R1. → T11-04.
 - 2026-10-29 · **[đợt 6]** Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. `install-release.sh` chép `assets/` của bản trước sang bản mới (tên có băm, không đụng nhau). → T11-04.
 - 2026-10-29 · **[khi có vỏ native]** Vỏ Tauri/Capacitor cần đường cập nhật riêng (cập nhật gói web trong vỏ, hoặc cập nhật vỏ); bản web dùng `version.json` chưa áp dụng được. → T11-04 / phase vỏ máy quầy.
@@ -545,11 +557,17 @@
 - 2026-10-29 · **[đợt 6]** Mẫu loại quán đặt `pay_first_counter = false` cho quán ăn và quán bar (`packages/shop-templates/src/templates/shop-template-data.ts`), còn D-096 khóa công tắc này ở "bật". Khi làm D-096: `planTemplate` bỏ qua công tắc đang khóa (ghi ở "Giữ nguyên"), mẫu đặt `course_firing` thì trang Cài đặt hiện "Sắp có". Hiện máy quầy chưa đọc các công tắc này (B1, Q13).
 - 2026-10-29 · **[đợt 6]** Lưu trữ trạm: trạm đã từng in phiếu không xóa được (D-118) nên ở lại danh sách và ô chọn mãi. Thêm `archived_at` cho trạm, ẩn khỏi danh sách + ô chọn, phiếu cũ vẫn trỏ được; sửa trang sổ tay 15.
 - 2026-10-29 · **[thấp, đợt 6]** Không lệnh xóa nào của trang quản lý kiểm `version` (`versioned-resource-routes.ts`, `price-list-routes.ts`, bàn, khu vực): người A xóa được bảng giá người B vừa sửa mà không biết. Sửa thì sửa chung: gửi `version`, lệch thì 409.
-- 2026-10-29 · **[đợt 5]** Ô chọn món / danh mục / size trong quy tắc bảng giá là danh sách cuộn, chưa có ô tìm — thương hiệu vài trăm món khó chọn. Thêm tìm bỏ dấu vào `Listbox`, dùng lại cho các ô chọn đợt 5 thay.
+- ~~2026-10-29 · **[đợt 5]** Ô chọn món / danh mục / size trong quy tắc bảng giá là danh sách cuộn, chưa có ô tìm — thương hiệu vài trăm món khó chọn. Thêm tìm bỏ dấu vào `Listbox`, dùng lại cho các ô chọn đợt 5 thay.~~ **Xong** (D-125, commit ở "Bàn giao phiên trước").
 - 2026-10-29 · **[trước khi có quán 2 chi nhánh]** Món thuộc thương hiệu nhưng `product.station_id` trỏ trạm của một chi nhánh ⇒ ở chi nhánh khác món không ra phiếu bếp (sổ tay 15). Cần gán trạm theo (món, chi nhánh) + bootstrap + trình sửa món. Câu hỏi mô hình đã có từ dòng 2026-10-20 "Backoffice: trạm thuộc chi nhánh…".
 - 2026-10-29 · **[R2, cùng kênh giao hàng]** Quy tắc bảng giá có kênh nhập được nhưng máy quầy không bán qua kênh nào nên không áp (sổ tay 14). Khi có kênh thật: kênh thành danh sách chọn thay ô chữ, đơn mang kênh, `resolvePrice` nhận kênh. Cùng nhóm: nhóm khách, số lượng tối thiểu (T03-06).
 - 2026-10-29 · **[R2]** Mẫu loại quán chưa có giờ cắt ngày kinh doanh theo kiểu quán (bar thường 06:00; hiện 04:00 cho mọi chi nhánh, không chỉnh được) và nhóm tùy chọn mẫu (size, đường, đá, topping) — D-119, sổ tay 16.
 - 2026-10-29 · **[thấp, khi có chi nhánh ngoài Việt Nam]** Trang quản lý đổi ngày dd/mm/yyyy của bảng giá sang giờ máy chủ theo +07:00 cố định (đúng cho mọi chi nhánh trong nước vì Việt Nam không đổi giờ); giờ trong ngày đã theo giờ chi nhánh.
+
+- 2026-10-29 · **[đợt 6]** Hiệu ứng đóng còn thiếu ở đường "xong việc": các bước phủ lên đơn (hủy món, hủy đơn, giảm giá, duyệt, tùy chọn, combo) chỉ có chuyển động khi bấm **Quay lại** / Esc; khi xong việc (đã hủy, đã duyệt) luồng đổi trạng thái nên màn biến mất ngay. Cần luồng gọi `leave()` rồi mới đổi trạng thái. Thẻ xác nhận / thông báo nằm trong trang (ConfirmPanel, `.pos-confirm`) cũng chưa có chuyển động đóng.
+- 2026-10-29 · **[thấp]** `usePresence` có hai bản (trang quản lý `lib/motion/use-presence.ts`, máy quầy `screens/shared/use-leave-motion.ts`) vì chưa có gói DOM dùng chung; gộp khi có gói đó (cùng việc với code thu lỗi chép lại).
+- 2026-10-29 · **[thấp]** Dải cập nhật thu nhỏ rồi chỉ nhớ trong phiên hiện tại của màn; mở lại ca là dải mở rộng. Chưa có vuốt để tắt hẳn (cố ý: tắt hẳn làm mất tín hiệu "có bản mới").
+- 2026-10-29 · **[thấp]** Màn đăng nhập: chưa kiểm ở giao diện "Rang xay" và "Tối" trên màn dọc 1080×1920 bằng ảnh; bản chụp tay chỉ ở pastel (1024, 1366, 1920) cùng dark (768×1024) và rangxay (1920×1080). Màn khóa PIN 5 lần vẫn dùng câu lỗi chung.
+- 2026-10-29 · **[thấp]** Ngăn kéo thanh toán ở QR / ví chưa được vẽ lại riêng (chỉ khối Cần thu, hai thẻ, nút tiền mặt); panel QR giữ kiểu cũ.
 
 ### Dòng 2026-10-20 … 10-28 sau khi rà (2026-10-29)
 
@@ -557,7 +575,7 @@
 
 **[đợt 5]**
 
-- 2026-10-28 · Trang quản lý còn **12** ô chọn của trình duyệt (`SelectField`) ở 9 file: sửa món (Danh mục, Trạm), nhập Excel (2), chuyển danh mục hàng loạt, tiền QR cần hoàn, hồ sơ HĐĐT (2), tài khoản nhận tiền, phạm vi cài đặt, khóa webhook, công cụ nhân viên. Đổi hết sang `Listbox` (kèm ô tìm bỏ dấu, dòng 2026-10-29 ở trên). Máy quầy không còn `<select>` nào.
+- ~~2026-10-28 · Trang quản lý còn **12** ô chọn của trình duyệt (`SelectField`) ở 9 file: sửa món (Danh mục, Trạm), nhập Excel (2), chuyển danh mục hàng loạt, tiền QR cần hoàn, hồ sơ HĐĐT (2), tài khoản nhận tiền, phạm vi cài đặt, khóa webhook, công cụ nhân viên. Đổi hết sang `Listbox` (kèm ô tìm bỏ dấu, dòng 2026-10-29 ở trên). Máy quầy không còn `<select>` nào.~~ **Xong** (D-125, commit ở "Bàn giao phiên trước").
 
 **[đợt 6]**
 

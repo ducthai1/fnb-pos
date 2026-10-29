@@ -12,7 +12,7 @@ export function motionPlays(): boolean {
 }
 
 /** A duration token of pos-tokens.css in milliseconds, 0 when it is not set. */
-function tokenMs(name: string): number {
+export function tokenMs(name: string): number {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const ms = Number.parseFloat(value);
   if (!Number.isFinite(ms)) return 0;
@@ -43,4 +43,34 @@ export function useLeaveThen(then: () => void, durationToken: string) {
     timer.current = setTimeout(() => latest.current(), ms);
   }, [durationToken]);
   return { leaving, leave };
+}
+
+/** Extra milliseconds past the movement before the element goes, so its last frame is seen. */
+const SLACK_MS = 30;
+
+/**
+ * Keeps a layer on the page while it plays its leaving movement: `present` is what to render
+ * (`open`, or the time it takes to leave after `open` turned false) and `leaving` marks it for
+ * the CSS that moves it out (`[data-leaving]`, by the `durationToken`). It goes at a timer, never
+ * at an animation or frame callback, which a hidden or headless page may never fire. Opening
+ * again while it leaves stops the timer and keeps the same element (the CSS turns back from
+ * where it is, so nothing blinks or doubles). With motion off it goes in the same render.
+ */
+export function usePresence(
+  open: boolean,
+  durationToken: string,
+): { present: boolean; leaving: boolean } {
+  const [was, setWas] = useState(open);
+  const [lingering, setLingering] = useState(false);
+  // Derived while rendering, so the first frame of leaving already carries the mark.
+  if (was !== open) {
+    setWas(open);
+    setLingering(!open && motionPlays() && tokenMs(durationToken) > 0);
+  }
+  useEffect(() => {
+    if (!lingering) return undefined;
+    const timer = setTimeout(() => setLingering(false), tokenMs(durationToken) + SLACK_MS);
+    return () => clearTimeout(timer);
+  }, [lingering, durationToken]);
+  return { present: open || lingering, leaving: !open && lingering };
 }

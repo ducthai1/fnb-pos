@@ -82,17 +82,27 @@
   gap: 2px;
   width: max(100%, 220px);
   max-width: min(360px, calc(100vw - 2 * var(--gutter)));
-  max-height: min(320px, 60dvh);
-  overflow-y: auto;
+  max-height: min(340px, 60dvh);
   margin: 0;
   padding: var(--sp-1);
-  list-style: none;
+  outline: none;
   background: var(--c-surface);
   border: 1px solid var(--c-border-soft);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-menu);
   transform-origin: top left;
-  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+  /* In by a keyframe at mount; out by a transition, which turns back from where it is if the
+     list opens again while it leaves, so nothing blinks. */
+  animation: bo-rise-in var(--t-enter) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.bo-listbox__popup[data-leaving] {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--rise))) scale(0.98);
+  pointer-events: none;
 }
 
 /* Opened at the right end of a row (the bar, a pager): the card lines up on its right. */
@@ -107,6 +117,59 @@
   top: auto;
   bottom: calc(100% + 6px);
   transform-origin: bottom left;
+}
+
+/* The choices scroll under the search box, which stays at the top of the card. */
+.bo-listbox__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.bo-listbox__search {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 2px 2px var(--sp-1);
+  padding: 0 var(--sp-3);
+  min-height: 40px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  color: var(--c-text-3);
+  cursor: text;
+}
+
+.bo-listbox__search:focus-within {
+  border-color: var(--c-brand);
+  box-shadow: var(--ring-field);
+}
+
+.bo-listbox__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-body);
+}
+
+.bo-listbox__empty {
+  margin: 0;
+  padding: var(--sp-3);
+  color: var(--c-text-3);
+  font-size: var(--fs-body);
+  text-align: center;
 }
 
 .bo-listbox__option {

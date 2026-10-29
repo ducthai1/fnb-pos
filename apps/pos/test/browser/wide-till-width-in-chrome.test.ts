@@ -60,7 +60,7 @@ describe(`the till on a ${WIDTH}px screen`, () => {
 
   it("keeps a sign-in card in the middle, not against the left", async () => {
     const page = await browser!.newPage({ viewport: { width: WIDTH, height: 1440 } });
-    const [card] = await contentGaps(page, "pin-entry", ".pos-signin");
+    const [card] = await contentGaps(page, "pin-entry", ".pos-gate");
     await page.close();
     expect(card).toBeDefined();
     expect(Math.abs(card!.left - card!.right)).toBeLessThanOrEqual(1);

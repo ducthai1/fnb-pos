@@ -10,6 +10,9 @@ export const VI_CRASH = {
 
 export const VI_UPDATE = {
   banner: "Có bản cập nhật — sẽ cập nhật sau khi đóng ca",
+  bannerShort: "Có bản cập nhật mới",
+  fold: "Thu nhỏ thẻ cập nhật",
+  unfold: "Xem",
   now: "Cập nhật ngay",
   updating: "Đang cập nhật…",
   waitOutbox: (count: number) =>

@@ -54,6 +54,7 @@ export const vi = {
     pinIncomplete: "PIN gồm 4 đến 6 chữ số.",
     back: "Chọn người khác",
     clear: "Xóa",
+    backspace: "Xóa số cuối",
     submit: "Vào ca",
     submitting: "Đang kiểm tra…",
   },
