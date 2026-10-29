@@ -7,6 +7,7 @@ screens:
   - crash
 decisions:
   - D-122
+  - D-127
 tests:
   - apps/pos/src/app/pos-error-boundary.test.tsx
   - apps/pos/src/screens/crash/gate-fault-screens.test.tsx

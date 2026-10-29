@@ -6,9 +6,9 @@ audience:
   - van-hanh
 screens:
   - update-banner
-  - update-banner-folded
 decisions:
   - D-123
+  - D-128
 tests:
   - apps/pos/src/features/updates/update-policy.test.ts
   - apps/pos/src/features/updates/release-watch.test.ts

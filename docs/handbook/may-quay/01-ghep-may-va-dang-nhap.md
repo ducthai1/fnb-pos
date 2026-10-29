@@ -18,6 +18,7 @@ decisions:
   - D-046
   - D-060
   - D-065
+  - D-127
   - D-101
 tests:
   - apps/pos/src/screens/pair-device/pair-device-screen.test.tsx
