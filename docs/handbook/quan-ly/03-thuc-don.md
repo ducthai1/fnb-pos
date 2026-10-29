@@ -47,7 +47,7 @@ tests:
 
 Nhóm **Thực đơn** trên menu có ba trang: **Món** (danh sách + trang sửa từng món), **Danh mục** và **Hết món**. Mọi thay đổi ở đây tự tới mọi máy quầy của thương hiệu ở lần đồng bộ kế tiếp — không cần làm gì trên máy quầy.
 
-Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu bán cùng một menu. Riêng **trạm pha chế/bếp** và **hết món** là theo từng chi nhánh.
+Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu bán cùng một menu. Riêng **trạm pha chế/bếp** (xem [Trạm pha chế/bếp](15-tram-pha-che.md)) và **hết món** là theo từng chi nhánh.
 
 ## Ai dùng, cần quyền gì
 

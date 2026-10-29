@@ -111,6 +111,7 @@ const SHOTS: readonly Shot[] = [
   { name: "danh-muc", path: () => "/menu/categories" },
   { name: "bang-gia", path: async (stack) => (await sampleHappyHour(stack), "/menu/price-lists") },
   { name: "bang-gia-sua", path: async (stack) => `/menu/price-lists/${await sampleHappyHour(stack)}` },
+  { name: "tram-pha-che", path: () => "/menu/stations" },
   { name: "het-mon", path: () => "/menu/availability" },
   { name: "het-mon-dien-thoai", path: () => "/menu/availability", viewport: PHONE },
   { name: "nhap-excel", path: () => "/menu/import" },

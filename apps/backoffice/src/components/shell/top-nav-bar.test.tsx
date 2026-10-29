@@ -66,6 +66,7 @@ describe("the menu bar of a computer screen", () => {
       N.categories,
       N.availability,
       N.priceLists,
+      N.stations,
     ]);
   });
 
@@ -98,11 +99,11 @@ describe("the menu bar of a computer screen", () => {
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
     expect(document.activeElement?.textContent).toBe(N.categories);
     fireEvent.keyDown(document.activeElement!, { key: "End" });
-    expect(document.activeElement?.textContent).toBe(N.priceLists);
+    expect(document.activeElement?.textContent).toBe(N.stations);
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
     expect(document.activeElement?.textContent).toBe(N.products);
     fireEvent.keyDown(document.activeElement!, { key: "ArrowUp" });
-    expect(document.activeElement?.textContent).toBe(N.priceLists);
+    expect(document.activeElement?.textContent).toBe(N.stations);
     fireEvent.keyDown(document.activeElement!, { key: "Escape" });
     expect(menu.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(menu);

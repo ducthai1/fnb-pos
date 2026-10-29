@@ -58,6 +58,8 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     putCategory: unexpected("putCategory"),
     deleteCategory: unexpected("deleteCategory"),
     listStations: unexpected("listStations"),
+    putStation: unexpected("putStation"),
+    deleteStation: unexpected("deleteStation"),
     uploadProductImage: unexpected("uploadProductImage"),
     listPriceLists: unexpected("listPriceLists"),
     getPriceList: unexpected("getPriceList"),

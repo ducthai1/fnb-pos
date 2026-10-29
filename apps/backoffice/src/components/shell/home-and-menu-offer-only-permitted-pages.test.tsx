@@ -10,7 +10,7 @@ import { DrawerNavLinks } from "./drawer-nav-links";
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
 const N = messages.shell.nav;
-const MENU_PAGES = [N.products, N.categories, N.availability, N.priceLists];
+const MENU_PAGES = [N.products, N.categories, N.availability, N.priceLists, N.stations];
 const REPORT_PAGES = [N.dailySales, N.dayClose, N.transfers, N.printFailures];
 
 const signedInWith = (permissionKeys: typeof OWNER.permissionKeys[number][]) => ({
@@ -64,6 +64,7 @@ describe("which pages the menu drawer and the home page offer", () => {
       "/menu/categories",
       "/menu/availability",
       "/menu/price-lists",
+      "/menu/stations",
     ]);
   });
 });

@@ -54,6 +54,7 @@ export const VI_SHELL = {
     categories: "Danh mục",
     availability: "Hết món",
     priceLists: "Bảng giá",
+    stations: "Trạm pha chế",
     dailySales: "Doanh thu ngày",
     dayClose: "Chốt ngày",
     transfers: "Khớp chuyển khoản",

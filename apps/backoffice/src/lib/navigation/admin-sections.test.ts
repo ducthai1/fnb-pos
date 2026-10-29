@@ -20,7 +20,7 @@ describe("the groups of the menu", () => {
   it("keeps the menu's order and leaves out a group the keys open no page of", () => {
     const grouped = groupedSectionsFor(["view_reports"]).map(({ group, sections }) => [group, sections.map((s) => s.href)]);
     expect(grouped).toEqual([
-      ["menu", ["/menu", "/menu/categories", "/menu/availability", "/menu/price-lists"]],
+      ["menu", ["/menu", "/menu/categories", "/menu/availability", "/menu/price-lists", "/menu/stations"]],
       ["sales", ["/reports/daily-sales", "/day-close", "/payments", "/reports/print-failures"]],
     ]);
   });

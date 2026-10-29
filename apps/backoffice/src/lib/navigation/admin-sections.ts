@@ -25,6 +25,7 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/menu/categories", group: "menu", label: vi.shell.nav.categories, requires: null },
   { href: "/menu/availability", group: "menu", label: vi.shell.nav.availability, requires: null },
   { href: "/menu/price-lists", group: "menu", label: vi.shell.nav.priceLists, requires: null },
+  { href: "/menu/stations", group: "menu", label: vi.shell.nav.stations, requires: null },
   { href: "/reports/daily-sales", group: "sales", label: vi.shell.nav.dailySales, requires: "view_reports" },
   { href: "/day-close", group: "sales", label: vi.shell.nav.dayClose, requires: "view_reports" },
   { href: "/payments", group: "sales", label: vi.shell.nav.transfers, requires: "view_reports" },

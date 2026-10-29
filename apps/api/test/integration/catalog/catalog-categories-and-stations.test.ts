@@ -175,4 +175,39 @@ describe("stations", () => {
       { status: 404, body: { code: "API_CATALOG_REFERENCE_NOT_FOUND" } },
     ]);
   });
+
+  it("refuse a stale version, an empty or over-long name and a malformed id", async () => {
+    const id = newId();
+    const url = `/catalog/stations/${id}`;
+    await expectStatus(shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Bếp" }), 201);
+    await expectStatus(shop.call("PUT", url, { version: 1, branchId: shop.branchId, name: "Bếp A" }), 200);
+    const body = (name: string, version: number | null) => ({ version, branchId: shop.branchId, name });
+    expect([
+      await outcome(shop.call("PUT", url, body("Bếp B", 1))),
+      await outcome(shop.call("PUT", url, body("   ", 2))),
+      await outcome(shop.call("PUT", url, body("x".repeat(121), 2))),
+      await outcome(shop.call("PUT", `/catalog/stations/${newId()}`, body("Mới", 5))),
+      await outcome(shop.call("DELETE", "/catalog/stations/not-a-uuid")),
+    ]).toEqual([
+      { status: 409, body: { code: "API_CATALOG_VERSION_CONFLICT" } },
+      { status: 400, body: { code: "API_INVALID_REQUEST" } },
+      { status: 400, body: { code: "API_INVALID_REQUEST" } },
+      { status: 404, body: { code: "API_CATALOG_STATION_NOT_FOUND" } },
+      { status: 400, body: { code: "API_INVALID_REQUEST" } },
+    ]);
+  });
+
+  it("tell the branch's tills when one is added, renamed or deleted", async () => {
+    const id = newId();
+    const url = `/catalog/stations/${id}`;
+    const changes = async (): Promise<number> =>
+      withTenant(pool, shop.tenant.tenantId, async (client) => {
+        const rows = await client.query("SELECT count(*)::int AS n FROM change_log WHERE entity_id = $1", [id]);
+        return rows.rows[0].n;
+      });
+    await expectStatus(shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Pha chế" }), 201);
+    await expectStatus(shop.call("PUT", url, { version: 1, branchId: shop.branchId, name: "Pha chế 2" }), 200);
+    await expectStatus(shop.call("DELETE", url), 204);
+    expect(await changes()).toBe(3);
+  });
 });
