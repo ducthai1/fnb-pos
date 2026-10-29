@@ -18,6 +18,8 @@ tests:
 
 Khi một trang quản lý gặp lỗi không lường trước và không vẽ được, thay vì màn trắng, trang hiện khung **"Trang gặp sự cố"** với hai nút **Thử lại** và **Về trang chủ**. Thanh trên cùng và menu vẫn ở nguyên khi lỗi nằm trong một trang đã đăng nhập, nên bấm sang trang khác được ngay. Lỗi được ghi lại cho người vận hành (không kèm tên ai).
 
+![Trang sự cố](../images/quan-ly/trang-su-co.webp)
+
 ## Ai dùng, cần quyền gì
 
 Bất kỳ ai dùng trang quản lý; không cần quyền riêng. Lỗi chỉ gửi lên máy chủ khi đã đăng nhập.
