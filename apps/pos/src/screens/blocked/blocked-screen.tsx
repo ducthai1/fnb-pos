@@ -1,6 +1,6 @@
 import { MonitorX } from "lucide-react";
 import { vi } from "../../messages/vi";
-import { Icon } from "../shared/icon";
+import { GateMark } from "../shared/gate-mark";
 import { ScreenFrame } from "../shared/screen-frame";
 
 export type BlockReason = "another_tab" | "unsupported" | "failed";
@@ -15,17 +15,12 @@ const TEXT: Record<BlockReason, { title: string; hint: string }> = {
 export function BlockedScreen({ reason, onReload }: { reason: BlockReason; onReload: () => void }) {
   const text = TEXT[reason];
   return (
-    <ScreenFrame title={text.title} width="narrow">
-      <div className="pos-signin">
-        <div className="pos-signin__lead">
-          <span className="pos-signin__mark" data-tone="danger">
-            <Icon of={MonitorX} size={26} />
-          </span>
-          <p className="pos-hint">{text.hint}</p>
-        </div>
+    <ScreenFrame title={text.title} stage="narrow" stageMark={<GateMark of={MonitorX} tone="danger" />}>
+      <div className="pos-gate__body">
+        <p className="pos-gate__lead">{text.hint}</p>
         <button
           type="button"
-          className="pos-button pos-button--primary pos-button--block"
+          className="pos-button pos-button--primary pos-button--block pos-gate__action"
           onClick={onReload}
         >
           {vi.boot.reload}

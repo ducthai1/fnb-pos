@@ -38,6 +38,15 @@ const staff = [
     active: true,
   })),
 ];
+// A big shop: thirty people, long names among them, as the picker must still read.
+const crowd = Array.from({ length: 30 }, (_, i) => ({
+  id: `c${i}`,
+  displayName:
+    i % 5 === 0
+      ? `Nguyễn Thị Thanh Thảo Ca Sáng Quầy ${i + 1} Chi Nhánh Bình Thạnh`
+      : `Nhân viên ${i + 1}`,
+  active: true,
+}));
 const never = () => new Promise<never>(() => {});
 const rejected = (index: number): RejectedCommand => ({
   entity: "order",
@@ -74,6 +83,14 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ),
   "staff-picker": () => (
     <StaffPicker branchName={HOSTILE_NAMES.branch} staff={staff} onChoose={() => {}} />
+  ),
+  "staff-picker-crowd": () => (
+    <StaffPicker
+      branchName={HOSTILE_NAMES.branch}
+      staff={[staff[0]!, ...crowd]}
+      notice={vi.staff.noStaff}
+      onChoose={() => {}}
+    />
   ),
   "pin-entry": () => (
     <PinEntry staff={staff[0]!} signIn={never} onSignedIn={() => {}} onBack={() => {}} />

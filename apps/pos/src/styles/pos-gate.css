@@ -1,0 +1,260 @@
+/* The gates of the till (pairing, who is at the till, the PIN, the fault screens): one card
+   centred on the screen over a soft wash of the brand's own colours, never stuck to the top
+   with the rest empty. Width comes from the card's size, height from its content; a card
+   taller than the screen scrolls inside the frame, and the staff list inside it scrolls on
+   its own so the heading and the way back stay in view. Colours from the tokens only. */
+
+.pos-screen[data-stage] {
+  background:
+    radial-gradient(56rem 36rem at 12% -8%, var(--c-brand-soft), transparent 62%),
+    radial-gradient(48rem 32rem at 108% 112%, var(--c-info-soft), transparent 58%), var(--c-bg);
+}
+
+.pos-screen__inner--stage {
+  --frame-max: 100%;
+  align-content: center;
+  padding-block: var(--sp-6);
+}
+
+.pos-gate {
+  --gate-w: 460px;
+  position: relative;
+  grid-column: 2;
+  justify-self: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  width: min(100%, var(--gate-w));
+  padding: var(--sp-8) var(--sp-6) var(--sp-6);
+  overflow: hidden;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-panel);
+  animation: pos-rise var(--t-enter) var(--ease-out);
+}
+
+.pos-gate[data-size="wide"] {
+  --gate-w: clamp(520px, 62vw, 880px);
+}
+
+/* A band of the brand's two colours along the top edge. */
+.pos-gate::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, var(--c-brand), var(--c-info));
+}
+
+.pos-gate__mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-lg);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+  box-shadow: 0 0 0 6px var(--c-surface-2);
+}
+
+.pos-gate__mark[data-tone="danger"] {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.pos-gate__title {
+  margin: 0;
+  max-width: 100%;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.pos-gate__lead {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.pos-gate__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.pos-gate__action {
+  min-height: var(--tap-lg);
+  font-size: var(--fs-lg);
+}
+
+.pos-gate .pos-input--code {
+  min-height: 64px;
+  font-size: var(--fs-2xl);
+  text-align: center;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+/* Who may sign in here: the shop, then the people. Thirty names scroll in their own box. */
+.pos-gate__branch {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--sp-2);
+  align-self: center;
+  max-width: 100%;
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  color: var(--c-text-2);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.pos-gate__branch .pos-icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.pos-gate__scroll {
+  box-sizing: border-box;
+  max-height: min(46dvh, 460px);
+  /* The last row fades into the edge: there is more below. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  margin-inline: calc(-1 * var(--sp-2));
+  padding: var(--sp-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pos-gate .pos-staff-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+}
+
+/* A row of names is as tall as its tallest, every card filling it. */
+.pos-gate .pos-staff-grid > li {
+  display: flex;
+}
+
+.pos-gate .pos-staff-button {
+  flex: 1 1 auto;
+  height: auto;
+}
+
+/* The PIN: the field with its backspace, a dot per digit, then keys a thumb cannot miss. */
+.pos-pin-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pos-pin-field .pos-input--pin {
+  padding-inline: 56px;
+}
+
+.pos-pin-field__back {
+  position: absolute;
+  inset-block: 0;
+  right: var(--sp-1);
+  min-width: var(--tap);
+  padding-inline: var(--sp-2);
+  color: var(--c-text-2);
+}
+
+.pos-pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-3);
+}
+
+.pos-pin-dots__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--r-pill);
+  background: var(--c-border);
+  transition:
+    background-color var(--t-tap) var(--ease-out),
+    transform var(--t-tap) var(--ease-spring);
+}
+
+.pos-pin-dots__dot[data-filled] {
+  background: var(--c-brand);
+  transform: scale(1.2);
+}
+
+.pos-pin-field[data-wrong] .pos-input--pin {
+  animation: pos-shake calc(var(--t-enter) * 2) var(--ease-out);
+}
+
+.pos-pin-pad .pos-button {
+  transition:
+    transform var(--t-tap) var(--ease-spring),
+    background-color var(--t-state) var(--ease-out);
+}
+
+.pos-pin-pad .pos-button:not(.pos-button--primary):active:not(:disabled) {
+  transform: scale(var(--tap-scale));
+  background: var(--c-brand-soft-pressed);
+}
+
+/* A card on a screen that is not tall: the same card, tighter. */
+@media (max-height: 820px) {
+  .pos-screen__inner--stage {
+    padding-block: var(--sp-3);
+  }
+
+  .pos-gate {
+    gap: var(--sp-3);
+    padding: var(--sp-6) var(--sp-5) var(--sp-5);
+  }
+
+  .pos-gate__body {
+    gap: var(--sp-3);
+  }
+
+  .pos-gate__mark {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pos-pin .pos-input--pin {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pos-gate {
+    padding-inline: var(--sp-4);
+  }
+}
+
+@keyframes pos-shake {
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}

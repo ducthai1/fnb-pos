@@ -22,6 +22,7 @@ import "./pos-shell.css";
 import "./pos-nav.css";
 import "./pos-theme-menu.css";
 import "./pos-screens.css";
+import "./pos-gate.css";
 import "./pos-category-tones.css";
 import "./pos-sale.css";
 import "./pos-product-tiles.css";

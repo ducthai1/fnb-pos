@@ -101,4 +101,37 @@ describe("signing a staff member in at the till", () => {
     expect(screen.getByRole("button", { name: MINH.displayName })).toBeTruthy();
     expect(screen.queryByLabelText(text.staff.pinLabel)).toBeNull();
   });
+
+  it("takes back the last digit only, and lights one dot per digit typed", () => {
+    loginScreen([]);
+    tap(LAN.displayName);
+    const filled = () => document.querySelectorAll(".pos-pin-dots__dot[data-filled]").length;
+    expect(document.querySelectorAll(".pos-pin-dots__dot")).toHaveLength(6);
+    expect(screen.getByRole("button", { name: text.staff.backspace }).hasAttribute("disabled")).toBe(true);
+    for (const digit of "4826") tap(digit);
+    expect(filled()).toBe(4);
+    tap(text.staff.backspace);
+    expect(pinField().value).toBe("482");
+    expect(filled()).toBe(3);
+    tap(text.staff.clear);
+    expect(filled()).toBe(0);
+  });
+
+  it("marks the field as wrong when the PIN is refused, and unmarks it on the next try", async () => {
+    loginScreen([refusal(401, "API_STAFF_PIN_INVALID"), { ok: true, value: SESSION }]);
+    tap(LAN.displayName);
+    tapPin("1111");
+    await screen.findByRole("alert");
+    expect(pinField().getAttribute("aria-invalid")).toBe("true");
+    expect(document.querySelector(".pos-pin-field")?.hasAttribute("data-wrong")).toBe(true);
+    tapPin("4826");
+    await waitFor(() => expect(pinField().getAttribute("aria-invalid")).toBeNull());
+  });
+
+  it("draws the picker and the PIN step as a card in the middle, titled by the screen's heading", () => {
+    loginScreen([]);
+    expect(document.querySelector("main[data-stage='wide'] .pos-gate h1")?.textContent).toBe(text.staff.title);
+    tap(LAN.displayName);
+    expect(document.querySelector("main[data-stage='narrow'] .pos-gate h1")?.textContent).toBe(text.staff.pinTitle);
+  });
 });

@@ -15,6 +15,8 @@ const WIDTH_CLASS: Readonly<Record<ScreenWidth, string>> = {
  */
 export function ScreenFrame({
   title,
+  stage,
+  stageMark,
   wide = false,
   width,
   titleHidden = false,
@@ -31,6 +33,13 @@ export function ScreenFrame({
    * view at the bottom of a long one.
    */
   dock?: ReactNode;
+  /**
+   * A gate (pairing, who is at the till, the fault screens): one card of this width centred
+   * on the screen over a soft backdrop, whose heading is the screen's title, with `stageMark`
+   * drawn above it. Short content sits in the middle; a taller card scrolls inside the frame.
+   */
+  stage?: "narrow" | "wide";
+  stageMark?: ReactNode;
   /** The selling screen uses a tablet's whole width for the menu and the order side by side. */
   wide?: boolean;
   /** A sign-in or a single form reads best as a narrow column in the middle. */
@@ -41,6 +50,19 @@ export function ScreenFrame({
   leaving?: boolean;
   children: ReactNode;
 }) {
+  if (stage !== undefined) {
+    return (
+      <main className="pos-screen" data-scroll-root data-stage={stage}>
+        <div className="pos-screen__inner pos-screen__inner--stage">
+          <section className="pos-gate" data-size={stage}>
+            {stageMark}
+            <h1 className="pos-gate__title">{title}</h1>
+            {children}
+          </section>
+        </div>
+      </main>
+    );
+  }
   return (
     <main
       className="pos-screen"
