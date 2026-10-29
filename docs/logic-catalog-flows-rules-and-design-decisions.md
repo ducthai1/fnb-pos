@@ -62,6 +62,7 @@ Chưa có: bất kỳ flow thao tác nào của KiotViet / Sapo FnB / iPOS / Cuk
 **Kiểu giá** [A][F]
 - base, theo biến thể, **giá nhập tay lúc order** (cần quyền; duyệt gắn đúng đơn + món + giá, D-105), **theo cân** (đơn giá mỗi kg hoặc mỗi 100 g × cân nặng nhập bằng gam, làm tròn half-up tới đồng, D-106), theo kênh, theo khung giờ.
 - Bảng giá: `price_list_item(scope: variant|product|category|global, branch?, channel?, min_qty, datetime range, day_of_week, time_window)`. Ưu tiên: variant > product > category > global. [F]
+  **R1 làm khác:** chưa có `min_qty` và nhóm khách; bảng giá được xóa hẳn (không lưu trữ) vì không có gì trỏ tới; kênh là chữ tự do, máy quầy bán không kênh nên quy tắc có kênh chưa áp ở quầy (D-117).
 - [QĐ] Tính giá **tại lúc thêm dòng**, không dựng sẵn cho cả ca. [F] Odoo dựng sẵn nên happy hour không tự bật giữa ca.
 - Giá theo chi nhánh = ghi đè trên biến thể, thiếu thì lấy giá chung. [C] Square/Toast.
 

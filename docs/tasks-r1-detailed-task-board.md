@@ -255,7 +255,7 @@
 
 ### T03-06 Bảng giá
 - **Test:** `e2e/backoffice/happy-hour-price-list.spec.ts`.
-- **Trạng thái:** một phần (2026-10-20) — schema + API bảng giá (`price-list-routes.ts`, `price-list-roundtrip.test.ts`), máy quầy áp giá theo bảng (`apps/pos/src/features/menu/menu-prices.ts`); trang quản lý chưa có màn bảng giá.
+- **Trạng thái:** done (2026-10-29) — schema + API bảng giá (`price-list-routes.ts`: thêm danh sách và xóa, `price-list-roundtrip.test.ts`, `price-list-list-and-delete.test.ts`), máy quầy áp giá theo bảng (`apps/pos/src/features/menu/menu-prices.ts`), trang Thực đơn → Bảng giá (danh sách, sửa quy tắc phạm vi / giảm % hoặc giá cố định / chi nhánh / kênh / ngày / giờ, lỗi đặt đúng ô — D-117; `e2e/backoffice/happy-hour-price-list.spec.ts`). Chưa có kênh bán thật, nhóm khách, số lượng tối thiểu (Backlog).
 
 ### T03-07 Trạm pha chế/bếp + gán món
 - **Trạng thái:** một phần (2026-10-20) — API trạm (`category-and-station-routes.ts`), gán món → trạm trong trình sửa món, phiếu theo trạm (T04-10); trang quản lý chưa có màn thêm/sửa trạm.

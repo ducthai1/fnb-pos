@@ -117,6 +117,7 @@ const READS = () => [
   { route: "GET /catalog/products/:id", url: productUrl },
   { route: "GET /catalog/products", url: `/catalog/products?brandId=${shop.brandId}` },
   { route: "GET /catalog/price-lists/:id", url: priceListUrl },
+  { route: "GET /catalog/price-lists", url: `/catalog/price-lists?brandId=${shop.brandId}` },
   { route: "GET /catalog/availability", url: `/catalog/availability?branchId=${shop.branchId}` },
   { route: "GET /catalog/categories", url: `/catalog/categories?brandId=${shop.brandId}` },
   { route: "GET /catalog/stations", url: `/catalog/stations?branchId=${shop.branchId}` },

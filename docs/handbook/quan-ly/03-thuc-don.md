@@ -164,7 +164,7 @@ Trang quản lý cần mạng để lưu. Máy quầy đang mất mạng vẫn b
 
 ## Chưa làm / sắp có
 
-- **Bảng giá** (giá theo kênh, giá theo khung giờ): máy chủ đã có, nhưng **chưa có màn hình** trong trang quản lý; công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng.
+- **Bảng giá** (giờ vàng, giá theo chi nhánh / ngày) có trang riêng: xem [Bảng giá](14-bang-gia.md). Công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng (bảng giá áp dụng không cần nó).
 - Combo: chưa có **món mặc định** đánh dấu sẵn (máy quầy chỉ tự chọn khi phần bắt buộc có đúng một món), chưa có combo **giá nhập tay / theo cân**, chưa có combo trong combo, chưa đổi một món lẻ thành combo (hay ngược lại) sau khi lưu. Các ô **Loại** dùng danh sách của trang; **Danh mục** và **Trạm** vẫn là ô chọn của trình duyệt.
 - Chưa có cách **bán lại** món đã ngừng bán (xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)).
 - Hết món có giờ tự có lại (máy chủ có trường này) chưa có trên màn hình.

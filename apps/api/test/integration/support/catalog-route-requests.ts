@@ -67,6 +67,19 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
     },
   },
   {
+    route: "DELETE /catalog/price-lists/:id",
+    status: 204,
+    prepare: async (shop) => {
+      const url = `/catalog/price-lists/${newId()}`;
+      const payload = { version: null, brandId: shop.brandId, name: "Giờ vàng", items: [] };
+      await expectStatus(shop.call("PUT", url, payload), 201);
+      return {
+        request: { method: "DELETE", url },
+        effect: { method: "GET", url: `/catalog/price-lists?brandId=${shop.brandId}` },
+      };
+    },
+  },
+  {
     route: "PUT /catalog/availability",
     status: 200,
     prepare: async (shop) => {

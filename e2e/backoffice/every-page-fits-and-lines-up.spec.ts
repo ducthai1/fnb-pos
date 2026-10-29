@@ -1,5 +1,6 @@
 import { vi as text } from "@fnb/backoffice/messages/vi";
 import { ADMIN_SECTIONS } from "@fnb/backoffice/navigation/admin-sections";
+import { newId } from "@fnb/db";
 import { measureScreenOverflow } from "@fnb/pos/test-support/measure-screen-overflow";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
 import type { Browser, Page } from "playwright-core";
@@ -21,7 +22,10 @@ async function everyPage(): Promise<string[]> {
   const brandId = (body as { branches: { id: string; brandId: string }[] }).branches.find((b) => b.id === stack.branchId)!.brandId;
   const products = (await asOwner(stack, "GET", `/catalog/products?brandId=${brandId}`)).body as { id: string }[];
   const product = products[0] === undefined ? [] : [`/menu/products/${products[0].id}`];
-  return ["/", ...ADMIN_SECTIONS.map((section) => section.href), "/menu/import", ...product];
+  // A price list's own page: the sections hold only the list of lists.
+  const listId = newId();
+  await asOwner(stack, "PUT", `/catalog/price-lists/${listId}`, { version: null, brandId, name: "Bảng giá cho trang kiểm", items: [] });
+  return ["/", ...ADMIN_SECTIONS.map((section) => section.href), "/menu/import", ...product, `/menu/price-lists/${listId}`];
 }
 
 async function settle(page: Page) {

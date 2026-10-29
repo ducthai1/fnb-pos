@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  BadgePercent,
   Armchair,
   CalendarCheck,
   ChartColumn,
@@ -24,6 +25,7 @@ export const SECTION_ICONS: Readonly<Record<string, LucideIcon>> = {
   "/menu": CupSoda,
   "/menu/categories": Tags,
   "/menu/availability": CircleOff,
+  "/menu/price-lists": BadgePercent,
   "/reports/daily-sales": ChartColumn,
   "/day-close": CalendarCheck,
   "/payments": ArrowLeftRight,

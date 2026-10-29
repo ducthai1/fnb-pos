@@ -53,6 +53,7 @@ export const VI_SHELL = {
     products: "Món",
     categories: "Danh mục",
     availability: "Hết món",
+    priceLists: "Bảng giá",
     dailySales: "Doanh thu ngày",
     dayClose: "Chốt ngày",
     transfers: "Khớp chuyển khoản",

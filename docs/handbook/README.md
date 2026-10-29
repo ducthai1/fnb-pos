@@ -44,6 +44,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 11. [Chốt ngày](quan-ly/11-chot-ngay.md)
 12. [Khớp chuyển khoản và hoàn tiền QR cho khách](quan-ly/12-khop-chuyen-khoan-va-hoan-tien-qr.md)
 13. [Phiếu in lỗi](quan-ly/13-phieu-in-loi.md)
+14. [Bảng giá — giờ vàng, giá theo chi nhánh, giá theo ngày](quan-ly/14-bang-gia.md)
 
 ### Vận hành (người dựng và giữ server)
 

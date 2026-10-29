@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +42,48 @@ const click = (name: string) => async (page: Page) => {
   await page.waitForTimeout(700);
 };
 
+/** The sample café's happy hour, made through the API once per stack for the price list pictures. */
+const happyHours = new Map<string, Promise<string>>();
+function sampleHappyHour(stack: SampleShopStack): Promise<string> {
+  const made =
+    happyHours.get(stack.apiOrigin) ??
+    (async () => {
+      const id = randomUUID();
+      const rule = (scope: object, effect: object, extra: object = {}) => ({
+        id: randomUUID(),
+        scope,
+        branchId: null,
+        channelKey: null,
+        validFrom: null,
+        validTo: null,
+        daysOfWeek: null,
+        timeWindow: null,
+        effect,
+        priority: 0,
+        ...extra,
+      });
+      const response = await fetch(`${stack.apiOrigin}/catalog/price-lists/${id}`, {
+        method: "PUT",
+        headers: { cookie: stack.ownerCookie, "content-type": "application/json" },
+        body: JSON.stringify({
+          version: null,
+          brandId: stack.shop.brandId,
+          name: "Giờ vàng chiều",
+          items: [
+            rule({ kind: "global" }, { kind: "percent_off", rateBp: 2000, rounding: "half-up" }, {
+              daysOfWeek: [1, 2, 3, 4, 5],
+              timeWindow: { startMinute: 840, endMinute: 1020 },
+            }),
+          ],
+        }),
+      });
+      if (response.status !== 201) throw new Error(`price list not made: ${response.status}`);
+      return id;
+    })();
+  happyHours.set(stack.apiOrigin, made);
+  return made;
+}
+
 const SHOTS: readonly Shot[] = [
   { name: "tong-quan", path: () => "/" },
   { name: "tong-quan-dien-thoai", path: () => "/", viewport: PHONE },
@@ -66,6 +109,8 @@ const SHOTS: readonly Shot[] = [
     act: click(text.menu.editor.sections.preview),
   },
   { name: "danh-muc", path: () => "/menu/categories" },
+  { name: "bang-gia", path: async (stack) => (await sampleHappyHour(stack), "/menu/price-lists") },
+  { name: "bang-gia-sua", path: async (stack) => `/menu/price-lists/${await sampleHappyHour(stack)}` },
   { name: "het-mon", path: () => "/menu/availability" },
   { name: "het-mon-dien-thoai", path: () => "/menu/availability", viewport: PHONE },
   { name: "nhap-excel", path: () => "/menu/import" },

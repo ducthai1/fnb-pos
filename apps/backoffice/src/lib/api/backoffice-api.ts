@@ -5,6 +5,7 @@ import { type CatalogApi, httpCatalogApi } from "./catalog-api";
 import { type DayCloseApi, httpDayCloseApi } from "./day-close-api";
 import { type DevicesApi, httpDevicesApi } from "./devices-api";
 import { type FloorApi, httpFloorApi } from "./floor-api";
+import { type PriceListApi, httpPriceListApi } from "./price-list-api";
 import { type PaymentsApi, httpPaymentsApi } from "./payments-api";
 import { type ProductImageApi, httpProductImageApi } from "./product-image-api";
 import { type ReportsApi, httpReportsApi } from "./reports-api";
@@ -19,6 +20,7 @@ export type BackofficeApi = AuthApi &
   StaffApi &
   RolesApi &
   CatalogApi &
+  PriceListApi &
   ProductImageApi &
   SettingsApi &
   ReportsApi &
@@ -41,6 +43,7 @@ export function httpBackofficeApi(
     ...httpStaffApi(root, fetchImpl),
     ...httpRolesApi(root, fetchImpl),
     ...httpCatalogApi(root, fetchImpl),
+    ...httpPriceListApi(root, fetchImpl),
     ...httpProductImageApi(root, fetchImpl),
     ...httpSettingsApi(root, fetchImpl),
     ...httpReportsApi(root, fetchImpl),
