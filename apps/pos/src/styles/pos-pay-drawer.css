@@ -121,6 +121,20 @@
   display: grid;
 }
 
+/* A short screen (a 1280×800 tablet): the cards lie flat, icon beside the words, so the cash
+   keys under them stay in view without scrolling the drawer. */
+@media (max-height: 860px) {
+  .pos-pay-way {
+    flex-direction: row;
+    min-height: 64px;
+  }
+
+  .pos-pay-way__glyph {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 .pos-pay-way:active:not(:disabled) {
   background: var(--c-brand-soft-pressed);
 }
