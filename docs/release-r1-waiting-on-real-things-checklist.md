@@ -15,6 +15,7 @@
 | Cảnh báo khi backup không chạy + chép backup ra ngoài server | `pnpm ops:backup` / `ops:restore`, cron, diễn tập khôi phục | URL ping (dịch vụ theo dõi cron) và đích rclone do chủ dự án chọn | T11-02, D-067 |
 | Content-Security-Policy cho backoffice / POS | — | Next cần nonce cho script inline; thử trên domain thật | `infra/README.md` mục 14 |
 | `FNB_PAYMENT_SECRET_KEY` bắt buộc ở production | Preflight đang chỉ cảnh báo | Chốt khi có tài khoản ngân hàng thật | Backlog 2026-10-21 |
+| Đánh số phiên bản thật cho bản phát hành đầu | Mã bản = version `apps/pos` + mã git ngắn; hiện ra `0.0.0+<sha>` | Đặt version (vd `1.0.0`) + tag git lúc cắt bản đầu cho quán thí điểm | D-123, D-124 |
 
 ## 2. Máy quầy thật (vỏ Windows / Android) + máy in
 

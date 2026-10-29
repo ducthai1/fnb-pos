@@ -6,6 +6,38 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-29 17:30 — **Đợt 4 (vận hành) xong** (1 agent, 0,42M token, merge `8656a65`).
+  - **Thu lỗi máy quầy / trang quản lý** (T11-01, D-122):
+    - Gửi `POST /client-errors` về server của mình, không dùng dịch vụ ngoài.
+    - Che email / số dài / token, cắt query; chỉ ghi id thiết bị / tài khoản vào cùng nhật ký với lỗi server; giới hạn tần suất.
+    - Máy quầy giữ lỗi lúc mất mạng (localStorage, tối đa 50, gộp trùng 60 s); có màn sự cố "Tải lại" ở máy quầy và trang sự cố ở trang quản lý.
+  - **Cập nhật app quầy bản web** (T11-04, D-123):
+    - Build đóng dấu mã bản + `version.json`; máy quầy hỏi 5 phút một lần, bản **khác** là có cập nhật, nên quay lui cũng tới máy.
+    - Không bao giờ tải lại khi còn lệnh chưa gửi hoặc đang mở hộp thoại.
+    - Không có ca thì tự cập nhật sau 20 s không ai chạm; có ca thì hiện thẻ "sẽ cập nhật sau khi đóng ca" kèm nút "Cập nhật ngay".
+  - **Đóng gói bản phát hành** (T11-05 một phần, D-124):
+    - `pnpm release:pack` tạo tarball + checksum + manifest; CI đóng gói và lưu artifact 14 ngày.
+    - `infra/release/install-release.sh` làm tuần tự: kiểm checksum → cài phụ thuộc prod → backup → migration → đổi `current` → kiểm `/health`. Hỏng thì tự về bản trước và gạt bản hỏng sang `.failed-*`.
+    - `rollback-release.sh` từ chối quay lui qua migration.
+    - Hai script giữ khóa `/srv/fnb/.release.lock`; khóa và việc gạt bản hỏng là sửa sau review (`16319c0`).
+    - Thử trên thư mục giả với lệnh giả; **không đẩy lên server thật** (chưa có server, deploy thật phải hỏi chủ dự án).
+  - **Danh sách việc chờ đồ thật** (server / máy quầy / máy in / tài khoản / quán thí điểm): [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md). Luật: dời việc vì cần đồ thật thì thêm dòng ở đó trong cùng commit.
+  - **Sổ tay:**
+    - Trang mới: `may-quay/11-man-hinh-su-co`, `may-quay/12-cap-nhat-ban-moi`, `quan-ly/17-trang-su-co`, `van-hanh/05-nhat-ky-loi…`, `van-hanh/06-ban-phat-hanh-va-quay-lui`.
+    - Ảnh chụp lại toàn bộ (mới: `crash`, `update-banner`, `trang-su-co`).
+  - **Cổng trên bản merge:** unit 3.171 · `test:api` 1.802 (+1 skip) · `test:sync` 22 · `test:browser` 200 · build · `release:pack` — xanh.
+  - **Biết trước** (đã thành dòng Backlog có nhãn đợt):
+    - Thẻ cập nhật đè góc lưới món; màn sự cố trống phía dưới (đợt 5).
+    - Chưa ép phiên bản tối thiểu; tab mở từ bản cũ có thể lỗi chunk `assets/` đã xóa (đợt 6).
+    - Code thu lỗi của trang quản lý chép lại ~100 dòng của máy quầy (không có gói DOM dùng chung).
+    - Màu chủ đạo theo token sẵn có của giao diện "pastel" (xanh dương), không đổi.
+  - **Phiên sau:**
+    1. Tự rà ~105 dòng Backlog cũ (60–90k, không agent): đánh dấu dòng đã xong, gắn nhãn đợt cho dòng còn mở.
+    2. Đợt 5: vẽ lại mở/đóng ca, PIN, chọn nhân viên, ghép máy, ngăn kéo thanh toán, màn sự cố, 8 ô chọn, hiệu ứng đóng, ô tìm trong `Listbox`.
+    3. Đợt 6: D-097, D-096, D-083, D-095, D-082, "Cần xử lý" từng lệnh, ép phiên bản tối thiểu, giữ `assets/` bản trước, lưu trữ trạm.
+    4. Đợt 7: quán giả lập.
+  - **Đang chờ chủ dự án:** link repo game giả lập bán hàng (xem Backlog 2026-10-29).
+
 - 2026-10-29 12:30 — **Chốt ngày theo lời chủ dự án (đợt 3 xong thì dừng).** **Đợt 3** (1 agent, 0,49M token, merge `729a459`): trang quản lý có **Bảng giá** (danh sách + sửa quy tắc giảm % / giá cố định theo phạm vi, chi nhánh, kênh, ngày, giờ; máy chủ thêm danh sách + xóa, D-117), **Trạm pha chế** (thêm / đổi tên / xóa trạm chưa có món và chưa in phiếu, D-118), **Mẫu loại quán** (`packages/shop-templates`, 5 mẫu, xem trước rồi áp, chỉ thêm cái còn thiếu, công tắc người dùng đã chọn giữ nguyên, D-119), **bán lại món đã ngừng** (`POST /catalog/products/:id/unarchive`, nút "Bán lại món", dòng B5 bỏ khỏi `discrepancies.md`, D-120), quán mẫu `pnpm dev:stack` có "Combo đôi" (16 món, D-121). Màn máy in (T04-14) **dời** tới lúc có vỏ Windows + máy in thật. Ảnh sổ tay chụp lại toàn bộ (thêm `bang-gia`, `bang-gia-sua`, `tram-pha-che`, `mau-loai-quan`). Cổng trên bản merge: unit 3.097 · `test:api` 1.789 · `test:sync` 22 · `test:browser` 194 · build — xanh (`pnpm test:ops` không chạy ở máy này vì cần pg_dump ≥ 17; CI cài client 17 và chạy, xanh ở `eef352f`). **Biết trước** (đã thành dòng 2026-10-29 trong Backlog, gắn đợt): công tắc mẫu áp `pay_first_counter`, `kitchen_routing`, `course_firing`, `cup_labels` chỉ được lưu, máy quầy chưa đọc (cùng gốc với B1/Q13 — đợt 6); món thuộc cả thương hiệu nhưng trạm thuộc một chi nhánh ⇒ ở chi nhánh khác món đó không ra phiếu (có từ trước, ghi ở trang sổ tay 15); trạm đã từng in phiếu chỉ đổi tên được, không xóa; quy tắc có kênh không áp ở quầy; ô chọn món của bảng giá chưa có tìm kiếm; ngày của bảng giá tính theo UTC+7 cố định. **Phiên sau bắt đầu ở đợt 4** (vận hành: thu lỗi từ máy quầy / trang quản lý, cập nhật app quầy, pipeline deploy — không deploy thật), rồi đợt 5 → 6 như dòng 2026-10-28 12:05. Không còn worktree; dev stack đang tắt.
 
 - 2026-10-28 14:30 — **Chốt ngày theo lời chủ dự án (hôm sau làm tiếp từ đợt 3).** **Đợt 2 combo** xong (1 agent, 0,49M token, merge `87ba93f`): trang quản lý tạo/sửa combo (phần combo, món + size + phụ thu, lỗi đặt đúng chỗ, xem trước); `save_draft` mang `comboPicks`, máy chủ tính giá bằng `domain` (`resolveComboPicks`) và lưu cây dòng combo → món → tùy chọn, chặn món hết/đã ngừng; máy quầy bán combo bằng màn chọn combo, phiếu bếp chia từng món theo trạm, bill thụt tùy chọn (D-113…D-116, D-048 bị thay một phần). Ảnh sổ tay chụp lại toàn bộ + ảnh mới màn chọn combo (combo mẫu "Combo đôi" chỉ có trong bộ chụp ảnh). Cổng sau merge: unit 3.016 · `test:api` 1.752 · `test:sync` 22 · `test:browser` 188 · build — xanh; CI xanh tới `4b82bc8`. Hôm nay tổng ~1,6M token agent (đợt 1: 1,14M, đợt 2: 0,49M). **Biết trước:** combo in lỗi ở một trạm thì lần gửi sau in lại ở MỌI trạm (chấp nhận trùng phiếu hơn mất món, D-114); hủy/hoàn chỉ cả combo (D-115); ô Danh mục / Trạm trong trình sửa món vẫn là ô chọn kiểu hệ điều hành (nằm trong 8 ô của đợt 5); quán mẫu `pnpm dev:stack` chưa có combo nào để bấm thử. **Phiên sau bắt đầu ở đợt 3** (1 agent ~500k): thêm combo vào quán mẫu dev stack; màn bảng giá (T03-06), màn trạm pha chế (T03-07), màn máy in + gán trạm (T04-14), mẫu cài đặt theo loại quán (T03-10), bán lại món đã ngừng (`discrepancies.md` B5). Sau đó đợt 4 → 6 như dòng 12:05. Không còn worktree; dev stack đang tắt.
@@ -478,12 +510,26 @@
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
-- 2026-10-29 · Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần khi có thay đổi hợp đồng không tương thích ngược. → T11-04.
-- 2026-10-29 · Vỏ native (Tauri/Capacitor) cần đường cập nhật riêng (cập nhật gói web trong vỏ, hoặc cập nhật vỏ); bản web dùng `version.json` chưa áp dụng được. → T11-04 / phase vỏ máy quầy.
-- 2026-10-29 · Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. Cân nhắc giữ file `assets/` của bản trước thêm một bản. → T11-04.
-- 2026-10-29 · Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ nếu thu ngân thấy vướng. → T11-04.
 
-> Nhãn `[đợt 4]`, `[đợt 5]`, `[đợt 6]` từ 2026-10-29 trở đi theo kế hoạch 6 đợt tới R1 (Bàn giao 2026-10-28 12:05: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý"). Nhãn "đợt 3…10" trên các dòng 2026-10-20/21 là cách đánh số **cũ** của tuần đầu, không phải các đợt này.
+> Nhãn `[đợt 4]` … `[đợt 7]` từ 2026-10-29 trở đi theo kế hoạch tới R1 (Bàn giao 2026-10-28 12:05 và 2026-10-29 17:30: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý" · 7 quán giả lập). Nhãn "đợt 3…10" trên các dòng 2026-10-20/21 là cách đánh số **cũ** của tuần đầu, không phải các đợt này. Việc chờ server / máy thật / tài khoản nằm ở [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md), không ở đây.
+
+- 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k):
+  - **Máy ảo:** nhiều máy quầy ảo chạy đúng `@fnb/sync-client` với API thật trên Postgres nhúng (2 quầy, 1 máy order bàn, 1 máy pha chế).
+  - **Kịch bản một ngày:** mở ca → sáng vắng → trưa cao điểm → chiều thưa → đóng ca → chốt ngày, xen chuyển bàn, hủy món, hoàn tiền, QR báo có trễ.
+  - **Bơm sự cố:** mất mạng một máy 20′, lệch giờ, server khởi động lại giữa giờ, hai máy cùng sửa một bàn, cập nhật app giữa ca.
+  - **Cuối ngày tự kiểm:** không mất / trùng đơn, két khớp, báo cáo ngày = tổng dòng, mọi máy cùng trạng thái server.
+  - **Chạy:** tầng nhanh không trình duyệt (cả ngày trong vài phút, kịch bản ngẫu nhiên có seed), cộng 3–4 Chrome chạy giao diện máy quầy thật cho vài đoạn chính.
+  - **Vì sao sau đợt 6:** đợt 6 đổi số gọi khi ≥ 2 máy (D-082), khóa món đã gửi bếp (D-097), "Cần xử lý".
+- 2026-10-29 · **[chờ chủ dự án gửi link]** Cắm máy quầy vào một **game giả lập bán hàng** (repo public), chạy ở máy dev.
+  - **Ưu tiên mức 1:** game hiện khách + món gọi, người thật bấm trên máy quầy thật.
+  - **Mức 2 / 3:** game tự bấm giao diện, hoặc bơm đơn vào server. Chỉ làm nếu rẻ, vì mức 3 trùng đợt 7.
+  - **Cách xem repo:** đọc chỉ-đọc trước (~20–40k: engine, chỗ móc vào lúc khách gọi món, giấy phép). Lớp chuyển đổi ~100–200k.
+  - **An toàn:** game và lớp chuyển đổi để **ngoài** repo này (repo public, không chép code người khác). Đọc script cài / chạy của game trước khi chạy, chạy ở thư mục cách ly.
+- 2026-10-29 · **[đợt 5]** Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ khi vẽ lại màn bán.
+- 2026-10-29 · **[đợt 5]** Màn sự cố máy quầy (và màn "đang mở ở tab khác") dùng khung đăng nhập chung: thẻ nằm trên cùng, phần dưới trống. Vẽ lại cùng nhóm màn ghép máy / PIN / chọn nhân viên.
+- 2026-10-29 · **[đợt 6]** Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần trước khi có thay đổi hợp đồng không tương thích ngược sau R1. → T11-04.
+- 2026-10-29 · **[đợt 6]** Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. `install-release.sh` chép `assets/` của bản trước sang bản mới (tên có băm, không đụng nhau). → T11-04.
+- 2026-10-29 · **[khi có vỏ native]** Vỏ Tauri/Capacitor cần đường cập nhật riêng (cập nhật gói web trong vỏ, hoặc cập nhật vỏ); bản web dùng `version.json` chưa áp dụng được. → T11-04 / phase vỏ máy quầy.
 
 - 2026-10-29 · **[đợt 6]** Mẫu loại quán đặt `pay_first_counter = false` cho quán ăn và quán bar (`packages/shop-templates/src/templates/shop-template-data.ts`), còn D-096 khóa công tắc này ở "bật". Khi làm D-096: `planTemplate` bỏ qua công tắc đang khóa (ghi ở "Giữ nguyên"), mẫu đặt `course_firing` thì trang Cài đặt hiện "Sắp có". Hiện máy quầy chưa đọc các công tắc này (B1, Q13).
 - 2026-10-29 · **[đợt 6]** Lưu trữ trạm: trạm đã từng in phiếu không xóa được (D-118) nên ở lại danh sách và ô chọn mãi. Thêm `archived_at` cho trạm, ẩn khỏi danh sách + ô chọn, phiếu cũ vẫn trỏ được; sửa trang sổ tay 15.
