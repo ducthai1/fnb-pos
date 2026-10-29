@@ -91,7 +91,18 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-menu);
   transform-origin: top left;
-  animation: bo-rise-in var(--t-enter) var(--ease-out) both;
+  /* In by a keyframe at mount; out by a transition, which turns back from where it is if the
+     list opens again while it leaves, so nothing blinks. */
+  animation: bo-rise-in var(--t-enter) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.bo-listbox__popup[data-leaving] {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--rise))) scale(0.98);
+  pointer-events: none;
 }
 
 /* Opened at the right end of a row (the bar, a pager): the card lines up on its right. */

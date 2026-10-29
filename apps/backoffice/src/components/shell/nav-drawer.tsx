@@ -15,10 +15,13 @@ export const NAV_DRAWER_ID = "bo-nav-drawer";
  */
 export function NavDrawer({
   menuButton,
+  leaving = false,
   onClose,
   children,
 }: {
   menuButton: RefObject<HTMLButtonElement | null>;
+  /** The drawer is playing its leaving movement: it takes nothing and its keys are off. */
+  leaving?: boolean;
   onClose(): void;
   children: ReactNode;
 }) {
@@ -30,23 +33,32 @@ export function NavDrawer({
     const onKey = (event: KeyboardEvent) => {
       // Esc that closed a picker inside the drawer (it says so by preventing the default)
       // leaves the drawer open.
-      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (event.key !== "Escape" || event.defaultPrevented || leaving) return;
       onClose();
       menuButton.current?.focus();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [menuButton, onClose]);
+  }, [menuButton, onClose, leaving]);
 
   return (
     <>
-      <nav id={NAV_DRAWER_ID} ref={drawer} className="bo-drawer" aria-label={T.navigation}>
+      <nav
+        id={NAV_DRAWER_ID}
+        ref={drawer}
+        className="bo-drawer"
+        aria-label={T.navigation}
+        data-leaving={leaving ? "" : undefined}
+        inert={leaving}
+      >
         {children}
       </nav>
       <div
         className="bo-shell__backdrop"
         aria-hidden="true"
+        data-leaving={leaving ? "" : undefined}
         onClick={() => {
+          if (leaving) return;
           onClose();
           menuButton.current?.focus();
         }}

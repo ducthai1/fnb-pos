@@ -20,6 +20,7 @@ import { type CartLine, cleanNote } from "../../features/order/counter-order";
 import { linePreviewTotal } from "../../features/order/line-preview-total";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 import { useTillKey } from "../shared/use-till-key";
 import { ComboSlotField } from "./combo-slot-field";
 import { PickerMoreSection } from "./picker-more-section";
@@ -50,6 +51,8 @@ export function ComboPickerScreen({
   onAdd,
   onCancel,
 }: ComboPickerScreenProps) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(onCancel, "--t-exit");
   const soldOut = (option: ComboSlotOption) =>
     isSoldOut(menu.availability.get(option.productId), COUNTER_CHANNEL, now);
   const [picks, setPicks] = useState<PickerPick[]>(() =>
@@ -58,7 +61,7 @@ export function ComboPickerScreen({
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
-  useTillKey(vi.sale.keys.back, onCancel);
+  useTillKey(vi.sale.keys.back, leave);
   const draft: CartLine = {
     lineId: "preview",
     productId: product.id,
@@ -91,12 +94,13 @@ export function ComboPickerScreen({
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={product.name}
       dock={
         <>
           <Alert message={error} />
           <div className="pos-actions pos-actions--split">
-            <button type="button" className="pos-button" onClick={onCancel}>
+            <button type="button" className="pos-button" onClick={leave}>
               {P.cancel}
               <kbd className="pos-kbd" aria-hidden>
                 {vi.sale.backKeyCap}

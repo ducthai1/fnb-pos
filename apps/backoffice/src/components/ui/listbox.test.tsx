@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi as mock } from "vitest";
+import { act } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi as mock } from "vitest";
 import { Listbox } from "./listbox";
 
 const BRANCHES = [
@@ -236,5 +237,54 @@ describe("the search box of a long list", () => {
     typeInto("ca phe");
     fireEvent.click(screen.getByRole("option", { name: "Cà phê" }));
     expect(onPicked).toHaveBeenCalledWith("p4");
+  });
+});
+
+describe("the list leaving", () => {
+  beforeEach(() => {
+    mock.useFakeTimers();
+    document.documentElement.style.setProperty("--t-exit", "140ms");
+  });
+  afterEach(() => {
+    mock.useRealTimers();
+    document.documentElement.style.removeProperty("--t-exit");
+  });
+
+  it("stays, marked and inert, for the movement and then goes with no animation event", () => {
+    const { box } = open();
+    fireEvent.click(box);
+    key(box, "Escape");
+    const popup = screen.getByRole("listbox", { hidden: true }).parentElement as HTMLElement;
+    expect(popup.hasAttribute("data-leaving")).toBe(true);
+    expect(popup.hasAttribute("inert")).toBe(true);
+    expect(box.getAttribute("aria-expanded")).toBe("false");
+    act(() => void mock.advanceTimersByTime(200));
+    expect(screen.queryByRole("listbox", { hidden: true })).toBeNull();
+  });
+
+  it("does not pick, nor double, when asked for again while it leaves", () => {
+    const { box, onPicked } = open();
+    fireEvent.click(box);
+    const before = screen.getByRole("listbox").parentElement;
+    key(box, "Escape");
+    act(() => void mock.advanceTimersByTime(50));
+    fireEvent.click(box);
+    expect(screen.getAllByRole("listbox")).toHaveLength(1);
+    expect(screen.getByRole("listbox").parentElement).toBe(before);
+    expect(before?.hasAttribute("data-leaving")).toBe(false);
+    act(() => void mock.advanceTimersByTime(500));
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(onPicked).not.toHaveBeenCalled();
+  });
+
+  it("gives the focus back to the button it was opened from after a pick in the search box", () => {
+    const { box } = longPicker();
+    fireEvent.click(box);
+    typeInto("ca phe");
+    fireEvent.keyDown(searchBox(), { key: "Enter" });
+    expect(document.activeElement).toBe(box);
+    act(() => void mock.advanceTimersByTime(200));
+    expect(document.activeElement).toBe(box);
+    expect(screen.queryByRole("listbox", { hidden: true })).toBeNull();
   });
 });

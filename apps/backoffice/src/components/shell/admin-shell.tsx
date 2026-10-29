@@ -5,6 +5,7 @@ import type { SignedInUser } from "../../lib/api/auth-api";
 import type { Branch } from "../../lib/api/branch-api";
 import { backofficeReporter } from "../../lib/client-errors/reporter-instance";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
+import { usePresence } from "../../lib/motion/use-presence";
 import { vi } from "../../messages/vi";
 import { useApi } from "../app/api-context";
 import { ErrorNotice } from "../ui/error-notice";
@@ -65,6 +66,9 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
   const [leaving, setLeaving] = useState(false);
   const wide = useWideScreen();
   const menuButton = useRef<HTMLButtonElement>(null);
+  const drawerOpen = navOpen && !wide;
+  // The drawer stays, inert, while it plays its leaving movement.
+  const drawer = usePresence(drawerOpen, "--t-drawer-out");
   const closeNav = useCallback(() => setNavOpen(false), []);
   // A drawer left open as the screen widens would show again once it narrows.
   useEffect(() => {
@@ -130,7 +134,6 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
     );
   }
   const { user } = session;
-  const drawerOpen = navOpen && !wide;
   return (
     <SessionContext.Provider value={session}>
       <div className="bo-shell" data-nav-open={drawerOpen}>
@@ -148,8 +151,8 @@ export function AdminShell({ renderNav, onSignedOut, children }: AdminShellProps
             </nav>
           )}
         </AdminTopbar>
-        {drawerOpen && (
-          <NavDrawer menuButton={menuButton} onClose={closeNav}>
+        {drawer.present && (
+          <NavDrawer menuButton={menuButton} leaving={drawer.leaving} onClose={closeNav}>
             {renderNav("drawer", closeNav)}
             <div className="bo-drawer__look">
               <ThemePicker placement="drawer" />

@@ -8,6 +8,7 @@ import {
 import { vi } from "../../messages/vi";
 import { QuantityStepper } from "../sale/quantity-stepper";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 import { ReasonPicker } from "./reason-picker";
 
 const T = vi.adjust.void;
@@ -26,6 +27,8 @@ export interface VoidLineScreenProps {
 
 /** "Hủy món": how many, and why. Units the kitchen has are cancelled last, with a ticket. */
 export function VoidLineScreen(props: VoidLineScreenProps) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
   const [units, setUnits] = useState(1);
   const [code, setCode] = useState<ReasonCode | null>(null);
   const [note, setNote] = useState("");
@@ -45,12 +48,13 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={T.title}
       dock={
         <>
           <Alert message={error} />
           <div className="pos-actions pos-actions--split">
-            <button type="button" className="pos-button" onClick={props.onBack}>
+            <button type="button" className="pos-button" onClick={leave}>
               {vi.adjust.back}
             </button>
             <button

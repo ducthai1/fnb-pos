@@ -2,6 +2,7 @@
 
 import { Check, ChevronDown, type LucideIcon, Search } from "lucide-react";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { usePresence } from "../../lib/motion/use-presence";
 import { vi } from "../../messages/vi";
 import { Icon } from "./icon";
 import { type ListboxChoice, SEARCH_FROM_CHOICES, filterChoices, matchTyped, stepFor } from "./listbox-keys";
@@ -61,6 +62,8 @@ export function Listbox({
     0,
   );
   const selected = choices[selectedAt];
+  // The card stays while it plays its leaving movement (inert, so it takes nothing meanwhile).
+  const { present, leaving } = usePresence(open, "--t-exit");
   const activeId = open && shown.length > 0 ? `${id}-option-${active}` : undefined;
 
   useEffect(() => {
@@ -186,8 +189,8 @@ export function Listbox({
           </>
         )}
       </button>
-      {open && (
-        <div className="bo-listbox__popup" tabIndex={-1}>
+      {present && (
+        <div className="bo-listbox__popup" tabIndex={-1} data-leaving={leaving ? "" : undefined} inert={leaving}>
           {withSearch && (
             <label className="bo-listbox__search">
               <Icon of={Search} size={16} />

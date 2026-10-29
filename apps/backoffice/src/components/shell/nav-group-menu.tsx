@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { type FocusEvent, type KeyboardEvent, useEffect, useRef } from "react";
 import type { AdminSection, SectionGroup } from "../../lib/navigation/admin-sections";
+import { usePresence } from "../../lib/motion/use-presence";
 import { vi } from "../../messages/vi";
 import { Icon } from "../ui/icon";
 import { SECTION_ICONS } from "./section-icons";
@@ -44,6 +45,8 @@ export function NavGroupMenu({ group, sections, current, open, onOpenChange }: N
   const panel = useRef<HTMLUListElement>(null);
   const focusOnOpen = useRef<Edge | null>(null);
   const panelId = `bo-topnav-${group}`;
+  // The list stays, inert, while it plays its leaving movement.
+  const { present, leaving } = usePresence(open, "--t-exit");
   const holdsCurrent = sections.some((section) => section.href === current);
 
   // A hidden list cannot take the focus, so an arrow that opens it moves in once it shows.
@@ -113,7 +116,9 @@ export function NavGroupMenu({ group, sections, current, open, onOpenChange }: N
         id={panelId}
         className="bo-topnav__panel"
         aria-label={T.groups[group]}
-        hidden={!open}
+        hidden={!present}
+        data-leaving={leaving ? "" : undefined}
+        inert={leaving}
         onKeyDown={onPanelKey}
       >
         {sections.map((section) => {

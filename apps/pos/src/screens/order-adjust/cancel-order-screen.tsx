@@ -7,6 +7,7 @@ import {
 } from "../../features/order-adjust/reason-codes";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { useLeaveThen } from "../shared/use-leave-motion";
 import { ReasonPicker } from "./reason-picker";
 
 const T = vi.adjust.cancel;
@@ -18,6 +19,8 @@ export function CancelOrderScreen(props: {
   onConfirm(reason: ChosenReason): Promise<string | null>;
   onBack(): void;
 }) {
+  // Back plays the step's leaving movement before the flow closes it.
+  const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
   const [code, setCode] = useState<ReasonCode | null>(null);
   const [note, setNote] = useState("");
   const reason = chosenReason(code, note);
@@ -26,12 +29,13 @@ export function CancelOrderScreen(props: {
   return (
     <ScreenFrame
       enter="sheet"
+      leaving={leaving}
       title={T.title(props.orderNo)}
       dock={
         <>
           <Alert message={error} />
           <div className="pos-actions pos-actions--split">
-            <button type="button" className="pos-button" onClick={props.onBack}>
+            <button type="button" className="pos-button" onClick={leave}>
               {vi.adjust.back}
             </button>
             <button

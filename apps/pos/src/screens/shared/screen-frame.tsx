@@ -20,6 +20,7 @@ export function ScreenFrame({
   titleHidden = false,
   dock,
   enter,
+  leaving = false,
   children,
 }: {
   title: string;
@@ -36,10 +37,18 @@ export function ScreenFrame({
   width?: ScreenWidth;
   /** A step over the order rises into place as it opens (see pos-motion.css). */
   enter?: "sheet";
+  /** The step is playing its leaving movement: it takes no touch and its edges fade out. */
+  leaving?: boolean;
   children: ReactNode;
 }) {
   return (
-    <main className="pos-screen" data-scroll-root data-enter={enter}>
+    <main
+      className="pos-screen"
+      data-scroll-root
+      data-enter={enter}
+      data-leaving={leaving ? "" : undefined}
+      inert={leaving}
+    >
       <div className={WIDTH_CLASS[width ?? (wide ? "wide" : "normal")]}>
         <h1 className={titleHidden ? "pos-title pos-title--hidden" : "pos-title"}>{title}</h1>
         {children}

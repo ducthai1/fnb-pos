@@ -73,7 +73,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 ### Mở ngăn thanh toán
 
-Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải, ghi số đơn và người bán, số **Cần thu** to ở trên, và hai thẻ: **Tiền mặt** và **Chuyển khoản QR**. Chi nhánh đã bật ví điện tử thì có thêm một thẻ cho mỗi ví (hiện có **ZaloPay**), đứng sau thẻ QR; không bật ví nào thì vẫn đúng hai thẻ. Mỗi lần chỉ chọn **một** cách.
+Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải (đóng thì trượt về, nhanh hơn lúc mở; máy bật giảm chuyển động thì tức thì), ghi số đơn và người bán, số **Cần thu** to ở trên, và hai thẻ: **Tiền mặt** và **Chuyển khoản QR**. Chi nhánh đã bật ví điện tử thì có thêm một thẻ cho mỗi ví (hiện có **ZaloPay**), đứng sau thẻ QR; không bật ví nào thì vẫn đúng hai thẻ. Mỗi lần chỉ chọn **một** cách.
 
 ![Ngăn thanh toán, chọn tiền mặt](../images/may-quay/payment.webp)
 
