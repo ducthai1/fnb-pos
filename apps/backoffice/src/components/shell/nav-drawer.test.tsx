@@ -48,14 +48,14 @@ describe("the menu drawer of a phone or a tablet", () => {
       N.staff,
       N.roles,
     ]);
-    expect(names(within(drawer.getByRole("list", { name: G.shop })).getAllByRole("link"))).toEqual([N.floor, N.settings]);
-    expect(drawer.getAllByRole("link")).toHaveLength(15);
+    expect(names(within(drawer.getByRole("list", { name: G.shop })).getAllByRole("link"))).toEqual([N.floor, N.settings, N.shopTemplates]);
+    expect(drawer.getAllByRole("link")).toHaveLength(16);
     expect(document.activeElement).toBe(drawer.getByRole("link", { name: N.home }));
   });
 
   it("offers only the pages the member's keys open", async () => {
     const drawer = openDrawer(await renderNarrow(360, "/", { me: async () => ok({ ...OWNER, permissionKeys: ["manage_settings"] }) }));
-    expect(names(drawer.getAllByRole("link"))).toEqual([N.home, N.products, N.categories, N.availability, N.priceLists, N.stations, N.floor, N.settings]);
+    expect(names(drawer.getAllByRole("link"))).toEqual([N.home, N.products, N.categories, N.availability, N.priceLists, N.stations, N.floor, N.settings, N.shopTemplates]);
     expect(drawer.queryByText(G.sales)).toBeNull();
   });
 

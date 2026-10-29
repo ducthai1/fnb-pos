@@ -307,7 +307,7 @@ Dữ liệu cho thấy: khác biệt nằm ở **tổ hợp công tắc**, khôn
 
 Ràng buộc giữa công tắc (ví dụ): course cần sơ đồ bàn + `dine_in`; trả trước loại trừ "trả sau theo bàn" trên cùng kênh; `auto_86_when_stock_zero` cần `track_stock`; QR `order_pay_later` cần sơ đồ bàn.
 
-**R1 làm khác:** chưa có mẫu theo loại quán (T03-10) — mọi công tắc mặc định tắt trừ `pay_first_counter`; `pay_first_counter` và `tables` không ràng buộc nhau. Ràng buộc thật nằm ở `packages/feature-flags/src/feature-flag-catalog.ts`.
+**R1 làm khác:** có mẫu theo loại quán (`packages/shop-templates`, T03-10) nhưng **chỉ những hàng R1 có chỗ chứa**: danh mục thực đơn, trạm, và các công tắc `tables`, `pay_first_counter`, `course_firing`, `kitchen_routing`, `cup_labels`; áp mẫu chỉ **thêm cái còn thiếu**, không ghi đè gì chủ quán đã đặt (D-119). Các hàng bỏ vì chưa có chỗ chứa: nhóm tùy chọn mẫu, bán thành phẩm theo mẻ, bán theo cân/giá mở (đặt ở từng món), quy đổi chai → ml, lô + hạn dùng, happy hour (công tắc cấp thương hiệu chưa có tác dụng; dùng bảng giá), giờ cắt ngày kinh doanh, giao hàng, hóa đơn. Mọi công tắc mặc định tắt trừ `pay_first_counter`; `pay_first_counter` và `tables` không ràng buộc nhau. Ràng buộc thật nằm ở `packages/feature-flags/src/feature-flag-catalog.ts`.
 
 ## 22. Ngoài phạm vi v1
 

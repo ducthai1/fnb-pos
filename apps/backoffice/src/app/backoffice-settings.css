@@ -159,3 +159,71 @@
 .bo-settings-group[id] {
   scroll-margin-top: 72px;
 }
+
+/* The shop template page: the kinds of shop as cards to pick from, and what applying one adds. */
+.bo-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--sp-3);
+}
+
+.bo-template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-state) var(--ease-out), background-color var(--t-state) var(--ease-out);
+}
+
+.bo-template-card:hover {
+  border-color: var(--c-brand);
+}
+
+.bo-template-card:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+.bo-template-card[aria-checked="true"] {
+  border-color: var(--c-brand);
+  background: var(--c-pick-soft);
+}
+
+.bo-template-card__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
+
+.bo-template-card[aria-checked="true"] .bo-template-card__icon {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.bo-template-card__name {
+  font-weight: var(--fw-bold);
+}
+
+.bo-template-card__counts {
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.bo-template-list {
+  margin: var(--sp-1) 0 0;
+  padding-left: var(--sp-5);
+}

@@ -45,7 +45,7 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 
 ## Các bước
 
-1. Mở **Cửa hàng → Cài đặt**.
+1. Mở **Cửa hàng → Cài đặt**. Muốn đặt sẵn công tắc theo kiểu quán thì dùng [Mẫu loại quán](16-mau-loai-quan.md).
 2. Chọn **Tầng cài đặt**:
    - **Thương hiệu …** — áp cho mọi chi nhánh của thương hiệu;
    - **Chi nhánh …** (chi nhánh đang xem) — áp cho mọi máy của chi nhánh;

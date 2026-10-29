@@ -32,6 +32,7 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { href: "/reports/print-failures", group: "sales", label: vi.shell.nav.printFailures, requires: "view_reports" },
   { href: "/floor", group: "shop", label: vi.shell.nav.floor, requires: "manage_settings" },
   { href: "/settings", group: "shop", label: vi.shell.nav.settings, requires: "manage_settings" },
+  { href: "/settings/templates", group: "shop", label: vi.shell.nav.shopTemplates, requires: "manage_settings" },
 ];
 
 /** The section a path belongs to, with its group, or null for the home page and unknown paths. */

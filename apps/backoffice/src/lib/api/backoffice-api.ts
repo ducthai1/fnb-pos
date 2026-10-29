@@ -11,6 +11,7 @@ import { type ProductImageApi, httpProductImageApi } from "./product-image-api";
 import { type ReportsApi, httpReportsApi } from "./reports-api";
 import { type RolesApi, httpRolesApi } from "./roles-api";
 import { type SettingsApi, httpSettingsApi } from "./settings-api";
+import { type ShopTemplateApi, httpShopTemplateApi } from "./shop-template-api";
 import { type StaffApi, httpStaffApi } from "./staff-api";
 
 /** Every call the backoffice makes; screens get it from context, so tests hand in a fake. */
@@ -23,6 +24,7 @@ export type BackofficeApi = AuthApi &
   PriceListApi &
   ProductImageApi &
   SettingsApi &
+  ShopTemplateApi &
   ReportsApi &
   DayCloseApi &
   PaymentsApi &
@@ -46,6 +48,7 @@ export function httpBackofficeApi(
     ...httpPriceListApi(root, fetchImpl),
     ...httpProductImageApi(root, fetchImpl),
     ...httpSettingsApi(root, fetchImpl),
+    ...httpShopTemplateApi(root, fetchImpl),
     ...httpReportsApi(root, fetchImpl),
     ...httpDayCloseApi(root, fetchImpl),
     ...httpPaymentsApi(root, fetchImpl),

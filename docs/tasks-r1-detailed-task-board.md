@@ -271,7 +271,7 @@
 
 ### T03-10 Mẫu loại quán
 - **Test:** `packages/shop-templates/src/apply-template-is-idempotent.test.ts` — chạy 2 lần không nhân đôi.
-- **Trạng thái:** todo.
+- **Trạng thái:** done (2026-10-29) — `packages/shop-templates` (5 mẫu: cà phê, trà sữa, quán ăn, quán bar, tiệm bánh; danh mục + trạm + công tắc; `planTemplate` / `applyTemplate` chỉ thêm cái còn thiếu, kiểm bằng property test), `GET /shop-templates`, `GET /shop-templates/:id/plan`, `POST /shop-templates/:id/apply` (cần Sửa menu + Cài đặt cửa hàng), trang Cửa hàng → Mẫu loại quán có xem trước trước khi áp (D-119; `e2e/backoffice/apply-shop-template.spec.ts`). Không có chỗ chứa trong R1 nên bỏ: nhóm tùy chọn mẫu, bán thành phẩm theo mẻ, quy đổi chai → ml, lô + hạn dùng, giờ cắt ngày kinh doanh, công tắc giao hàng.
 
 ### T03-11 Nhập/xuất Excel
 - **Test:** `apps/api/test/integration/catalog/menu-excel-roundtrip.test.ts`.

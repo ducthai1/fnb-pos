@@ -46,6 +46,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 13. [Phiếu in lỗi](quan-ly/13-phieu-in-loi.md)
 14. [Bảng giá — giờ vàng, giá theo chi nhánh, giá theo ngày](quan-ly/14-bang-gia.md)
 15. [Trạm pha chế/bếp](quan-ly/15-tram-pha-che.md)
+16. [Mẫu loại quán](quan-ly/16-mau-loai-quan.md)
 
 ### Vận hành (người dựng và giữ server)
 

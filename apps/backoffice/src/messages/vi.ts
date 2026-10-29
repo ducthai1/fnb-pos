@@ -14,6 +14,7 @@ import { VI_DEVICES, VI_ROLES, VI_STAFF } from "./vi-people-and-devices";
 import { VI_DAILY_SALES, VI_PRINT_FAILURES } from "./vi-reports";
 import { VI_SETTINGS } from "./vi-settings";
 import { VI_STATIONS } from "./vi-stations";
+import { VI_SHOP_TEMPLATES } from "./vi-shop-templates";
 import { VI_STAFF_TOOLS } from "./vi-staff-tools";
 import { VI_COMMON, VI_DAY_PICKER, VI_LOGIN, VI_SHELL, VI_TABLE } from "./vi-shell";
 
@@ -31,6 +32,7 @@ export const vi = {
   menu: VI_MENU,
   priceLists: VI_PRICE_LISTS,
   stations: VI_STATIONS,
+  shopTemplates: VI_SHOP_TEMPLATES,
   menuImport: VI_MENU_IMPORT,
   menuPhoto: VI_MENU_PHOTO,
   settings: VI_SETTINGS,

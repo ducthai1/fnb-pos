@@ -61,6 +61,7 @@ export const VI_SHELL = {
     printFailures: "Phiếu in lỗi",
     floor: "Sơ đồ bàn",
     settings: "Cài đặt",
+    shopTemplates: "Mẫu loại quán",
   },
   branchLabel: "Chi nhánh đang xem",
   branchesFailed: "Không tải được danh sách chi nhánh.",

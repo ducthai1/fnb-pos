@@ -6,6 +6,8 @@ describe("which menu entry is the current page", () => {
     expect(currentSection("/menu/categories")).toBe("/menu/categories");
     expect(currentSection("/menu/products/abc")).toBe("/menu");
     expect(currentSection("/menu/price-lists/abc")).toBe("/menu/price-lists");
+    expect(currentSection("/settings/templates")).toBe("/settings/templates");
+    expect(currentSection("/settings")).toBe("/settings");
     expect(currentSection("/devices")).toBe("/devices");
     expect(currentSection("/reports/print-failures")).toBe("/reports/print-failures");
   });

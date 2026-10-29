@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   BadgePercent,
   ChefHat,
+  LayoutTemplate,
   Armchair,
   CalendarCheck,
   ChartColumn,
@@ -34,4 +35,5 @@ export const SECTION_ICONS: Readonly<Record<string, LucideIcon>> = {
   "/reports/print-failures": PrinterX,
   "/floor": Armchair,
   "/settings": Settings,
+  "/settings/templates": LayoutTemplate,
 };

@@ -19,7 +19,7 @@ packages/
   sync-client/            outbox, pull theo cursor, xử lý từ chối
   printing/               mẫu in → ESC/POS / TSPL; ảnh golden
   feature-flags/          danh mục công tắc + ràng buộc
-  shop-templates/         dữ liệu mẫu loại quán (JSON)
+  shop-templates/         mẫu loại quán (dữ liệu TS) + planTemplate / applyTemplate thuần: chỉ thêm cái còn thiếu
   ui/                     component dùng chung (POS + backoffice)
   test-fixtures/          dữ liệu test dùng chung, gồm bộ dữ liệu XẤU
 e2e/
@@ -47,6 +47,7 @@ Trạng thái thực tế (2026-10-20, sau đợt 1):
 - Sau giá nhập tay + món theo cân (28/10): domain `pricing/weighed-quantity.ts` (`MeasureUnit` kg / 100g, `weighedQuantity`, `gramsOfWeighedQuantity`, `weighedLineAmount`, `formatGrams`), `MAX_ENTERED_PRICE`, khóa quyền `open_price` gắn chủ thể (figure `entered_price`); migration 0036 (`product.measure_unit`); POS `app/{line-entry-flow.tsx,line-entry-steps.ts}`, `screens/sale/{line-entry-drawer,cart-line-entry}.tsx`, `features/order/{line-entry-input,weighing-scale}.ts` (chỗ cắm cân điện tử), `features/printing/weighed-print.ts`, `styles/pos-line-entry.css`; dòng giỏ mang `enteredPrice` / `grams` / `priceApprovalId`; `order.save_draft` mang `priceApprovalId` từng dòng.
 - Làm lại giao diện backoffice (2026-10-21): `apps/backoffice/src/components/ui/{icon,stat-card,empty-state,data-table,table-toolbar}.tsx`, `components/shell/{admin-topbar,page-header,section-icons}`, `components/home/` (trang chủ: thẻ số hôm nay, biểu đồ theo giờ, món bán chạy, việc cần làm), `components/floor/area-plan.tsx` (kéo thả bàn), `lib/table/table-view.ts`, `lib/reports/day-figures.ts`, `lib/floor/plan-geometry.ts`, `lib/format/name-mark.ts`.
 - Nhập/xuất menu Excel (2026-10-21): `apps/backoffice/src/lib/sheet/` (đọc/ghi .xlsx một sheet bằng `fflate` + `DOMParser`, có giới hạn cỡ/dòng/cột), `lib/catalog/menu-sheet/` (cột của file hàng hóa, đọc dòng, xuất menu), `components/menu/menu-import/` (trang `/menu/import`: kiểm từng dòng bằng `checkProductDraft` của trình sửa món, khớp menu theo tên, ghi từng món qua `PUT /catalog/products/:id`), chữ ở `messages/vi-menu-sheet.ts`.
+- Sau đợt 3 backoffice (29/10): `packages/shop-templates/src/{shop-templates,plan-template,apply-template,same-name-key}.ts`, `packages/contracts/src/shop-templates/`; `apps/api/src/{shop-templates,routes/shop-templates}/` (xem trước + áp mẫu, `GET/DELETE /catalog/price-lists`); backoffice `components/menu/price-lists/` (danh sách + trình sửa quy tắc, kiểm bằng `lib/catalog/price-list/check-price-list-draft.ts` → `validatePriceList`), `components/menu/stations-screen.tsx`, `components/shop-templates/`, `lib/api/{price-list,shop-template}-api.ts`, trang `/menu/price-lists[/id]`, `/menu/stations`, `/settings/templates`.
 - Mã lỗi API: tiền tố `API_`, khai theo miền (`auth-error-codes.ts`…); body lỗi chỉ `{code}`; 4xx validation ⇒ `API_INVALID_REQUEST`, còn lại ⇒ `API_INTERNAL` không kèm message.
 - Ghép giá một món: `resolveUnitPrice(...).unitPrice` + Σ `validateModifierSelection(...).priceDelta`; combo: + `resolveCombo(...).totalUpcharge`; món cân: `multiplyVndByQuantity(unitPrice, weight, mode)`.
 

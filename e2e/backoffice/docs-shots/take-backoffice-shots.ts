@@ -123,6 +123,15 @@ const SHOTS: readonly Shot[] = [
   { name: "thiet-bi-ma-ghep", path: () => "/devices", act: click(text.devices.createCode) },
   { name: "so-do-ban", path: () => "/floor" },
   { name: "cai-dat", path: () => "/settings" },
+  {
+    name: "mau-loai-quan",
+    path: () => "/settings/templates",
+    act: async (page) => {
+      await page.getByRole("radio", { name: /Quán ăn/ }).click();
+      await page.getByRole("heading", { name: /sẽ làm gì/ }).waitFor();
+      await page.waitForTimeout(400);
+    },
+  },
   { name: "cai-dat-thu-tien", path: () => "/settings", act: click(text.settings.groups.money) },
   { name: "cai-dat-hoa-don", path: () => "/settings", act: click(text.settings.groups.invoices) },
   { name: "doanh-thu-ngay", path: () => "/reports/daily-sales" },

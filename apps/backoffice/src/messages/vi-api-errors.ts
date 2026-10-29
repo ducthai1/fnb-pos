@@ -47,4 +47,7 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_CATALOG_PARENT_CHANGE_NOT_ALLOWED: "Không chuyển được mục này sang thương hiệu khác.",
   API_CATALOG_IN_USE: "Mục này đang được món hoặc bảng giá dùng. Gỡ khỏi chúng trước khi xóa.",
   API_CATALOG_UNAVAILABLE_UNTIL_NOT_IN_FUTURE: "Giờ có lại món phải ở sau bây giờ.",
+  API_SHOP_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu này. Tải lại trang.",
+  API_SHOP_TEMPLATE_FLAG_RULE_BROKEN:
+    "Không áp được mẫu: các công tắc của mẫu vướng luật giữa các công tắc ở một nơi khác. Chưa có gì bị thay đổi.",
 };
