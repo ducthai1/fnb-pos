@@ -6,9 +6,9 @@ import type { Category, ProductSummary } from "../../../lib/api/catalog-api";
 import type { ProductBody } from "../../../lib/catalog/product-document";
 import { vi } from "../../../messages/vi";
 import { useApi } from "../../app/api-context";
+import { Listbox } from "../../ui/listbox";
 import { ErrorNotice, SuccessNotice } from "../../ui/error-notice";
 import { Icon } from "../../ui/icon";
-import { SelectField } from "../../ui/select-field";
 import type { ReadSheet } from "./import-file-card";
 import { ImportPreviewTable } from "./import-preview-table";
 import { type CategoryTarget, planMenuImport, rowsToWrite } from "./plan-menu-import";
@@ -74,14 +74,16 @@ export function ImportPreview({
         </div>
       )}
       <div className="bo-card bo-import-options">
-        <SelectField
+        <Listbox
+          className="bo-listbox--field"
           label={T.categoryLabel}
           value={target}
           choices={categoryChoices}
           onChange={setTarget}
           disabled={running}
         />
-        <SelectField
+        <Listbox
+          className="bo-listbox--field"
           label={T.kindLabel}
           value={kind}
           choices={kindChoices}

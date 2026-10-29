@@ -4,6 +4,7 @@ import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome"
 import type { Browser, Page } from "playwright-core";
 import { afterAll, beforeAll, expect, inject, it } from "vitest";
 import type { PageProblem } from "../support/page-problems";
+import { choose } from "./support/price-list-in-browser";
 import {
   expectNoOverflow,
   openSection,
@@ -61,7 +62,7 @@ it("explains a refused switch under it, and saves the receiving account all the 
   expect(await qr.getByRole("alert").count()).toBe(0);
 
   const account = page.locator('section[data-setting-key="payment_account"]');
-  await account.getByLabel(S.account.bank).selectOption("970436");
+  await choose(account, S.account.bank, /\(970436\)/);
   await account.getByLabel(S.account.accountNumber).fill("0071 0012 3456 7");
   await account.getByLabel(S.account.accountName).fill("PHO SANG Q1");
   const save = account.getByRole("button", { name: text.common.save });

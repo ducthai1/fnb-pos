@@ -4,7 +4,7 @@ import { MEASURE_UNITS, type MeasureUnit } from "@fnb/domain";
 import type { Category, Station } from "../../../lib/api/catalog-api";
 import { vi } from "../../../messages/vi";
 import { Listbox } from "../../ui/listbox";
-import { CheckField, SelectField } from "../../ui/select-field";
+import { CheckField } from "../../ui/check-field";
 import { FieldError, TextField } from "../../ui/text-field";
 import { type DraftErrors, productPath } from "./draft-error-paths";
 import { EDITOR_SECTIONS } from "./editor-sections";
@@ -59,28 +59,34 @@ export function GeneralSection({
             onChange={(kind) => edit(setKind(kind as ProductDraft["kind"]))}
           />
         </div>
-        <SelectField
-          label={T.category}
-          value={draft.categoryId ?? ""}
-          choices={[
-            { value: "", label: T.noCategory },
-            ...categories.map((c) => ({ value: c.id, label: c.name })),
-          ]}
-          onChange={(categoryId) => set({ categoryId: categoryId === "" ? null : categoryId })}
-          error={errors[productPath("categoryId")]}
-        />
+        <div className="bo-listbox-field">
+          <Listbox
+            className="bo-listbox--field"
+            label={T.category}
+            value={draft.categoryId ?? ""}
+            choices={[
+              { value: "", label: T.noCategory },
+              ...categories.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            onChange={(categoryId) => set({ categoryId: categoryId === "" ? null : categoryId })}
+          />
+          <FieldError message={errors[productPath("categoryId")]} />
+        </div>
       </div>
       {saved && draft.kind === "combo" && <p className="bo-muted">{T.comboKindLocked}</p>}
-      <SelectField
-        label={T.station}
-        value={draft.stationId ?? ""}
-        choices={[
-          { value: "", label: T.noStation },
-          ...stations.map((s) => ({ value: s.id, label: s.name })),
-        ]}
-        onChange={(stationId) => set({ stationId: stationId === "" ? null : stationId })}
-        error={errors[productPath("stationId")]}
-      />
+      <div className="bo-listbox-field">
+        <Listbox
+          className="bo-listbox--field"
+          label={T.station}
+          value={draft.stationId ?? ""}
+          choices={[
+            { value: "", label: T.noStation },
+            ...stations.map((s) => ({ value: s.id, label: s.name })),
+          ]}
+          onChange={(stationId) => set({ stationId: stationId === "" ? null : stationId })}
+        />
+        <FieldError message={errors[productPath("stationId")]} />
+      </div>
       <div className="bo-row">
         <CheckField
           label={T.printCupLabel}

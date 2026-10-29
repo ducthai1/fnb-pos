@@ -7,6 +7,7 @@ import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { StaffScreen } from "./staff-screen";
+import { openPicker } from "../../test-support/pick-from-listbox";
 
 const K = vi.staffTools;
 const role = (n: number, name: string, archivedAt: string | null = null): Role => ({
@@ -62,10 +63,9 @@ const rowOf = (id: string) => document.querySelector<HTMLElement>(`tr[data-staff
 describe("the staff tools", () => {
   it("renames someone and moves them to another role, offering no archived role", async () => {
     const { api, panel } = await openTool(K.editLabel("Lan"));
-    const roles = within(panel).getByLabelText(vi.staff.roleLabel);
-    expect([...roles.querySelectorAll("option")].map((o) => o.textContent)).toEqual(["Thu ngân", "Trưởng ca"]);
+    expect(openPicker(panel, vi.staff.roleLabel)).toEqual(["Thu ngân", "Trưởng ca"]);
     fireEvent.change(within(panel).getByLabelText(vi.staff.nameLabel), { target: { value: " Lan Ca Tối " } });
-    fireEvent.change(roles, { target: { value: SHIFT_LEAD.id } });
+    fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Trưởng ca" }));
     fireEvent.click(within(panel).getByRole("button", { name: K.save }));
     await screen.findByText(K.saved("Lan Ca Tối"));
     expect(api.updateStaff).toHaveBeenCalledWith(LAN.id, { displayName: "Lan Ca Tối", roleId: SHIFT_LEAD.id });

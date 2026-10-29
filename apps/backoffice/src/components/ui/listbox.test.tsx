@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi as mock } from "vitest";
 import { Listbox } from "./listbox";
@@ -95,5 +95,146 @@ describe("the app's own picker", () => {
     fireEvent.click(box);
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("listbox")).toBeNull();
+  });
+});
+
+const MENU = ["Trà sữa", "Trà đào", "Đá xay", "Sinh tố", "Cà phê", "Bạc xỉu", "Nước ép", "Bánh mì", "Đưa đón", "Sữa chua"].map(
+  (label, at) => ({ value: `p${at}`, label }),
+);
+
+function longPicker(props: { searchable?: boolean; choices?: typeof MENU } = {}) {
+  const onPicked = mock.fn();
+  function Long() {
+    const [value, setValue] = useState("p3");
+    return (
+      <Listbox
+        label="Món"
+        value={value}
+        choices={props.choices ?? MENU}
+        searchable={props.searchable}
+        onChange={(next) => {
+          setValue(next);
+          onPicked(next);
+        }}
+      />
+    );
+  }
+  render(<Long />);
+  const box = screen.getByRole("combobox", { name: "Món" });
+  box.focus();
+  return { box, onPicked };
+}
+
+const searchBox = () => screen.getByRole("searchbox") as HTMLInputElement;
+const typeInto = (text: string) => fireEvent.change(searchBox(), { target: { value: text } });
+const names = () => within(screen.getByRole("listbox")).queryAllByRole("option").map((o) => o.textContent);
+
+describe("the search box of a long list", () => {
+  it("shows for a long list, not for a short one, and the caller can force either", () => {
+    const first = longPicker();
+    fireEvent.click(first.box);
+    expect(screen.getByRole("searchbox")).toBeTruthy();
+    cleanup();
+    const short = longPicker({ choices: MENU.slice(0, 3) });
+    fireEvent.click(short.box);
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    cleanup();
+    const forced = longPicker({ choices: MENU.slice(0, 3), searchable: true });
+    fireEvent.click(forced.box);
+    expect(screen.getByRole("searchbox")).toBeTruthy();
+    cleanup();
+    const off = longPicker({ searchable: false });
+    fireEvent.click(off.box);
+    expect(screen.queryByRole("searchbox")).toBeNull();
+  });
+
+  it("takes the focus when the list opens", () => {
+    const { box } = longPicker();
+    fireEvent.click(box);
+    expect(document.activeElement).toBe(searchBox());
+  });
+
+  it("finds Vietnamese names typed without tone marks, đ as d, in any case", () => {
+    const { box } = longPicker();
+    fireEvent.click(box);
+    typeInto("tra sua");
+    expect(names()).toEqual(["Trà sữa"]);
+    typeInto("DA");
+    expect(names()).toEqual(["Trà đào", "Đá xay"]);
+    typeInto("dua");
+    expect(names()).toEqual(["Đưa đón"]);
+    typeInto("đào");
+    expect(names()).toEqual(["Trà đào"]);
+    typeInto("SUA");
+    expect(names()).toEqual(["Trà sữa", "Sữa chua"]);
+  });
+
+  it("says nothing was found when nothing matches", () => {
+    const { box } = longPicker();
+    fireEvent.click(box);
+    typeInto("zzz");
+    expect(names()).toEqual([]);
+    expect(screen.getByText("Không tìm thấy")).toBeTruthy();
+    typeInto("");
+    expect(screen.queryByText("Không tìm thấy")).toBeNull();
+    expect(names()).toHaveLength(MENU.length);
+  });
+
+  it("walks what is left with the arrows and picks with Enter", () => {
+    const { box, onPicked } = longPicker();
+    fireEvent.click(box);
+    typeInto("sua");
+    const input = searchBox();
+    expect(input.getAttribute("aria-activedescendant")).toBe(screen.getAllByRole("option")[0]?.id);
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.textContent).toBe("Sữa chua");
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(document.getElementById(input.getAttribute("aria-activedescendant") ?? "")?.textContent).toBe("Sữa chua");
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onPicked).toHaveBeenCalledWith("p0");
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(document.activeElement).toBe(box);
+    expect(box.textContent).toBe("Trà sữa");
+  });
+
+  it("keeps the list open on Enter while no choice is left, and closes on Esc with the focus back on the button", () => {
+    const { box, onPicked } = longPicker();
+    fireEvent.click(box);
+    typeInto("zzz");
+    fireEvent.keyDown(searchBox(), { key: "Enter" });
+    expect(onPicked).not.toHaveBeenCalled();
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    fireEvent.keyDown(searchBox(), { key: "Escape" });
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(onPicked).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(box);
+    fireEvent.click(box);
+    expect(searchBox().value).toBe("");
+  });
+
+  it("leaves a syllable still being composed alone", () => {
+    const { box, onPicked } = longPicker();
+    fireEvent.click(box);
+    typeInto("tra");
+    fireEvent.keyDown(searchBox(), { key: "Enter", isComposing: true });
+    expect(onPicked).not.toHaveBeenCalled();
+    expect(screen.getByRole("listbox")).toBeTruthy();
+  });
+
+  it("opens already searching for the first letter typed on the closed button", () => {
+    const { box } = longPicker();
+    key(box, "b");
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(names()).toEqual(["Bạc xỉu", "Bánh mì"]);
+  });
+
+  it("picks with a click on a found choice", () => {
+    const { box, onPicked } = longPicker();
+    fireEvent.click(box);
+    typeInto("ca phe");
+    fireEvent.click(screen.getByRole("option", { name: "Cà phê" }));
+    expect(onPicked).toHaveBeenCalledWith("p4");
   });
 });

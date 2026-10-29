@@ -43,7 +43,7 @@ Một **bảng giá** là một tên gọi cùng nhiều **quy tắc**. Mỗi qu
    ![Sửa bảng giá](../images/quan-ly/bang-gia-sua.webp)
 
 3. Trong mỗi quy tắc:
-   - **Áp dụng cho**: **Cả thực đơn**, **Một danh mục**, **Một món** hoặc **Một size của món** — rồi chọn danh mục / món / size cụ thể.
+   - **Áp dụng cho**: **Cả thực đơn**, **Một danh mục**, **Một món** hoặc **Một size của món** — rồi chọn danh mục / món / size cụ thể. Danh sách dài có **ô tìm** ở đầu: gõ "tra sua" ra "Trà sữa" (không cần dấu, không phân biệt hoa thường), mũi tên đi qua kết quả, **Enter** chọn, **Esc** đóng; không có kết quả thì hiện "Không tìm thấy".
    - **Cách tính giá**: **Giảm theo phần trăm** (gõ **Giảm (%)**, ví dụ `20` hoặc `12,5`) hoặc **Giá cố định** (gõ **Giá bán (đồng)**; chỉ dùng cho một món hoặc một size).
    - **Chi nhánh**: **Mọi chi nhánh** hoặc một chi nhánh. **Kênh bán**: để trống là mọi kênh.
    - **Ngày trong tuần**: bấm các nút T2…CN; không chọn ngày nào là mọi ngày.
@@ -93,4 +93,3 @@ Trang quản lý cần mạng để lưu. Máy quầy đang mất mạng vẫn b
 - Chưa có **tắt tạm** một bảng giá (chỉ xóa); chưa xem trước "giá món X lúc 15:00 là bao nhiêu".
 - Chưa chọn được **nhóm khách** hoặc **số lượng tối thiểu** cho quy tắc.
 - Giá theo kênh (Grab…) nhập được nhưng chưa có kênh nào bán ở máy quầy.
-- Ô chọn món là danh sách cuộn, chưa có ô tìm trong danh sách khi thương hiệu có rất nhiều món.

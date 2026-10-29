@@ -5,6 +5,7 @@ import { refused } from "../../test-support/fake-backoffice-api";
 import { BRANCH_SCOPE, fakeSettings } from "../../test-support/fake-settings";
 import { renderSignedIn } from "../../test-support/render-signed-in";
 import { SettingsScreen } from "./settings-screen";
+import { pickFrom } from "../../test-support/pick-from-listbox";
 
 const T = vi.settings;
 
@@ -23,7 +24,7 @@ describe("the receiving account", () => {
   it("saves the bank chosen from the list, the number without its spaces, and the holder", async () => {
     const settings = await openSettings();
     const account = card("payment_account");
-    fireEvent.change(within(account).getByLabelText(T.account.bank), { target: { value: "970436" } });
+    pickFrom(account, T.account.bank, /\(970436\)/);
     type(account, T.account.accountNumber, "0071 0012 3456 7");
     type(account, T.account.accountName, "NGUYEN VAN AN");
     save(account);
@@ -38,7 +39,7 @@ describe("the receiving account", () => {
   it("takes a bank missing from the list by its BIN", async () => {
     const settings = await openSettings();
     const account = card("payment_account");
-    fireEvent.change(within(account).getByLabelText(T.account.bank), { target: { value: "other" } });
+    pickFrom(account, T.account.bank, T.account.otherBank);
     type(account, T.account.bin, "970999");
     type(account, T.account.accountNumber, "123");
     type(account, T.account.accountName, "Quán Sáng");
@@ -61,7 +62,7 @@ describe("the receiving account", () => {
   it("shows the server's refusal in the account card only", async () => {
     await openSettings(fakeSettings(), { putSetting: async () => refused(400, "API_INVALID_REQUEST") });
     const account = card("payment_account");
-    fireEvent.change(within(account).getByLabelText(T.account.bank), { target: { value: "970418" } });
+    pickFrom(account, T.account.bank, /\(970418\)/);
     type(account, T.account.accountNumber, "123456");
     type(account, T.account.accountName, "An");
     save(account);

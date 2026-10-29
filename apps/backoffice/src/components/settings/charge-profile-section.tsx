@@ -11,7 +11,7 @@ import {
   chargeProfileDraftOf,
 } from "../../lib/settings/charge-profile-draft";
 import { vi } from "../../messages/vi";
-import { CheckField } from "../ui/select-field";
+import { CheckField } from "../ui/check-field";
 import { FieldError, TextField } from "../ui/text-field";
 import { SettingCard } from "./setting-card";
 import type { SettingWrite } from "./use-setting-write";

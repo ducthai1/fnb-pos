@@ -67,7 +67,7 @@ Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu
 
 1. Mở **Thực đơn → Món**. Bảng hiện ảnh, tên, danh mục, giá, trạng thái (Đang bán / Đã ngừng bán / Giá nhập tay). Món bán theo cân ghi giá kèm đơn vị, ví dụ "32.000 ₫ / 100 g".
 2. Ô **Tìm món** lọc theo tên; tick **Hiện cả món đã ngừng bán** để thấy cả món đã ngừng. Danh sách hiện 25 món mỗi trang (đổi được 50 / 100 ở cuối danh sách, kèm **Trang trước** / **Trang sau**); hàng tiêu đề Món · Danh mục · Giá · Trạng thái đứng yên trên cùng khi cuộn.
-3. **Chuyển nhiều món sang một danh mục**: tick ô đầu các dòng (hoặc **Chọn mọi món đang hiện**), chọn danh mục ở **Chuyển sang danh mục**, bấm **Chuyển**. Trang báo "Đã chuyển N món sang “…”"; món nào không chuyển được thì báo riêng lý do.
+3. **Chuyển nhiều món sang một danh mục**: tick ô đầu các dòng (hoặc **Chọn mọi món đang hiện**), chọn danh mục ở **Chuyển sang danh mục** (ô chọn có ô tìm khi nhiều danh mục), bấm **Chuyển**. Trang báo "Đã chuyển N món sang “…”"; món nào không chuyển được thì báo riêng lý do.
 4. **Thêm món** mở trang món mới; bấm tên một món để sửa.
 5. **Nhập từ Excel / Xuất Excel**: xem [Nhập và xuất Excel](05-nhap-xuat-excel.md).
 

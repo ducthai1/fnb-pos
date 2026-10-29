@@ -5,7 +5,7 @@ import type { Branch } from "../../lib/api/branch-api";
 import type { Device } from "../../lib/api/devices-api";
 import { vi } from "../../messages/vi";
 import type { Loaded } from "../shell/use-api-load";
-import { SelectField } from "../ui/select-field";
+import { Listbox } from "../ui/listbox";
 
 const T = vi.settings;
 const LAYERS: readonly ConfigScopeKind[] = ["brand", "branch", "device"];
@@ -31,7 +31,8 @@ function DeviceChoice({
   const inUse = devices.value.filter((device) => device.revokedAt === null);
   if (inUse.length === 0) return <p className="bo-muted">{T.noDevices}</p>;
   return (
-    <SelectField
+    <Listbox
+      className="bo-listbox--field"
       label={T.deviceLabel}
       value={deviceId}
       choices={[

@@ -545,7 +545,7 @@
 - 2026-10-29 · **[đợt 6]** Mẫu loại quán đặt `pay_first_counter = false` cho quán ăn và quán bar (`packages/shop-templates/src/templates/shop-template-data.ts`), còn D-096 khóa công tắc này ở "bật". Khi làm D-096: `planTemplate` bỏ qua công tắc đang khóa (ghi ở "Giữ nguyên"), mẫu đặt `course_firing` thì trang Cài đặt hiện "Sắp có". Hiện máy quầy chưa đọc các công tắc này (B1, Q13).
 - 2026-10-29 · **[đợt 6]** Lưu trữ trạm: trạm đã từng in phiếu không xóa được (D-118) nên ở lại danh sách và ô chọn mãi. Thêm `archived_at` cho trạm, ẩn khỏi danh sách + ô chọn, phiếu cũ vẫn trỏ được; sửa trang sổ tay 15.
 - 2026-10-29 · **[thấp, đợt 6]** Không lệnh xóa nào của trang quản lý kiểm `version` (`versioned-resource-routes.ts`, `price-list-routes.ts`, bàn, khu vực): người A xóa được bảng giá người B vừa sửa mà không biết. Sửa thì sửa chung: gửi `version`, lệch thì 409.
-- 2026-10-29 · **[đợt 5]** Ô chọn món / danh mục / size trong quy tắc bảng giá là danh sách cuộn, chưa có ô tìm — thương hiệu vài trăm món khó chọn. Thêm tìm bỏ dấu vào `Listbox`, dùng lại cho các ô chọn đợt 5 thay.
+- ~~2026-10-29 · **[đợt 5]** Ô chọn món / danh mục / size trong quy tắc bảng giá là danh sách cuộn, chưa có ô tìm — thương hiệu vài trăm món khó chọn. Thêm tìm bỏ dấu vào `Listbox`, dùng lại cho các ô chọn đợt 5 thay.~~ **Xong** (D-125, commit ở "Bàn giao phiên trước").
 - 2026-10-29 · **[trước khi có quán 2 chi nhánh]** Món thuộc thương hiệu nhưng `product.station_id` trỏ trạm của một chi nhánh ⇒ ở chi nhánh khác món không ra phiếu bếp (sổ tay 15). Cần gán trạm theo (món, chi nhánh) + bootstrap + trình sửa món. Câu hỏi mô hình đã có từ dòng 2026-10-20 "Backoffice: trạm thuộc chi nhánh…".
 - 2026-10-29 · **[R2, cùng kênh giao hàng]** Quy tắc bảng giá có kênh nhập được nhưng máy quầy không bán qua kênh nào nên không áp (sổ tay 14). Khi có kênh thật: kênh thành danh sách chọn thay ô chữ, đơn mang kênh, `resolvePrice` nhận kênh. Cùng nhóm: nhóm khách, số lượng tối thiểu (T03-06).
 - 2026-10-29 · **[R2]** Mẫu loại quán chưa có giờ cắt ngày kinh doanh theo kiểu quán (bar thường 06:00; hiện 04:00 cho mọi chi nhánh, không chỉnh được) và nhóm tùy chọn mẫu (size, đường, đá, topping) — D-119, sổ tay 16.
@@ -557,7 +557,7 @@
 
 **[đợt 5]**
 
-- 2026-10-28 · Trang quản lý còn **12** ô chọn của trình duyệt (`SelectField`) ở 9 file: sửa món (Danh mục, Trạm), nhập Excel (2), chuyển danh mục hàng loạt, tiền QR cần hoàn, hồ sơ HĐĐT (2), tài khoản nhận tiền, phạm vi cài đặt, khóa webhook, công cụ nhân viên. Đổi hết sang `Listbox` (kèm ô tìm bỏ dấu, dòng 2026-10-29 ở trên). Máy quầy không còn `<select>` nào.
+- ~~2026-10-28 · Trang quản lý còn **12** ô chọn của trình duyệt (`SelectField`) ở 9 file: sửa món (Danh mục, Trạm), nhập Excel (2), chuyển danh mục hàng loạt, tiền QR cần hoàn, hồ sơ HĐĐT (2), tài khoản nhận tiền, phạm vi cài đặt, khóa webhook, công cụ nhân viên. Đổi hết sang `Listbox` (kèm ô tìm bỏ dấu, dòng 2026-10-29 ở trên). Máy quầy không còn `<select>` nào.~~ **Xong** (D-125, commit ở "Bàn giao phiên trước").
 
 **[đợt 6]**
 

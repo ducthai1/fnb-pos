@@ -15,7 +15,7 @@ import { DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
 import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
 import { Icon } from "../ui/icon";
-import { CheckField } from "../ui/select-field";
+import { CheckField } from "../ui/check-field";
 import { downloadMenuSheet } from "./menu-import/download-menu-sheet";
 import { ProductBulkMove } from "./product-bulk-move";
 import { categoryFilters, columnsFor } from "./product-list-columns";
