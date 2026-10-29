@@ -38,3 +38,4 @@
 | Quyết định kỹ thuật mới | decision-log; architecture nếu đổi hình dạng hệ thống |
 | Cuối phiên | mục "Bàn giao phiên trước" của bảng task |
 | Phát hiện việc ngoài task | mục "Backlog phát sinh" của bảng task |
+| Dời việc vì cần đồ thật (server, máy quầy, máy in, tài khoản, sandbox, quán thí điểm) | [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md) — cùng commit |
