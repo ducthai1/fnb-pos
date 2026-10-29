@@ -6,6 +6,17 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-29 22:00 — **Rà xong Backlog cũ** (không agent, chỉ sửa tài liệu).
+  - Kiểm 97 dòng ghi 2026-10-20 … 10-28 bằng grep trong code.
+  - Khoảng 55 dòng đã xong nhưng chưa gạch. Gom vào "Đã xong khi rà", mỗi dòng kèm file hoặc quyết định làm bằng chứng.
+  - Còn mở, xếp theo nhãn:
+    - đợt 5: 1 dòng — **12** ô chọn của trình duyệt ở 9 file (trước ghi 8);
+    - đợt 6: 8 dòng;
+    - đợt 7: 7 dòng;
+    - sau R1: 6; thấp: 11; R2: 4; khi làm luồng đó: 1.
+  - Việc chờ máy in, kế toán, ví, HĐĐT chuyển sang [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md).
+  - Dòng "chưa kiểm lại" là chưa tìm thấy bằng chứng trong code: đợt được gắn phải kiểm trước khi làm.
+  - **Phiên sau:** đợt 5 (cần chủ dự án duyệt token).
 - 2026-10-29 17:30 — **Đợt 4 (vận hành) xong** (1 agent, 0,42M token, merge `8656a65`).
   - **Thu lỗi máy quầy / trang quản lý** (T11-01, D-122):
     - Gửi `POST /client-errors` về server của mình, không dùng dịch vụ ngoài.
@@ -33,7 +44,7 @@
     - Màu chủ đạo theo token sẵn có của giao diện "pastel" (xanh dương), không đổi.
   - **Phiên sau:**
     1. Tự rà ~105 dòng Backlog cũ (60–90k, không agent): đánh dấu dòng đã xong, gắn nhãn đợt cho dòng còn mở.
-    2. Đợt 5: vẽ lại mở/đóng ca, PIN, chọn nhân viên, ghép máy, ngăn kéo thanh toán, màn sự cố, 8 ô chọn, hiệu ứng đóng, ô tìm trong `Listbox`.
+    2. Đợt 5: vẽ lại mở/đóng ca, PIN, chọn nhân viên, ghép máy, ngăn kéo thanh toán, màn sự cố, 12 ô chọn (rà 22:00), hiệu ứng đóng, ô tìm trong `Listbox`.
     3. Đợt 6: D-097, D-096, D-083, D-095, D-082, "Cần xử lý" từng lệnh, ép phiên bản tối thiểu, giữ `assets/` bản trước, lưu trữ trạm.
     4. Đợt 7: quán giả lập.
   - **Đang chờ chủ dự án:** link repo game giả lập bán hàng (xem Backlog 2026-10-29).
@@ -511,7 +522,7 @@
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
 
-> Nhãn `[đợt 4]` … `[đợt 7]` từ 2026-10-29 trở đi theo kế hoạch tới R1 (Bàn giao 2026-10-28 12:05 và 2026-10-29 17:30: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý" · 7 quán giả lập). Nhãn "đợt 3…10" trên các dòng 2026-10-20/21 là cách đánh số **cũ** của tuần đầu, không phải các đợt này. Việc chờ server / máy thật / tài khoản nằm ở [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md), không ở đây.
+> Nhãn `[đợt 4]` … `[đợt 7]` từ 2026-10-29 trở đi theo kế hoạch tới R1 (Bàn giao 2026-10-28 12:05 và 2026-10-29 17:30: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý" · 7 quán giả lập). Ngoài các đợt còn `[sau R1]` (không chặn quán thí điểm), `[thấp]`, `[R2]`, `[khi làm luồng đó]`. Các dòng 2026-10-20 … 10-28 đã rà lại 2026-10-29 và xếp theo nhãn ở mục con cuối; dòng mới thì gắn nhãn ngay lúc ghi. Việc chờ server / máy thật / tài khoản nằm ở [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md), không ở đây.
 
 - 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k):
   - **Máy ảo:** nhiều máy quầy ảo chạy đúng `@fnb/sync-client` với API thật trên Postgres nhúng (2 quầy, 1 máy order bàn, 1 máy pha chế).
@@ -540,106 +551,151 @@
 - 2026-10-29 · **[R2]** Mẫu loại quán chưa có giờ cắt ngày kinh doanh theo kiểu quán (bar thường 06:00; hiện 04:00 cho mọi chi nhánh, không chỉnh được) và nhóm tùy chọn mẫu (size, đường, đá, topping) — D-119, sổ tay 16.
 - 2026-10-29 · **[thấp, khi có chi nhánh ngoài Việt Nam]** Trang quản lý đổi ngày dd/mm/yyyy của bảng giá sang giờ máy chủ theo +07:00 cố định (đúng cho mọi chi nhánh trong nước vì Việt Nam không đổi giờ); giờ trong ngày đã theo giờ chi nhánh.
 
-- 2026-10-28 · Combo: e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp) — hiện chỉ có test component/API. Gợi ý: cùng đợt e2e R1.
-- 2026-10-28 · Combo: hủy riêng **một món trong combo** và sửa món trong combo ngay trên dòng của đơn (hiện xóa/hủy nguyên combo, D-115). Gợi ý: R2.
-- 2026-10-28 · Combo: cờ **món mặc định** cho phần có nhiều lựa chọn (Toast có), báo cáo bán theo **món trong combo** (dòng `combo_component` đã lưu), trừ kho theo thành phần khi có kho. Gợi ý: R2 / phase kho.
-- 2026-10-28 · Combo: API lưu món chưa từ chối phần combo trỏ tới **combo khác** hoặc món đã ngừng bán (trang quản lý không cho chọn; máy quầy/máy chủ từ chối lúc bán) — thêm kiểm ở `PUT /catalog/products/:id`. Gợi ý: phase 03.
-- 2026-10-28 · Phiếu bếp combo chia nhiều trạm: một trạm in lỗi thì lần gửi sau in lại combo ở **mọi** trạm (D-114) — khi có máy in thật, cân nhắc ghi "đã gửi" theo từng phần (từng trạm). Gợi ý: phase in ấn native.
-- 2026-10-28 · Trang sửa món: ô **Danh mục** và **Trạm** còn là ô chọn của trình duyệt (`SelectField`), chưa dùng `Listbox` như ô Loại / Cách tính giá.
+### Dòng 2026-10-20 … 10-28 sau khi rà (2026-10-29)
 
-- 2026-10-28 · Hủy món **bán theo cân** đã gửi bếp (bàn): màn Hủy món và `VoidRequest.units` đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp (trước khi gửi thì Xóa món được) — cho hủy nguyên lần cân (số lượng của dòng).
-- 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn: máy đọc lại gam và in bill theo đơn vị **hiện tại** của món ⇒ đổi đơn vị khi còn đơn mở / in lại bill cũ là sai đơn vị. Cột `sales_order_line.measure_unit` + snapshot.
-- 2026-10-28 · Cân điện tử: nối `WeighingScale` (`apps/pos/src/features/order/weighing-scale.ts`) qua vỏ native; ngăn nhập cân đã có nút "Đọc cân".
-- 2026-10-28 · Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft` (máy chủ chỉ kiểm cân nặng của món theo cân) — chặn số lẻ cho món không bán theo cân.
-- 2026-10-28 · HĐĐT chưa có đơn vị tính (ĐVT) trên dòng; món theo cân cần "kg"/"100 g" và số lượng lẻ.
-- 2026-10-28 · Nhập/xuất Excel bỏ qua món theo cân / giá nhập tay (không có cột đơn vị, cách tính giá).
+> Rà từng dòng bằng grep trong code, không agent. Dòng đã xong gom vào "Đã xong khi rà" cuối mục (nguyên văn cũ ở lịch sử git của file này). Dòng ghi "chưa kiểm lại" là chưa tìm được bằng chứng trong code: kiểm trước khi làm, có thể đã xong. Việc chờ máy in, server, tài khoản, kế toán đã chuyển sang [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md).
 
-- 2026-10-22 · `order.refund` vẫn ghi được khi máy không có ca mở (luật D-078 mới áp cho `order.pay`) — áp cùng luật cho hoàn tiền mặt.
-- 2026-10-22 · Ví điện tử: chưa hoàn tiền qua ví (bộ chuyển trả "chưa hỗ trợ"); báo cáo ngày chưa tách tiền ví khỏi chuyển khoản QR (cả hai là `qr_transfer`); chưa có e2e trình duyệt cho luồng ví; `expire_duration_seconds=900` sandbox nhận nhưng chưa thấy trong tài liệu chính thức (docs.zalopay.vn không phân giải được tên miền trên máy này — đã đối chiếu SDK Node chính thức + gọi sandbox thật).
+**[đợt 5]**
 
-- 2026-10-21 · Duyệt tại chỗ còn chưa gắn chủ thể (2026-10-28: `open_price` gắn dòng + giá đã gõ — D-105, `transfer_table` gắn đơn — D-109; còn lại chưa có tính năng nào dùng): `price_override`, `comp_item`, `reopen_paid_order`, `stock_adjust` (cùng lỗ D-076 với số tiền nhỏ hơn: dùng được cho đơn khác trong 10′); `open_drawer` đã có chủ thể trong danh mục nhưng chưa có lệnh/luồng POS. Gắn khi làm các luồng đó.
-- 2026-10-21 · POS chưa đọc header giờ server từ `/pos/bootstrap` (chỉ từ các lượt đồng bộ); lệnh ghi trước lượt đồng bộ đầu được sửa giờ qua đường "thử lại", không mất. Máy chậm giờ nay cũng được bù theo server nên không còn bị kẹp ở −12h.
+- 2026-10-28 · Trang quản lý còn **12** ô chọn của trình duyệt (`SelectField`) ở 9 file: sửa món (Danh mục, Trạm), nhập Excel (2), chuyển danh mục hàng loạt, tiền QR cần hoàn, hồ sơ HĐĐT (2), tài khoản nhận tiền, phạm vi cài đặt, khóa webhook, công cụ nhân viên. Đổi hết sang `Listbox` (kèm ô tìm bỏ dấu, dòng 2026-10-29 ở trên). Máy quầy không còn `<select>` nào.
 
-> 2026-10-21 16:30 — Mọi mục "chờ user / chờ quyết" bên dưới (trừ việc cần tiền thật, khóa thật, kế toán) đã được chốt ở **D-076…D-097** theo luật 7 của `CLAUDE.md`, cùng các chỗ lệch sổ tay tìm ra (`handbook/discrepancies.md`). Việc làm theo các quyết định đó: **đợt 10** (xem Bàn giao).
+**[đợt 6]**
 
-- 2026-10-20 · **[gấp, trước R1]** Bẫy 12 của spike S2: kết quả `accepted` phải mang ảnh chụp đơn sau khi áp để máy vẫn kéo được khi còn lệnh chờ; cần test hội tụ 2 máy giờ cao điểm (tỉ lệ từ chối ≈ 0). → T04-02/03.
-- 2026-10-20 · Mang các "ratchet test" của spike sang `packages/sync-client` + `apps/api`: không bỏ sót thay đổi khi commit muộn (advisory lock), phân trang qua change_seq 2 chữ số, giao trùng đồng thời, lô đảo thứ tự ⇒ retry, chạy lần 2 trên dữ liệu cũ, trạng thái máy = server (hash), tổng ngày = tổng dòng. → T04-02/03.
-- 2026-10-20 · Kiểm cấu hình nhóm tùy chọn không thể thỏa (min > số option khi không cho trùng, hoặc Σ maxQuantity < min). → T03-02.
-- 2026-10-20 · `validateComboConfig` (slot min/max, option trùng, product id không tồn tại). → T03-02.
-- 2026-10-20 · Kiểm tham chiếu cấp món: khóa `variantRules` và item bảng giá theo variant phải trỏ đúng variant của món; id item bảng giá không trùng. → T03-02.
-- ~~2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.~~ **Xong** (đã có từ đợt vận hành, kiểm lại 2026-10-29): `packages/db/src/provisioning/provision-database.ts` tạo hai role + database + default privileges, chạy bằng `pnpm db:provision` (`scripts/src/provision/provision-database-cli.ts`, `infra/README.md` mục 6), test `apps/api/test/integration/infra/provision-database-runs-twice.test.ts`; `install-release.sh` gọi nó mỗi lần cài.
-- 2026-10-20 · `newId()` đang ở `@fnb/db`; POS offline cần cùng bộ sinh từ gói không phụ thuộc server ⇒ tách gói `ids` nhỏ khi bắt đầu POS. → T04-01.
-- 2026-10-20 · Đăng ký tổ chức mới chạy bằng role app hay đường riêng — quyết ở T01-04.
-- 2026-10-20 · **[gấp]** `computeOrderTotals` × dòng âm: gộp dòng hủy vào dòng nó đảo (cùng đơn), đơn hoàn (toàn dòng âm) tính đối xứng; test: hủy 1/2 ly = tổng của đơn 1 ly; hoàn toàn bộ = đúng số âm của đơn gốc. → đợt 3.
-- 2026-10-20 · Hoàn một phần đơn có giảm giá toàn đơn/khuyến mãi: dòng hoàn phải mang phần giảm đã phân bổ (dùng `allocateAmount`) để không trả lại nhiều hơn khách đã trả. → đợt 3.
-- 2026-10-20 · Gắn khóa quyền vào API backoffice (tạo mã ghép, tạo nhân viên, thu hồi thiết bị đang mở cho mọi member); kiểm `role.permission_keys` khớp danh mục; seed 6 vai trò mẫu khi tạo tổ chức. → đợt 3.
-- ~~2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.~~ **Xong**: `provision-database.ts` dòng `REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` + `GRANT EXECUTE ON FUNCTIONS TO` role app (default privileges của `fnb_owner`), chạy trước migration trong `pnpm db:provision`; ghi ở `infra/README.md` mục 6.
-- 2026-10-20 · Giới hạn tần suất `/auth/login`, `/devices/pair` (theo IP/thiết bị) — API hay proxy? → T11.
-- 2026-10-20 · Job dọn mã ghép, route mã ghép, phiên hết hạn. → T11.
-- 2026-10-20 · Xác minh PIN khi offline: gửi băm PIN 4–6 số xuống máy là brute-force được (≤ 1,1 triệu khả năng) dù có salt ⇒ quyết khi làm T04-05 (khóa gắn thiết bị / chỉ online / PIN dài hơn).
-- 2026-10-20 · `approval_log`: thêm giờ duyệt trên máy (cho duyệt offline đồng bộ sau)? `device_id` cho phép NULL khi duyệt từ backoffice/điện thoại quản lý? → T04-17.
-- 2026-10-20 · Máy có `domain_version` MỚI hơn server có được nhận không (cập nhật app trước server)? → T04-03.
-- 2026-10-20 · **[đợt 4, high]** Review B1: dòng hủy/hoàn không được so với dòng gốc ⇒ thêm kiểm trong domain (giá, thuế, món, biến thể, cây con của dòng đảo khớp dòng gốc) + LUẬT: server áp lệnh *ý định* (`voidLine`, `buildRefund` dựng lại từ yêu cầu), không bao giờ nhận dòng đảo/đơn hoàn do máy quầy dựng.
-- 2026-10-20 · **[đợt 4, medium]** A3: migration phải tự `REVOKE EXECUTE … FROM PUBLIC` cho hàm `fnb_auth` (hiện chỉ an toàn nhờ bước provision của test); test trên DB chỉ-migrate.
-- 2026-10-20 · **[đợt 4, medium]** B2: ngưỡng giảm giá/thu-chi tính theo từng thao tác ⇒ giảm 3×10% = 30% không cần duyệt. Sửa: authorize theo tỉ lệ giảm *tích lũy* của dòng/đơn (helper domain), thu/chi tích lũy theo ca (ghi chú cho T04-16).
-- 2026-10-20 · **[đợt 4, medium]** A1 + C1: khóa PIN leo thang (khóa lại liên tiếp ⇒ thời gian tăng, tối đa ~24h) + audit sự kiện khóa; test gửi lần thử PIN/đăng nhập song song.
-- 2026-10-20 · **[đợt 4, low]** A2 (đúng PIN xóa luôn khóa của request song song), A4 (trigger `UPDATE OF account_id` chạy cả khi không đổi ⇒ xóa mọi phiên), A5 (uuid nhận `urn:`/chữ hoa ⇒ 500), B3 (`quantity(1e-7)` ra 0 thay vì bị chặn), B6 (giảm giá dòng tính theo đơn vị — cần builder "giảm X cho cả dòng"), C2 (test làm tròn VAT/phí dịch vụ theo công thức độc lập), C3 (nhân viên bị vô hiệu giữa ca; `/current` kiểm lại chi nhánh), C4 (grant mang trường thừa), C5 (test cho scrypt giả; thêm `fnb_auth.pairing_code_route` vào GLOBAL_TABLES).
-- 2026-10-20 · Gắn `edit_menu` cho mọi route `/catalog`. → đợt 4.
-- 2026-10-20 · Nhóm tùy chọn dùng chung: lưu món A có thể đổi/archive option mà món B cũng dùng — kiểm lại món B hay tách nhóm theo món? (chờ quyết)
-- 2026-10-20 · Đơn đã thanh toán chưa lưu charge profile lúc bán ⇒ lưu snapshot profile trên đơn để hoàn tiền đúng khi chi nhánh đổi cấu hình. → T04-01.
-- 2026-10-20 · Giảm % toàn đơn áp trước khi hủy món giữ số tiền cố định; hủy làm cơ sở nhỏ hơn số giảm ⇒ lỗi. Tầng ứng dụng phải áp lại giảm % sau khi hủy. → T04-17.
-- 2026-10-20 · Bộ unit domain ~10s vì property 10.000 vòng đời — cân nhắc 2.000 khi chạy local, 10.000 trong CI (`FNB_LIFECYCLE_RUNS`).
-- 2026-10-20 · Lệnh đồng bộ còn thiếu: `order.void_line` (save_draft phải chuyển sang cập nhật theo id khi đã có tham chiếu dòng), giảm giá (kiểm `approvalId`: đúng hành động, đúng nhân viên, dùng một lần), `order.refund` (đọc/ghi refund_line_amount), hủy đơn; payload từng lệnh khai trong `@fnb/contracts`. → đợt 5.
-- 2026-10-20 · Charge profile hiện mặc định cứng (giá gồm VAT, không phí dịch vụ) — cần khóa cấu hình theo chi nhánh. → đợt 5.
-- 2026-10-20 · `save_draft` có chặn món đang hết (product_availability) không? Món giá mở/cân chưa có trong ý định dòng. → đợt 5.
-- 2026-10-20 · Lệnh offline × staff session: hiện chỉ đồng bộ khi có staff session đang sống, người tạo = người đang đăng nhập; cần tôn trọng staffSessionId theo từng lệnh. → T04-05.
-- 2026-10-20 · `official_no` / `call_number` không gán được sau khi trả (trigger chỉ cho paid→posted) — luật riêng khi làm hóa đơn điện tử. → T05-07.
-- 2026-10-20 · Làm tròn tiền mặt + tiền thừa: `order.pay` đòi Σ thanh toán = amountDue đúng từng đồng. → T04-08.
-- 2026-10-20 · Giữ change_log bao lâu (trigger chỉ-thêm chặn cả owner) — cần migration/hàm dọn có chủ đích. → T11.
-- 2026-10-20 · PIN khóa tới 24h ⇒ người đứng ở máy quầy có thể khóa quản lý cả ngày — cần thao tác mở khóa của quản lý/backoffice. → T01-10.
-- 2026-10-20 · Sau khi hủy một phần, cây con của món bị "đóng băng" (không đổi topping, không thêm giảm dòng); món có giảm cả dòng phải gỡ giảm trước khi hủy. Chấp nhận ở quầy? (chờ user)
-- 2026-10-20 · Hoàn tiền offline: `validateRefundAgainstSale` cần cùng danh sách hoàn trước mà máy quầy thấy ⇒ đồng bộ hoàn tiền nên là lệnh ý định server dựng lại. → đợt 5.
-- 2026-10-20 · Hai bản kiểm approval: `apps/api/src/sync/shift-command-approval.ts` (ca) và bản của lệnh order.* — hợp nhất thành một; đăng ký lệnh shift.* vào `SYNC_COMMANDS` thay vì nhánh `isShiftCommand`. → đợt 6.
-- 2026-10-20 · Duyệt: approval khớp ĐÚNG giá trị (duyệt 20% không dùng cho 19%)? Gắn approval với một đơn? Kiểm lại vai trò người duyệt lúc dùng? (chờ user)
-- 2026-10-20 · `order.pay` khi máy không có ca mở ⇒ đang nhận với shift_id NULL (tiền mặt không thuộc két nào) — nên từ chối? Ngưỡng chênh lệch đóng ca mặc định 0 đ; theo từng phương thức? (chờ user)
-- 2026-10-20 · Đóng ca có chuyển đơn đã trả sang `posted` không (đang không, để không cản hoàn tiền)?
-- 2026-10-20 · Hoàn 1/3 ly có giảm toàn đơn hiện in gross −28.999 / giảm −3.333 (net đúng −25.666) — bill hoàn nên hiện giá bán gốc + dòng giảm? (chờ user)
-- 2026-10-20 · In: CP1258 trên máy thật có in dấu thanh thành ô riêng không (lệch cột)? — kiểm ở T00-08; combo có thành phần khác trạm; thay topping sau khi đã gửi bếp chưa được phát hiện là thay đổi; bill chưa có dòng "Làm tròn".
-- 2026-10-20 · `applied_command` chưa lưu staff_id của người gửi lệnh.
-- 2026-10-20 · POS: parse `/pos/bootstrap` bằng schema của `@fnb/contracts` thay cho parser tối thiểu; ẩn/khóa nhân viên `active=false`; staff session hết hạn ⇒ về màn PIN (đang chỉ hiện server_error); thiết bị bị thu hồi ⇒ xóa credential + ghép lại; endpoint logout staff session. → đợt sau.
-- 2026-10-20 · Lưu số khách (guest_count); `openedAt` của bàn lấy createdAt của lệnh mở (bàn mở offline đang hiện giờ đồng bộ); `save_draft` không đổi gì vẫn tăng version ⇒ mất trạng thái "chờ thanh toán"; hủy đơn đang gắn bàn có cần `close_unpaid_table`? (chờ quyết)
-- 2026-10-20 · In: in lại bằng job id MỚI có xóa lỗi cũ của cùng chứng từ không? Đơn đã trả giờ tăng version khi gửi bếp — kiểm khi làm hóa đơn/báo cáo.
-- 2026-10-20 · Chưa có route backoffice ghi cấu hình (charge profile, công tắc) — phải đi qua saveConfigValue/clearConfigValue + validateFlags. Hết món có hạn (`unavailableUntil`) tự hết không sinh thay đổi ⇒ máy tự so giờ.
-- 2026-10-20 · change_log phình theo (món đổi × số chi nhánh) — cần chính sách giữ/gom. → T11.
-- 2026-10-20 · Lưu trữ bản web POS: reverse proxy `/api` cùng origin (đang dùng) hay `VITE_FNB_API_BASE` + CORS? → T11-05.
-- 2026-10-20 · POS: màn QR tự đổi trạng thái theo intent (đã có snapshot payment_intent); QR thiếu/thừa xử lý thế nào (QR thứ hai cho phần còn lại? tiền mặt? hoàn phần thừa?) — chờ user; mở lại nháp chưa trả sau khi tải lại; số gọi món nên do server cấp lúc trả?; nhóm tùy chọn cần "vai trò" (đường/đá) để in tem ly đúng; hồ sơ máy in theo máy quầy (khổ giấy, code page 1258); combo/giá mở/món cân trên POS.
-- 2026-10-20 · `/tmp` là tmpfs + quota chung (~7 GB/user): Postgres nhúng của test để dữ liệu trong os.tmpdir() — nếu gặp EDQUOT thì chuyển thư mục dữ liệu test về ổ home.
-- 2026-10-20 · **[gấp, đợt 8]** API thiếu `GET /branches`, `GET /devices?branchId=`, `GET /staff` (hợp đồng đề xuất trong `apps/backoffice` + `e2e/backoffice/support/pending-backoffice-read-routes.ts`); `/auth/me` chưa trả permissionKeys; chuyển ProductDocumentInput → Product bị viết 2 lần (api + backoffice) ⇒ gộp vào gói thuần; lỗi 400 của domain nên mang ids (groupId/optionId/variantId).
-- 2026-10-20 · HĐĐT: adapter thật cần sandbox + câu hỏi idempotency của nhà cung cấp; bán của ngày đã chốt đồng bộ muộn ⇒ batch bổ sung tự động hay tay?; ai sửa/đẩy lại hóa đơn failed_permanent, có chặn chốt ngày không; đơn 0đ có xuất hóa đơn không; hoàn tiền: điều chỉnh hay chỉ ghi sổ (mặc định none) — chờ kế toán/user.
-- 2026-10-20 · Backoffice: trạm thuộc chi nhánh nhưng món thuộc thương hiệu (product.stationId) — mô hình đúng chưa?; hết món theo kênh/có hạn chưa có UI; sửa/khóa nhân viên, đặt lại PIN, mở khóa PIN, xóa vai trò chưa có UI.
-- 2026-10-20 · Còn tin createdAt của máy: giá khung giờ + hết món (save_draft), paid_at (pay/refund), sold_at HĐĐT, businessDate do máy chọn. Đề xuất: chặn createdAt > receivedAt + 2′ (SYNC_DEVICE_CLOCK_AHEAD), effectiveAt = clamp(createdAt, receivedAt − 12h, receivedAt) cho quyết định nghiệp vụ, lưu cả giờ máy + giờ server cho dấu thời gian pháp lý. → 9c.
-- 2026-10-20 · `refundDue` (tiền QR đã nhận mà đơn không dùng) chưa có thao tác "đã hoàn cho khách"; con số trễ offline 2h, lệch đồng hồ 2′, giữ mã QR 7 ngày — chờ user.
-- 2026-10-20 · Dữ liệu đo hiệu năng DB phải nằm trên ổ thật: `/tmp` máy này là tmpfs, fsync gần như miễn phí, số đẹp gấp ~30 lần.
-- 2026-10-20 · Đơn bàn (đợt 9c): snapshot đơn chưa có `openedAt` (máy vừa kéo về hiện "Vừa mở" tới lần đọc sơ đồ sau); chỉ có `preBillPrinted` nên "đã đổi sau tạm tính" chỉ đúng trên máy đã thấy bản tạm tính ⇒ cần `preBillPrintedVersion`; bootstrap không mang đơn bàn đang mở ⇒ máy mới ghép thấy bàn có khách nhưng không mở được ("Đơn của bàn này chưa về máy") ⇒ bootstrap mang nháp mở của chi nhánh hoặc route đọc 1 đơn cho thiết bị. → 9d (server).
-- 2026-10-20 · **ĐÃ SỬA (D-060 + D-069)** `save_draft` thay cả nháp: 2 máy cùng thêm món vào một bàn cùng lúc ⇒ lần lưu sau lặng lẽ bỏ món chưa gửi bếp của máy kia (chỉ dòng đã gửi/đã tham chiếu được giữ) ⇒ `expectedVersion` (409 khi lệch) hoặc lệnh thêm dòng. → 9d (server + POS).
-- 2026-10-20 · Bàn trống mà đơn đã xóa hết món vẫn giữ bàn — cần thao tác giải phóng (order.cancel với lý do cố định?) — chờ user. Gộp bàn chưa làm.
-- 2026-10-20 · Sơ đồ bàn không có trong feed ⇒ máy offline giữ sơ đồ lần đọc cuối; đưa sơ đồ vào bootstrap + feed? `@fnb/printing` chưa có mẫu tạm tính riêng (POS đổi tiêu đề bill).
-- 2026-10-20 · Giờ máy (D-054): mỗi lần kẹp đều ghi audit, kể cả máy nhanh vài giây ⇒ cân nhắc vùng chết; `SYNC_DEVICE_CLOCK_AHEAD` nên là trạng thái thử lại được (máy sửa giờ rồi gửi lại) thay vì từ chối lưu sổ?; POS chưa có câu tiếng Việt cho `SYNC_DEVICE_CLOCK_AHEAD` và `API_ORIGIN_NOT_ALLOWED` (backoffice cũng vậy). → 9d.
-- 2026-10-20 · `packages/sync-client/test/support/scenario-server.ts` chạy API trên đồng hồ thật trong khi lệnh ghi giờ cố định ⇒ sau 12h lệnh bị kẹp + audit (chưa assertion nào phụ thuộc) ⇒ chuyển sang ManualClock.
-- 2026-10-20 · `next dev` viết lại `apps/backoffice/next-env.d.ts` (trỏ `tmp/next-dev/types`) mỗi lần chạy ⇒ cây bẩn; untrack cần sửa `.gitignore` (chờ user) hoặc chấp nhận.
-- 2026-10-20 · Vận hành: `FNB_PAYMENT_SECRET_KEY` có nên bắt buộc ở production (thiếu thì QR không tự xác nhận)?; Postgres managed (RDS…): `ALTER DEFAULT PRIVILEGES FOR ROLE fnb_owner` cần admin là thành viên fnb_owner — ghi vào runbook; POS/backoffice cùng origin qua proxy hay CORS (FNB_ALLOWED_ORIGINS chỉ là kiểm Origin chống CSRF). → T11.
-- 2026-10-20 · e2e bàn để lại nháp chưa trả ở bàn E3 trên stack chung ⇒ spec sau này chốt ngày trên cùng stack sẽ bị chặn.
-- 2026-10-21 · **ĐÃ LÀM (D-069, D-070)** ~~[đợt sau, POS]~~ Dùng dữ liệu server mới của đợt 9d: đọc `openOrders` + `floor` từ bootstrap vào kho cục bộ; xử lý entity feed `staff_member`/`floor_area`/`floor_table` (null = xóa); gửi `expectedVersion` cho nháp bàn + làm lại khi `SYNC_ORDER_VERSION_STALE` (lời từ chối mang snapshot hiện tại) + câu tiếng Việt; "đã đổi sau tạm tính" từ `preBillPrintedVersion < version`; hiện `openedAt`.
-- 2026-10-21 · **[đợt sau, server cho POS]** Bootstrap mang quyền duyệt được của từng nhân viên (để chỉ liệt kê người đủ quyền); snapshot ca mang thu/chi theo nhân viên + gửi lại khi có trả/hoàn vào ca + `openedAt` (tiền dự kiến lúc đóng ca hiện do máy tự dựng); ~~`shift_close_difference_tolerance` chưa có trong CONFIG_SETTING_DEFAULTS (máy coi = 0)~~ ĐÃ SỬA 2026-10-22 (máy nhận đúng ngưỡng của mình); `order.void_line` nhận id dòng hủy do máy sinh (offline phiếu hủy có thể in 2 lần); snapshot đơn thiếu `shiftId`/`paidAt`/dấu hủy (lịch sử không lọc theo ca; sau tải lại không biết dòng đã khóa); endpoint đăng xuất phiên nhân viên.
-- 2026-10-21 · Chờ user: danh sách lý do hủy/hoàn do ai định, có cấu hình ở backoffice không; hoàn tiền có nhập lại kho không (đang luôn không); khóa phương thức hoàn `bank_transfer`; đặt lại PIN có kết thúc phiên đang mở không; vai trò lưu trữ có khôi phục được không, GET /roles có ẩn không; PATCH /staff có cần version (đang ghi sau thắng); mở khóa PIN tại máy bằng quyền mượn hay chỉ backoffice; tiền QR hoàn bằng tiền mặt từ két có tự ghi chi két không (D-059).
-- 2026-10-21 · Bootstrap đọc từng đơn mở một (N+1 truy vấn) — gom khi chi nhánh có nhiều bàn. Adapter HĐĐT thật phải tôn trọng `ProviderCall.signal` và trả `lookup` theo id của mình.
-- 2026-10-21 · apps/backoffice và e2e chưa được prettier định dạng — `prettier --write` sẽ viết lại cả file; chỉ định dạng file mình sửa.
-- 2026-10-21 · Sau sửa review 8–9d (chờ quyết): phiếu đóng ca in theo số máy đang có — tiền mặt từ máy khác chưa kéo về kịp có thể làm phiếu lệch số server ⇒ in theo snapshot đóng ca của server?; tiền dự kiến tụt một nhịp khi lệnh trả đã nhận mà snapshot ca chưa về; tải lại POS thì lệnh còn chờ của người trước ghi cho người hiện tại (lưu token qua lần tải lại, hay server gán theo phiên kèm bằng chứng token?); hủy đơn trên bản lạc quan có thể không xin duyệt rồi bị server từ chối; dev stack: Postgres nhúng nhận Ctrl+C trước API; `voidsOfTheDay`/`cancelledOrderCount` chưa loại đơn sau chốt.
-- 2026-10-21 · ~~**[GẤP — trước khi mở bán]**~~ **ĐÃ SỬA (D-068)** Khôi phục backup làm máy quầy lệch server: lệnh server đã nhận sau giờ backup thì máy coi là xong, không gửi lại (mất đơn); `device_seq` của máy đi trước sổ lệnh ⇒ `SYNC_OUT_OF_ORDER` mãi; con trỏ `change_seq` của máy lớn hơn server ⇒ bỏ lỡ thay đổi menu/giá/bàn. Cần cơ chế "thế hệ server" (server đổi thế hệ khi khôi phục ⇒ máy nhận ra, gửi lại lệnh còn giữ, kéo lại từ đầu). Hiện chỉ có cách làm tay trong `infra/restore-drill.md`.
-- 2026-10-21 · Vận hành còn thiếu: câu tiếng Việt cho `API_RATE_LIMITED` ở POS/backoffice; Content-Security-Policy; cảnh báo khi backup không chạy; backup chép ra ngoài server (rclone đi đâu — chờ user); `FNB_PAYMENT_SECRET_KEY` bắt buộc ở production? (preflight đang chỉ cảnh báo); tenant mất hết membership thì phiên nhân viên cũ không được dọn; chưa thử TLS thật / máy Ubuntu sạch / systemd; bước CI `test:ops` (cài postgresql-client-17 từ PGDG) chưa chạy thử trên CI.
-- 2026-10-21 · Sau khôi phục (chờ quyết): HĐĐT đã phát hành ở nhà cung cấp sau giờ backup — lệnh trả gửi lại có thể xin hóa đơn lần 2 (đối soát tay với nhà cung cấp?); QR tạo sau backup mất (đi qua API, không qua hàng đợi) ⇒ lệnh trả gửi lại bị từ chối vào "Cần xử lý" — đủ chưa?; POS có tự tải lại bootstrap sau khôi phục không (có thể mất đơn đang dựng trên màn); lệnh gửi lại ghi cho thu ngân đang đăng nhập nếu máy không còn phiên gốc; 7 ngày có đủ; khôi phục trước khi mọi máy đồng bộ ít nhất một lần với bản này thì không phát hiện được; `test:ops` chưa có ca cho việc đổi thế hệ (chạy được trên CI).
-- 2026-10-21 · Sau D-069 (chờ quyết): làm lại STALE chỉ chạy khi chế độ bàn đang mở (sang quầy/tải lại trước khi có câu trả lời ⇒ chỉ nằm trong "Cần xử lý") — nâng lên SellingModes?; lời từ chối STALE đã làm lại vẫn hiện trong "Cần xử lý"; bàn/món lưu trữ trước bootstrap mà kho còn bản cũ hiện tới khi feed gửi null (so với `bootstrap.cursor`; menu cũng có lỗ này); đơn bị trả/hủy ở máy khác trong lúc nháp chờ ⇒ món của máy này mất, sơ đồ không báo; API khác origin cần `Access-Control-Expose-Headers: Retry-After`.
-- 2026-10-21 · Nhập menu Excel: catalog không có mã hàng/sku ⇒ khớp món theo TÊN (không phân biệt hoa thường); file đổi tên món sẽ tạo món mới. Muốn khớp theo mã như KiotViet/empos thì cần cột `product.code` (migration + contract + bootstrap) — hỏi user. Chưa nhập: tồn kho, giá vốn, ĐVT lớn, ảnh (không tải từ URL), thuộc tính → size, ghi chú nhanh theo món, máy in theo tên.
-- 2026-10-21 · Nhập menu Excel đi từng món một (`PUT /catalog/products/:id`, ~1 lượt đi-về/món, cập nhật = 2 lượt); file vài nghìn món sẽ chậm — nếu cần thì route nhập lô có transaction.
-- 2026-10-21 · Giao diện (chờ chủ dự án quyết, agent làn 2 không tự làm vì đổi luồng/test): backoffice dùng menu NGANG như tham khảo?; thanh toán POS thành ngăn kéo với 2 thẻ Tiền mặt / Chuyển khoản (chọn một)?; dòng giỏ gọn một hàng (nút +/- cạnh tên)?; nút gửi form backoffice canh phải như hộp thoại tham khảo? Còn lại: lịch sử đơn vẫn dạng thẻ; sơ đồ bàn với một bàn đặt rất xa thì cả sơ đồ co về góc; câu báo `API_ORIGIN_NOT_ALLOWED` quá kỹ thuật với chủ quán — viết lại dễ hiểu.
-- 2026-10-21 · Ảnh món (chờ quyết): vài ảnh CC0 quán mẫu lộ logo thương hiệu (Starbucks/Teavana, Peet's, Mister Donut…) — thay?; ảnh phục vụ công khai qua link; ảnh cũ trên đĩa + Cache Storage của máy chưa được dọn khi đổi/xóa; máy chạy bản POS cũ (schema strict) bỏ qua bản sao feed có `imageUrl` tới khi tải lại; khung "Xem trước" của trình sửa món vẫn hiện chữ cái; `dev:stack --reset` không xóa `tmp/media`.
+- 2026-10-28 · Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft`, vì máy chủ chỉ kiểm cân nặng của món theo cân. Chặn số lẻ cho món không bán theo cân.
+- 2026-10-28 · Combo: `PUT /catalog/products/:id` chưa từ chối phần combo trỏ tới **combo khác** hoặc món đã ngừng bán. Trang quản lý không cho chọn; máy quầy và máy chủ từ chối lúc bán.
+- 2026-10-28 · Hủy món **bán theo cân** đã gửi bếp: `VoidRequest.units` của máy quầy (`features/order-adjust/void-line-adjustment.ts`) đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp. Hợp đồng `order.void_line` đã nhận `quantity` lẻ; cho hủy nguyên lần cân.
+- 2026-10-20 · Máy quầy bị thu hồi: chưa thấy đường xóa thông tin ghép rồi về màn ghép. Lỗi 401 hiện chỉ xử lý phiên nhân viên (`apps/pos/src/app/use-background-sync.ts`). Chưa có route đăng xuất phiên nhân viên (`/pos/staff-sessions` chỉ có POST và GET `current`).
+- 2026-10-20 · Bàn trống mà đơn đã xóa hết món vẫn giữ bàn: chưa kiểm lại; kiểm cùng D-097. Gộp bàn: R2.
+- 2026-10-21 · Hủy đơn trên bản lạc quan có thể không xin duyệt rồi bị server từ chối (luật D-063). Làm cùng "Cần xử lý".
+- 2026-10-21 · `PATCH /staff` ghi sau thắng, chưa có `version`. Gộp vào dòng 2026-10-29 "Không lệnh xóa nào… kiểm `version`".
+- 2026-10-20 · Đổi topping sau khi món đã gửi bếp chưa được coi là thay đổi (phiếu bếp không ra lại). Làm cùng D-097.
+
+**[đợt 7] — quán giả lập kiểm luôn**
+
+- 2026-10-28 · Combo chưa có e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp); hiện chỉ có test component và API.
+- 2026-10-20 · Ratchet test của spike: phần hội tụ nhiều máy đã có ở `packages/sync-client/test/scenarios`. Chưa đối chiếu từng ca:
+  - commit muộn (advisory lock);
+  - phân trang qua `change_seq` 2 chữ số;
+  - giao trùng đồng thời;
+  - lô đảo thứ tự;
+  - trạng thái máy = server (hash);
+  - tổng ngày = tổng dòng.
+- 2026-10-20 · Giảm % toàn đơn rồi hủy món: tầng ứng dụng phải áp lại phần trăm sau khi hủy. Chưa kiểm lại.
+- 2026-10-21 · `voidsOfTheDay` / `cancelledOrderCount` (`apps/api/src/reports/daily-sales-report.ts`) chưa loại đơn sau chốt. Chưa kiểm lại.
+- 2026-10-21 · Đơn bị trả hoặc hủy ở máy khác trong lúc nháp của máy này đang chờ ⇒ món của máy này mất, sơ đồ không báo.
+- 2026-10-20 · `packages/sync-client/test/support/scenario-server.ts` chạy API trên đồng hồ thật trong khi lệnh ghi giờ cố định. Chuyển sang đồng hồ tay, cần cho kịch bản lệch giờ.
+- 2026-10-20 · e2e bàn để lại nháp chưa trả ở bàn E3 trên stack chung ⇒ spec chốt ngày chạy sau trên cùng stack sẽ bị chặn.
+
+**[sau R1] — không chặn quán thí điểm**
+
+- 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn (`sales_order_line.measure_unit` + snapshot). Hiện đổi đơn vị khi còn đơn mở, hoặc in lại bill cũ, thì in sai đơn vị.
+- 2026-10-28 · Nhập/xuất Excel:
+  - bỏ qua món theo cân và giá nhập tay;
+  - chưa nhập tồn kho, giá vốn, ĐVT lớn, ảnh, thuộc tính → size, ghi chú nhanh, máy in theo tên (mã hàng: D-095, đợt 6);
+  - nhập đi từng món một (~1 lượt đi-về/món) ⇒ file vài nghìn món chậm; cần route nhập lô có transaction.
+- 2026-10-20 · `change_log` giữ bao lâu và phình theo (món đổi × số chi nhánh): chưa có dọn. Dọn định kỳ D-066 chỉ lo mã ghép và phiên.
+- 2026-10-20 · Đăng ký tổ chức mới: chưa có route (phase 11).
+- 2026-10-21 · Bootstrap đọc từng đơn mở một (`apps/api/src/routes/pos/bootstrap-open-orders.ts`, N+1 truy vấn). Gom khi chi nhánh có nhiều bàn.
+- 2026-10-21 · `order.void_line` dùng id dòng hủy do server sinh ⇒ offline, phiếu hủy có thể in 2 lần. Snapshot đơn chưa mang `shiftId` / `paidAt` / dấu hủy: chưa kiểm lại.
+
+**[thấp]**
+
+- 2026-10-21 · POS chưa đọc giờ server từ `/pos/bootstrap`, chỉ từ các lượt đồng bộ. Lệnh ghi trước lượt đầu được sửa giờ qua đường "thử lại", không mất.
+- 2026-10-20 · Review cấp thấp, chưa kiểm lại:
+  - A2: đúng PIN xóa luôn khóa của request song song.
+  - A4: trigger `UPDATE OF account_id` chạy cả khi không đổi.
+  - A5: uuid `urn:` hoặc chữ hoa ⇒ 500.
+  - B3: `quantity(1e-7)` ra 0.
+  - B6: builder "giảm X cho cả dòng".
+  - C2–C5.
+- 2026-10-20 · `save_draft` không đổi gì vẫn tăng version.
+- 2026-10-20 · Chuyển `ProductDocumentInput` → `Product` viết 2 lần (api + backoffice) ⇒ gộp vào gói thuần. Lỗi 400 của domain chưa mang ids (groupId / optionId / variantId).
+- 2026-10-21 · Bàn hoặc món lưu trữ trước bootstrap mà kho còn bản cũ thì vẫn hiện, tới khi feed gửi null.
+- 2026-10-21 · Tenant mất hết membership thì phiên nhân viên cũ không được dọn.
+- 2026-10-21 · dev stack: Postgres nhúng nhận Ctrl+C trước API.
+- 2026-10-21 · Sơ đồ bàn có một bàn đặt rất xa thì cả sơ đồ co về góc.
+- 2026-10-21 · Chưa kiểm lại:
+  - khóa phương thức hoàn `bank_transfer`;
+  - con số "trễ offline 2h" và "giữ mã QR 7 ngày" (2′ lệch giờ đã chốt ở D-054/D-062);
+  - hết món có hạn (`unavailableUntil`) tự hết mà không sinh thay đổi ⇒ máy phải tự so giờ;
+  - `test:ops` có ca cho việc đổi thế hệ server sau khôi phục;
+  - nút gửi form trang quản lý canh phải như hộp thoại.
+- 2026-10-21 · Ảnh món:
+  - ảnh phục vụ công khai qua link;
+  - ảnh cũ trên đĩa và trong Cache Storage của máy chưa dọn khi đổi hoặc xóa;
+  - máy chạy bản cũ bỏ qua `imageUrl` tới khi tải lại;
+  - khung "Xem trước" của trình sửa món vẫn hiện chữ cái;
+  - `dev:stack --reset` không xóa `tmp/media`.
+- 2026-10-20 · In (cùng phase in ấn native):
+  - chưa có mẫu tạm tính riêng, máy quầy đổi tiêu đề bill;
+  - bill chưa có dòng "Làm tròn";
+  - chưa rõ in lại bằng job id mới có xóa lỗi cũ của cùng chứng từ không.
+
+**[R2]**
+
+- 2026-10-28 · Combo: hủy riêng **một món trong combo** và sửa món trong combo ngay trên dòng của đơn (hiện xóa/hủy nguyên combo, D-115).
+- 2026-10-28 · Combo: cờ **món mặc định** cho phần có nhiều lựa chọn (Toast có), báo cáo bán theo **món trong combo** (dòng `combo_component` đã lưu), trừ kho theo thành phần khi có kho.
+- 2026-10-20 · Tem ly: nhóm tùy chọn cần "vai trò" (đường, đá). Hiện `apps/pos/src/features/printing/cup-label-slip.ts` in mọi tùy chọn thành danh sách dưới tên ly.
+- 2026-10-20 · Hết món theo kênh / có hạn chưa có UI (cùng nhóm kênh giao hàng). Gộp bàn. Hoàn tiền có nhập lại kho (phase kho).
+
+**[khi làm luồng đó]**
+
+- 2026-10-21 · Duyệt tại chỗ chưa gắn chủ thể: `price_override`, `comp_item`, `reopen_paid_order`, `stock_adjust` (cùng lỗ D-076: dùng được cho đơn khác trong 10′). `open_drawer` đã có chủ thể trong danh mục nhưng chưa có lệnh/luồng POS. Gắn khi làm các luồng đó (đã gắn: `open_price` D-105, `transfer_table` D-109).
+
+**Ghi chú làm việc (không phải việc)**
+
+- `/tmp` máy dev là tmpfs + quota chung (~7 GB/user). Gặp EDQUOT thì chuyển thư mục dữ liệu Postgres nhúng của test về ổ home. Số đo hiệu năng DB phải lấy trên ổ thật: trên tmpfs fsync gần như miễn phí, số đẹp gấp ~30 lần.
+- `apps/backoffice` và `e2e` chưa được prettier định dạng. `prettier --write` sẽ viết lại cả file ⇒ chỉ định dạng file mình sửa.
+- `next dev` viết lại `apps/backoffice/next-env.d.ts` mỗi lần chạy ⇒ cây bẩn. Chấp nhận, không stage file này.
+
+**Đã xong khi rà 2026-10-29** (mỗi dòng: việc cũ → bằng chứng)
+
+- Hoàn tiền phải thuộc ca (`order.refund` không ca) → D-108.
+- Bẫy 12: kết quả `accepted` mang ảnh chụp đơn → `apps/api/src/sync/sync-wire-types.ts` (order "after the command").
+- Kiểm cấu hình nhóm tùy chọn không thể thỏa → `unsatisfiableModifierGroup` trong `packages/domain/src/catalog`.
+- `validateComboConfig` → `packages/domain/src/catalog/validate-combo-config.ts`.
+- Kiểm tham chiếu `variantRules` → `variantRuleForUnknownVariant`.
+- Bộ sinh id cho POS offline → `apps/pos/src/features/ids/new-id`.
+- `computeOrderTotals` × dòng âm, hủy đối xứng → `order-line-reversal-mirror.ts` + test.
+- Hoàn một phần đơn có giảm toàn đơn → `refund-charges-of-sale.ts` + D-079.
+- Khóa quyền cho API trang quản lý + vai trò mẫu → `requirePermission`, `ROLE_TEMPLATES`.
+- Giới hạn tần suất đăng nhập / ghép máy → D-065. Dọn mã ghép, phiên hết hạn → D-066.
+- PIN khi offline → PIN chỉ kiểm trên server (`POST /pos/staff-sessions`), băm PIN không xuống máy (test chặn lộ `pinHash`).
+- `approval_log` cho duyệt offline → D-057: duyệt tại chỗ cần mạng.
+- `domain_version` của máy mới hơn server → `SYNC_DOMAIN_VERSION_UNSUPPORTED`.
+- B1: server dựng dòng hủy / đơn hoàn từ ý định → `void-line-payload-schema.ts`, `order-line-reversal-rules.ts`.
+- A3: migration tự `REVOKE EXECUTE` cho `fnb_auth` → migration 0010.
+- B2: ngưỡng giảm giá theo tỉ lệ tích lũy của đơn → `draft-discount-guard.ts` (`discountRateOfOrder` trước/sau); thu/chi tích lũy theo ca → D-061.
+- A1 + C1: khóa PIN leo thang → D-037, `apps/api/src/security/attempt-lockout.ts`.
+- `edit_menu` cho mọi route `/catalog` → `catalog-route-handler.ts`.
+- Nhóm tùy chọn dùng chung → D-087.
+- Snapshot charge profile trên đơn → `apps/api/src/sync/charge-profile-snapshot.ts`.
+- `FNB_LIFECYCLE_RUNS` → `order-lifecycle.property.test.ts`.
+- Lệnh đồng bộ `void_line`, giảm giá, `refund`, hủy đơn → `packages/contracts/src/sync/commands/`.
+- Charge profile theo chi nhánh → khóa cấu hình `charge_profile`.
+- `save_draft` chặn món đang hết → `draft-additions.ts`; món giá mở / theo cân trong ý định dòng → D-107.
+- Lệnh offline theo `staffSessionId` từng lệnh, qua lần tải lại → D-084.
+- Làm tròn tiền mặt → `packages/domain/src/rounding/cash-rounding.ts`.
+- Quản lý mở khóa PIN, đặt lại PIN → D-085; trang Nhân viên có sửa / PIN / mở khóa / khóa / mở lại.
+- Hủy một phần làm "đóng băng" cây con → D-086.
+- Hoàn tiền offline là lệnh ý định → `refund-order-payload-schema.ts`.
+- Hai bản kiểm approval (ca và order) → đã hợp nhất (`approval-redemption.ts`, không còn `shift-command-approval.ts`).
+- Approval khớp đúng giá trị / gắn đơn → D-076. `order.pay` không ca → D-078. Ngưỡng chênh lệch đóng ca → khóa cấu hình riêng (2026-10-22).
+- Bill hoàn có giảm toàn đơn → D-079.
+- `applied_command.staff_id` → migration 0016.
+- POS parse bootstrap bằng schema của `@fnb/contracts` → `bootstrap-source.ts`. Ẩn nhân viên bị khóa → D-060. Phiên hết hạn ⇒ về màn PIN → `paired-till.tsx`.
+- Số khách, giờ mở bàn offline → D-088. Hủy đơn gắn bàn → D-063.
+- Route trang quản lý ghi cấu hình → `apps/api/src/routes/settings/`. `GET /branches`, `/devices`, `/staff`, `permissionKeys` trong `/auth/me` → `routes/branches`, `routes/devices`, `routes/staff`, `routes/auth/session-routes.ts`.
+- Trang Nhân viên (sửa, khóa, đặt lại PIN, mở khóa) và lưu trữ / khôi phục vai trò → `components/staff`, `components/roles`, D-092.
+- Tin `createdAt` của máy → D-054, D-062, D-077.
+- `refundDue` "đã hoàn cho khách" → D-059. Tiền QR thối bằng tiền két tự ghi chi két → D-081.
+- Đơn bàn: `openedAt`, `preBillPrintedVersion`, bootstrap mang đơn mở + sơ đồ → D-069, D-070. `save_draft` hai máy cùng sửa → D-060 + D-069.
+- Câu tiếng Việt cho `SYNC_DEVICE_CLOCK_AHEAD`, `API_ORIGIN_NOT_ALLOWED`, `API_RATE_LIMITED` → `apps/pos/src/messages/`, `apps/backoffice/src/messages/vi-api-errors.ts`. Vùng chết khi kẹp giờ → D-062.
+- POS / trang quản lý cùng origin qua proxy, `Access-Control-Expose-Headers` → D-050, D-091.
+- QR thiếu / thừa ở quầy → D-080. Combo, giá mở, món cân trên POS → D-107, D-113.
+- Danh sách lý do cố định trên POS → D-057.
+- Khôi phục backup × máy quầy → D-068, D-090. Làm lại nháp STALE ở `SellingModes` → D-089.
+- Giao diện: thanh toán dạng ngăn kéo hai thẻ, dòng giỏ gọn → D-073; lịch sử đơn dạng bảng → D-094; ảnh quán mẫu có nhãn hiệu → D-093.
+- Trang quản lý menu ngang → D-102, `e2e/backoffice/hostile-top-menu-layout.spec.ts`. Danh sách người duyệt + quyền do server quyết → D-057. Két chung một ca → D-061.
+- Role `fnb_owner` / `fnb_app` + default privileges cho FUNCTION (hai dòng 2026-10-20, đã gạch).
+- Bước CI `test:ops` → chạy trên CI (cài `postgresql-client-17`).

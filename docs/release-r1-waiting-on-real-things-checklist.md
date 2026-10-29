@@ -11,10 +11,10 @@
 | Bước CI tự đẩy bản lên server: staging tự động sau mỗi lần gộp `main`, production bấm tay có người duyệt | `pnpm release:pack` (tarball + checksum + manifest), `infra/release/install-release.sh` và `rollback-release.sh`, bước CI đóng gói + tải lên artifact 14 ngày; script chạy thử trên thư mục tạm với `systemctl`/`pnpm`/`curl` giả (`scripts/src/release/install-and-rollback-scripts.test.ts`, trong `pnpm verify`) | Server, tên miền, khóa SSH dùng riêng cho deploy (secret GitHub, không bao giờ vào repo), GitHub Environment `production` có người duyệt; viết job deploy (tải artifact, chép lên, chạy `install-release.sh`) rồi chạy thử trên staging | T11-05, D-124 |
 | Chạy thật `install-release.sh` / `rollback-release.sh` trên Ubuntu: user `fnb` + sudoers, systemd restart, `/health` thật, backup và migration thật, mất điện giữa chừng | Đã thử trên thư mục tạm với lệnh giả, và `pnpm install --frozen-lockfile --prod` + `next start` + nạp module API/scripts từ bản giải nén trên máy dev | Ba dòng sudoers mẫu trong `infra/README.md` mục 5 (dấu `;` có thể cần thoát), `/etc/fnb/backup.env`, cài bản đầu bằng `--no-start`, một lần cài bản mới và một lần quay lui thật; kiểm `mv -T` đổi `current` nguyên tử trên hệ tệp của server | T11-05, D-124 |
 | Staging có dữ liệu giả (gồm bộ dữ liệu xấu) | Quán mẫu của `pnpm dev:stack` | Dựng trên server staging, nạp dữ liệu mẫu | T11-03 |
-| Chạy thử runbook trên máy Ubuntu sạch: TLS thật, systemd unit, Caddy | Đã thử bố cục trên máy dev, HTTP, cổng động | Chạy đủ `infra/README.md` mục 2–11 trên server sạch | D-067 |
+| Chạy thử runbook trên máy Ubuntu sạch: TLS thật, systemd unit, Caddy | Đã thử bố cục trên máy dev, HTTP, cổng động | Chạy đủ `infra/README.md` mục 2–11 trên server sạch. Nếu dùng Postgres managed (RDS…): `ALTER DEFAULT PRIVILEGES FOR ROLE fnb_owner` cần tài khoản admin là thành viên `fnb_owner` — ghi vào runbook khi chọn | D-067 |
 | Cảnh báo khi backup không chạy + chép backup ra ngoài server | `pnpm ops:backup` / `ops:restore`, cron, diễn tập khôi phục | URL ping (dịch vụ theo dõi cron) và đích rclone do chủ dự án chọn | T11-02, D-067 |
 | Content-Security-Policy cho backoffice / POS | — | Next cần nonce cho script inline; thử trên domain thật | `infra/README.md` mục 14 |
-| `FNB_PAYMENT_SECRET_KEY` bắt buộc ở production | Preflight đang chỉ cảnh báo | Chốt khi có tài khoản ngân hàng thật | Backlog 2026-10-21 |
+| `FNB_PAYMENT_SECRET_KEY` bắt buộc ở production | Preflight đang chỉ cảnh báo | Chốt khi có tài khoản ngân hàng thật | chuyển từ Backlog 2026-10-21 |
 | Đánh số phiên bản thật cho bản phát hành đầu | Mã bản = version `apps/pos` + mã git ngắn; hiện ra `0.0.0+<sha>` | Đặt version (vd `1.0.0`) + tag git lúc cắt bản đầu cho quán thí điểm | D-123, D-124 |
 
 ## 2. Máy quầy thật (vỏ Windows / Android) + máy in
@@ -29,15 +29,15 @@
 | Combo in lỗi ở một trạm thì lần sau in lại ở mọi trạm | Chấp nhận trùng phiếu hơn mất món | Ghi "đã gửi" theo từng trạm khi có máy in thật | D-114 |
 | Cập nhật bản web: Caddy gửi `no-cache` cho `index.html` + `version.json` và `immutable` cho `assets/` ngoài đời thật; máy quầy thật đổi bản lúc yên | Bản web: máy quầy hỏi `version.json`, so khác (quay lui cũng tới), không đổi khi còn lệnh chưa gửi / đang thanh toán, thẻ "sau khi đóng ca" (D-123) | Kiểm bằng `curl -I` trên server thật, và một máy quầy thật qua một lần đổi bản + một lần quay lui; file `assets/` của bản cũ biến mất khi đổi bản (backlog) | T11-04, D-123 |
 | Cập nhật nóng bản web bên trong vỏ native, token thiết bị trong keychain | Chưa có (bản web chạy trong trình duyệt) | Cơ chế tải bundle của Tauri / Capacitor; ép phiên bản tối thiểu (backlog T11-04) | T11-04, T04-05 |
-| Cân điện tử | Ngăn nhập cân + nút "Đọc cân" (`weighing-scale.ts`) | Nối qua vỏ native | Backlog 2026-10-28 |
+| Cân điện tử | Ngăn nhập cân + nút "Đọc cân" (`weighing-scale.ts`) | Nối qua vỏ native | chuyển từ Backlog 2026-10-28 |
 
 ## 3. Tài khoản, sandbox, người thật
 
 | Việc | Chờ ai / cái gì | Task / quyết định |
 |---|---|---|
-| Hóa đơn điện tử: adapter thật, idempotency của nhà cung cấp | Sandbox nhà cung cấp HĐĐT | T00-10, T05-06 |
-| Hoàn tiền sau khi đã có hóa đơn | Kế toán | T00-05, T05-10 |
+| Hóa đơn điện tử: adapter thật, idempotency của nhà cung cấp. Kèm theo: adapter tôn trọng `ProviderCall.signal` và trả `lookup` theo id của mình; dòng có ĐVT (món theo cân: "kg"/"100 g", số lượng lẻ); `official_no` / `call_number` khi phát hành sau lúc trả (trigger hiện chỉ cho paid→posted); bán của ngày đã chốt đồng bộ muộn thì batch bổ sung tự động hay tay; ai sửa / đẩy lại hóa đơn `failed_permanent`, có chặn chốt ngày không; đơn 0 đ có xuất hóa đơn không | Sandbox nhà cung cấp HĐĐT | T00-10, T05-06 |
+| Hoàn tiền sau khi đã có hóa đơn (điều chỉnh hay chỉ ghi sổ, mặc định không làm gì); đóng ca có chuyển đơn đã trả sang `posted` không (hiện không, để không cản hoàn tiền) | Kế toán | T00-05, T05-10 |
 | QR ngân hàng chạy thật (webhook SePay / PayOS) | Tài khoản sandbox | T00-09 |
-| Ví MoMo / VNPay / ZaloPay | Tài khoản doanh nghiệp | Backlog 2026-10-22 |
+| Ví MoMo / VNPay / ZaloPay. Đã có lớp chung + ZaloPay chạy sandbox (D-098); còn hoàn tiền qua ví (bộ chuyển trả "chưa hỗ trợ"), báo cáo ngày tách tiền ví khỏi chuyển khoản QR (cả hai là `qr_transfer`), e2e trình duyệt cho luồng ví, `expire_duration_seconds=900` chưa thấy trong tài liệu chính thức | Tài khoản doanh nghiệp | D-098 |
 | Quán thí điểm: hồ sơ, phỏng vấn, chạy song song 3–5 ngày, go-live | Chủ dự án chọn quán | T00-01, T00-04, T05-13, T00-11 |
 | Dùng thử KiotViet FnB / CukCuk để so | Tài khoản dùng thử | T00-02, T00-03 |
