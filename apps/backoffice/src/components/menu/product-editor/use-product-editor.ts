@@ -118,7 +118,30 @@ export function useProductEditor(
     return true;
   }
 
+  /**
+   * Puts the archived product back on the menu. What the person typed meanwhile stays: only
+   * the version and the archived mark of the draft move on, so the next save is based on the
+   * product as it is now.
+   */
+  async function resume(): Promise<boolean> {
+    if (draft === null || draft.version === null) return false;
+    setBusy(true);
+    const result = await api.resumeProduct(draft.id, draft.version);
+    setBusy(false);
+    if (!result.ok) {
+      if (result.status === 409 && result.code === VERSION_CONFLICT) {
+        setNotice({ kind: "conflict", message: T.conflict });
+      } else {
+        fail(result);
+      }
+      return false;
+    }
+    setDraft((current) => (current === null ? current : { ...current, archivedAt: null, version: result.value.version }));
+    setNotice({ kind: "ok", message: T.resumed });
+    return true;
+  }
+
   const errors = { ...(attempted && check !== null && !check.ok ? check.errors : {}), ...refusal };
   const product = check?.ok === true ? check.product : null;
-  return { loaded, draft, errors, product, notice, busy, edit, save, archive, reload: load };
+  return { loaded, draft, errors, product, notice, busy, edit, save, archive, resume, reload: load };
 }

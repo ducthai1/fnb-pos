@@ -58,6 +58,17 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
     },
   },
   {
+    route: "POST /catalog/products/:id/unarchive",
+    status: 200,
+    prepare: async (shop) => {
+      const product = await savedProduct(shop);
+      await expectStatus(shop.call("POST", `${product.url}/archive`), 200);
+      const stored = (await expectStatus(shop.call("GET", product.url), 200)).json() as { version: number };
+      const request = { method: "POST", url: `${product.url}/unarchive`, payload: { version: stored.version } } as const;
+      return { request, effect: { method: "GET", url: product.url } };
+    },
+  },
+  {
     route: "PUT /catalog/price-lists/:id",
     status: 201,
     prepare: async (shop) => {

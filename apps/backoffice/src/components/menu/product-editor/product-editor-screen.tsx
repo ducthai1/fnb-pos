@@ -98,7 +98,16 @@ export function ProductEditorScreen({
                       void editor.save().then((saved) => saved && onSaved?.());
                     }}
                   >
-                    {draft.archivedAt !== null && <p className="bo-notice bo-notice--warn">{T.archived}</p>}
+                    {draft.archivedAt !== null && (
+                      <div className="bo-notice bo-notice--warn bo-row" role="status">
+                        <p className="bo-grow bo-wrap">{T.archived}</p>
+                        {draft.version !== null && (
+                          <button type="button" className="bo-button bo-button--primary" disabled={editor.busy} onClick={() => void editor.resume()}>
+                            {editor.busy ? T.resuming : T.resume}
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <ProductEditorForm
                       draft={draft}
                       errors={editor.errors}

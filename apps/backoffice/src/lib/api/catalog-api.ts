@@ -116,6 +116,8 @@ export interface CatalogApi {
   getProduct(id: string): Promise<ApiResult<ProductDocument>>;
   putProduct(id: string, body: ProductBody): Promise<ApiResult<ProductDocument>>;
   archiveProduct(id: string): Promise<ApiResult<true>>;
+  /** `POST /catalog/products/:id/unarchive` `{ version }`: the product sells again; answers its new version. */
+  resumeProduct(id: string, version: number): Promise<ApiResult<{ readonly version: number }>>;
   listSoldOut(branchId: string): Promise<ApiResult<SoldOut[]>>;
   setAvailable(input: { productId: string; branchId: string; available: boolean }): Promise<ApiResult<true>>;
 }
@@ -149,6 +151,13 @@ export function httpCatalogApi(base: string, fetchImpl: FetchLike): CatalogApi {
     async putProduct(id, body) {
       const answer = await requestJson(fetchImpl, url(`/products/${id}`), { method: "PUT", body });
       return resultOf(answer, readProductDocument);
+    },
+    async resumeProduct(id, version) {
+      const answer = await requestJson(fetchImpl, url(`/products/${id}/unarchive`), { method: "POST", body: { version } });
+      return resultOf(answer, (reply) => {
+        const next = isRecord(reply) && reply.archivedAt === null ? wholeNumberOf(reply, "version") : null;
+        return next === null ? null : { version: next };
+      });
     },
     async archiveProduct(id) {
       return resultOf(await requestJson(fetchImpl, url(`/products/${id}/archive`), { method: "POST" }), noContent);

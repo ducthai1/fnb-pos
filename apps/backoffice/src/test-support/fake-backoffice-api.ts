@@ -69,6 +69,7 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     getProduct: unexpected("getProduct"),
     putProduct: unexpected("putProduct"),
     archiveProduct: unexpected("archiveProduct"),
+    resumeProduct: unexpected("resumeProduct"),
     listSoldOut: unexpected("listSoldOut"),
     setAvailable: unexpected("setAvailable"),
     listShopTemplates: unexpected("listShopTemplates"),
