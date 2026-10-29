@@ -12,6 +12,7 @@ screens:
   - sale-done
   - sale-done-invoice
 decisions:
+  - D-130
   - D-041
   - D-047
   - D-049
@@ -73,13 +74,13 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 
 ### Mở ngăn thanh toán
 
-Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải (đóng thì trượt về, nhanh hơn lúc mở; máy bật giảm chuyển động thì tức thì), ghi số đơn và người bán, số **Cần thu** to ở trên, và hai thẻ: **Tiền mặt** và **Chuyển khoản QR**. Chi nhánh đã bật ví điện tử thì có thêm một thẻ cho mỗi ví (hiện có **ZaloPay**), đứng sau thẻ QR; không bật ví nào thì vẫn đúng hai thẻ. Mỗi lần chỉ chọn **một** cách.
+Ở màn bán (hoặc màn bàn), bấm **Thanh toán** hoặc phím **F9**. Ngăn **Thanh toán** trượt ra từ bên phải (đóng thì trượt về, nhanh hơn lúc mở; máy bật giảm chuyển động thì tức thì), ghi số đơn và người bán, số **Cần thu** thật to trong khối màu thương hiệu ở trên (số chín chữ số vẫn nằm gọn), và hai thẻ lớn: **Tiền mặt** và **Chuyển khoản QR** — chọn một, thẻ đang chọn có viền thương hiệu và dấu tích ở góc. Chi nhánh đã bật ví điện tử thì có thêm một thẻ cho mỗi ví (hiện có **ZaloPay**), đứng sau thẻ QR; không bật ví nào thì vẫn đúng hai thẻ. Mỗi lần chỉ chọn **một** cách.
 
 ![Ngăn thanh toán, chọn tiền mặt](../images/may-quay/payment.webp)
 
 ### Thu tiền mặt
 
-1. Chạm một nút số tiền gợi ý — số đúng bằng tiền cần thu, rồi các số làm tròn lên theo tờ tiền khách hay đưa (ví dụ đơn 177.000 đ: **177.000 · 180.000 · 200.000 · 500.000**). Hoặc gõ số tiền khách đưa vào ô **Số tiền khách đưa** (bằng bàn phím số trên màn hoặc bàn phím thật) rồi bấm **Thêm tiền mặt**.
+1. Chạm một nút số tiền gợi ý (nút cao, dễ bấm; nút đầu tiên — số đúng bằng tiền cần thu — được tô nổi) — số đúng bằng tiền cần thu, rồi các số làm tròn lên theo tờ tiền khách hay đưa (ví dụ đơn 177.000 đ: **177.000 · 180.000 · 200.000 · 500.000**). Hoặc gõ số tiền khách đưa vào ô **Số tiền khách đưa** (bằng bàn phím số trên màn hoặc bàn phím thật) rồi bấm **Thêm tiền mặt**.
 2. Khách trả làm nhiều lần (ví dụ đưa 100.000 rồi đưa thêm 100.000): thêm từng lần. Mỗi lần nhận hiện thành một dòng, có nút **Bỏ** để gỡ nếu nhập nhầm.
 3. Máy hiện **Còn lại** (khi chưa đủ) và **Tiền thừa** (khi đưa dư).
 4. Đủ tiền thì bấm **Hoàn tất thanh toán** hoặc **F9**.

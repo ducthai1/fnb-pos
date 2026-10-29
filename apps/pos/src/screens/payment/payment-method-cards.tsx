@@ -1,5 +1,5 @@
 import type { WalletKey } from "@fnb/contracts";
-import { Banknote, type LucideIcon, QrCode, Smartphone } from "lucide-react";
+import { Banknote, Check, type LucideIcon, QrCode, Smartphone } from "lucide-react";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 
@@ -50,8 +50,14 @@ export function PaymentMethodCards({
             if (chosen !== way) onChoose(way);
           }}
         >
-          <Icon of={glyph} size={32} />
+          <span className="pos-pay-way__glyph" aria-hidden="true">
+            <Icon of={glyph} size={30} />
+          </span>
           <span className="pos-pay-way__label">{label}</span>
+          {/* Drawn only on the chosen card: the choice is seen without relying on colour. */}
+          <span className="pos-pay-way__tick" aria-hidden="true">
+            <Icon of={Check} size={16} />
+          </span>
         </button>
       ))}
     </div>

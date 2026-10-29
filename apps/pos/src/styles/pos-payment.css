@@ -101,6 +101,8 @@
 
 .pos-balance__row[data-owed="true"] dd {
   color: var(--c-amber);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
 }
 
 /* What to hand back, read across the counter once there is some. */

@@ -1,59 +1,124 @@
 /* Inside the payment drawer: the amount due in big type, the two ways to pay as cards, and
    what the chosen way needs under them. */
 
-.pos-due--drawer strong {
-  font-size: var(--fs-4xl);
-  font-weight: var(--fw-bold);
+/* The sum to take is the first thing seen: a brand-coloured block, the number as large as a
+   nine-digit bill allows, with a soft ring of light in the corner. */
+.pos-due--drawer {
+  position: relative;
+  /* The drawer body is a column that scrolls: this block keeps its height, it never squeezes. */
+  flex: none;
+  overflow: hidden;
+  align-items: center;
+  padding: var(--sp-4) var(--sp-5);
+  background: linear-gradient(135deg, var(--c-brand), var(--c-brand-strong));
+  color: var(--c-on-brand);
+  box-shadow: var(--shadow-card);
 }
 
+.pos-due--drawer::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.12);
+  pointer-events: none;
+}
+
+.pos-due--drawer .pos-due__label {
+  position: relative;
+  color: inherit;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  opacity: 0.92;
+}
+
+.pos-due--drawer strong {
+  position: relative;
+  color: inherit;
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-heavy);
+  letter-spacing: -0.01em;
+}
+
+/* The two ways to pay, as big cards: one is chosen, and says so with a tick. */
 .pos-pay-ways {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 168px));
-  gap: var(--sp-2);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--sp-3);
 }
 
 .pos-pay-way {
+  position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   min-width: 0;
-  min-height: 96px;
+  min-height: 112px;
   padding: var(--sp-3) var(--sp-2);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-md);
+  border: 2px solid var(--c-border-soft);
+  border-radius: var(--r-lg);
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   cursor: pointer;
   touch-action: manipulation;
+  box-shadow: var(--shadow-card);
 }
 
-.pos-pay-way > .pos-icon {
+.pos-pay-way__glyph {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-2);
   color: var(--c-text-2);
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    color var(--t-state) var(--ease-out);
 }
 
 .pos-pay-way__label {
   max-width: 100%;
-  font-weight: var(--fw-medium);
-  line-height: 20px;
+  font-weight: var(--fw-semibold);
+  line-height: 22px;
   text-align: center;
   overflow-wrap: anywhere;
 }
 
-/* The chosen way: outlined in brand, the outline drawn twice as thick. */
+.pos-pay-way__tick {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  display: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
 .pos-pay-way[aria-pressed="true"] {
   border-color: var(--c-brand);
   background: var(--c-brand-soft);
-  box-shadow: inset 0 0 0 1px var(--c-brand);
   color: var(--c-brand-strong);
 }
 
-.pos-pay-way[aria-pressed="true"] > .pos-icon {
-  color: var(--c-brand);
+.pos-pay-way[aria-pressed="true"] .pos-pay-way__glyph {
+  background: var(--c-brand);
+  color: var(--c-on-brand);
+}
+
+.pos-pay-way[aria-pressed="true"] .pos-pay-way__tick {
+  display: grid;
 }
 
 .pos-pay-way:active:not(:disabled) {
