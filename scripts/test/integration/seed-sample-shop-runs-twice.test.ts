@@ -64,7 +64,7 @@ describe("the sample shop seed", () => {
       staff: 3,
       categories: 3,
       stations: 1,
-      products: 15,
+      products: 16,
       sold_out: 1,
       areas: 2,
       tables: 12,
@@ -87,6 +87,27 @@ describe("the sample shop seed", () => {
     expect(stored).toHaveLength(15);
     const files = await readdir(join(media, "product-images", first.tenantId));
     expect(files.sort()).toEqual(stored.map((row) => row.image_key).sort());
+  });
+
+  it("makes one combo of two drinks that a till can sell, from products and sizes the shop has", async () => {
+    // Another run on the same database: it makes nothing new and prints a code of its own, so
+    // the code the till test below pairs with is still unused.
+    const again = await seedSampleShop(app, pool, logins);
+    const till = await app.inject({ method: "POST", url: "/devices/pair", payload: { code: again.pairingCode.code, deviceName: "Quầy combo" } });
+    expect(till.statusCode).toBe(201);
+    const bootstrap = await app.inject({ method: "GET", url: "/pos/bootstrap", headers: { authorization: `Device ${till.json().deviceToken}` } });
+    type Product = { id: string; name: string; kind: string; basePrice: number; variants: { id: string; name: string }[]; combo: { slots: { name: string; minSelect: number; maxSelect: number; options: { productId: string; variantId: string; upcharge: number }[] }[] } | null };
+    const products = bootstrap.json().menu.products as Product[];
+    const combos = products.filter((product) => product.kind === "combo");
+    expect(combos.map((combo) => [combo.name, combo.basePrice])).toEqual([["Combo đôi", 69_000]]);
+    const slots = combos[0]?.combo?.slots ?? [];
+    expect(slots.map((slot) => [slot.name, slot.minSelect, slot.maxSelect, slot.options.length])).toEqual([["Trà sữa", 1, 1, 2], ["Trà trái cây", 1, 1, 2]]);
+    for (const option of slots.flatMap((slot) => slot.options)) {
+      const made = products.find((product) => product.id === option.productId);
+      expect(made?.kind).not.toBe("combo");
+      expect(made?.variants.some((size) => size.id === option.variantId)).toBe(true);
+    }
+    expect(slots[0]?.options.map((option) => option.upcharge)).toEqual([0, 10_000]);
   });
 
   it("hands out a new pairing code on every run", () => {
@@ -121,7 +142,7 @@ describe("the sample shop seed", () => {
     expect(body.menu.products.map((product: { name: string }) => product.name)).toContain(
       "Trà sữa trân châu",
     );
-    expect(body.menu.products).toHaveLength(15);
+    expect(body.menu.products).toHaveLength(16);
     expect(body.menu.availability).toHaveLength(1);
     expect(body.staff.map((member: { displayName: string }) => member.displayName).sort()).toEqual([
       "Hùng",

@@ -116,3 +116,35 @@ export const GROUP_OPTIONS: Readonly<Record<GroupKind, readonly (readonly [strin
     ["Kem muối", 7_000],
   ],
 };
+
+/** One part of the sample combo: which products a customer may pick for it, by name and size. */
+export interface SampleComboSlot {
+  readonly name: string;
+  readonly options: readonly { readonly product: string; readonly size: string; readonly upcharge: number }[];
+}
+
+/**
+ * Two drinks for one price, so the owner can tap a combo at the till: a pearl milk tea
+ * (size L for 10.000 more) and a fruit tea. Its price covers both at size M.
+ */
+export const SAMPLE_COMBO = {
+  name: "Combo đôi",
+  category: MILK_TEA,
+  basePrice: 69_000,
+  slots: [
+    {
+      name: "Trà sữa",
+      options: [
+        { product: "Trà sữa trân châu", size: "M", upcharge: 0 },
+        { product: "Trà sữa trân châu", size: "L", upcharge: 10_000 },
+      ],
+    },
+    {
+      name: "Trà trái cây",
+      options: [
+        { product: "Trà đào cam sả", size: "M", upcharge: 0 },
+        { product: "Trà vải", size: "M", upcharge: 0 },
+      ],
+    },
+  ],
+} as const satisfies { name: string; category: string; basePrice: number; slots: readonly SampleComboSlot[] };
