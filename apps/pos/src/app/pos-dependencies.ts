@@ -4,6 +4,7 @@ import type { PosApi } from "../features/api/pos-api";
 import type { BootstrapSource } from "../features/bootstrap/bootstrap-source";
 import type { FloorSource } from "../features/floor/floor-occupancy";
 import type { ClientErrorReporter } from "../features/client-errors/client-error-reporter";
+import type { UpdateSource } from "../features/updates/release-watch";
 import type { PrinterPort } from "../features/printing/printer-port";
 import type { BlockReason } from "../screens/blocked/blocked-screen";
 import type {
@@ -29,6 +30,8 @@ export interface PosDependencies {
   reload(): void;
   /** Where the till's own faults go; unset in tests that do not look at them. */
   readonly clientErrors?: ClientErrorReporter;
+  /** The release the server serves; unset when the till is not told of updates (tests, dev). */
+  readonly updates?: UpdateSource;
   /** The code of the pairing link the till was opened with, already out of the address bar. */
   linkedPairingCode?: string | null;
 }

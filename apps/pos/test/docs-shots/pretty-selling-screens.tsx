@@ -1,3 +1,4 @@
+import { UpdateBanner } from "../../src/screens/update/update-banner";
 import { posProductSchema } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
 import { buildVietQrPayload } from "@fnb/domain/payment";
@@ -197,6 +198,19 @@ const twoDrinks = posProductSchema.parse({
 export const SELLING_SCREENS = {
   "open-shift": () => <OpenShiftScreen header={tillBar()} onOpen={never} />,
   sale: () => saleScreen(),
+  // Not one of the layout test's screens at this width: the card that offers a new release.
+  "update-banner": () => (
+    <>
+      {saleScreen()}
+      <UpdateBanner
+        open
+        blockedBy={null}
+        pendingCommands={0}
+        updating={false}
+        onUpdate={() => {}}
+      />
+    </>
+  ),
   "sale-photos": () => saleScreen(),
   // Not one of the layout test's screens: the selling screen of a till that lost the network.
   "sale-offline": () => saleScreen({ connection: "offline", pending: 3, needsAttention: 1 }),

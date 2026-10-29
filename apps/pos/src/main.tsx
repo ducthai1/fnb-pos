@@ -10,6 +10,8 @@ import {
   installGlobalErrorCapture,
 } from "./features/client-errors/client-error-reporter";
 import { httpSendReports } from "./features/client-errors/client-error-sender";
+import { releaseUpdateSource } from "./features/updates/release-watch";
+import { RUNNING_RELEASE } from "./features/updates/running-release";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { API_BASE } from "./features/menu/api-base";
@@ -29,7 +31,7 @@ theTillTheme();
 const clientErrors = createClientErrorReporter({
   queue: new ClientErrorQueue(webReportStorage(window.localStorage), () => Date.now()),
   send: httpSendReports(API_BASE),
-  appVersion: import.meta.env.VITE_FNB_RELEASE_ID ?? "dev",
+  appVersion: RUNNING_RELEASE,
   now: () => Date.now(),
   route: () => window.location.pathname,
 });
@@ -56,6 +58,7 @@ const deps: PosDependencies = {
   printer: printerForBuild(import.meta.env.VITE_FNB_SIMULATED_PRINTER),
   reload: () => window.location.reload(),
   clientErrors,
+  updates: releaseUpdateSource(RUNNING_RELEASE, import.meta.env.BASE_URL),
   // Taken before the first render, whatever screen comes up: a till already paired ignores it.
   linkedPairingCode: takePairingCodeFromAddress(window.location, window.history),
 };

@@ -69,6 +69,7 @@ const TILL = [
   "close-shift-slip",
   "needs-attention",
   "sale-offline",
+  "update-banner",
 ];
 const PHONE = ["sale", "modifier-picker", "payment"];
 

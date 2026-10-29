@@ -468,7 +468,7 @@
 - **Trạng thái:** một phần (2026-10-20) — `pnpm dev:stack` có quán mẫu "Cà phê Mẫu"; staging cần server thật (chủ dự án).
 
 ### T11-04 Cập nhật app quầy: nóng, chặn giữa ca, quay lui
-- **Trạng thái:** todo.
+- **Trạng thái:** xong phần bản web (2026-10-29, D-123) — build đóng dấu mã bản + `version.json`; máy quầy hỏi `version.json`, bản KHÁC là có cập nhật (quay lui cũng tới máy); chính sách áp dụng là hàm thuần (`apps/pos/src/features/updates/update-policy.test.ts`), người hỏi (`release-watch.test.ts`), thẻ (`apps/pos/src/screens/update/update-banner.test.tsx`), hook + máy quầy (`apps/pos/src/app/{use-app-update,till-offers-updates}.test.tsx`), mã bản (`apps/pos/build-release.test.ts`). Quy tắc runbook: server luôn nhận lệnh bản POS ngay trước. Chưa: bản tối thiểu bắt buộc, vỏ native (xem Backlog).
 
 ### T11-05 Pipeline deploy (staging tự động, production bấm tay)
 - **Trạng thái:** một phần (2026-10-21) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); chưa có pipeline.
@@ -478,6 +478,10 @@
 ## Backlog phát sinh
 
 (Việc mới nảy ra trong lúc làm — ghi: ngày, mô tả, vì sao, gợi ý phase.)
+- 2026-10-29 · Ép phiên bản POS tối thiểu: server từ chối lệnh của bản quá cũ và máy quầy hiện màn bắt buộc cập nhật (hiện máy chỉ được mời cập nhật, không bị ép). Cần khi có thay đổi hợp đồng không tương thích ngược. → T11-04.
+- 2026-10-29 · Vỏ native (Tauri/Capacitor) cần đường cập nhật riêng (cập nhật gói web trong vỏ, hoặc cập nhật vỏ); bản web dùng `version.json` chưa áp dụng được. → T11-04 / phase vỏ máy quầy.
+- 2026-10-29 · Máy quầy đang mở từ bản cũ có thể tải lỗi một file `assets/` (chunk) mà bản mới đã xóa khỏi server; hiện màn sự cố cho tới khi tải lại. Cân nhắc giữ file `assets/` của bản trước thêm một bản. → T11-04.
+- 2026-10-29 · Thẻ cập nhật nằm góc dưới trái, đè một phần lưới món lúc ca mở; cho vuốt tắt / thu nhỏ nếu thu ngân thấy vướng. → T11-04.
 
 > Nhãn `[đợt 4]`, `[đợt 5]`, `[đợt 6]` từ 2026-10-29 trở đi theo kế hoạch 6 đợt tới R1 (Bàn giao 2026-10-28 12:05: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý"). Nhãn "đợt 3…10" trên các dòng 2026-10-20/21 là cách đánh số **cũ** của tuần đầu, không phải các đợt này.
 

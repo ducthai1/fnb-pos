@@ -35,7 +35,7 @@
 | FT-026 | Thông tin người mua khi khách yêu cầu | §18 | T05-08 | `e2e/pos/invoice-with-buyer-tax-code.spec.ts`, `apps/api/test/integration/einvoice/buyer-info-before-issue.test.ts` | xong |
 | FT-027 | Ngày kinh doanh + chốt ngày | §2, §17 | T02-10, T05-11 | `packages/domain/src/time/business-date.test.ts`, `apps/api/test/integration/day-close/end-of-day-close.test.ts`, `e2e/backoffice/settings-and-day-close.spec.ts` | xong |
 | FT-028 | Báo cáo cơ bản (định nghĩa doanh thu cố định) | §17 | T05-12 | `apps/api/test/integration/reports/revenue-definitions.test.ts` | xong |
-| FT-029 | Vận hành: giám sát, backup, staging, cập nhật app | — | T11-01…05 | `infra/restore-drill.md`, `pnpm test:ops`, `apps/api/test/integration/client-errors/clients-report-their-faults.test.ts` | đang — backup + diễn tập khôi phục xong; thu lỗi máy khách xong; staging, cập nhật app quầy, đóng gói + deploy chưa |
+| FT-029 | Vận hành: giám sát, backup, staging, cập nhật app | — | T11-01…05 | `infra/restore-drill.md`, `pnpm test:ops`, `apps/api/test/integration/client-errors/clients-report-their-faults.test.ts` | đang — backup + diễn tập khôi phục xong; thu lỗi máy khách xong; cập nhật bản web POS xong (`apps/pos/src/features/updates/update-policy.test.ts`, `apps/pos/src/app/use-app-update.test.tsx`); staging, vỏ native, đóng gói + deploy chưa |
 
 ## R2 — quán có bàn đầy đủ + kho
 

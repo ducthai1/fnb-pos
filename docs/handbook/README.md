@@ -29,6 +29,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 9. [Mất mạng và đồng bộ](may-quay/09-mat-mang-va-dong-bo.md)
 10. [Phiếu in](may-quay/10-phieu-in.md)
 11. [Màn hình sự cố](may-quay/11-man-hinh-su-co.md)
+12. [Cập nhật bản mới của máy quầy](may-quay/12-cap-nhat-ban-moi.md)
 
 ### Quản lý (trang quản lý trên trình duyệt)
 

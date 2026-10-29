@@ -34,7 +34,8 @@ quan.example.vn {
 	}
 
 	# POS: bản build tĩnh (vite build --base=/pos/). File trong assets/ có hash trong tên ⇒
-	# cache vĩnh viễn; index.html luôn hỏi lại để máy quầy thấy bản mới khi tải lại.
+	# cache vĩnh viễn; index.html và version.json (mã bản đang phát hành, máy quầy hỏi file
+	# này để biết có bản mới) luôn hỏi lại: mọi thứ ngoài assets/ là no-cache.
 	redir /pos /pos/ 308
 	handle_path /pos/* {
 		root * /srv/fnb/current/apps/pos/dist

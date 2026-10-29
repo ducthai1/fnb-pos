@@ -179,7 +179,9 @@ In từng dòng ĐẠT / CẢNH BÁO / KHÔNG ĐẠT, exit 1 nếu có mục kh�
 
 **Không cập nhật trong giờ bán.** Lúc API khởi động lại (vài giây) máy quầy vẫn bán offline và tự đẩy lệnh sau, nhưng:
 
-- POS mới chỉ tới máy quầy khi trang được tải lại. Tải lại giữa ca khi còn lệnh chưa đồng bộ, hoặc bản POS mới đổi dữ liệu cục bộ ⇒ có thể kẹt lệnh, lệch két. Việc "chặn cập nhật giữa ca / quay lui app quầy" chưa làm (T11-04).
+- Máy quầy tự phát hiện bản POS mới (hỏi `/pos/version.json` mỗi 5 phút, khi có mạng lại, khi trang hiện lại) và tự đổi vào lúc yên: không bao giờ khi còn lệnh chưa đồng bộ hay đang thanh toán; chưa mở ca thì tự đổi khi máy nhàn rỗi 20 giây; đang mở ca thì hiện thẻ "Có bản cập nhật — sẽ cập nhật sau khi đóng ca" kèm nút "Cập nhật ngay". Bản **khác** bản đang chạy là có cập nhật, nên quay lui một bản trên server cũng tới máy quầy theo đường này.
+- **Luật cho mọi bản phát hành: server phải nhận được lệnh của bản POS ngay trước đó** (mở rộng rồi mới thu hẹp, expand → contract): trong lúc máy quầy chưa kịp đổi bản, nó vẫn đẩy lệnh theo hợp đồng cũ. Đổi hợp đồng lệnh/đồng bộ thì làm hai bản liền nhau: bản 1 nhận cả cũ lẫn mới, bản 2 mới bỏ cái cũ.
+- Một bản POS đổi dữ liệu cục bộ (cơ sở dữ liệu trên máy) phải tự chuyển dữ liệu cũ khi mở; không có bước chuyển tay trên máy quầy.
 - Migration chạy trước khi đổi code: code cũ đang chạy phải chịu được schema mới trong khoảng đó.
 
 Các bước (sau khi quán chốt ngày, trước 04:00 hoặc giờ đóng cửa):
