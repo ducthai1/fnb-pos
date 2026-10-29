@@ -100,7 +100,8 @@ it("keeps the bar, every group's list and the drawer inside the screen with the 
       expect(await outsideOfScreen(page, `#${id}`, true), `${group} list at ${width}px`).toEqual({ outside: [], excess: 0 });
     }
     await page.getByRole("main").click({ position: { x: 4, y: 4 } });
-    expect(await nav.getByRole("list").filter({ visible: true }).count()).toBe(1);
+    // A closing list stays on screen for its short leaving movement, so wait for it to go.
+    await expect.poll(() => nav.getByRole("list").filter({ visible: true }).count()).toBe(1);
   }
 
   for (const width of [360, 800]) {
@@ -206,7 +207,8 @@ it("opens and closes a group's list with the keyboard and marks the page on scre
   await page.keyboard.press("Enter");
   await page.waitForURL("**/menu/categories");
   await expect.poll(() => menu.getAttribute("aria-current")).toBe("true");
-  expect(await nav.getByRole("list").filter({ visible: true }).count()).toBe(1);
+  // A closing list stays on screen for its short leaving movement, so wait for it to go.
+  await expect.poll(() => nav.getByRole("list").filter({ visible: true }).count()).toBe(1);
   await menu.click();
   expect(await nav.getByRole("link", { name: T.nav.categories }).getAttribute("aria-current")).toBe("page");
 
