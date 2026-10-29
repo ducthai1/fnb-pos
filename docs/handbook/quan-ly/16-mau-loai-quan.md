@@ -48,6 +48,7 @@ Cần **cả hai** quyền **Sửa menu** (vì mẫu thêm danh mục và trạm
 - **Công tắc** mẫu chỉ đặt khi chi nhánh **chưa ai đặt** (ở thương hiệu hay chi nhánh) và giá trị hiện tại khác điều mẫu muốn. Đã có người đặt (kể cả đặt giống mẫu) thì giữ nguyên. Mẫu đặt ở **tầng chi nhánh**, không đụng các chi nhánh khác.
 - Mẫu cũng **không đặt** công tắc nào mà làm các công tắc vi phạm ràng buộc (ví dụ **Ra món theo lượt** cần **Quản lý bàn** — bạn đã tắt bàn thì mẫu quán ăn để nguyên Ra món theo lượt). Các công tắc đó hiện ở **Giữ nguyên**.
 - Mẫu chỉ có các thứ hệ thống **đang có chỗ chứa**: danh mục, trạm, công tắc. Mẫu **không** thêm món, giá, nhóm tùy chọn, **giờ cắt ngày kinh doanh**, máy in, tồn kho hay công tắc **Giá theo khung giờ** (xem [Bảng giá](14-bang-gia.md) để đặt giờ vàng).
+- Một số công tắc mẫu đặt **chưa có tác dụng ở máy quầy** (xem bảng ở [Cài đặt](09-cai-dat.md)): giá trị được lưu và gửi xuống máy, máy quầy làm theo khi tính năng đó có. Danh mục và trạm thì dùng được ngay.
 - Áp mẫu cho chi nhánh có **bảng giá, món hay đơn** sẵn không làm đổi chúng.
 - Hai người bấm áp cùng lúc vẫn chỉ thêm mỗi mục một lần.
 
