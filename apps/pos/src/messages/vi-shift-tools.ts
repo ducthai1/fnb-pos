@@ -7,6 +7,8 @@ export const VI_CASH = {
   in: "Thu vào két",
   out: "Chi ra khỏi két",
   amount: "Số tiền (đồng)",
+  kindTitle: "Thu hay chi",
+  amountTitle: "Số tiền và lý do",
   reason: "Lý do",
   reasonHint: "Ví dụ: đổi tiền lẻ, trả tiền đá",
   unreadable: "Số tiền chỉ gồm chữ số, lớn hơn 0.",
@@ -22,6 +24,8 @@ export const VI_CLOSE_SHIFT = {
   open: "Đóng ca",
   title: "Đóng ca",
   hint: "Đếm tiền trong két theo từng mệnh giá: mỗi lần chạm thêm một tờ.",
+  countTitle: "Tiền đếm trong két",
+  figuresTitle: "Sổ tiền mặt của ca",
   figures: {
     opening: "Tiền đầu ca",
     sales: "Thu tiền mặt",

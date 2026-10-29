@@ -6,11 +6,13 @@ audience:
 screens:
   - open-shift
 decisions:
+  - D-129
   - D-013
   - D-041
   - D-061
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
+  - apps/pos/src/screens/shift/shift-screens.test.tsx
   - apps/pos/src/features/shift/shift-cash.test.ts
   - apps/api/test/integration/shift/late-offline-order-keeps-its-shift.test.ts
   - apps/api/test/integration/shift/open-orders-carry-to-next-shift.test.ts
@@ -30,7 +32,7 @@ Bất kỳ nhân viên nào đã đăng nhập trên máy. Mở ca không cần 
 ## Các bước
 
 1. Đăng nhập bằng PIN (xem [01-ghep-may-va-dang-nhap.md](01-ghep-may-va-dang-nhap.md)). Nếu máy chưa có ca đang mở, máy hiện màn **Mở ca**.
-2. Đếm tiền trong két theo từng mệnh giá: **mỗi lần chạm vào một mệnh giá là thêm một tờ**. Chạm nút **−** cạnh mệnh giá để bớt một tờ nếu chạm thừa. Bấm **Đếm lại** để xóa hết và đếm từ đầu.
+2. Màn Mở ca là một thẻ **Tiền đầu ca trong két** nằm giữa màn hình. Đếm tiền theo từng mệnh giá (mỗi mệnh giá một hàng mang màu của tờ tiền, nút to dễ chạm; hàng nào đã có tờ thì sáng lên để thấy mình đã đếm): **mỗi lần chạm vào một mệnh giá là thêm một tờ**. Chạm nút **−** cạnh mệnh giá để bớt một tờ nếu chạm thừa. Bấm **Đếm lại** để xóa hết và đếm từ đầu.
 3. Dòng **Tiền đầu ca** cộng sẵn tổng số tiền. Kiểm lại rồi bấm **Mở ca**.
 
    ![Mở ca: 2 tờ 200.000 và 1 tờ 100.000 = 500.000 đ](../images/may-quay/open-shift.webp)

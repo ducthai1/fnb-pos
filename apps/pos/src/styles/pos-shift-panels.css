@@ -1,0 +1,220 @@
+/* The drawer's screens (opening and closing a shift, cash in and out): titled cards with a
+   round sign, laid two side by side on a till and one under the other below 1100px, the
+   notes drawn as notes and a count that lights up once something is counted. Tokens only. */
+
+.pos-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--sp-5);
+  overflow: hidden;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+  animation: pos-rise var(--t-enter) var(--ease-out) backwards;
+}
+
+.pos-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--c-brand), var(--c-info));
+}
+
+.pos-panel__head {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+
+.pos-panel__mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
+
+.pos-panel__mark[data-tone="danger"] {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.pos-panel__heading {
+  min-width: 0;
+}
+
+.pos-panel__title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  overflow-wrap: anywhere;
+}
+
+.pos-panel__heading .pos-hint {
+  margin: var(--sp-1) 0 0;
+}
+
+.pos-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.pos-split__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+@media (min-width: 1100px) {
+  .pos-split {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  /* The figures stay in view while the notes are counted. */
+  .pos-split__side {
+    position: sticky;
+    top: var(--sp-4);
+  }
+}
+
+/* A single panel (opening a shift) keeps a readable width in the middle. */
+.pos-screen__inner--split > .pos-panel {
+  justify-self: center;
+  width: 100%;
+  max-width: 720px;
+}
+
+/* One note per row, drawn like the note: its colour on the add button, the count big, and the
+   whole row warmed once a note of it was counted. */
+.pos-note-row {
+  grid-template-columns: minmax(0, 1fr) 3ch var(--tap-lg);
+  padding: var(--sp-2);
+  border-left-width: 8px;
+  transition:
+    background-color var(--t-state) var(--ease-out),
+    border-color var(--t-state) var(--ease-out),
+    box-shadow var(--t-state) var(--ease-out);
+}
+
+.pos-note-row[data-filled] {
+  border-color: var(--cat, var(--c-brand));
+  background: var(--cat-soft, var(--c-brand-soft));
+  box-shadow: var(--shadow-card);
+}
+
+.pos-note-row .pos-note-row__add {
+  min-height: var(--tap-lg);
+  padding-inline: var(--sp-3);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+  transition:
+    transform var(--t-tap) var(--ease-spring),
+    background-color var(--t-state) var(--ease-out);
+}
+
+.pos-note-row .pos-note-row__add:active:not(:disabled) {
+  transform: scale(var(--tap-scale));
+}
+
+.pos-note-row[data-filled] .pos-note-row__add {
+  background: var(--c-surface);
+}
+
+.pos-note-row .pos-button:not(.pos-note-row__add) {
+  min-width: var(--tap-lg);
+  min-height: var(--tap-lg);
+  padding: 0;
+  border-radius: var(--r-md);
+}
+
+.pos-note-row__count {
+  color: var(--c-text-3);
+  font-size: var(--fs-2xl);
+}
+
+.pos-note-row[data-filled] .pos-note-row__count {
+  color: var(--c-text);
+}
+
+/* The sum under the buttons is a tile of its own: the sentence, large, on a tinted ground. */
+.pos-dock .pos-total {
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  text-align: center;
+}
+
+.pos-dock .pos-total[data-difference-sign="-1"] {
+  background: var(--c-danger-soft);
+}
+
+.pos-dock .pos-total[data-difference-sign="1"] {
+  background: var(--c-amber-soft);
+}
+
+.pos-dock .pos-total[data-difference-sign="0"] {
+  background: var(--c-success-soft);
+}
+
+.pos-dock .pos-actions .pos-button {
+  min-height: var(--tap-lg);
+  font-size: var(--fs-lg);
+}
+
+/* Cash in or out: two big halves, each with its own sign, the chosen one filled. */
+.pos-segmented--kind {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+}
+
+.pos-segmented--kind .pos-tab {
+  min-height: var(--tap-lg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  gap: var(--sp-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+
+.pos-segmented--kind .pos-tab[data-kind="in"][aria-pressed="true"] {
+  border-color: var(--c-success);
+  background: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.pos-segmented--kind .pos-tab[data-kind="out"][aria-pressed="true"] {
+  border-color: var(--c-danger);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.pos-input--amount {
+  min-height: 64px;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+@media (max-width: 480px) {
+  .pos-panel {
+    padding: var(--sp-4);
+  }
+}

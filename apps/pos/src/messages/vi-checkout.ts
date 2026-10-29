@@ -3,6 +3,7 @@
 export const VI_CHECKOUT = {
   openShift: {
     title: "Mở ca",
+    countTitle: "Tiền đầu ca trong két",
     hint: "Đếm tiền đầu ca trong két: mỗi lần chạm thêm một tờ. Két trống thì mở ca luôn.",
     addNote: (note: string) => `+ ${note}`,
     noteCount: (note: string) => `Số tờ ${note}`,

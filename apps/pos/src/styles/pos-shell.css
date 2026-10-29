@@ -9,6 +9,12 @@
 
 /* The selling, table and list screens use the till's whole width, however wide: more
    products, tables and orders per row, never a block stuck to one side. */
+/* A form with two things side by side on a till (the count and its figures, the amount and
+   its keys); one column again below 1100px. */
+.pos-screen__inner--split {
+  --frame-max: 1080px;
+}
+
 .pos-screen__inner--wide {
   --frame-max: 100%;
 }

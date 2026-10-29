@@ -1,9 +1,12 @@
 import { type Vnd, formatVnd } from "@fnb/domain";
+import { ArrowDownToLine, ArrowUpFromLine, Banknote, Wallet } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { typedAmount } from "../../features/payment/cash-suggestions";
 import { vi } from "../../messages/vi";
 import { CashKeypad } from "../payment/cash-keypad";
+import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
+import { ShiftPanel } from "./shift-panel";
 
 const C = vi.cash;
 /** The contract's own limit on a reason. */
@@ -32,6 +35,7 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
   return (
     <ScreenFrame
       title={C.title}
+      width="split"
       dock={
         <>
           {valid ? (
@@ -72,40 +76,50 @@ export function CashMoveScreen(props: CashMoveScreenProps) {
           {props.notice}
         </p>
       ) : null}
-      <div className="pos-tabs pos-segmented" role="group" aria-label={C.title}>
-        {(["in", "out"] as const).map((each) => (
-          <button
-            key={each}
-            type="button"
-            className="pos-button pos-tab"
-            aria-pressed={kind === each}
-            onClick={() => setKind(each)}
-          >
-            {each === "in" ? C.in : C.out}
-          </button>
-        ))}
+      <div className="pos-split">
+        <ShiftPanel icon={Wallet} title={C.kindTitle}>
+          <div className="pos-segmented pos-segmented--kind" role="group" aria-label={C.title}>
+            {(["in", "out"] as const).map((each) => (
+              <button
+                key={each}
+                type="button"
+                className="pos-button pos-tab"
+                data-kind={each}
+                aria-pressed={kind === each}
+                onClick={() => setKind(each)}
+              >
+                <Icon of={each === "in" ? ArrowDownToLine : ArrowUpFromLine} size={22} />
+                {each === "in" ? C.in : C.out}
+              </button>
+            ))}
+          </div>
+          <label className="pos-field">
+            <span className="pos-field__label">{C.reason}</span>
+            <textarea
+              className="pos-input pos-note"
+              placeholder={C.reasonHint}
+              maxLength={MAX_REASON}
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </label>
+        </ShiftPanel>
+        <div className="pos-split__side">
+          <ShiftPanel icon={Banknote} title={C.amountTitle}>
+            <label className="pos-field">
+              <span className="pos-field__label">{C.amount}</span>
+              <input
+                className="pos-input pos-input--amount"
+                inputMode="numeric"
+                value={typed}
+                onChange={(event) => setTyped(event.target.value)}
+              />
+            </label>
+            <CashKeypad typed={typed} onChange={setTyped} />
+            {typed !== "" && !valid ? <Alert message={C.unreadable} /> : null}
+          </ShiftPanel>
+        </div>
       </div>
-      <label className="pos-field">
-        <span className="pos-field__label">{C.amount}</span>
-        <input
-          className="pos-input"
-          inputMode="numeric"
-          value={typed}
-          onChange={(event) => setTyped(event.target.value)}
-        />
-      </label>
-      <CashKeypad typed={typed} onChange={setTyped} />
-      {typed !== "" && !valid ? <Alert message={C.unreadable} /> : null}
-      <label className="pos-field">
-        <span className="pos-field__label">{C.reason}</span>
-        <textarea
-          className="pos-input pos-note"
-          placeholder={C.reasonHint}
-          maxLength={MAX_REASON}
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-        />
-      </label>
     </ScreenFrame>
   );
 }

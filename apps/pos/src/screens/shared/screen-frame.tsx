@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 
 /** How wide the content may grow; the till's bar always runs the whole width. */
-export type ScreenWidth = "narrow" | "normal" | "wide";
+export type ScreenWidth = "narrow" | "normal" | "split" | "wide";
 
 const WIDTH_CLASS: Readonly<Record<ScreenWidth, string>> = {
   narrow: "pos-screen__inner pos-screen__inner--narrow",
   normal: "pos-screen__inner",
+  split: "pos-screen__inner pos-screen__inner--split",
   wide: "pos-screen__inner pos-screen__inner--wide",
 };
 

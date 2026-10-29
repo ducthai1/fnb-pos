@@ -52,21 +52,56 @@
   gap: 0.5rem;
 }
 
+/* A list of figures: label at the start, amount at the end, a hairline between rows. The rows
+   that matter (what the drawer should hold, what was counted, the difference) are heavier. */
 .pos-figures {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.25rem 1rem;
+  display: flex;
+  flex-direction: column;
   margin: 0;
+}
+
+.pos-figures__row {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.pos-figures__row:last-child {
+  border-bottom: 0;
+}
+
+.pos-figures dt {
+  min-width: 0;
+  color: var(--c-text-2);
+  overflow-wrap: anywhere;
 }
 
 .pos-figures dd {
   margin: 0;
   text-align: end;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-.pos-figures__strong {
-  font-weight: 700;
+.pos-figures__row[data-strong] dt,
+.pos-figures__row[data-strong] dd {
+  color: var(--c-text);
+  font-weight: var(--fw-bold);
+}
+
+.pos-figures__row[data-sign="-1"] dd {
+  color: var(--c-danger);
+}
+
+.pos-figures__row[data-sign="1"] dd {
+  color: var(--c-amber);
+}
+
+.pos-figures__row[data-sign="0"] dd {
+  color: var(--c-success);
 }
 
 /* The filters and the search on one row on a till, the day's orders two by two. */

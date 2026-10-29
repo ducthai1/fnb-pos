@@ -5,6 +5,7 @@ import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { NoteCounter, useNoteCount } from "../shift/note-counter";
+import { ShiftPanel } from "../shift/shift-panel";
 
 const T = vi.checkout.openShift;
 
@@ -37,6 +38,7 @@ export function OpenShiftScreen({ header, onOpen }: OpenShiftScreenProps) {
   return (
     <ScreenFrame
       title={T.title}
+      width="split"
       dock={
         <>
           <p className="pos-total" aria-live="polite">
@@ -62,8 +64,9 @@ export function OpenShiftScreen({ header, onOpen }: OpenShiftScreenProps) {
       }
     >
       {header}
-      <p className="pos-hint">{T.hint}</p>
-      <NoteCounter counts={notes.counts} onChange={notes.change} />
+      <ShiftPanel icon={Banknote} title={T.countTitle} hint={T.hint}>
+        <NoteCounter counts={notes.counts} onChange={notes.change} />
+      </ShiftPanel>
     </ScreenFrame>
   );
 }

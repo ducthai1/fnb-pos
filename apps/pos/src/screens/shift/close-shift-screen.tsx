@@ -9,10 +9,12 @@ import {
   formatVnd,
   negateVnd,
 } from "@fnb/domain";
+import { Banknote, Scale } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
 import { NoteCounter, useNoteCount } from "./note-counter";
+import { ShiftPanel } from "./shift-panel";
 
 const T = vi.closeShift;
 const F = T.figures;
@@ -59,6 +61,7 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
   return (
     <ScreenFrame
       title={T.title}
+      width="split"
       dock={
         <>
           <p
@@ -93,23 +96,32 @@ export function CloseShiftScreen(props: CloseShiftScreenProps) {
     >
       {props.header}
       <Alert message={props.notice} />
-      <p className="pos-hint">{T.hint}</p>
-      <NoteCounter counts={notes.counts} onChange={notes.change} />
-      <dl className="pos-figures pos-card">
-        {rows.map(([label, amount, key]) => (
-          <div key={label} style={{ display: "contents" }}>
-            <dt className={key === undefined ? undefined : "pos-figures__strong"}>{label}</dt>
-            <dd
-              className={key === undefined ? undefined : "pos-figures__strong"}
-              {...(key === undefined ? {} : { [`data-${key}`]: String(amount) })}
-            >
-              {formatVnd(amount)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      {assessment.needsAcceptance ? <p className="pos-hint">{T.needsApproval}</p> : null}
-      <p className="pos-hint">{T.estimateNote}</p>
+      <div className="pos-split">
+        <ShiftPanel icon={Banknote} title={T.countTitle} hint={T.hint}>
+          <NoteCounter counts={notes.counts} onChange={notes.change} />
+        </ShiftPanel>
+        <div className="pos-split__side">
+          <ShiftPanel icon={Scale} title={T.figuresTitle}>
+            <dl className="pos-figures">
+              {rows.map(([label, amount, key]) => (
+                <div
+                  key={label}
+                  className="pos-figures__row"
+                  data-strong={key === undefined ? undefined : ""}
+                  data-sign={key === "difference" ? compareVnd(amount, ZERO_VND) : undefined}
+                >
+                  <dt>{label}</dt>
+                  <dd {...(key === undefined ? {} : { [`data-${key}`]: String(amount) })}>
+                    {formatVnd(amount)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {assessment.needsAcceptance ? <p className="pos-hint">{T.needsApproval}</p> : null}
+            <p className="pos-hint">{T.estimateNote}</p>
+          </ShiftPanel>
+        </div>
+      </div>
     </ScreenFrame>
   );
 }
