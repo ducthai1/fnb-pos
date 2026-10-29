@@ -11,6 +11,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=release-common.sh
 . "${HERE}/release-common.sh"
+hold_release_lock
 
 FORCE=0
 TARGET=""

@@ -39,8 +39,15 @@ beforeEach(() => {
 });
 afterEach(() => rmSync(dirname(base), { recursive: true, force: true }));
 
-function run(script: string, args: string[], extraEnv: Record<string, string> = {}) {
-  const result = spawnSync("bash", [join(SCRIPTS, script), ...args], {
+/** `launcher` goes in front of the script, e.g. a `flock` that holds the release lock. */
+function run(
+  script: string,
+  args: string[],
+  extraEnv: Record<string, string> = {},
+  launcher: string[] = [],
+) {
+  const command = [...launcher, "bash", join(SCRIPTS, script), ...args];
+  const result = spawnSync(command[0]!, command.slice(1), {
     encoding: "utf8",
     env: {
       ...process.env,
@@ -150,6 +157,10 @@ describe("installing a release", () => {
     expect(result.out).toContain("also has: 0002_b.sql");
     expect(live()).toBe("1.0.0+aaa");
     expect(calls().filter((line) => line.startsWith("systemctl"))).toHaveLength(2);
+    // Set aside, so a later rollback with no id cannot land on the release that just failed.
+    expect(releases().filter((name) => !name.startsWith("."))).toEqual(["1.0.0+aaa"]);
+    expect(releases().some((name) => name.startsWith(".failed-1.1.0+bbb-"))).toBe(true);
+    expect(run("rollback-release.sh", []).err).toContain("no other release to go back to");
   });
 
   it("keeps the newest five releases, and never the live or the previous one out of them", async () => {
@@ -212,6 +223,15 @@ describe("rolling back", () => {
     expect(run("rollback-release.sh", ["1.1.0+bbb"]).err).toContain("already the running release");
     expect(run("rollback-release.sh", ["1.0.0+aaa"]).status).toBe(0);
     expect(live()).toBe("1.0.0+aaa");
+  });
+
+  it("will not run while another install or rollback holds the release lock", async () => {
+    await twoReleases(["0001_a.sql"]);
+    const result = run("rollback-release.sh", [], {}, ["flock", join(base, ".release.lock")]);
+    expect(result.status).toBe(1);
+    expect(result.err).toContain("another install or rollback is running");
+    expect(live()).toBe("1.1.0+bbb");
+    expect(calls()).toEqual([]);
   });
 
   it("fails when the release it went back to does not answer /health", async () => {

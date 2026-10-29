@@ -26,6 +26,14 @@ FNB_CURRENT_LINK="${FNB_BASE_DIR}/current"
 log() { printf '%s\n' "$*"; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
+# One install or rollback at a time: two at once would race on `current` and on which
+# release counts as the previous one. Held until the script exits.
+hold_release_lock() {
+  mkdir -p "${FNB_BASE_DIR}"
+  exec 9>"${FNB_BASE_DIR}/.release.lock"
+  flock -n 9 || die "another install or rollback is running (${FNB_BASE_DIR}/.release.lock)"
+}
+
 # The release `current` points at, as a directory name; empty when there is none yet.
 current_release() {
   if [ -L "${FNB_CURRENT_LINK}" ]; then
@@ -70,8 +78,9 @@ migrations_of() {
   LC_ALL=C sort "${FNB_RELEASES_DIR}/$1/migrations.txt"
 }
 
-# Release directories, newest first, leaving out the half-extracted ones.
+# Release directories, newest first. `ls` without -a leaves out the dot-named ones: a
+# half-extracted .incoming.* and a .failed-* release that never answered /health.
 releases_newest_first() {
   # shellcheck disable=SC2012 # names are release ids: no newlines
-  ls -1t "${FNB_RELEASES_DIR}" 2>/dev/null | grep -v '^\.incoming' || true
+  ls -1t "${FNB_RELEASES_DIR}" 2>/dev/null || true
 }

@@ -19,6 +19,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=release-common.sh
 . "${HERE}/release-common.sh"
+hold_release_lock
 
 FNB_KEEP_RELEASES="${FNB_KEEP_RELEASES:-5}"
 # The backup runs as the backup user from the release that is live now; the migrations run
@@ -87,6 +88,11 @@ if ! wait_healthy; then
       ADDED="$(comm -23 <(migrations_of "${RELEASE}") <(migrations_of "${PREVIOUS}") | tr '\n' ' ')"
       [ -z "${ADDED}" ] || log "note: ${PREVIOUS} now runs on a database that also has: ${ADDED}"
     fi
+    # Out of the release list, so a later rollback with no id never picks the release that
+    # just failed; kept on disk for its logs and files.
+    FAILED="${FNB_RELEASES_DIR}/.failed-${RELEASE}-$(date +%Y%m%d%H%M%S)"
+    mv "${DIR}" "${FAILED}"
+    log "the failed release is kept at ${FAILED}; delete it once looked at"
     die "switched back to ${PREVIOUS}"
   fi
   die "there is no previous release to go back to"

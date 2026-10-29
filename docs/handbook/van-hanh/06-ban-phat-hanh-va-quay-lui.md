@@ -36,6 +36,8 @@ Người vận hành đăng nhập server bằng user `fnb` (chủ thư mục `/
 - Thoát mã **1** nghĩa là việc cài không thành; script nói lý do ở dòng cuối và `current` vẫn là bản chạy được: checksum sai (không giải nén gì), cài phụ thuộc lỗi, backup lỗi, migration lỗi (bản cũ vẫn đang chạy), hoặc bản mới không trả lời `/health` sau 15 lần × 2 giây (script tự đổi về bản trước và khởi động lại).
 - Backup chạy **trước** migration và migration chạy **trước** khi đổi bản; không có backup thì không cài.
 - Bản mới đã chạy migration mà không khởi động được: migration vẫn nằm trong database, script nói tên. Bản trước vẫn chạy trên database mới hơn, nên bản phát hành sau phải tương thích ngược (mở rộng rồi mới thu hẹp).
+- Bản mới không trả lời `/health` thì bị **gạt sang** `releases/.failed-<mã bản>-<giờ>` (giữ lại để xem, xóa tay khi xong): quay lui không ghi mã bản sẽ không bao giờ rơi vào bản vừa hỏng.
+- Mỗi lúc chỉ **một** lần cài hoặc quay lui: script giữ khóa `/srv/fnb/.release.lock`, lần thứ hai dừng ngay, không đổi gì.
 - Giữ **5** bản mới nhất trong `/srv/fnb/releases`; không bao giờ xóa bản đang chạy hay bản ngay trước nó.
 - **Quay lui bị từ chối** khi bản đang chạy đã thêm migration mà bản đích chưa có (hoặc một bên không có `migrations.txt`): in "REFUSED", tên các migration và ba cách xử lý (sửa tiến bằng bản vá; khôi phục backup chụp trước khi cài, vào database mới, mất đơn bán sau đó; hoặc `--after-migration-i-understand` khi chắc code cũ bỏ qua được migration). Mọi lần quay lui đều hỏi lại `/health`.
 - Máy quầy đổi theo bản đang phát hành, kể cả bản quay lui, vào lúc yên (xem [Cập nhật bản mới của máy quầy](../may-quay/12-cap-nhat-ban-moi.md)).
@@ -53,10 +55,10 @@ Người vận hành đăng nhập server bằng user `fnb` (chủ thư mục `/
 | "switched back to <bản cũ>" | Bản mới không trả lời `/health`: xem `journalctl -u fnb-api -n 50` của bản mới rồi báo lập trình viên |
 | "REFUSED: <bản> added migrations that <bản đích> does not have: …" | Làm theo ba cách in kèm; mặc định chọn sửa tiến |
 | "release … is the one running now" | Bản đó đang chạy rồi; muốn cài lại, cài một bản khác trước |
+| "another install or rollback is running (…/.release.lock)" | Có người đang cài hoặc quay lui: chờ lần đó xong rồi chạy lại |
 
 ## Chưa làm / sắp có
 
 - Chưa có bước CI tự đẩy bản lên server (staging tự động, production có người duyệt): cần server, khóa SSH và môi trường duyệt do chủ dự án cấp — xem `docs/release-r1-waiting-on-real-things-checklist.md`.
 - Script chưa chạy thử trên Ubuntu thật với systemd, sudoers và `/health` thật; mới chạy trên thư mục tạm với lệnh giả.
 - Chưa tự khôi phục database khi quay lui sau migration; việc đó làm tay theo `restore-drill.md`.
-- Chưa có khóa chống hai người chạy script cùng lúc.
