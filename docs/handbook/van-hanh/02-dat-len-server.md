@@ -6,6 +6,7 @@ decisions:
   - D-055
   - D-067
   - D-123
+  - D-124
 tests:
   - apps/api/src/server/server-config.test.ts
   - apps/api/src/ops/preflight-checks.test.ts
@@ -15,6 +16,7 @@ tests:
   - apps/api/test/integration/infra/provision-database-runs-twice.test.ts
   - apps/pos/src/features/updates/update-policy.test.ts
   - apps/pos/src/features/updates/release-watch.test.ts
+  - scripts/src/release/install-and-rollback-scripts.test.ts
 ---
 
 # Đặt hệ thống lên server cho quán
@@ -57,8 +59,8 @@ Một địa chỉ duy nhất (ví dụ `https://quan.example.vn`) cho cả tran
 ### Cập nhật phiên bản
 
 1. **Không cập nhật trong giờ bán** — làm sau khi chốt ngày.
-2. Backup tay → build bản mới vào thư mục riêng → `pnpm db:provision` (migration) → đổi symlink `current` → khởi động lại hai dịch vụ → `pnpm ops:preflight` → bán thử một đơn.
-3. Giữ 2–3 bản cũ để quay lui. Quay lui chỉ an toàn khi bản mới **không có migration**. Máy quầy tự nhận bản mới (hoặc bản quay lui) lúc yên, không cần đi từng máy.
+2. `install-release.sh fnb-<mã bản>.tar.gz` làm cả chuỗi: kiểm checksum → backup → migration → đổi `current` → khởi động lại → kiểm `/health` (hỏng thì tự về bản trước); xem [Bản phát hành](06-ban-phat-hanh-va-quay-lui.md). Rồi `pnpm ops:preflight` → bán thử một đơn.
+3. Script giữ 5 bản mới nhất. `rollback-release.sh` quay lui và **từ chối** khi bản đang chạy đã thêm migration (cách xử lý in kèm). Máy quầy tự nhận bản mới (hoặc bản quay lui) lúc yên, không cần đi từng máy.
 
 ## Luật và giới hạn
 

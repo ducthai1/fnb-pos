@@ -12,7 +12,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 | **Quản lý** (quản lý ca, cửa hàng trưởng) | [Đăng nhập và chi nhánh](quan-ly/01-dang-nhap-va-chi-nhanh.md) · [Thực đơn](quan-ly/03-thuc-don.md) · [Chốt ngày](quan-ly/11-chot-ngay.md) · [Khớp chuyển khoản](quan-ly/12-khop-chuyen-khoan-va-hoan-tien-qr.md) | [Thu chi và đóng ca](may-quay/07-thu-chi-va-dong-ca.md) · [Hủy, giảm, hoàn và duyệt](may-quay/06-huy-giam-hoan-va-duyet.md) |
 | **Thu ngân** | toàn bộ phần **Máy quầy** theo thứ tự 01 → 10 | [Mất mạng và đồng bộ](may-quay/09-mat-mang-va-dong-bo.md) |
 | **Pha chế** | [Phiếu in](may-quay/10-phieu-in.md) · [Ghép máy và đăng nhập](may-quay/01-ghep-may-va-dang-nhap.md) | [Bàn — phục vụ tại bàn](may-quay/05-ban.md) |
-| **Vận hành** (người dựng server) | phần **Vận hành** theo thứ tự 01 → 04 | [Thiết bị](quan-ly/07-thiet-bi.md) |
+| **Vận hành** (người dựng server) | phần **Vận hành** theo thứ tự 01 → 06 | [Thiết bị](quan-ly/07-thiet-bi.md) |
 
 ## Mục lục
 
@@ -58,6 +58,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 3. [Sao lưu và khôi phục](van-hanh/03-sao-luu-va-khoi-phuc.md)
 4. [Giới hạn thử, kiểm Origin và dọn dẹp định kỳ](van-hanh/04-gioi-han-va-bao-mat.md)
 5. [Nhật ký lỗi từ máy quầy và trang quản lý](van-hanh/05-nhat-ky-loi-may-quay-va-trang-quan-ly.md)
+6. [Bản phát hành — đóng gói, cài và quay lui](van-hanh/06-ban-phat-hanh-va-quay-lui.md)
 
 ### Khác
 

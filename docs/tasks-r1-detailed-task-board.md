@@ -471,7 +471,7 @@
 - **Trạng thái:** xong phần bản web (2026-10-29, D-123) — build đóng dấu mã bản + `version.json`; máy quầy hỏi `version.json`, bản KHÁC là có cập nhật (quay lui cũng tới máy); chính sách áp dụng là hàm thuần (`apps/pos/src/features/updates/update-policy.test.ts`), người hỏi (`release-watch.test.ts`), thẻ (`apps/pos/src/screens/update/update-banner.test.tsx`), hook + máy quầy (`apps/pos/src/app/{use-app-update,till-offers-updates}.test.tsx`), mã bản (`apps/pos/build-release.test.ts`). Quy tắc runbook: server luôn nhận lệnh bản POS ngay trước. Chưa: bản tối thiểu bắt buộc, vỏ native (xem Backlog).
 
 ### T11-05 Pipeline deploy (staging tự động, production bấm tay)
-- **Trạng thái:** một phần (2026-10-21) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); chưa có pipeline.
+- **Trạng thái:** một phần (2026-10-29) — `infra/` hướng dẫn deploy tay 1 server Ubuntu (D-067); `pnpm release:pack` đóng gói tarball + checksum + manifest, `infra/release/{install,rollback}-release.sh` cài / đổi bản nguyên tử / tự quay về khi `/health` hỏng / từ chối quay lui qua migration, bước CI tải artifact 14 ngày (D-124): `scripts/src/release/{pack-release,install-and-rollback-scripts}.test.ts`. Chưa: job CI đẩy lên server (không có server; deploy thật cần chủ dự án), chạy thật trên Ubuntu — xem `docs/release-r1-waiting-on-real-things-checklist.md`.
 
 ---
 
@@ -521,13 +521,13 @@
 - 2026-10-20 · Kiểm cấu hình nhóm tùy chọn không thể thỏa (min > số option khi không cho trùng, hoặc Σ maxQuantity < min). → T03-02.
 - 2026-10-20 · `validateComboConfig` (slot min/max, option trùng, product id không tồn tại). → T03-02.
 - 2026-10-20 · Kiểm tham chiếu cấp món: khóa `variantRules` và item bảng giá theo variant phải trỏ đúng variant của món; id item bảng giá không trùng. → T03-02.
-- 2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.
+- ~~2026-10-20 · Script/runbook tạo role `fnb_owner`/`fnb_app` + default privileges cho môi trường thật (hiện chỉ có trong test support). → T11-05.~~ **Xong** (đã có từ đợt vận hành, kiểm lại 2026-10-29): `packages/db/src/provisioning/provision-database.ts` tạo hai role + database + default privileges, chạy bằng `pnpm db:provision` (`scripts/src/provision/provision-database-cli.ts`, `infra/README.md` mục 6), test `apps/api/test/integration/infra/provision-database-runs-twice.test.ts`; `install-release.sh` gọi nó mỗi lần cài.
 - 2026-10-20 · `newId()` đang ở `@fnb/db`; POS offline cần cùng bộ sinh từ gói không phụ thuộc server ⇒ tách gói `ids` nhỏ khi bắt đầu POS. → T04-01.
 - 2026-10-20 · Đăng ký tổ chức mới chạy bằng role app hay đường riêng — quyết ở T01-04.
 - 2026-10-20 · **[gấp]** `computeOrderTotals` × dòng âm: gộp dòng hủy vào dòng nó đảo (cùng đơn), đơn hoàn (toàn dòng âm) tính đối xứng; test: hủy 1/2 ly = tổng của đơn 1 ly; hoàn toàn bộ = đúng số âm của đơn gốc. → đợt 3.
 - 2026-10-20 · Hoàn một phần đơn có giảm giá toàn đơn/khuyến mãi: dòng hoàn phải mang phần giảm đã phân bổ (dùng `allocateAmount`) để không trả lại nhiều hơn khách đã trả. → đợt 3.
 - 2026-10-20 · Gắn khóa quyền vào API backoffice (tạo mã ghép, tạo nhân viên, thu hồi thiết bị đang mở cho mọi member); kiểm `role.permission_keys` khớp danh mục; seed 6 vai trò mẫu khi tạo tổ chức. → đợt 3.
-- 2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.
+- ~~2026-10-20 · Môi trường thật cần default privileges cho FUNCTION (REVOKE EXECUTE FROM PUBLIC, GRANT cho role app) trước khi chạy migration — bổ sung vào runbook role. → T11-05.~~ **Xong**: `provision-database.ts` dòng `REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` + `GRANT EXECUTE ON FUNCTIONS TO` role app (default privileges của `fnb_owner`), chạy trước migration trong `pnpm db:provision`; ghi ở `infra/README.md` mục 6.
 - 2026-10-20 · Giới hạn tần suất `/auth/login`, `/devices/pair` (theo IP/thiết bị) — API hay proxy? → T11.
 - 2026-10-20 · Job dọn mã ghép, route mã ghép, phiên hết hạn. → T11.
 - 2026-10-20 · Xác minh PIN khi offline: gửi băm PIN 4–6 số xuống máy là brute-force được (≤ 1,1 triệu khả năng) dù có salt ⇒ quyết khi làm T04-05 (khóa gắn thiết bị / chỉ online / PIN dài hơn).
