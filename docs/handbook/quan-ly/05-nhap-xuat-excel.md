@@ -3,8 +3,12 @@ title: Nhập và xuất thực đơn bằng Excel
 audience: quan-ly
 screens:
   - /menu/import
-decisions: []
+decisions:
+  - D-095
+  - D-139
 tests:
+  - apps/api/test/integration/catalog/catalog-product-codes.test.ts
+  - apps/backoffice/src/lib/catalog/menu-sheet/read-menu-sheet.test.ts
   - apps/backoffice/src/components/menu/menu-import/menu-import-screen.test.tsx
   - apps/backoffice/src/components/menu/menu-import/plan-menu-import.test.ts
   - apps/backoffice/src/components/menu/menu-import/run-menu-import.test.ts
@@ -28,7 +32,7 @@ Xuất: ai xem được menu. Nhập: cần quyền **Sửa menu**.
 
 ### Xuất menu
 
-1. **Thực đơn → Món**, bấm **Xuất Excel**. File tên `thuc-don-<ngày>.xlsx`, sheet "Thực đơn", đủ 24 cột của file danh sách hàng hóa mà các phần mềm bán hàng ở Việt Nam hay xuất (Mã hàng hóa, Tên hàng hóa, Tên nhóm, ĐVT, …, VAT…).
+1. **Thực đơn → Món**, bấm **Xuất Excel**. File tên `thuc-don-<ngày>.xlsx`, sheet "Thực đơn", đủ 24 cột của file danh sách hàng hóa mà các phần mềm bán hàng ở Việt Nam hay xuất (Mã hàng hóa, Tên hàng hóa, Tên nhóm, ĐVT, …, VAT…). Cột **Mã hàng hóa** có **mã hàng** của từng món (SP00001…), nên file xuất ra nhập lại được ngay.
 
 ### Nhập menu
 
@@ -47,9 +51,10 @@ Xuất: ai xem được menu. Nhập: cần quyền **Sửa menu**.
 
 - File **.xlsx** (Excel 2007 trở lên), tối đa **5.000 dòng** hàng hóa (và 200 cột). File `.xls` cũ hay `.csv` không đọc được.
 - Dòng tiêu đề phải có cột **“Tên hàng hóa”**.
-- **Khớp theo tên** (không phân biệt hoa thường) với món đã có: trùng tên thì **cập nhật giá**, và **đổi danh mục** khi dòng có ghi Tên nhóm; không đổi gì thì "Đã có, không đổi". Nhập lại cùng một file **không tạo món đôi**.
+- **Khớp theo mã hàng trước, rồi mới theo tên** (đều không phân biệt hoa thường) với món đã có: dòng có **Mã hàng hóa** trùng mã của một món thì là món đó (kể cả khi file đổi tên món — tên trên máy giữ nguyên, chỉ giá và danh mục đổi); dòng không có mã, hoặc mã chưa món nào dùng, thì thử khớp theo tên. Trùng thì **cập nhật giá**, và **đổi danh mục** khi dòng có ghi Tên nhóm; không đổi gì thì "Đã có, không đổi". Nhập lại cùng một file **không tạo món đôi**.
 - Dòng ghi "Không cho phép bán" bị **bỏ qua**.
-- Dòng trùng mã hoặc trùng tên với một dòng khác trong file: báo lỗi ở dòng sau.
+- Dòng trùng mã (không phân biệt hoa thường) hoặc trùng tên với một dòng khác trong file: báo lỗi ở dòng sau.
+- Dòng có mã mà chưa món nào dùng và không khớp tên: **Món mới** với đúng mã đó. Mã sai dạng (có dấu cách, dấu tiếng Việt, quá 40 ký tự): dòng lỗi "Mã hàng gồm 1–40 chữ cái…". Dòng không có mã: món mới được cấp mã tự động.
 - Tên nhóm dài quá 120 ký tự: dòng lỗi (không tạo được danh mục).
 - Món đã có mà đang dùng cách tính giá khác "Giá cố định": không cập nhật giá qua Excel, phải sửa trong trang món.
 - Món mới tạo qua Excel là món **giá cố định**, không size, không tùy chọn; VAT đọc theo phần trăm (8 = 8%).
@@ -77,4 +82,5 @@ Xuất: ai xem được menu. Nhập: cần quyền **Sửa menu**.
 ## Chưa làm / sắp có
 
 - Chưa nhập size, tùy chọn, ảnh, tồn kho, giá vốn từ Excel.
+- Chưa có route nhập lô (mỗi món một lần gọi máy chủ, ≈ 300 món một phút; chạy lại an toàn nhờ khớp theo mã).
 - Chưa nhập file `.csv`.

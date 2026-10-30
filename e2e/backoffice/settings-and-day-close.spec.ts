@@ -40,7 +40,6 @@ async function postStatus(page: Page, path: string, act: () => Promise<void>) {
 
 /** The refusals this spec provokes on purpose, as the browser reports them (response and console line). */
 const provoked = (problem: PageProblem) =>
-  (problem.url.endsWith(`/api${settingPath("qr_ordering")}`) && problem.text.includes("400")) ||
   (problem.url.endsWith(`/api${dayClosePath}`) && problem.text.includes("409"));
 
 it("explains a refused switch under it, and saves the receiving account all the way to the tills", async () => {
@@ -48,18 +47,18 @@ it("explains a refused switch under it, and saves the receiving account all the 
   await openSection(page, text.shell.nav.settings);
   await page.getByRole("heading", { name: S.switchesTitle }).waitFor();
 
-  // QR ordering needs tables, which no layer turned on: the server refuses, the switch says why.
+  // QR ordering is not something the till does yet: its row is locked and says so, and a
+  // switch the till follows (tables) is taken.
   const qr = switchRow(page, "qr_ordering");
-  expect(await statusAfter(page, settingPath("qr_ordering"), () => qr.getByRole("checkbox").click())).toBe(400);
-  await expect.poll(() => qr.getByRole("alert").textContent()).toBe(S.violation.requires(S.flags.qr_ordering!, S.flags.tables!));
-  expect(await qr.getByRole("checkbox").isChecked()).toBe(false);
+  expect(await qr.getByRole("checkbox").isDisabled()).toBe(true);
+  await qr.getByText(S.comingSoon, { exact: true }).waitFor();
+  // The e-invoice switch means nothing: the row sends the owner to the profile instead.
+  expect(await switchRow(page, "einvoice").getByRole("checkbox").count()).toBe(0);
+  await switchRow(page, "einvoice").getByText(S.support.seeProfile).waitFor();
+  const tables = switchRow(page, "tables").getByRole("checkbox");
+  expect(await statusAfter(page, settingPath("tables"), () => tables.click())).toBe(200);
+  await expect.poll(() => tables.isChecked()).toBe(true);
   expect(await switchRow(page, "tables").getByRole("alert").count()).toBe(0);
-
-  // With tables on first, the same switch is taken.
-  expect(await statusAfter(page, settingPath("tables"), () => switchRow(page, "tables").getByRole("checkbox").click())).toBe(200);
-  expect(await statusAfter(page, settingPath("qr_ordering"), () => qr.getByRole("checkbox").click())).toBe(200);
-  await expect.poll(() => qr.getByRole("checkbox").isChecked()).toBe(true);
-  expect(await qr.getByRole("alert").count()).toBe(0);
 
   const account = page.locator('section[data-setting-key="payment_account"]');
   await choose(account, S.account.bank, /\(970436\)/);

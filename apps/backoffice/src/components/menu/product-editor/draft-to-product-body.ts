@@ -1,3 +1,4 @@
+import { PRODUCT_CODE_PATTERN } from "@fnb/contracts";
 import type { ProductBody } from "../../../lib/catalog/product-document";
 import { parseAmountText, parseCountText } from "../../../lib/format/amount-text";
 import { parsePercentText } from "../../../lib/format/percent-text";
@@ -122,6 +123,14 @@ function comboBody(
   };
 }
 
+/** The code typed, if any: letters, digits, dot, underscore and dash, 1 to 40 of them. */
+function codeOfDraft(typed: string, errors: DraftErrorList): { code?: string } {
+  const code = typed.trim();
+  if (code === "") return {};
+  if (!PRODUCT_CODE_PATTERN.test(code)) errors.add(productPath("code"), vi.menu.editor.codeInvalid);
+  return { code };
+}
+
 /** What the editor knows of other products: their sizes, so a combo row asks for one. */
 export type SizesOf = (productId: string) => readonly unknown[] | undefined;
 
@@ -150,6 +159,7 @@ export function draftToProductBody(
     trackStock: draft.trackStock,
     earnsPoints: draft.earnsPoints,
     printCupLabel: draft.printCupLabel,
+    ...codeOfDraft(draft.code, errors),
     imageKey: draft.photo?.key ?? null,
     variants: draft.variants.map((variant) => ({
       id: variant.id,

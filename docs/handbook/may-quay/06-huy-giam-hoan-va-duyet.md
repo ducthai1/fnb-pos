@@ -33,6 +33,7 @@ decisions:
   - D-132
   - D-133
 tests:
+  - apps/api/test/integration/sync/cancel-after-voiding-sent-items-in-passes.test.ts
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
@@ -146,7 +147,8 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
    ![Hủy đơn](../images/may-quay/cancel-order.webp)
 
 2. Chọn **Lý do**: *Khách không mua nữa · Đơn bị trùng · Đơn thử · Lý do khác* (**Lý do khác** cần **Ghi chú lý do**, như khi hủy món). Bấm **Hủy đơn này**.
-3. Đơn chưa từng in tạm tính, chưa từng gửi bếp: thu ngân tự hủy. Đơn **đã in tạm tính** hoặc **đã gửi bếp**: cần duyệt (chặn kiểu "in tạm tính → thu tiền khách → hủy đơn"). Đơn còn món đã gửi bếp chưa hủy thì máy từ chối: hủy từng món đó (có phiếu hủy) trước; hủy hết rồi mới hủy được đơn (vẫn cần duyệt vì bếp đã nhận món).
+3. Đơn chưa từng in tạm tính, chưa từng gửi bếp: thu ngân tự hủy. Đơn **đã in tạm tính** hoặc **đã gửi bếp**: cần duyệt (chặn kiểu "in tạm tính → thu tiền khách → hủy đơn"). Đơn còn món đã gửi bếp chưa hủy thì máy từ chối: hủy từng món đó (có phiếu hủy) trước; hủy hết rồi mới hủy được đơn (vẫn cần duyệt vì bếp đã nhận món). Hủy món trong nhiều lần (mỗi lần một phần, mỗi lần có phiếu hủy) cũng vậy: máy chủ tính phiếu hủy là bếp được báo dừng, không phải món còn lại, nên hủy hết các lần xong thì hủy được đơn.
+   - Máy chưa biết đơn đã in tạm tính ở máy khác nên không xin duyệt, máy chủ từ chối: lệnh vào **Cần xử lý** ([09](09-mat-mang-va-dong-bo.md)) với nút **Mở đơn, xin duyệt rồi gửi lại**; mở đơn, bấm lại **Hủy đơn**, lần này máy xin duyệt.
 4. **Bàn không còn món nào:** đơn bàn đã lưu rồi bị xóa hết món vẫn giữ bàn "có khách". Màn bàn hiện nút **Trả bàn** (chỉ khi đơn trống): bấm **Trả bàn** ở màn xác nhận là đóng đơn trống (lý do "Bàn không còn món nào", không phải chọn lý do), bàn trống lại và máy báo "Đã trả bàn 1.". Đơn đã in tạm tính hoặc đã từng gửi bếp thì vẫn phải có quản lý duyệt như hủy đơn.
 
 ### Hoàn tiền đơn đã trả

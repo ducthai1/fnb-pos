@@ -41,6 +41,7 @@ export const LOCAL_STORE_METHODS = [
   "snapshot",
   "snapshots",
   "rejectedCommands",
+  "resolveRejected",
   "serverGeneration",
   "adoptServerGeneration",
   "rebaseOntoGeneration",

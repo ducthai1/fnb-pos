@@ -155,5 +155,20 @@ export const REPEATED_ANSWER_CONTRACT: LocalStoreContractGroup = {
         assertEqual(await store.pendingCount(), 0, "pending count");
       },
     },
+    {
+      name: "a refusal the staff dealt with leaves the list for good",
+      async run(harness) {
+        const { store } = await harness.open();
+        const orderId = testId();
+        const { command } = await store.enqueue(draft(orderId));
+        const refused = answer(command, "rejected", { code: "DOMAIN_X", snapshot: order(orderId, 1) });
+        await store.recordResults([command], [refused]);
+        assertEqual(await store.resolveRejected(command.commandId), true, "taken off");
+        assertEqual(await store.resolveRejected(command.commandId), false, "taken off once");
+        assertEqual((await store.rejectedCommands()).length, 0, "list is empty");
+        await store.recordResults([command], [refused]);
+        assertEqual((await store.rejectedCommands()).length, 0, "a repeated answer does not bring it back");
+      },
+    },
   ],
 };

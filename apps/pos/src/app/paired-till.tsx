@@ -63,6 +63,8 @@ export function PairedTill(props: {
   /** Why the PIN screen is showing again, when it was not someone's choice. */
   const [signInNotice, setSignInNotice] = useState<string | null>(null);
   const [rejected, setRejected] = useState<readonly RejectedCommand[] | null>(null);
+  /** An order the cashier left the needs-attention list to open; read once by the till. */
+  const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
   const sessions = useRef(newTillStaffSessions());
   const signOutRef = useRef<(notice: string | null) => void>(() => {});
   const till = useBackgroundSync(deps, props.store, credential, sessions, (token) => {
@@ -161,11 +163,16 @@ export function PairedTill(props: {
   if (rejected !== null) {
     return withBanner(
       <NeedsAttentionFlow
+        snapshot={snapshot}
         client={till?.client ?? null}
         place={place}
         staffId={signedIn.staff.id}
         rejected={rejected}
         onSent={() => till?.sync.nudge()}
+        onOpenOrder={(orderId) => {
+          setFocusOrderId(orderId);
+          setRejected(null);
+        }}
         onBack={() => setRejected(null)}
       />,
     );
@@ -182,7 +189,9 @@ export function PairedTill(props: {
         printer={deps.printer}
         {...(deps.closeWaitMs === undefined ? {} : { closeWaitMs: deps.closeWaitMs })}
         loadFloor={loadFloor}
+        focusOrderId={focusOrderId}
         onOpenNeedsAttention={() => {
+          setFocusOrderId(null);
           void till?.client.rejectedCommands().then(setRejected);
         }}
         onSwitchStaff={() => signOut(null)}

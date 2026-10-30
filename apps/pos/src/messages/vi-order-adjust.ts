@@ -15,6 +15,8 @@ export const VI_REASONS: Readonly<Record<ReasonCode, string>> = {
   quality_issue: "Món không đạt",
   overcharged: "Tính tiền nhầm",
   table_emptied: "Bàn không còn món nào",
+  handled_by_hand: "Đã xử lý cách khác",
+  no_longer_needed: "Không còn cần nữa",
   other: "Lý do khác",
 };
 
@@ -66,7 +68,8 @@ export const VI_ORDER_ADJUST = {
     percentPreset: (rate: string) => `Giảm ${rate}`,
     typedPercent: "Phần trăm giảm (0,01–100)",
     typedAmount: "Số tiền giảm (đồng)",
-    unreadable: "Nhập số: phần trăm từ 0,01 đến 100 (tối đa hai số lẻ), hoặc số tiền chỉ gồm chữ số.",
+    unreadable:
+      "Nhập số: phần trăm từ 0,01 đến 100 (tối đa hai số lẻ), hoặc số tiền chỉ gồm chữ số.",
     preview: (discount: string, due: string) => `Giảm ${discount} · còn phải trả ${due}`,
     confirm: "Áp dụng giảm giá",
     remove: "Gỡ giảm giá",

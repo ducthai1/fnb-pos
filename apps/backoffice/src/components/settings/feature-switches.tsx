@@ -30,21 +30,50 @@ function SwitchRow({
 }) {
   const inputId = useId();
   const errorId = useId();
+  const noteId = useId();
+  const support = entry.support ?? "works";
+  if (support === "see_profile") {
+    // The switch means nothing: where the feature really turns on and off is the profile.
+    return (
+      <li className="bo-switch" data-setting-key={entry.key} data-support={support}>
+        <span className="bo-field--inline bo-wrap">{settingLabel(entry.key)}</span>
+        <p className="bo-muted bo-wrap">{T.support.seeProfile}</p>
+        <a className="bo-link-button" href="#settings-invoices">
+          {T.support.seeProfileLink}
+        </a>
+      </li>
+    );
+  }
+  const locked = support !== "works";
   return (
-    <li className="bo-switch" data-setting-key={entry.key} data-refused={refusal === undefined ? undefined : true}>
+    <li
+      className="bo-switch"
+      data-setting-key={entry.key}
+      data-support={support}
+      data-refused={refusal === undefined ? undefined : true}
+    >
       <label htmlFor={inputId} className="bo-field--inline bo-wrap">
         <input
           id={inputId}
           type="checkbox"
-          checked={entry.value === true}
-          disabled={busy || !entry.editableHere}
+          checked={support === "locked_on" ? true : entry.value === true}
+          disabled={busy || !entry.editableHere || locked}
           aria-invalid={refusal === undefined ? undefined : true}
-          aria-describedby={refusal === undefined ? undefined : errorId}
+          aria-describedby={locked ? noteId : refusal === undefined ? undefined : errorId}
           onChange={(event) => onWrite(event.target.checked)}
         />
-        {settingLabel(entry.key)}
+        <span className="bo-switch__name">
+          {settingLabel(entry.key)}
+          {locked ? <span className="bo-soon">{T.comingSoon}</span> : null}
+        </span>
       </label>
-      <SettingSourceLine entry={entry} busy={busy} onClear={() => onWrite(null)} />
+      {locked ? (
+        <p id={noteId} className="bo-muted bo-wrap">
+          {support === "locked_on" ? T.support.lockedOn : T.support.comingSoon}
+        </p>
+      ) : (
+        <SettingSourceLine entry={entry} busy={busy} onClear={() => onWrite(null)} />
+      )}
       <FieldError id={errorId} message={refusal} />
     </li>
   );

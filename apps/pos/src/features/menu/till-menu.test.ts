@@ -86,8 +86,53 @@ describe("the menu a till sells from", () => {
       ...NO_MENU_COPIES,
       device_config: new Map([[newer.id, { ...newer, version: 10 }]]),
     };
-    expect(buildTillMenu(bootstrap, older, new Set()).config.flags).toEqual({
-      pay_first_counter: true,
+    expect(buildTillMenu(bootstrap, older, new Set()).config.flags).toEqual(bootstrap.config.flags);
+  });
+
+  describe("prices that apply only at certain times", () => {
+    const timed = {
+      id: "0199f000-0000-7000-8000-0000000000a1",
+      scope: "brand",
+      branchId: null,
+      channelKey: null,
+      validFrom: null,
+      validTo: null,
+      daysOfWeek: null,
+      timeWindow: { startMinute: 840, endMinute: 1020 },
+      effect: { kind: "fixed_price", price: 20_000 },
+      priority: 1,
+    };
+    const permanent = { ...timed, id: "0199f000-0000-7000-8000-0000000000a2", timeWindow: null };
+    const withList = (flags: Record<string, boolean>) => {
+      const base = tillBootstrap();
+      return {
+        ...base,
+        config: { ...base.config, flags },
+        menu: {
+          ...base.menu,
+          priceLists: [
+            {
+              id: "0199f000-0000-7000-8000-0000000000a0",
+              version: 10,
+              brandId: base.brand.id,
+              name: "Giá",
+              items: [timed, permanent],
+            },
+          ],
+        },
+      } as never;
+    };
+
+    it("are sold from while the happy-hour switch is on", () => {
+      const menu = buildTillMenu(withList({ happy_hour_pricing: true }), NO_MENU_COPIES, new Set());
+      expect(menu.priceItems.map((item) => item.id)).toEqual([timed.id, permanent.id]);
+    });
+
+    it("are left out when it is off, the all-day prices staying", () => {
+      for (const flags of [{ happy_hour_pricing: false }, {}]) {
+        const menu = buildTillMenu(withList(flags), NO_MENU_COPIES, new Set());
+        expect(menu.priceItems.map((item) => item.id)).toEqual([permanent.id]);
+      }
     });
   });
 });

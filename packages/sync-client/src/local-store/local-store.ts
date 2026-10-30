@@ -111,6 +111,11 @@ export interface LocalStore {
   /** Every row of `entity` the till shows, ordered by id. */
   snapshots(entity: string): Promise<EntityView[]>;
   rejectedCommands(): Promise<RejectedCommand[]>;
+  /**
+   * Takes a refusal off the "needs attention" list for good: the staff dealt with it. The
+   * command stays in the journal as refused; true when the refusal was there to take off.
+   */
+  resolveRejected(commandId: string): Promise<boolean>;
   /** The server generation the till last saw, null before the first one. */
   serverGeneration(): Promise<string | null>;
   /** Remembers the first generation the till meets; a known one is never replaced here. */

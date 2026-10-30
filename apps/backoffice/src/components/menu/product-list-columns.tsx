@@ -28,6 +28,13 @@ export const columnsFor = (categoryName: (id: string | null) => string): readonl
     sortValue: (product) => product.name,
   },
   {
+    key: "code",
+    label: T.columns.code,
+    width: "14%",
+    cell: (product) => <span className="bo-wrap">{product.code ?? ""}</span>,
+    sortValue: (product) => product.code ?? "",
+  },
+  {
     key: "category",
     label: T.columns.category,
     width: "24%",

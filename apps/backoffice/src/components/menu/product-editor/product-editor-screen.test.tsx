@@ -48,6 +48,42 @@ describe("the product editor", () => {
     expect(screen.getByRole("button", { name: T.archive })).toBeTruthy();
   });
 
+  it("sends the code typed in the code field, and none when it is left blank", async () => {
+    const catalog = fakeCatalog();
+    await renderSignedIn(<ProductEditorScreen productId={NEW_ID} isNew />, catalog.api);
+    type(await screen.findByLabelText(T.name), "Nước suối");
+    type(screen.getByLabelText(T.basePrice), "10.000");
+    type(screen.getByLabelText(T.code), "  NS-01 ");
+    fireEvent.click(screen.getByRole("button", { name: T.save }));
+    await screen.findByText(T.saved);
+    expect(catalog.putProduct.mock.calls[0]![1]).toMatchObject({ code: "NS-01" });
+    expect((screen.getByLabelText(T.code) as HTMLInputElement).value).toBe("NS-01");
+
+  });
+
+  it("sends no code when the field is left blank, so the server gives one", async () => {
+    const catalog = fakeCatalog();
+    await renderSignedIn(<ProductEditorScreen productId={NEW_ID} isNew />, catalog.api);
+    type(await screen.findByLabelText(T.name), "Bánh quy");
+    type(screen.getByLabelText(T.basePrice), "10.000");
+    fireEvent.click(screen.getByRole("button", { name: T.save }));
+    await screen.findByText(T.saved);
+    expect(catalog.putProduct.mock.calls[0]![1]).not.toHaveProperty("code");
+    // What the server gave is what the field shows after the save.
+    expect((screen.getByLabelText(T.code) as HTMLInputElement).value).toBe("SP00001");
+  });
+
+  it("says a code with a space or an accent is wrong, where it was typed, and sends nothing", async () => {
+    const catalog = fakeCatalog();
+    await renderSignedIn(<ProductEditorScreen productId={NEW_ID} isNew />, catalog.api);
+    type(await screen.findByLabelText(T.name), "Nước suối");
+    type(screen.getByLabelText(T.basePrice), "10.000");
+    type(screen.getByLabelText(T.code), "mã hàng");
+    fireEvent.click(screen.getByRole("button", { name: T.save }));
+    expect(await screen.findByText(T.codeInvalid)).toBeTruthy();
+    expect(catalog.putProduct).not.toHaveBeenCalled();
+  });
+
   it("does not send a draft the rules refuse, and says so where it is wrong", async () => {
     const catalog = fakeCatalog();
     await renderSignedIn(<ProductEditorScreen productId={NEW_ID} isNew />, catalog.api);

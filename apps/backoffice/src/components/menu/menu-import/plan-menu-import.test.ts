@@ -174,4 +174,57 @@ describe("planning a menu import", () => {
     const [row] = plan([line({ group: "Đ".repeat(121) })]);
     expect(row).toMatchObject({ status: "error", problems: [T.groupTooLong] });
   });
+
+  describe("matching the menu by code before name", () => {
+    const products = [
+      summary({ id: "p1", name: "Cà phê sữa đá", code: "CF01", categoryId: "cat-coffee" }),
+      summary({ id: "p2", name: "Bạc xỉu", code: "CF02", categoryId: "cat-coffee" }),
+    ];
+
+    it("matches a line by its code even when the sheet renamed the drink, ignoring case", () => {
+      const [row] = plan(
+        [line({ code: " cf01 ", name: "Cà phê sữa (mới)", price: "35000" })],
+        products,
+        { by: "one", id: "cat-coffee" },
+      );
+      expect(row).toMatchObject({ status: "update", productId: "p1", price: 35_000 });
+    });
+
+    it("lets the code win when the name belongs to another product", () => {
+      const [row] = plan([line({ code: "CF02", name: "Cà phê sữa đá", price: "29000" })], products);
+      expect(row?.productId).toBe("p2");
+    });
+
+    it("falls back to the name when the line has no code or one the menu does not know", () => {
+      const rows = plan(
+        [
+          line({ code: "", name: "Bạc xỉu", price: "30000" }),
+          line({ code: "ZZ9", name: "Cà phê sữa đá", price: "29000" }),
+        ],
+        products,
+      );
+      expect(rows.map((row) => row.productId)).toEqual(["p2", "p1"]);
+    });
+
+    it("makes a new product with the code of a line the menu knows by neither name nor code", () => {
+      const [row] = plan([line({ code: "NEW-1", name: "Trà vải", price: "40000" })], products);
+      expect(row).toMatchObject({ status: "new", productId: null });
+      expect(row?.body).toMatchObject({ code: "NEW-1", name: "Trà vải" });
+    });
+
+    it("leaves the code out of a new product's body when the line has none", () => {
+      const [row] = plan([line({ code: "", name: "Trà vải", price: "40000" })], products);
+      expect(row?.body).not.toHaveProperty("code");
+    });
+
+    it("flags two lines that differ only in the case of their code, and a code the server would refuse", () => {
+      const rows = plan([
+        line({ line: 2, code: "Ab1", name: "Một", price: "10000" }),
+        line({ line: 3, code: "aB1", name: "Hai", price: "10000" }),
+        line({ line: 4, code: "co dau cach", name: "Ba", price: "10000" }),
+      ]);
+      expect(rows[1]).toMatchObject({ status: "error", problems: [T.duplicateCode(2)] });
+      expect(rows[2]).toMatchObject({ status: "error", problems: [vi.menu.editor.codeInvalid] });
+    });
+  });
 });

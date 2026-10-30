@@ -1,4 +1,9 @@
-import { type MeasureUnit, type Quantity, gramsOfWeighedQuantity, measureUnitOf } from "@fnb/domain";
+import {
+  type MeasureUnit,
+  type Quantity,
+  gramsOfWeighedQuantity,
+  measureUnitOf,
+} from "@fnb/domain";
 import type { TillMenu } from "../menu/till-menu";
 
 /**

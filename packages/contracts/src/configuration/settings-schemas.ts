@@ -42,6 +42,11 @@ export const settingEntrySchema = z
     editableHere: z.boolean(),
     /** Whether this very layer sets it (else it is inherited, and DELETE does nothing). */
     setHere: z.boolean(),
+    /**
+     * For a switch: how far the till follows it (a switch the till ignores is shown locked,
+     * "coming soon"); absent means it works, as it does for every setting that is no switch.
+     */
+    support: z.enum(["works", "locked_on", "coming_soon", "see_profile"]).optional(),
   })
   .strict();
 

@@ -143,3 +143,23 @@ describe("what a weighed product's price is per, in the catalog", () => {
     expect(refused).toBe("23514");
   });
 });
+
+describe("order.save_draft and a fractional quantity of a product sold by the piece", () => {
+  it.each(["1.5", "0.5", "2.001"])("refuses %s of a drink and keeps nothing", async (units) => {
+    const draft = saveDraft(s.tillA, [line(s.menu.coffee.id, { quantity: units })]);
+    const result = await pushOne(app, s.tillA, draft);
+    expect(result).toMatchObject({ status: "rejected", code: "DOMAIN_PRICING_QUANTITY_NOT_WHOLE" });
+  });
+
+  it("still takes whole quantities, written with or without a decimal part", async () => {
+    for (const units of ["2", "3.0"]) {
+      const draft = saveDraft(s.tillA, [line(s.menu.coffee.id, { quantity: units })]);
+      expect((await pushOne(app, s.tillA, draft)).status).toBe("accepted");
+    }
+  });
+
+  it("leaves a weighed product its fractions", async () => {
+    const draft = weighing(beans, "3.51");
+    expect((await pushOne(app, s.tillA, draft)).status).toBe("accepted");
+  });
+});

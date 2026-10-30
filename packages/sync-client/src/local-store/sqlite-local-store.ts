@@ -133,6 +133,9 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
             : (JSON.parse(String(row.server_snapshot)) as EntitySnapshot),
       })),
 
+    resolveRejected: async (commandId) =>
+      driver.run("DELETE FROM rejected_command WHERE command_id = ?", [commandId]) > 0,
+
     serverGeneration: async () => readServerGeneration(driver),
 
     adoptServerGeneration: async (generation) => adoptServerGeneration(driver, generation),

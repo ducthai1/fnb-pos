@@ -49,6 +49,14 @@ export function GeneralSection({
         onChange={(name) => set({ name })}
         error={errors[productPath("name")]}
       />
+      <TextField
+        label={T.code}
+        value={draft.code}
+        hint={T.codeHint}
+        maxLength={40}
+        onChange={(code) => set({ code })}
+        error={errors[productPath("code")]}
+      />
       <div className="bo-row">
         <div className="bo-listbox-field">
           <Listbox

@@ -117,4 +117,17 @@ describe("exporting the menu", () => {
     ]);
     expect(read.ignored).toEqual([]);
   });
+
+  it("writes each product's code in the code column and reads it back", () => {
+    const products = [
+      product({ id: "1", name: "Trà đào", code: "TD-01" }),
+      product({ id: "2", name: "Cà phê muối" }),
+    ];
+    const read = readMenuSheet(sheetOf(writeXlsxSheet("Thực đơn", menuSheetRows(products, []))));
+    if (!read.ok) throw new Error(read.reason);
+    expect(read.rows.map((row) => [row.name, row.code])).toEqual([
+      ["Cà phê muối", ""],
+      ["Trà đào", "TD-01"],
+    ]);
+  });
 });

@@ -19,6 +19,8 @@ export function ReasonPicker(props: {
   onChoose(reason: ReasonCode): void;
   note: string;
   onNote(note: string): void;
+  /** Ask for the note whichever reason is chosen (a command with money in it). */
+  noteAlways?: boolean;
 }) {
   const written = props.note.trim().length;
   const hintId = useId();
@@ -39,7 +41,7 @@ export function ReasonPicker(props: {
           </li>
         ))}
       </ul>
-      {needsNote(props.chosen) ? (
+      {needsNote(props.chosen) || (props.noteAlways === true && props.chosen !== null) ? (
         <>
           <label className="pos-field">
             <span className="pos-field__label">{A.reasonNote}</span>

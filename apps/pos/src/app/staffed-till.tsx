@@ -31,6 +31,8 @@ export interface StaffedTillProps {
   status: TillSyncStatus;
   printer: PrinterPort;
   closeWaitMs?: number;
+  /** An order to bring up when the till opens: the one a refused command was about. */
+  focusOrderId?: string | null;
   onOpenNeedsAttention(): void;
   onSwitchStaff(): void;
   onSignOut(): void;
@@ -100,6 +102,7 @@ export function StaffedTill(props: StaffedTillProps) {
       now={now}
       header={header}
       shiftId={shift.shift.id}
+      {...(props.focusOrderId === undefined ? {} : { focusOrderId: props.focusOrderId })}
       cashierName={staff.displayName}
       printer={props.printer}
       {...(props.closeWaitMs === undefined ? {} : { closeWaitMs: props.closeWaitMs })}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ApiResult } from "../features/api/api-result";
 import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
@@ -6,6 +6,7 @@ import { CallNumberingContext, orderNumbers } from "../features/order/device-ord
 import { MenuMemoryProvider, useNewMenuMemory } from "../features/menu/menu-memory";
 import { BestSellersContext, useBestSellers } from "../features/menu/use-best-sellers";
 import { openingFromStored } from "../features/order/order-opening";
+import { readStoredOrder } from "../features/order/stored-order";
 import { useCounterOrder } from "../features/order/use-counter-order";
 import { type SellingMode, SellingModeSwitch } from "../screens/till/selling-mode-switch";
 import { type TillTool, TillTools } from "../screens/till/till-tools";
@@ -24,6 +25,8 @@ export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "m
   onSyncPass(listener: () => void): () => void;
   /** How long closing the shift waits for the server; the flow's own unless a test shortens it. */
   closeWaitMs?: number;
+  /** An order to bring up when the till opens (from the needs-attention list). */
+  focusOrderId?: string | null;
   /** Records the shift's close outside these screens, which end with the shift. */
   onCloseShift(run: () => Promise<ShiftClosing>): void;
 }
@@ -57,6 +60,22 @@ function SellingScreen(props: SellingModesProps) {
   const [mode, setMode] = useState<SellingMode>("counter");
   const [tool, setTool] = useState<TillTool | null>(null);
   const tablesOn = menu.config.flags.tables === true;
+  const focusOrderId = props.focusOrderId ?? null;
+  // An order the cashier came from the needs-attention list to deal with: a table's order
+  // brings up the floor, a counter draft comes back into the counter's cart.
+  useEffect(() => {
+    if (focusOrderId === null) return;
+    client
+      .snapshot("order", focusOrderId)
+      .then((view) => {
+        const stored = view === null ? null : readStoredOrder(view.snapshot);
+        if (stored === null || stored.status !== "draft") return;
+        if (stored.tableId !== null && tablesOn) setMode("tables");
+        else counter.reopen(openingFromStored(menu, stored));
+      })
+      .catch(console.error);
+    // Once, for the order the till was opened on.
+  }, [focusOrderId]);
   const modeSwitch = (
     <div className="pos-navbar">
       {tablesOn ? <SellingModeSwitch mode={mode} onChange={setMode} /> : null}

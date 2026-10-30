@@ -6,4 +6,6 @@ export const SETTINGS_ERROR_CODES = {
   scopeNotFound: "API_SETTINGS_SCOPE_NOT_FOUND",
   /** The key cannot be set this specifically (a branch-wide switch for one till). */
   layerNotAllowed: "API_SETTINGS_LAYER_NOT_ALLOWED",
+  /** The till always behaves as "on" for this switch, so it cannot be turned off. */
+  flagLockedOn: "API_SETTINGS_FLAG_LOCKED_ON",
 } as const;

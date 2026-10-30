@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { newId } from "@fnb/db";
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
@@ -25,7 +26,15 @@ afterAll(async () => {
 
 const insert = (table: string, cells: Record<string, unknown>) =>
   insertAttempt(app, a.tenantId, table, cells);
-const aProduct = { kind: "retail_item", name: "x", pricing_mode: "fixed" };
+// A fresh code on every spread: products of one brand may not share one.
+const aProduct = {
+  kind: "retail_item",
+  name: "x",
+  pricing_mode: "fixed",
+  get code() {
+    return randomUUID().slice(0, 12);
+  },
+};
 
 describe("a product", () => {
   it("takes a category and station of its own tenant and brand", async () => {

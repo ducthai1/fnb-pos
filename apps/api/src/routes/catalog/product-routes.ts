@@ -12,6 +12,7 @@ import { CATALOG_API_ERROR_CODES } from "../../catalog/catalog-api-error-codes";
 import { recordProductChanges } from "../../catalog/catalog-change-feed";
 import { CatalogRequestError, parseOrReject } from "../../catalog/catalog-request-error";
 import { amountOf } from "../../catalog/product-document";
+import { refusingTakenCode } from "../../catalog/product-code";
 import { checkProductDocument } from "../../catalog/product-document-to-domain";
 import { readProductDocument } from "../../catalog/read-product-document";
 import { writeProductDocument } from "../../catalog/write-product-document";
@@ -82,7 +83,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
         // backoffice picks them from this list without opening every product.
         const products = await client.query(
           "SELECT p.id, p.name, p.kind, p.category_id, p.base_price, p.pricing_mode, " +
-            "p.measure_unit, p.version, p.archived_at, p.tenant_id, p.image_key, " +
+            "p.measure_unit, p.code, p.version, p.archived_at, p.tenant_id, p.image_key, " +
             "COALESCE((SELECT json_agg(json_build_object('id', v.id, 'name', v.name) " +
             "ORDER BY v.sort_order, v.id) FROM product_variant v " +
             "WHERE v.product_id = p.id AND v.archived_at IS NULL), '[]'::json) AS variants " +
@@ -100,6 +101,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
           basePrice: row.base_price === null ? null : amountOf(row.base_price),
           pricingMode: row.pricing_mode,
           measureUnit: row.measure_unit,
+          code: row.code,
           version: row.version,
           archivedAt: row.archived_at === null ? null : row.archived_at.toISOString(),
           imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),
@@ -162,10 +164,13 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
         }
         // Already selling: nothing to do, and the tills are told nothing new.
         if (current.archived_at === null) return current;
-        const restored = await client.query<{ version: number }>(
-          "UPDATE product SET archived_at = NULL, updated_at = $2, version = version + 1 " +
-            "WHERE id = $1 RETURNING version",
-          [id, writer.now],
+        // A code another product took while this one was archived is a clash to explain.
+        const restored = await refusingTakenCode(() =>
+          client.query<{ version: number }>(
+            "UPDATE product SET archived_at = NULL, updated_at = $2, version = version + 1 " +
+              "WHERE id = $1 RETURNING version",
+            [id, writer.now],
+          ),
         );
         await recordProductChanges(client, writer.tenantId, [id]);
         return { version: restored.rows[0]?.version ?? current.version + 1, archived_at: null };

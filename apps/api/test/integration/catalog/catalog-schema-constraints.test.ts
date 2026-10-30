@@ -81,15 +81,15 @@ describe("CHECK constraints mirror the domain's configuration rules", () => {
     ["modifier_group", group(3, 2)],
     ["modifier_option", { modifier_group_id: "group", name: "x", price_delta: -1 }],
     ["modifier_option", { modifier_group_id: "group", name: "x", max_quantity: 0 }],
-    ["product", { brand_id: "brand", kind: "drink", name: "x", pricing_mode: "fixed" }],
-    ["product", { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "free" }],
+    ["product", { brand_id: "brand", kind: "drink", name: "x", pricing_mode: "fixed", code: "X" }],
+    ["product", { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "free", code: "X" }],
     [
       "product",
-      { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "fixed", base_price: -1 },
+      { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "fixed", base_price: -1, code: "X" },
     ],
     [
       "product",
-      { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "fixed", tax_rate_bp: 10001 },
+      { brand_id: "brand", kind: "combo", name: "x", pricing_mode: "fixed", tax_rate_bp: 10001, code: "X" },
     ],
     ["product_variant", { product_id: "product", name: "x", price: -1 }],
     [

@@ -74,7 +74,9 @@ export async function readPosProducts(
       earnsPoints: row.earns_points,
       printCupLabel: row.print_cup_label,
       // Left out without a photo: a till that predates photos reads every such copy.
-      ...(row.image_key === null ? {} : { imageUrl: productImageUrl(row.tenant_id, row.image_key) }),
+      ...(row.image_key === null
+        ? {}
+        : { imageUrl: productImageUrl(row.tenant_id, row.image_key) }),
       variants: variants.rows
         .filter((variant) => variant.product_id === row.id)
         .map((variant) => ({

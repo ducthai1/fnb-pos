@@ -58,6 +58,7 @@ describe("sync command definitions", () => {
       "shift.cash_move",
       "shift.close",
       "shift.open",
+      "sync.rejection_dismissed",
       "table.transfer",
     ]);
   });

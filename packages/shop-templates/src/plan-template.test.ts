@@ -33,11 +33,17 @@ describe("planning a template for a branch", () => {
     expect(plan.changes.filter((c) => c.kind === "add_station").map((c) => c.kind === "add_station" && c.name)).toEqual(["Bếp nóng", "Bếp lạnh", "Bar nước"]);
     expect(plan.changes.filter((c) => c.kind === "set_flag")).toEqual([
       { kind: "set_flag", flag: "tables", value: true },
-      { kind: "set_flag", flag: "pay_first_counter", value: false },
       { kind: "set_flag", flag: "course_firing", value: true },
       { kind: "set_flag", flag: "kitchen_routing", value: true },
     ]);
-    expect(plan.kept).toEqual([]);
+    // The till always takes money first, so a template cannot turn that off.
+    expect(plan.kept).toEqual([{ flag: "pay_first_counter", wanted: false, current: true, reason: "locked" }]);
+  });
+
+  it("leaves the pay-first counter on whatever the shop stored for it", () => {
+    const plan = planTemplate(restaurant, { ...EMPTY, flagsSetByShop: { pay_first_counter: false } });
+    expect(plan.changes).not.toContainEqual({ kind: "set_flag", flag: "pay_first_counter", value: false });
+    expect(plan.kept).toContainEqual({ flag: "pay_first_counter", wanted: false, current: true, reason: "locked" });
   });
 
   it("adds only what is missing, comparing names the way a person does", () => {

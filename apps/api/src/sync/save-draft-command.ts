@@ -4,6 +4,7 @@ import {
   saveDraftPayloadSchema,
 } from "@fnb/contracts";
 import { type OrderLine, assertLinesEditable, validateLineTree } from "@fnb/domain";
+import { readDeviceFeatureFlag } from "./device-feature-flag";
 import { readDeviceOrderSettings } from "./device-order-settings";
 import { newlyTypedPrices, productsAdding, refuseSoldOut } from "./draft-additions";
 import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
@@ -46,7 +47,15 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   // recorded the draft: a till whose clock is set to happy hour does not get its prices.
   const recordedAt = time.effectiveAt;
   const before = existing?.order.lines ?? [];
-  const fresh = await priceDraftLines(client, branch, payload, recordedAt.getTime(), before);
+  const scheduledPrices = await readDeviceFeatureFlag(client, device.deviceId, "happy_hour_pricing");
+  const fresh = await priceDraftLines(
+    client,
+    branch,
+    payload,
+    recordedAt.getTime(),
+    before,
+    scheduledPrices,
+  );
   const lines = mergeDraftLines(before, fresh, {
     sentQuantityByLineId: existing?.sentQuantityByLineId ?? new Map(),
     voidedLineIds: await readVoidedLineIds(client, payload.orderId),

@@ -61,6 +61,22 @@
   box-shadow: var(--ring);
 }
 
+.bo-switch__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.bo-soon {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong, var(--c-brand));
+  font-size: 0.75rem;
+  font-weight: var(--fw-semibold);
+}
+
 .bo-switch > .bo-setting-source {
   color: var(--c-text-2);
 }

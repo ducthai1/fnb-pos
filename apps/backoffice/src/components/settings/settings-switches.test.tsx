@@ -42,13 +42,13 @@ describe("the feature switches of a branch", () => {
   it("explains a refused switch under that switch, naming the one it needs", async () => {
     const settings = fakeSettings();
     await openSettings(settings, {
-      putSetting: async () => violation("FLAGS_REQUIRES_MISSING", "qr_ordering", "tables", "branch", BRANCH_SCOPE.id),
+      putSetting: async () => violation("FLAGS_REQUIRES_MISSING", "cup_labels", "tables", "branch", BRANCH_SCOPE.id),
     });
-    fireEvent.click(box("qr_ordering"));
-    const alert = await within(switchRow("qr_ordering")).findByRole("alert");
-    expect(alert.textContent).toBe(T.violation.requires(F.qr_ordering!, F.tables!));
-    expect(box("qr_ordering").getAttribute("aria-invalid")).toBe("true");
-    expect(box("qr_ordering").checked).toBe(false);
+    fireEvent.click(box("cup_labels"));
+    const alert = await within(switchRow("cup_labels")).findByRole("alert");
+    expect(alert.textContent).toBe(T.violation.requires(F.cup_labels!, F.tables!));
+    expect(box("cup_labels").getAttribute("aria-invalid")).toBe("true");
+    expect(box("cup_labels").checked).toBe(false);
     // Nowhere else: not under the switch it names, not as a page-wide error.
     expect(within(switchRow("tables")).queryByRole("alert")).toBeNull();
     expect(screen.getAllByRole("alert")).toHaveLength(1);
@@ -59,14 +59,14 @@ describe("the feature switches of a branch", () => {
     const settings = fakeSettings();
     await openSettings(settings, {
       putSetting: async () =>
-        violation("FLAGS_EXCLUDES_BOTH_ON", "auto_86_on_zero_stock", "allow_negative_stock", "branch", q3.id),
+        violation("FLAGS_EXCLUDES_BOTH_ON", "cup_labels", "kitchen_routing", "branch", q3.id),
     });
     fireEvent.click(screen.getByRole("radio", { name: T.layer.brand(q3.brandName) }));
     await screen.findByRole("heading", { name: T.switchesTitle });
-    fireEvent.click(box("auto_86_on_zero_stock"));
-    const alert = await within(switchRow("auto_86_on_zero_stock")).findByRole("alert");
+    fireEvent.click(box("cup_labels"));
+    const alert = await within(switchRow("cup_labels")).findByRole("alert");
     expect(alert.textContent).toBe(
-      `${T.violation.excludes(F.auto_86_on_zero_stock!, F.allow_negative_stock!)} ${T.violation.at(T.violation.place.branch(q3.name))}`,
+      `${T.violation.excludes(F.cup_labels!, F.kitchen_routing!)} ${T.violation.at(T.violation.place.branch(q3.name))}`,
     );
   });
 
@@ -106,5 +106,48 @@ describe("the feature switches of a branch", () => {
     await renderSignedIn(<SettingsScreen />, { getSettings: async () => refused(403, "API_PERMISSION_DENIED") });
     await screen.findByRole("heading", { name: vi.shell.permissionDeniedTitle });
     expect(screen.queryByRole("heading", { name: T.switchesTitle })).toBeNull();
+  });
+});
+
+describe("switches the till does not follow", () => {
+  it("shows a switch the till ignores locked, with a coming-soon label, and writes nothing", async () => {
+    const settings = fakeSettings({ [BRANCH_SCOPE.id]: { course_firing: true } });
+    await openSettings(settings);
+    const row = switchRow("course_firing");
+    expect(row.dataset.support).toBe("coming_soon");
+    expect(within(row).getByText(T.comingSoon)).toBeTruthy();
+    expect(within(row).getByText(T.support.comingSoon)).toBeTruthy();
+    // The value that was stored still shows; it just cannot be changed from here.
+    expect(box("course_firing").checked).toBe(true);
+    expect(box("course_firing").disabled).toBe(true);
+    expect(settings.putSetting).not.toHaveBeenCalled();
+  });
+
+  it("keeps the pay-first counter on, locked, and says the other way is coming soon", async () => {
+    await openSettings(fakeSettings({ [BRANCH_SCOPE.id]: { pay_first_counter: false } }));
+    const row = switchRow("pay_first_counter");
+    expect(box("pay_first_counter").checked).toBe(true);
+    expect(box("pay_first_counter").disabled).toBe(true);
+    expect(within(row).getByText(T.support.lockedOn)).toBeTruthy();
+  });
+
+  it("points the e-invoice switch at the e-invoice profile instead of offering a switch", async () => {
+    await openSettings();
+    const row = switchRow("einvoice");
+    expect(within(row).queryByRole("checkbox")).toBeNull();
+    expect(within(row).getByText(T.support.seeProfile)).toBeTruthy();
+    expect(within(row).getByRole("link", { name: T.support.seeProfileLink }).getAttribute("href")).toBe(
+      "#settings-invoices",
+    );
+  });
+
+  it("still lets the switches the till follows be turned on and off", async () => {
+    await openSettings(fakeSettings());
+    for (const key of ["tables", "cup_labels", "kitchen_routing"]) {
+      expect(box(key).disabled).toBe(false);
+      expect(switchRow(key).dataset.support).toBe("works");
+    }
+    // A brand-wide switch is set at the brand, not here, but the till does follow it.
+    expect(switchRow("happy_hour_pricing").dataset.support).toBe("works");
   });
 });

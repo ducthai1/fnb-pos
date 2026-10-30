@@ -1,14 +1,28 @@
 import type { RejectedCommand, SyncClient } from "@fnb/sync-client";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
+import { useTillMenu } from "../features/menu/use-till-menu";
+import type { ChosenReason } from "../features/order-adjust/reason-codes";
 import type { TillPlace } from "../features/order/till-command";
 import { useSettledQrClosing } from "../features/payment/use-settled-qr-closing";
 import { openShiftCommand } from "../features/shift/till-shift";
 import { useTillShift } from "../features/shift/use-till-shift";
+import { dismissRejectionCommand } from "../features/sync/dismiss-rejection-command";
+import { type RedoOutcome, redoRefusedDraft } from "../features/sync/redo-refused-draft";
+import {
+  canRedo,
+  dismissalNeedsWords,
+  dismissalReasonsOf,
+} from "../features/sync/rejection-routes";
+import { useOpenableOrders } from "../features/sync/use-openable-orders";
 import { vi } from "../messages/vi";
+import { DismissRejectionScreen } from "../screens/needs-attention/dismiss-rejection-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
 import { OpenShiftScreen } from "../screens/open-shift/open-shift-screen";
 
 export interface NeedsAttentionFlowProps {
+  /** The till's bootstrap: the menu a refused draft is priced against when saved again. */
+  snapshot: BootstrapSnapshot;
   client: SyncClient | null;
   place: TillPlace | null;
   /** Who is signed in: the shift opened here is theirs. */
@@ -16,8 +30,16 @@ export interface NeedsAttentionFlowProps {
   rejected: readonly RejectedCommand[];
   /** A command went into the outbox, worth pushing now. */
   onSent(): void;
+  /** Leaves the list for the till with this order opened (a draft still on the till). */
+  onOpenOrder(orderId: string): void;
   onBack(): void;
 }
+
+const NOTE_OF_OUTCOME: Readonly<Record<Exclude<RedoOutcome, "sent">, string>> = {
+  nothing_to_add: vi.needsAttention.notes.nothingToAdd,
+  not_a_draft: vi.needsAttention.notes.notDraft,
+  no_server_copy: vi.needsAttention.notes.noCopy,
+};
 
 /**
  * The needs-attention list with what can be settled on the spot. A paid QR closes its order
@@ -28,7 +50,61 @@ export interface NeedsAttentionFlowProps {
  */
 export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
   const { client, place, onSent } = props;
-  const settledQr = useSettledQrClosing(client, place, props.rejected);
+  const menu = useTillMenu(props.snapshot, client);
+  /** Refusals dealt with in this visit; each is also off the till's list for good. */
+  const [gone, setGone] = useState<ReadonlySet<string>>(new Set());
+  const [notes, setNotes] = useState<ReadonlyMap<string, string>>(new Map());
+  const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
+  const [dismissing, setDismissing] = useState<RejectedCommand | null>(null);
+  const rejected = useMemo(
+    () => props.rejected.filter((entry) => !gone.has(entry.command.commandId)),
+    [props.rejected, gone],
+  );
+  const openable = useOpenableOrders(client, rejected);
+  const redoable = useMemo(
+    () => new Set(rejected.filter(canRedo).map((entry) => entry.command.commandId)),
+    [rejected],
+  );
+  const settle = useCallback(
+    async (entry: RejectedCommand) => {
+      if (client === null) return;
+      await client.resolveRejected(entry.command.commandId);
+      setGone((before) => new Set(before).add(entry.command.commandId));
+    },
+    [client],
+  );
+  const note = (id: string, text: string) => setNotes((before) => new Map(before).set(id, text));
+  const redo = (entry: RejectedCommand) => {
+    if (client === null || place === null) return;
+    const id = entry.command.commandId;
+    setBusy((before) => new Set(before).add(id));
+    redoRefusedDraft(client, place, menu, entry, Date.now())
+      .then(async (outcome) => {
+        // Saved again, or the server already has every item: the refusal is dealt with.
+        if (outcome === "sent" || outcome === "nothing_to_add") await settle(entry);
+        if (outcome === "sent") onSent();
+        else note(id, NOTE_OF_OUTCOME[outcome]);
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+        note(id, vi.needsAttention.notes.failed);
+      })
+      .finally(() => setBusy((before) => new Set([...before].filter((one) => one !== id))));
+  };
+  const dismiss = async (entry: RejectedCommand, reason: ChosenReason): Promise<string | null> => {
+    if (client === null || place === null) return vi.needsAttention.notes.failed;
+    try {
+      await client.enqueue(dismissRejectionCommand(place, entry, reason, Date.now()));
+      await settle(entry);
+      setDismissing(null);
+      onSent();
+      return null;
+    } catch (error) {
+      console.error(error);
+      return vi.needsAttention.notes.failed;
+    }
+  };
+  const settledQr = useSettledQrClosing(client, place, rejected);
   const shift = useTillShift(client, place?.deviceId ?? "");
   /** The order waiting for the shift the cashier is opening for it. */
   const [opening, setOpening] = useState<string | null>(null);
@@ -60,12 +136,31 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
       />
     );
   }
+  if (dismissing !== null) {
+    return (
+      <DismissRejectionScreen
+        commandType={dismissing.command.type}
+        code={dismissing.code}
+        reasons={dismissalReasonsOf(dismissing)}
+        needsWords={dismissalNeedsWords(dismissing)}
+        onConfirm={(reason) => dismiss(dismissing, reason)}
+        onBack={() => setDismissing(null)}
+      />
+    );
+  }
   return (
     <NeedsAttentionScreen
-      rejected={props.rejected}
+      rejected={rejected}
       closable={settledQr.closable}
       closeNeedsShift={shift.loaded && shift.shift === null}
       onCloseWithSettledQr={(orderId) => void close(orderId)}
+      redoable={redoable}
+      openable={openable}
+      notes={notes}
+      busy={busy}
+      onRedo={redo}
+      onOpenOrder={props.onOpenOrder}
+      onDismiss={setDismissing}
       onBack={props.onBack}
     />
   );

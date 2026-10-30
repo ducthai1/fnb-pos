@@ -127,4 +127,39 @@ describe("a combo product", () => {
       { code: "DOMAIN_CATALOG_COMBO_DEFINITION_ON_NON_COMBO", details: { productId: id } },
     ]);
   });
+
+  it("refuses a slot that offers another combo, and keeps the stored combo as it was", async () => {
+    const inner = breakfastCombo([
+      { productId: tea.ids.product, variantId: tea.ids.sizeM, upcharge: 0 },
+    ]);
+    await expectStatus(shop.call("PUT", inner.url, inner.body), 201);
+    const outer = breakfastCombo([{ productId: inner.id, variantId: null, upcharge: 0 }]);
+    const response = await shop.call("PUT", outer.url, outer.body);
+    expect([response.statusCode, response.json()]).toEqual([
+      400,
+      { code: "API_CATALOG_COMBO_OPTION_IS_COMBO" },
+    ]);
+    expect((await shop.call("GET", outer.url)).statusCode).toBe(404);
+  });
+
+  it("refuses a slot that offers a product taken off the menu, and takes it again once it is back", async () => {
+    const gone = newId();
+    const body = { ...tea.body, name: "Món đã ngừng", combo: null, variants: [], modifierGroups: [] };
+    await expectStatus(shop.call("PUT", `/catalog/products/${gone}`, body), 201);
+    await expectStatus(shop.call("POST", `/catalog/products/${gone}/archive`), 200);
+    const combo = breakfastCombo([{ productId: gone, variantId: null, upcharge: 0 }]);
+    const refused = await shop.call("PUT", combo.url, combo.body);
+    expect([refused.statusCode, refused.json()]).toEqual([
+      400,
+      { code: "API_CATALOG_COMBO_OPTION_ARCHIVED" },
+    ]);
+    const stored = (await expectStatus(shop.call("GET", `/catalog/products/${gone}`), 200)).json() as {
+      version: number;
+    };
+    await expectStatus(
+      shop.call("POST", `/catalog/products/${gone}/unarchive`, { version: stored.version }),
+      200,
+    );
+    expect((await shop.call("PUT", combo.url, combo.body)).statusCode).toBe(201);
+  });
 });

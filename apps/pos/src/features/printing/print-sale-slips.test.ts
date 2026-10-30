@@ -28,7 +28,9 @@ describe("the call number on a slip", () => {
     const two = { ...SALE_MENU, callNumbering: { deviceIndex: 2, tillsInBranch: 2 } };
     expect(slipHead(two, sale, 0).callNumber).toBe(String(200 + (sale.order.deviceOrderNo % 100)));
     const one = { ...SALE_MENU, callNumbering: { deviceIndex: 1, tillsInBranch: 1 } };
-    expect(slipHead(one, sale, 0).callNumber).toBe(String(((sale.order.deviceOrderNo - 1) % 100) + 1));
+    expect(slipHead(one, sale, 0).callNumber).toBe(
+      String(((sale.order.deviceOrderNo - 1) % 100) + 1),
+    );
   });
 });
 

@@ -118,7 +118,7 @@ export function ProductListScreen() {
                   rows={listed}
                   rowKey={(product) => product.id}
                   columns={columnsFor(categoryName)}
-                  search={{ label: T.search, text: (product) => product.name }}
+                  search={{ label: T.search, text: (product) => `${product.name} ${product.code ?? ""}` }}
                   filters={categoryFilters(listed, categories)}
                   filterLabel={T.columns.category}
                   empty={<EmptyState icon={CupSoda}>{products.length === 0 ? T.empty : T.noMatch}</EmptyState>}

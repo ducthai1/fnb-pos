@@ -62,6 +62,30 @@ describe("an order at a table, round after round", () => {
     ]);
   });
 
+  it("labels the cups of a round when it goes to the bar, only that round's, with the switch on", async () => {
+    const server = tableCafeServer();
+    await tillOnTheFloor(server, simulatedPrinterThatPrints);
+    await openTable(FLOOR.t1, "1");
+    addCoffees(2);
+    await sendRound();
+    expect(slipPreview("cup_label")).toEqual([expect.stringContaining("2/2")]);
+    tap(text.tables.slips.backToOrder);
+    addMilkTea();
+    await sendRound();
+    // The first round's cups are not labelled again: this one has one cup.
+    expect(slipPreview("cup_label")).toEqual([expect.stringContaining("1/1")]);
+  });
+
+  it("prints no cup labels at the table when the switch is off", async () => {
+    const server = tableCafeServer(true, {}, undefined, {}, { cup_labels: false });
+    await tillOnTheFloor(server, simulatedPrinterThatPrints);
+    await openTable(FLOOR.t1, "1");
+    addCoffees(2);
+    await sendRound();
+    expect(slipPreview("kitchen")).toHaveLength(1);
+    expect(slipPreview("cup_label")).toEqual([]);
+  });
+
   it("asks before leaving with items the kitchen was not sent, and not once all went out", async () => {
     const server = tableCafeServer();
     await tillOnTheFloor(server, simulatedPrinterThatPrints);

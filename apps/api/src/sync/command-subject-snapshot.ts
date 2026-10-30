@@ -12,7 +12,7 @@ import type { CommandSnapshot } from "./sync-wire-types";
  * print job's log is the backoffice's, never a till's, so it has no snapshot to send.
  */
 export interface CommandSubject {
-  readonly entity: "order" | "shift" | "print_job" | "payment_intent";
+  readonly entity: "order" | "shift" | "print_job" | "payment_intent" | "dismissal";
   readonly id: string;
 }
 
@@ -25,7 +25,7 @@ export async function subjectSnapshotOf(
   device: DeviceAuth,
   subject: CommandSubject,
 ): Promise<CommandSnapshot | null> {
-  if (subject.entity === "print_job") return null;
+  if (subject.entity === "print_job" || subject.entity === "dismissal") return null;
   if (subject.entity === "payment_intent") {
     const intent = await readPaymentIntent(client, subject.id, false);
     if (intent === null || intent.branchId !== device.branchId) return null;

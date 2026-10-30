@@ -63,7 +63,7 @@ Một **bảng giá** là một tên gọi cùng nhiều **quy tắc**. Mỗi qu
 - Giờ và ngày tính theo **giờ của chi nhánh**; ngày nhập theo giờ Việt Nam (UTC+7).
 - Một bảng giá có tối đa **500 quy tắc**; tên tối đa 120 ký tự, kênh tối đa 40 ký tự.
 - Quy tắc **có kênh** chỉ áp khi đơn thuộc kênh đó. Máy quầy bán không qua kênh nào (kênh giao hàng là giai đoạn sau), nên quy tắc có kênh chưa áp ở quầy.
-- Bảng giá áp dụng ngay khi có quy tắc, **không phụ thuộc** công tắc "Giá theo khung giờ" ở [Cài đặt](09-cai-dat.md) (công tắc đó chưa có tác dụng).
+- Quy tắc **có hẹn** (khung giờ, ngày trong tuần, từ ngày – tới ngày) chỉ áp khi công tắc **Giá theo khung giờ** ở [Cài đặt](09-cai-dat.md) **bật** (công tắc đặt ở tầng thương hiệu, mặc định tắt). Tắt thì máy quầy và máy chủ bỏ các quy tắc đó, bán theo giá gốc. Quy tắc **không hẹn** (giá riêng của chi nhánh, của kênh bán) vẫn áp như cũ.
 - Hai người sửa cùng một bảng giá: người lưu sau bị từ chối ("Có người đã sửa mục này trước bạn") và được mời tải bản mới; thay đổi chưa lưu của họ mất.
 
 ## Khi có lỗi

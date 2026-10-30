@@ -26,7 +26,16 @@ export const REFUND_REASONS = [
   "other",
 ] as const;
 
+/**
+ * Why staff set aside a command the server refused: it was dealt with another way, or nobody
+ * needs it any more. A command that moved money or told the kitchen to make food can only be
+ * set aside with these words in the note (see the contract), whichever is picked.
+ */
+export const DISMISS_REASONS = ["handled_by_hand", "no_longer_needed", "other"] as const;
+export const DISMISS_REASONS_WITH_WORDS = ["handled_by_hand", "other"] as const;
+
 export type ReasonCode =
+  | (typeof DISMISS_REASONS)[number]
   | (typeof VOID_REASONS)[number]
   | (typeof CANCEL_REASONS)[number]
   | (typeof REFUND_REASONS)[number]

@@ -16,6 +16,8 @@ export interface ProductDocument {
   trackStock: boolean;
   earnsPoints: boolean;
   printCupLabel: boolean;
+  /** The product's code (mã hàng), unique within the brand among products on the menu. */
+  code: string;
   /** The stored photo's name, and where it is served (relative to the API's base). */
   imageKey: string | null;
   imageUrl: string | null;

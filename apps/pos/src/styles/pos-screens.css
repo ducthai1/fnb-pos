@@ -135,3 +135,24 @@
 .pos-rejected p {
   margin: 0;
 }
+
+.pos-rejected__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.pos-rejected__note {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md, 12px);
+  background: var(--c-amber-soft);
+  color: var(--c-text);
+}
+
+.pos-hint--warn {
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md, 12px);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}

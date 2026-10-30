@@ -2,8 +2,11 @@ import {
   type KitchenTicketLine,
   type OrderLine,
   QUANTITY_SCALE,
+  type Quantity,
+  addQuantity,
   type SentLineState,
   diffKitchenTicket,
+  quantity,
   subtreeOf,
 } from "@fnb/domain";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
@@ -12,6 +15,7 @@ import type { CounterOrder, SeatedTable } from "../order/counter-order";
 import type { PricedCounterOrder } from "../order/price-counter-order";
 import { serverCopyNow } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
+import { cupLabelSlip } from "../printing/cup-label-slip";
 import { kitchenSlips, recordablePart, stationRoutingOf } from "../printing/kitchen-slips";
 import { preBillSlip } from "../printing/pre-bill-slip";
 import { jobReportedCommand, markSentCommand, withSent } from "../printing/print-commands";
@@ -108,6 +112,8 @@ export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip
   let version = settled.state.version;
   const locked = new Map<string, readonly OrderLine[]>();
   const unprinted = new Set<string>();
+  /** The units a bar ticket took in this round, by item: the cups to put a label on. */
+  const handedOver = new Map<string, Quantity>();
   for (const ticket of tickets) {
     const slip = { job: ticket.job, outcome: await printOne(input.printer, ticket.job) };
     printed.push(slip);
@@ -118,11 +124,27 @@ export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip
       const recorded = { ...settled, state: { ...settled.state, version } };
       await session.record(markSentCommand(place, recorded, part, sent, input.now()));
       version += 1;
-      for (const line of part.lines) locked.set(line.lineId, treeOf(settled.priced, line.lineId));
+      for (const line of part.lines) {
+        locked.set(line.lineId, treeOf(settled.priced, line.lineId));
+        if (line.kind === "new") {
+          handedOver.set(
+            line.lineId,
+            addQuantity(handedOver.get(line.lineId) ?? quantity(0), quantity(line.quantity)),
+          );
+        }
+      }
     }
     await report(input, settled.order.orderId, slip, session.record);
   }
   if (locked.size > 0) session.noteSent(sent, locked);
+  // Cup labels for the drinks just handed to the bar, when the switch is on.
+  const labels =
+    handedOver.size === 0 ? null : cupLabelSlip(input.menu, settled, input.now(), handedOver);
+  if (labels !== null) {
+    const slip = { job: labels, outcome: await printOne(input.printer, labels) };
+    printed.push(slip);
+    await report(input, settled.order.orderId, slip, session.record);
+  }
   return printed;
 }
 

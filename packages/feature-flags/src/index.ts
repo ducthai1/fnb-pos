@@ -6,6 +6,12 @@ export {
   type FeatureFlagScope,
   featureFlagDefaults,
 } from "./feature-flag-catalog";
+export {
+  FEATURE_FLAG_TILL_SUPPORT,
+  type FlagTillSupport,
+  isFlagLockedOn,
+  tillSupportOf,
+} from "./feature-flag-till-support";
 export { FeatureFlagError } from "./feature-flag-error";
 export { FEATURE_FLAGS_ERROR_CODES } from "./feature-flags-error-codes";
 export {

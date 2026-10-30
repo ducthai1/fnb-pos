@@ -10,6 +10,8 @@ decisions:
   - D-008
   - D-021
   - D-024
+  - D-089
+  - D-137
   - D-039
   - D-046
   - D-054
@@ -32,6 +34,10 @@ tests:
   - apps/pos/src/features/sync/background-sync-restore.test.ts
   - apps/pos/src/app/server-restored-under-the-till.test.tsx
   - apps/pos/src/app/settled-qr-needs-attention.test.tsx
+  - apps/pos/src/features/sync/redo-refused-draft.test.ts
+  - apps/pos/src/features/sync/rejection-routes.test.ts
+  - apps/api/test/integration/sync/dismissing-a-refused-command-is-audited.test.ts
+  - apps/api/test/integration/sync/cancel-after-voiding-sent-items-in-passes.test.ts
   - apps/pos/src/messages/sync-error-sentences.test.ts
   - apps/pos/src/features/api/rate-limited-answer.test.ts
   - apps/api/test/integration/sync/sync-duplicate-and-reordered-delivery.test.ts
@@ -50,7 +56,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
 ## Ai dùng, cần quyền gì
 
 - Thu ngân: đọc tình trạng trên thanh trên cùng, báo quản lý khi có **Cần xử lý**.
-- Quản lý: xem lại từng lệnh trong **Cần xử lý**.
+- Quản lý: xử lý từng lệnh trong **Cần xử lý** (làm lại, mở đơn, xin duyệt gửi lại, hoặc bỏ qua có lý do).
 - Người vận hành máy chủ: khôi phục máy chủ từ bản sao lưu (máy quầy tự gửi bù — xem cuối trang).
 
 ## Các bước
@@ -79,11 +85,18 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
 
    ![Cần xử lý](../images/may-quay/needs-attention.webp)
 
-3. Làm theo câu giải thích. Với đơn khách **đã chuyển khoản QR đủ** mà máy lại ghi thu tiền mặt, có nút **Đóng đơn bằng QR đã nhận** ngay trong danh sách (trả lại tiền mặt cho khách trước).
-   - Máy **chưa mở ca** (ca cũ đã đóng, chưa mở ca mới — "Cần xử lý" vẫn mở được từ màn **Mở ca**): nút đổi thành **Mở ca để đóng đơn này**. Bấm vào, máy hiện màn **Mở ca** kèm dòng "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở." Đếm tiền đầu ca như thường lệ rồi bấm **Mở ca**: máy mở ca, đóng đơn vào ca đó và quay lại danh sách. Đổi ý thì bấm **Quay lại danh sách**.
+3. Làm theo câu giải thích. Mỗi lệnh có các nút hợp với nó (nút nào không hợp thì không hiện):
+   - **Lưu lại trên bản mới của đơn** — cho đơn bàn mà máy khác đã sửa trước (bản của máy này bị máy chủ từ chối). Máy lấy bản mới của đơn từ máy chủ, giữ mọi món máy chủ có, thêm món máy này vừa gọi mà máy chủ chưa có rồi lưu lại. Lưu được hoặc máy chủ đã có đủ món thì lệnh rơi khỏi danh sách. Đơn đã được trả / hủy ở máy khác thì máy không lưu thêm món được, nói rõ như vậy: mở đơn mới cho các món cần, hoặc **Bỏ qua lệnh này**.
+   - **Mở đơn / bàn** — cho lệnh nói về một đơn còn là nháp trên máy: thoát danh sách, máy mở đơn đó (đơn quầy trở lại giỏ hàng, đơn bàn mở sơ đồ bàn) để sửa rồi lưu lại.
+   - **Mở đơn, xin duyệt rồi gửi lại** — khi máy chủ từ chối vì thiếu hoặc sai lần duyệt của quản lý (ví dụ **Hủy đơn** một đơn mà máy khác đã in tạm tính, máy này chưa biết). Mở đơn rồi làm lại **Hủy đơn**: lần này máy biết đơn đã in tạm tính nên xin quản lý duyệt trước khi gửi.
+   - **Đóng đơn bằng QR đã nhận** — cho đơn khách **đã chuyển khoản QR đủ** mà máy lại ghi thu tiền mặt (trả lại tiền mặt cho khách trước).
+     - Máy **chưa mở ca** (ca cũ đã đóng, chưa mở ca mới — "Cần xử lý" vẫn mở được từ màn **Mở ca**): nút đổi thành **Mở ca để đóng đơn này**. Bấm vào, máy hiện màn **Mở ca** kèm dòng "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở." Đếm tiền đầu ca như thường lệ rồi bấm **Mở ca**: máy mở ca, đóng đơn vào ca đó và quay lại danh sách. Đổi ý thì bấm **Quay lại danh sách**.
+   - **Bỏ qua lệnh này…** — có ở mọi lệnh. Chọn lý do (**Đã xử lý cách khác**, **Không còn cần nữa**, **Lý do khác** kèm vài chữ) rồi **Bỏ qua lệnh**. Lệnh không được gửi lại và rơi khỏi danh sách; máy chủ ghi lại ai bỏ qua, lệnh nào, mã lỗi gì và lý do (nhật ký kiểm tra, xem được ở trang quản lý).
+     - Lệnh **có tiền hoặc phiếu bếp** (thanh toán, hoàn tiền, thu chi két, đóng ca, mã QR, gửi phiếu pha chế): không có lý do "Không còn cần nữa", và dù chọn lý do nào cũng **phải ghi vài chữ đã xử lý ra sao** ("Quản lý đã hoàn tiền mặt cho khách") thì nút mới bấm được; máy chủ cũng không nhận khi thiếu. Khoản tiền hay món đã gửi bếp không bao giờ biến mất chỉ vì một cái chạm.
+   - Lệnh đã xử lý **được nhớ bền**: tắt máy mở lại vẫn không thấy nó nữa, và nút **Cần xử lý (n)** giảm theo.
 4. Bấm **Quay lại bán hàng**.
 
-Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người mua hóa đơn · Gửi phiếu pha chế · Tạo mã QR chuyển khoản · Gỡ mã QR chuyển khoản · Mở ca · Báo kết quả in · In tạm tính · Chuyển bàn*.
+Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người mua hóa đơn · Gửi phiếu pha chế · Tạo mã QR chuyển khoản · Gỡ mã QR chuyển khoản · Mở ca · Báo kết quả in · In tạm tính · Chuyển bàn · Ghi nhận bỏ qua một lệnh*.
 
 ## Luật và giới hạn
 
@@ -94,7 +107,7 @@ Tên lệnh trong danh sách: *Lưu đơn · Thanh toán đơn · Ghi người m
 - Lệnh tới máy chủ mà **nhanh hơn quá 2 phút** (máy chưa kịp đo độ lệch) thì máy chủ **không nhận, cũng không từ chối**: trả về "gửi lại" kèm giờ máy chủ, không ghi gì vào sổ. Máy quầy ghi lại giờ của lệnh đó theo giờ máy chủ (một lần, tính lại từ giờ máy, không cộng dồn) rồi gửi lại đúng lệnh đó ở lượt sau.
 - Lệnh **chậm hơn quá 12 giờ** thì máy chủ dùng giờ của mình và ghi nhật ký. Đơn bán đêm lúc mất mạng vẫn giữ đúng **ngày kinh doanh** và **ca** lúc bán.
 - Chỉnh đồng hồ máy cho trùng giờ vàng **không** được giá giờ vàng: giờ của lệnh luôn quy về giờ máy chủ.
-- Lệnh bị từ chối **không tự mất**: nằm trong **Cần xử lý** để người xem lại.
+- Lệnh bị từ chối **không tự mất**: nằm trong **Cần xử lý** cho tới khi có người làm lại, mở đơn xử lý hoặc bỏ qua có lý do (lúc đó máy chủ ghi dấu vết).
 - Thanh toán luôn thuộc một ca: lệnh thanh toán không nêu ca, tới từ máy không có ca nào đang mở, bị máy chủ từ chối (`SYNC_PAYMENT_NEEDS_SHIFT`). Máy quầy bản hiện tại không gửi lệnh như vậy (chưa mở ca thì không bán được, đóng đơn QR từ "Cần xử lý" thì mở ca trước).
 - Hoàn tiền cũng vậy: lệnh hoàn không nêu ca, từ máy không có ca đang mở, bị từ chối (`SYNC_REFUND_NEEDS_SHIFT`). Máy quầy bản hiện tại chỉ mở **Lịch sử đơn** (nơi hoàn tiền) khi đã mở ca, nên không gửi lệnh như vậy.
 - Máy giữ nhật ký các lệnh đã gửi **7 ngày** để gửi bù nếu máy chủ phải khôi phục từ bản sao lưu.

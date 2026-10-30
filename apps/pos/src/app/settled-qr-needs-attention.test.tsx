@@ -72,7 +72,10 @@ describe("an order the server would not take cash for, because its QR was paid",
     await cashRefusedOverAPaidQr();
     const other = entryWith("DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION");
     expect(other?.textContent).toContain(text.errors.DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION);
-    expect(other?.querySelector("button")).toBeNull();
+    // Nothing to close with a QR there: the one thing offered is setting it aside.
+    expect(
+      [...(other?.querySelectorAll("button") ?? [])].map((button) => button.textContent),
+    ).toEqual([text.needsAttention.dismiss]);
     expect(await screen.findAllByRole("button", { name: text.qr.closeWithSettledQr })).toHaveLength(
       1,
     );
@@ -109,5 +112,36 @@ describe("an order the server would not take cash for, because its QR was paid",
     await waitFor(() =>
       expect(screen.queryByRole("button", { name: text.qr.openShiftToClose })).toBeNull(),
     );
+  });
+});
+
+describe("setting aside a refusal that had money in it", () => {
+  it("asks what became of it, sends the trace, and keeps it off the list afterwards", async () => {
+    const { server } = await cashRefusedOverAPaidQr();
+    const entry = entryWith("DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION");
+    const dismiss = entry?.querySelector("button");
+    if (dismiss === null || dismiss === undefined) throw new Error("no dismiss button");
+    fireEvent.click(dismiss);
+    await screen.findByRole("heading", { name: text.needsAttention.dismissal.title });
+    const confirm = screen.getByRole("button", { name: text.needsAttention.dismissal.confirm });
+    // A reason alone is not enough for a command with money in it: the words are needed too.
+    tap(text.reasons.handled_by_hand);
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(text.adjust.reasonNote), {
+      target: { value: "QR đã được quản lý hủy ở ngân hàng" },
+    });
+    expect((confirm as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(pushedOf(server, "sync.rejection_dismissed")).toHaveLength(1));
+    expect(pushedOf(server, "sync.rejection_dismissed")[0]?.payload).toMatchObject({
+      rejectedType: "payment.cancel_intent",
+      rejectedCode: "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION",
+      reasonCode: "handled_by_hand",
+      reasonNote: "QR đã được quản lý hủy ở ngân hàng",
+    });
+    await screen.findByRole("heading", { name: text.needsAttention.title });
+    await waitFor(() => expect(entryWith("DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION")).toBeNull());
+    // The paid-QR refusal is still there: only the one set aside went.
+    expect(entryWith(SETTLED_QR)).not.toBeNull();
   });
 });

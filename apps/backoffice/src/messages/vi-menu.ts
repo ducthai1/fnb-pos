@@ -25,7 +25,7 @@ export const VI_MENU = {
     moving: (done: number, total: number) => `Đang chuyển ${done}/${total} món…`,
     moved: (count: number, category: string) => `Đã chuyển ${count} món sang “${category}”.`,
     moveFailed: (count: number, why: string) => `${count} món không chuyển được: ${why}`,
-    columns: { name: "Món", category: "Danh mục", price: "Giá", status: "Trạng thái" },
+    columns: { name: "Món", code: "Mã hàng", category: "Danh mục", price: "Giá", status: "Trạng thái" },
     noCategory: "—",
   },
   categories: {
@@ -70,6 +70,9 @@ export const VI_MENU = {
       preview: "Xem trước",
     },
     name: "Tên món",
+    code: "Mã hàng",
+    codeHint: "Để trống: hệ thống tự cấp SP00001, SP00002… Mỗi món một mã, không phân biệt hoa thường.",
+    codeInvalid: "Mã hàng gồm 1–40 chữ cái, chữ số, dấu chấm, gạch dưới hoặc gạch ngang, không dấu cách.",
     kind: "Loại",
     kinds: {
       prepared_drink: "Đồ uống pha chế",

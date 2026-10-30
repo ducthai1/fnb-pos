@@ -157,3 +157,16 @@ describe("who may read and change settings", () => {
     expect(await call("PUT", at("tenant", s.shop.branchId, "tables"), true)).toEqual(invalid);
   });
 });
+
+describe("a switch the till always follows as on", () => {
+  it("refuses to be turned off at any layer, and can still be turned on or cleared", async () => {
+    for (const url of [brand("pay_first_counter"), branchQ1("pay_first_counter"), at("device", s.tillA.deviceId, "pay_first_counter")]) {
+      expect(await call("PUT", url, false)).toEqual({
+        status: 409,
+        body: { code: "API_SETTINGS_FLAG_LOCKED_ON" },
+      });
+    }
+    expect((await call("PUT", branchQ1("pay_first_counter"), true)).status).toBe(200);
+    expect((await call("DELETE", branchQ1("pay_first_counter"))).status).toBe(200);
+  });
+});

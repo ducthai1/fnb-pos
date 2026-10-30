@@ -4,6 +4,7 @@ import { MENU_SHEET_HEADER, headerKey } from "./read-menu-sheet";
 
 const column = (title: string) =>
   MENU_SHEET_HEADER.findIndex((header) => headerKey(header) === headerKey(title));
+const CODE = column("Mã hàng hóa");
 const NAME = column("Tên hàng hóa");
 const GROUP = column("Tên nhóm");
 const PRICE = column("Giá bán");
@@ -11,7 +12,7 @@ const NOT_FOR_SALE = column("Không cho phép bán?");
 
 /**
  * The menu as the rows of a products sheet: header first, then one row per product in the
- * menu's category order and by name. A product with no fixed price leaves "Giá bán" blank;
+ * menu's category order and by name, each with its code (mã hàng). A product with no fixed price leaves "Giá bán" blank;
  * one taken off the menu is marked "Không cho phép bán?" so importing it again skips it.
  */
 export function menuSheetRows(
@@ -32,6 +33,7 @@ export function menuSheetRows(
   );
   const rows = sorted.map((product) => {
     const row: SheetCell[] = MENU_SHEET_HEADER.map(() => null);
+    row[CODE] = product.code === undefined || product.code === "" ? null : product.code;
     row[NAME] = product.name;
     row[GROUP] = categories.find((category) => category.id === product.categoryId)?.name ?? null;
     row[PRICE] = product.pricingMode === "fixed" ? product.basePrice : null;

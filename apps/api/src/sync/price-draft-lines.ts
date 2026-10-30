@@ -3,7 +3,11 @@ import { newId } from "@fnb/db";
 import {
   type OrderLine,
   type ValidatedModifierSelection,
+  DomainError,
+  PRICING_ERROR_CODES,
+  QUANTITY_SCALE,
   findProductVariant,
+  quantityToDecimalString,
   gramsOfWeighedQuantity,
   measureUnitOf,
   quantity,
@@ -11,6 +15,7 @@ import {
   resolveUnitPrice,
   validateModifierSelection,
   vnd,
+  withoutScheduledPrices,
 } from "@fnb/domain";
 import type pg from "pg";
 import {
@@ -35,6 +40,8 @@ export async function priceDraftLines(
   payload: SaveDraftPayload,
   at: number,
   previousLines: readonly OrderLine[],
+  /** The till's happy-hour switch: off, prices that apply only at certain times are ignored. */
+  scheduledPrices: boolean,
 ): Promise<OrderLine[]> {
   // A pick taken off the menu is refused like an item would be: the combo cannot be made.
   const products = await loadSellableProducts(
@@ -45,7 +52,8 @@ export async function priceDraftLines(
       ...(line.comboPicks ?? []).map((pick) => pick.productId),
     ]),
   );
-  const priceList = await loadBrandPriceList(client, branch.brandId);
+  const brandPriceList = await loadBrandPriceList(client, branch.brandId);
+  const priceList = scheduledPrices ? brandPriceList : withoutScheduledPrices(brandPriceList);
   const previousIds = previousChildLineIds(previousLines);
   return payload.lines.flatMap((intent) => {
     const sellable = products.get(intent.productId);
@@ -108,6 +116,13 @@ function itemLine(
   // nothing, at most what one line may weigh. The amount is then the domain's price × weight.
   const unit = measureUnitOf(product);
   if (unit !== null) gramsOfWeighedQuantity(units, unit);
+  // Sold by the piece, the quantity is a whole number: 1.5 of a drink is nothing a till sells.
+  else if (units % QUANTITY_SCALE !== 0n) {
+    throw new DomainError(
+      PRICING_ERROR_CODES.quantityNotWhole,
+      `a product sold by the piece takes whole quantities, not ${quantityToDecimalString(units)}`,
+    );
+  }
   return {
     id: intent.lineId,
     parentLineId: null,

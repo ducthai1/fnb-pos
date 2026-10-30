@@ -77,6 +77,7 @@ export const vi = {
   update: VI_UPDATE,
   theme: VI_THEME,
   tools: { label: "Công cụ của máy" },
+  kitchen: { commonSlip: "Phiếu chung" },
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,
@@ -100,6 +101,28 @@ export const vi = {
       "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở.",
     backToList: "Quay lại danh sách",
     commandLine: (command: string, code: string) => `${command} — ${code}`,
+    redo: "Lưu lại trên bản mới của đơn",
+    open: "Mở đơn / bàn",
+    openForApproval: "Mở đơn, xin duyệt rồi gửi lại",
+    dismiss: "Bỏ qua lệnh này…",
+    working: "Đang làm…",
+    notes: {
+      nothingToAdd: "Máy chủ đã có đủ các món này, lệnh được gỡ khỏi danh sách.",
+      notDraft:
+        "Đơn đã được trả hoặc hủy ở máy khác nên không lưu thêm món được. Mở đơn mới cho các món cần, hoặc bỏ qua lệnh và ghi lý do.",
+      noCopy: "Chưa nhận được bản mới của đơn từ máy chủ. Có mạng rồi thử lại.",
+      failed: "Chưa làm được. Thử lại, hoặc báo quản lý.",
+    },
+    dismissal: {
+      title: "Bỏ qua lệnh bị từ chối",
+      hint: "Lệnh rời khỏi danh sách và không được gửi lại. Máy chủ ghi lại ai bỏ qua, lệnh nào và vì sao.",
+      risky:
+        "Lệnh này có tiền hoặc phiếu bếp. Chỉ bỏ qua khi khoản đó đã được xử lý cách khác, và ghi rõ đã xử lý ra sao.",
+      noteLabel: "Đã xử lý ra sao",
+      noteRequired: "Ghi vài chữ: tiền hoặc món này đã được xử lý thế nào.",
+      confirm: "Bỏ qua lệnh",
+      back: "Quay lại danh sách",
+    },
   },
   errors: {
     API_DEVICE_PAIRING_CODE_INVALID:

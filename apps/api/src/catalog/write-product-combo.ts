@@ -1,6 +1,8 @@
 import type { Product } from "@fnb/domain";
 import { newId } from "@fnb/db";
 import type pg from "pg";
+import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
+import { CatalogRequestError } from "./catalog-request-error";
 import { type CatalogWriteContext, insertCatalogRow } from "./catalog-row-writes";
 
 /**
@@ -12,6 +14,7 @@ export async function writeProductCombo(
   context: CatalogWriteContext,
   product: Product,
 ): Promise<void> {
+  await refuseUnsellableOptions(client, product);
   await client.query(
     "DELETE FROM combo_slot_option WHERE combo_slot_id IN (SELECT id FROM combo_slot WHERE product_id = $1)",
     [product.id],
@@ -36,5 +39,29 @@ export async function writeProductCombo(
         sort_order: optionIndex,
       });
     }
+  }
+}
+
+/**
+ * A slot offers products a till can put in a combo: never another combo (its own slots would
+ * be a combo inside a combo) and never one taken off the menu (the till refuses it at sale).
+ * Products the tenant does not hold are the foreign key's to refuse.
+ */
+async function refuseUnsellableOptions(client: pg.PoolClient, product: Product): Promise<void> {
+  const offered = [
+    ...new Set(
+      (product.combo?.slots ?? []).flatMap((slot) => slot.options.map((o) => o.productId)),
+    ),
+  ];
+  if (offered.length === 0) return;
+  const found = await client.query<{ kind: string; archived: boolean }>(
+    "SELECT kind, archived_at IS NOT NULL AS archived FROM product WHERE id = ANY($1::uuid[])",
+    [offered],
+  );
+  if (found.rows.some((row) => row.kind === "combo")) {
+    throw new CatalogRequestError(400, CATALOG_API_ERROR_CODES.comboOptionIsCombo);
+  }
+  if (found.rows.some((row) => row.archived)) {
+    throw new CatalogRequestError(400, CATALOG_API_ERROR_CODES.comboOptionArchived);
   }
 }

@@ -4,6 +4,7 @@ export const VI_API_ERRORS_OPERATIONS: Readonly<Record<string, string>> = {
   API_SETTINGS_UNKNOWN_KEY: "Máy chủ không biết cài đặt này. Tải lại trang.",
   API_SETTINGS_SCOPE_NOT_FOUND: "Không tìm thấy thương hiệu, chi nhánh hoặc máy này. Tải lại trang.",
   API_SETTINGS_LAYER_NOT_ALLOWED: "Cài đặt này không đặt được ở tầng đang chọn.",
+  API_SETTINGS_FLAG_LOCKED_ON: "Công tắc này luôn bật: máy quầy chưa làm được kiểu gửi bếp trước khi trả.",
   FLAGS_REQUIRES_MISSING: "Công tắc này cần một công tắc khác bật trước.",
   FLAGS_EXCLUDES_BOTH_ON: "Hai công tắc này không bật cùng lúc được.",
   API_EINVOICE_UNKNOWN_PROVIDER:

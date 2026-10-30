@@ -20,8 +20,8 @@ beforeAll(async () => {
   s = await syncShop(app, pool);
   await withTenant(pool, s.shop.tenantId, (client) =>
     client.query(
-      "INSERT INTO product (id, tenant_id, brand_id, kind, name, base_price, pricing_mode, archived_at) " +
-        "VALUES ($1, $2, $3, 'prepared_drink', 'Bạc xỉu', 30000, 'fixed', now())",
+      "INSERT INTO product (id, tenant_id, brand_id, kind, name, base_price, pricing_mode, archived_at, code) " +
+        "VALUES ($1, $2, $3, 'prepared_drink', 'Bạc xỉu', 30000, 'fixed', now(), 'BX')",
       [archived, s.shop.tenantId, s.brandId],
     ),
   );

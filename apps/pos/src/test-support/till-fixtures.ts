@@ -117,7 +117,12 @@ export function tillBootstrapWire(overrides: Partial<PosBootstrapWire> = {}): Po
     config: {
       id: CREDENTIAL.deviceId,
       version: VERSION,
-      flags: { pay_first_counter: true },
+      flags: {
+        pay_first_counter: true,
+        cup_labels: true,
+        kitchen_routing: true,
+        happy_hour_pricing: true,
+      },
       settings: {},
       chargeProfile: { pricesIncludeTax: true, serviceCharge: null },
     },

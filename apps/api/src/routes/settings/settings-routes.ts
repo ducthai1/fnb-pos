@@ -1,5 +1,6 @@
 import { settingBodySchema, settingParamsSchema, settingsQuerySchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
+import { isFlagLockedOn } from "@fnb/feature-flags";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
@@ -83,6 +84,7 @@ export function registerSettingsRoutes(
         const parsed = body.success ? definition.value.safeParse(body.data.value) : null;
         if (parsed === null || !parsed.success) throw INVALID();
         value = parsed.data;
+        if (value === false && isFlagLockedOn(key)) throw refuse(409, CODES.flagLockedOn);
         const provider = (value as { provider?: unknown } | null)?.provider;
         if (
           key === "einvoice_profile" &&

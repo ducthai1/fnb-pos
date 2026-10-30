@@ -72,6 +72,13 @@ const settledQrRefusal: RejectedCommand = {
   command: { ...rejected(4).command, type: "order.pay" },
 };
 
+const staleDraft: RejectedCommand = { ...rejected(5), code: "SYNC_ORDER_VERSION_STALE" };
+const wantsApproval: RejectedCommand = {
+  ...rejected(6),
+  code: "SYNC_APPROVAL_REQUIRED",
+  command: { ...rejected(6).command, type: "order.cancel" },
+};
+
 const SCREENS: Record<ScreenName, () => ReactElement> = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={() => {}} />,
   crash: () => <CrashScreen onReload={() => {}} />,
@@ -98,9 +105,15 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   ),
   "needs-attention": () => (
     <NeedsAttentionScreen
-      rejected={[...[1, 2, 3].map(rejected), settledQrRefusal]}
+      rejected={[...[1, 2, 3].map(rejected), settledQrRefusal, staleDraft, wantsApproval]}
       closable={new Set([settledQrRefusal.entityId])}
       onCloseWithSettledQr={() => {}}
+      redoable={new Set([staleDraft.command.commandId])}
+      openable={new Set([staleDraft.entityId, wantsApproval.entityId])}
+      notes={new Map([[staleDraft.command.commandId, vi.needsAttention.notes.notDraft]])}
+      onRedo={() => {}}
+      onOpenOrder={() => {}}
+      onDismiss={() => {}}
       onBack={() => {}}
     />
   ),

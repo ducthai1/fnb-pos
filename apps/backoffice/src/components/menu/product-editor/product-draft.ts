@@ -90,6 +90,8 @@ export interface ProductDraft {
   readonly trackStock: boolean;
   readonly earnsPoints: boolean;
   readonly printCupLabel: boolean;
+  /** The product code as typed; blank on a new product has the server give it one. */
+  readonly code: string;
   readonly photo: DraftPhoto | null;
   readonly variants: readonly DraftVariant[];
   readonly modifierGroups: readonly DraftGroup[];
@@ -119,6 +121,7 @@ export function emptyDraft(id: string, brandId: string): ProductDraft {
     trackStock: false,
     earnsPoints: true,
     printCupLabel: false,
+    code: "",
     photo: null,
     variants: [],
     modifierGroups: [],
@@ -148,6 +151,7 @@ export function draftOfDocument(document: ProductDocument): ProductDraft {
           },
     basePrice: amountInputText(document.basePrice),
     measureUnit: document.measureUnit ?? "kg",
+    code: document.code,
     taxRate: String(document.taxRateBp / 100),
     photo:
       document.imageKey === null || document.imageUrl === null
