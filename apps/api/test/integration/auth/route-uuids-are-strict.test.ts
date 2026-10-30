@@ -59,10 +59,10 @@ const ROUTES: [string, Send, number][] = [
   ["revoking a device", (id) => sender("POST", `/devices/${id}/revoke`)(asManager()), 404],
   [
     "renaming a role",
-    (id) => sender("PATCH", `/roles/${id}`, { name: "Ca tối" })(asManager()),
+    (id) => sender("PATCH", `/roles/${id}?version=1`, { name: "Ca tối" })(asManager()),
     404,
   ],
-  ["deleting a role", (id) => sender("DELETE", `/roles/${id}`)(asManager()), 404],
+  ["deleting a role", (id) => sender("DELETE", `/roles/${id}?version=1`)(asManager()), 404],
   [
     "hiring with a role",
     (id) =>

@@ -31,10 +31,10 @@ describe("taking a QR down for cash while the till cannot hear the bank", () => 
   it("warns that the guest may have transferred, and stays on the QR when the cashier backs off", async () => {
     const server = await qrShownThenOffline();
     tap(Q.cancel);
-    const sheet = await screen.findByRole("alertdialog", { name: SHEET.title });
-    expect(sheet.textContent).toContain("app ngân hàng");
+    await screen.findByRole("heading", { name: SHEET.title });
+    expect(screen.getByRole("alert").textContent).toContain("app ngân hàng");
     tap(SHEET.stay);
-    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("heading", { name: SHEET.title })).toBeNull());
     // Still waiting for the transfer, nothing taken down.
     expect(qrPhaseShown()).toBe("waiting");
     expect(pushedOf(server, "payment.cancel_intent")).toEqual([]);
@@ -43,7 +43,7 @@ describe("taking a QR down for cash while the till cannot hear the bank", () => 
   it("takes the QR down and goes to cash only once the cashier says the guest has not paid", async () => {
     const server = await qrShownThenOffline();
     tap(Q.cancel);
-    await screen.findByRole("alertdialog", { name: SHEET.title });
+    await screen.findByRole("heading", { name: SHEET.title });
     tap(SHEET.go);
     await screen.findByLabelText(text.checkout.payment.cashTyped);
     // Recorded on the till; it reaches the server when the link is back.
@@ -54,9 +54,9 @@ describe("taking a QR down for cash while the till cannot hear the bank", () => 
   it("asks again when the cashier leaves by choosing the cash card instead", async () => {
     await qrShownThenOffline();
     tap(/^Tiền mặt/);
-    await screen.findByRole("alertdialog", { name: SHEET.title });
+    await screen.findByRole("heading", { name: SHEET.title });
     tap(SHEET.stay);
-    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("heading", { name: SHEET.title })).toBeNull());
     expect(qrPhaseShown()).toBe("waiting");
   });
 
@@ -66,7 +66,7 @@ describe("taking a QR down for cash while the till cannot hear the bank", () => 
     await twoCoffeesOnQr(server);
     tap(Q.cancel);
     await screen.findByLabelText(text.checkout.payment.cashTyped);
-    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.queryByRole("heading", { name: SHEET.title })).toBeNull();
     expect(pushedOf(server, "payment.cancel_intent")).toHaveLength(1);
   });
 
@@ -80,6 +80,6 @@ describe("taking a QR down for cash while the till cannot hear the bank", () => 
     await waitFor(() => expect(connection()).toBe("offline"));
     tap(Q.otherMethod);
     await screen.findByLabelText(text.checkout.payment.cashTyped);
-    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.queryByRole("heading", { name: SHEET.title })).toBeNull();
   });
 });

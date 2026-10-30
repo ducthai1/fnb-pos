@@ -141,7 +141,7 @@
 .bo-date-field__day[aria-pressed="true"] {
   background: var(--c-brand);
   border-color: var(--c-brand);
-  color: #fff;
+  color: var(--c-on-brand);
   font-weight: var(--fw-semibold);
 }
 
