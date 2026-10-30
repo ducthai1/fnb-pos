@@ -1,4 +1,4 @@
-import { catalogIdParamsSchema, catalogIdSchema } from "@fnb/contracts";
+import { catalogIdParamsSchema, catalogIdSchema, expectedVersionQuerySchema } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
@@ -34,7 +34,10 @@ export interface VersionedResource<Input extends { version: number | null }> {
   recordChange(client: pg.PoolClient, tenantId: string, ownerId: string, id: string): Promise<void>;
 }
 
-/** GET list by owner, PUT create-or-replace with a version, DELETE when nothing uses it. */
+/**
+ * GET list by owner, PUT create-or-replace with a version, DELETE (`?version=` of the row
+ * last read) when nothing uses it.
+ */
 export function registerVersionedResourceRoutes<Input extends { version: number | null }>(
   app: FastifyInstance,
   context: ApiContext,
@@ -99,9 +102,18 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
     write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
+      const { version } = parseOrReject(expectedVersionQuerySchema, request.query);
       const tenantId = backofficeAuth(request).tenantId;
       const deleted = await withTenant(context.pool, tenantId, async (client) => {
         await lockTenantChangeFeed(client, tenantId);
+        // Locked and compared first: removing a row someone else just edited is refused.
+        const stored = await client.query<{ version: number }>(
+          `SELECT version FROM ${resource.table} WHERE id = $1 FOR UPDATE`,
+          [id],
+        );
+        if (stored.rows[0] !== undefined && stored.rows[0].version !== version) {
+          throw new CatalogRequestError(409, CATALOG_API_ERROR_CODES.versionConflict);
+        }
         const gone = await client.query<{ owner: string }>(
           `DELETE FROM ${resource.table} WHERE id = $1 RETURNING ${resource.owner.column} AS owner`,
           [id],

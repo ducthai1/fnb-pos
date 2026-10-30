@@ -7,6 +7,7 @@ screens:
   - /menu/categories
   - /menu/availability
 decisions:
+  - D-145
   - D-095
   - D-139
   - D-009
@@ -18,6 +19,7 @@ decisions:
   - D-116
   - D-120
 tests:
+  - apps/api/test/integration/catalog/removing-a-catalog-row-needs-the-version-last-read.test.ts
   - apps/api/test/integration/catalog/catalog-product-codes.test.ts
   - apps/api/test/integration/infra/product-codes-are-given-to-existing-products.test.ts
   - apps/backoffice/src/components/menu/menu-lists.test.tsx
@@ -118,7 +120,7 @@ Combo đã lưu thì **không đổi loại** được nữa ("Món đã lưu kh
 
 1. **Thực đơn → Danh mục**: danh sách theo thứ tự hiện trên máy quầy.
 2. Gõ tên ở **Danh mục mới**, bấm **Thêm danh mục**.
-3. Nút mũi tên **Đưa … lên trên / xuống dưới** đổi thứ tự; **Đổi tên**, **Xóa** ở từng dòng.
+3. Nút mũi tên **Đưa … lên trên / xuống dưới** đổi thứ tự; **Đổi tên**, **Xóa** ở từng dòng. **Xóa** chỉ thành công khi danh mục chưa ai sửa kể từ lúc trang đọc danh sách; có người vừa sửa thì trang báo "Có người đã sửa mục này trước bạn", tải lại danh sách, và bạn bấm xóa lại nếu vẫn muốn.
 
 ### Hết món
 

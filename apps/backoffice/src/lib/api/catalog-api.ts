@@ -112,10 +112,12 @@ export interface CatalogApi {
     id: string,
     body: { version: number | null; brandId: string; name: string; sortOrder: number },
   ): Promise<ApiResult<Category>>;
-  deleteCategory(id: string): Promise<ApiResult<true>>;
+  /** `DELETE /catalog/categories/:id?version=` of the category last read; 409 when it changed since. */
+  deleteCategory(id: string, version: number): Promise<ApiResult<true>>;
   listStations(branchId: string): Promise<ApiResult<Station[]>>;
   putStation(id: string, body: { version: number | null; branchId: string; name: string }): Promise<ApiResult<Station>>;
-  deleteStation(id: string): Promise<ApiResult<true>>;
+  /** `DELETE /catalog/stations/:id?version=` of the station last read; 409 when it changed since. */
+  deleteStation(id: string, version: number): Promise<ApiResult<true>>;
   listProducts(brandId: string): Promise<ApiResult<ProductSummary[]>>;
   getProduct(id: string): Promise<ApiResult<ProductDocument>>;
   putProduct(id: string, body: ProductBody): Promise<ApiResult<ProductDocument>>;
@@ -139,16 +141,16 @@ export function httpCatalogApi(base: string, fetchImpl: FetchLike): CatalogApi {
       const answer = await requestJson(fetchImpl, url(`/categories/${id}`), { method: "PUT", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readCategory(reply) : null));
     },
-    async deleteCategory(id) {
-      return resultOf(await requestJson(fetchImpl, url(`/categories/${id}`), { method: "DELETE" }), noContent);
+    async deleteCategory(id, version) {
+      return resultOf(await requestJson(fetchImpl, url(`/categories/${id}${query("version", String(version))}`), { method: "DELETE" }), noContent);
     },
     listStations: (branchId) => get(`/stations${query("branchId", branchId)}`, list(readStation)),
     async putStation(id, body) {
       const answer = await requestJson(fetchImpl, url(`/stations/${id}`), { method: "PUT", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readStation(reply) : null));
     },
-    async deleteStation(id) {
-      return resultOf(await requestJson(fetchImpl, url(`/stations/${id}`), { method: "DELETE" }), noContent);
+    async deleteStation(id, version) {
+      return resultOf(await requestJson(fetchImpl, url(`/stations/${id}${query("version", String(version))}`), { method: "DELETE" }), noContent);
     },
     listProducts: (brandId) => get(`/products${query("brandId", brandId)}`, list(readSummary)),
     getProduct: (id) => get(`/products/${id}`, readProductDocument),

@@ -29,6 +29,8 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_STAFF_ALREADY_INACTIVE: "Nhân viên này đã bị khóa rồi. Tải lại danh sách.",
   API_STAFF_ALREADY_ACTIVE: "Nhân viên này đang làm, không cần mở lại. Tải lại danh sách.",
   API_STAFF_PIN_NOT_LOCKED: "PIN của nhân viên này không bị khóa, không có gì để mở. Tải lại danh sách.",
+  API_STAFF_VERSION_CONFLICT:
+    "Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần.",
   API_ROLE_ARCHIVED: "Vai trò này đã lưu trữ, không gán cho ai được nữa. Chọn vai trò khác.",
   API_ROLE_NOT_FOUND: "Không tìm thấy vai trò này. Tải lại trang.",
   API_ROLE_IN_USE: "Vai trò đang có người giữ. Chuyển họ sang vai trò khác trước.",

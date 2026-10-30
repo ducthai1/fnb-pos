@@ -105,9 +105,9 @@ describe("categories", () => {
     }
     await expectStatus(shop.call("PUT", tea.url, { ...tea.body, categoryId: used }), 201);
     expect([
-      await outcome(shop.call("DELETE", `/catalog/categories/${used}`)),
-      await outcome(shop.call("DELETE", `/catalog/categories/${unused}`)),
-      await outcome(shop.call("DELETE", `/catalog/categories/${unused}`)),
+      await outcome(shop.call("DELETE", `/catalog/categories/${used}?version=1`)),
+      await outcome(shop.call("DELETE", `/catalog/categories/${unused}?version=1`)),
+      await outcome(shop.call("DELETE", `/catalog/categories/${unused}?version=1`)),
     ]).toEqual([
       { status: 409, body: { code: "API_CATALOG_IN_USE" } },
       { status: 204, body: null },
@@ -120,7 +120,7 @@ describe("categories", () => {
     expect([
       await outcome(shop.call("GET", `/catalog/categories?brandId=${other.brandId}`)),
       await outcome(shop.call("PUT", url, { version: 1, brandId: shop.brandId, name: "x" })),
-      await outcome(shop.call("DELETE", url)),
+      await outcome(shop.call("DELETE", `${url}?version=1`)),
     ]).toEqual([
       { status: 404, body: { code: "API_CATALOG_BRAND_NOT_FOUND" } },
       { status: 404, body: { code: "API_CATALOG_CATEGORY_NOT_FOUND" } },
@@ -158,8 +158,8 @@ describe("stations", () => {
     const tea = pearlMilkTeaDocument(shop);
     await expectStatus(shop.call("PUT", tea.url, tea.body), 201);
     expect([
-      await outcome(shop.call("DELETE", `/catalog/stations/${shop.stationId}`)),
-      await outcome(other.call("DELETE", `/catalog/stations/${shop.stationId}`)),
+      await outcome(shop.call("DELETE", `/catalog/stations/${shop.stationId}?version=1`)),
+      await outcome(other.call("DELETE", `/catalog/stations/${shop.stationId}?version=1`)),
       await outcome(other.call("GET", `/catalog/stations?branchId=${shop.branchId}`)),
       await outcome(
         shop.call("PUT", `/catalog/stations/${newId()}`, {
@@ -207,7 +207,7 @@ describe("stations", () => {
       });
     await expectStatus(shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Pha chế" }), 201);
     await expectStatus(shop.call("PUT", url, { version: 1, branchId: shop.branchId, name: "Pha chế 2" }), 200);
-    await expectStatus(shop.call("DELETE", url), 204);
+    await expectStatus(shop.call("DELETE", `${url}?version=2`), 204);
     expect(await changes()).toBe(3);
   });
 });

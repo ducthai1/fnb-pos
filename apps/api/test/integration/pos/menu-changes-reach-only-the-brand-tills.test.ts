@@ -149,7 +149,7 @@ describe("a menu edited in the backoffice", () => {
     const spare = newId();
     const category = { version: null, brandId: m.s.brandId, name: "Món mùa", sortOrder: 9 };
     await m.manage("PUT", `/catalog/categories/${spare}`, category);
-    await m.manage("DELETE", `/catalog/categories/${spare}`);
+    await m.manage("DELETE", `/catalog/categories/${spare}?version=1`);
     const atQ1 = (await feedAfter(app, m.s.tillA.deviceToken, start.q1)).changes;
     const atQ3 = (await feedAfter(app, m.s.otherBranchTill.deviceToken, start.q3)).changes;
     expect(changesOf(atQ1, "catalog_station").map((change) => change.entityId)).toEqual([

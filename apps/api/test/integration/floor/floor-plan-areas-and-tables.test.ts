@@ -118,8 +118,8 @@ describe("tables", () => {
     // An area is archived, not deleted, once a table of it held an order.
     const closed = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B10"]);
     await orderSeatedAt(pool, shop, closed.tableIds[0]!, "cancelled");
-    await expectStatus(call("DELETE", `/floor/tables/${closed.tableIds[0]}`), 200);
-    await expectStatus(call("DELETE", `/floor/areas/${closed.areaId}`), 200);
+    await expectStatus(call("DELETE", `/floor/tables/${closed.tableIds[0]}?version=1`), 200);
+    await expectStatus(call("DELETE", `/floor/areas/${closed.areaId}?version=1`), 200);
     const tableUrl = `/floor/tables/${here.tableIds[0]}`;
     const crossBranch = await answer(
       call("PUT", tableUrl, { ...tableBody(there.areaId), version: 1 }),

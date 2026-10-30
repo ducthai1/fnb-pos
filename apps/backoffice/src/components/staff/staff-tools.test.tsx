@@ -30,6 +30,7 @@ const LAN: StaffMember = {
   branchIds: [BRANCHES[0]!.id],
   lockedOutUntil: null,
   failedSignIns: 0,
+  version: 4,
 };
 
 /** A staff list the fake changes as the server would, so a refresh shows what was done. */
@@ -42,7 +43,7 @@ function serving(member: StaffMember = LAN) {
   return {
     listStaff: mock.fn(async () => ok([current])),
     listRoles: async () => ok([CASHIER, SHIFT_LEAD, OLD_ROLE]),
-    updateStaff: mock.fn(async (_id: string, body: { displayName?: string; roleId?: string }) =>
+    updateStaff: mock.fn(async (_id: string, _version: number, body: { displayName?: string; roleId?: string }) =>
       answer(body, true as const),
     ),
     deactivateStaff: mock.fn(async () => answer({ active: false }, true as const)),
@@ -68,8 +69,25 @@ describe("the staff tools", () => {
     fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Trưởng ca" }));
     fireEvent.click(within(panel).getByRole("button", { name: K.save }));
     await screen.findByText(K.saved("Lan Ca Tối"));
-    expect(api.updateStaff).toHaveBeenCalledWith(LAN.id, { displayName: "Lan Ca Tối", roleId: SHIFT_LEAD.id });
+    expect(api.updateStaff).toHaveBeenCalledWith(LAN.id, 4, { displayName: "Lan Ca Tối", roleId: SHIFT_LEAD.id });
     await waitFor(() => expect(rowOf(LAN.id).textContent).toContain("Trưởng ca"));
+  });
+
+  it("says someone changed them first, reads the list again, and saves by the version then", async () => {
+    const api = serving();
+    let version = LAN.version;
+    const updateStaff = mock.fn(async (_id: string, sent: number) => {
+      if (sent !== version) return refused(409, "API_STAFF_VERSION_CONFLICT");
+      return ok(true as const);
+    });
+    version = 5;
+    const { panel } = await openTool(K.editLabel("Lan"), { ...api, updateStaff });
+    fireEvent.change(within(panel).getByLabelText(vi.staff.nameLabel), { target: { value: "Lan Mới" } });
+    const reads = api.listStaff.mock.calls.length;
+    fireEvent.click(within(panel).getByRole("button", { name: K.save }));
+    expect((await within(panel).findByRole("alert")).textContent).toBe(vi.errors.byCode.API_STAFF_VERSION_CONFLICT);
+    expect(updateStaff).toHaveBeenCalledWith(LAN.id, LAN.version, { displayName: "Lan Mới" });
+    await waitFor(() => expect(api.listStaff.mock.calls.length).toBeGreaterThan(reads));
   });
 
   it("sends nothing when nothing changed, or the name is blank", async () => {

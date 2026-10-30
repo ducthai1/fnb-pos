@@ -36,6 +36,8 @@ export function useFloorWrite(onChanged: () => void): FloorWrite {
       if (!result.ok) {
         if (isSignedOut(result)) signedOut();
         setError(failureMessage(result));
+        // The row changed under this page (another manager's save): read the plan again.
+        if (result.status === 409 && result.code === "API_FLOOR_VERSION_CONFLICT") onChanged();
         return false;
       }
       setDone(doneText(result.value));

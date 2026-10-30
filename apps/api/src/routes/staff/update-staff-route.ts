@@ -1,4 +1,4 @@
-import { staffUpdateBodySchema } from "@fnb/contracts";
+import { expectedVersionQuerySchema, staffUpdateBodySchema } from "@fnb/contracts";
 import { appendAudit, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
@@ -16,7 +16,8 @@ import {
 } from "./staff-admin-support";
 
 /**
- * Renaming someone, or moving them to another role. A new role holds from their next
+ * Renaming someone, or moving them to another role, as of the version the caller read
+ * (`?version=`): a row that changed since is refused with 409, not overwritten. A new role holds from their next
  * request at the till, as every request reads the role again; a new name reaches the
  * PIN screens of their branches through the change feed. Both go on the audit trail with
  * what they were before.
@@ -28,6 +29,8 @@ export function registerUpdateStaffRoute(app: FastifyInstance, context: ApiConte
     async (request, reply) => {
       const body = staffUpdateBodySchema.safeParse(request.body);
       if (!body.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
+      const expected = expectedVersionQuerySchema.safeParse(request.query);
+      if (!expected.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
       const { tenantId, appUserId } = backofficeAuth(request);
       const staffId = request.params.id;
       const { displayName, roleId } = body.data;
@@ -37,6 +40,10 @@ export function registerUpdateStaffRoute(app: FastifyInstance, context: ApiConte
         async (client): Promise<StaffAdminOutcome<null>> => {
           const before = await lockedStaff(client, staffId);
           if (before === null) return refusedWith(404, STAFF_ERROR_CODES.staffNotFound);
+          // Read before this change: someone else's rename or role change since must not be overwritten.
+          if (before.version !== expected.data.version) {
+            return refusedWith(409, STAFF_ERROR_CODES.versionConflict);
+          }
           if (roleId !== undefined && roleId !== before.role_id) {
             const problem = await assignableRoleProblem(client, roleId);
             if (problem !== null) return refusedWith(problem.status, problem.code);

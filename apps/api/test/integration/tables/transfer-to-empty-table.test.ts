@@ -93,7 +93,7 @@ describe("table.transfer", () => {
     await orderSeatedAt(pool, s.shop, gone, "cancelled");
     await app.inject({
       method: "DELETE",
-      url: `/floor/tables/${gone}`,
+      url: `/floor/tables/${gone}?version=1`,
       headers: { cookie: s.shop.managerCookie },
     });
     const codes = [];

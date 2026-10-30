@@ -146,7 +146,7 @@ async function answerOfArchivedTable() {
   await expectStatus(
     app.inject({
       method: "DELETE",
-      url: `/floor/tables/${floor.tables.B04}`,
+      url: `/floor/tables/${floor.tables.B04}?version=1`,
       headers: { cookie: s.shop.managerCookie },
     }),
     200,

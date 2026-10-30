@@ -85,7 +85,7 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
       const payload = { version: null, brandId: shop.brandId, name: "Giờ vàng", items: [] };
       await expectStatus(shop.call("PUT", url, payload), 201);
       return {
-        request: { method: "DELETE", url },
+        request: { method: "DELETE", url: `${url}?version=1` },
         effect: { method: "GET", url: `/catalog/price-lists?brandId=${shop.brandId}` },
       };
     },
@@ -120,7 +120,7 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
         shop.call("PUT", url, { version: null, brandId: shop.brandId, name: "Bánh" }),
         201,
       );
-      return { request: { method: "DELETE", url }, effect: categories(shop) };
+      return { request: { method: "DELETE", url: `${url}?version=1` }, effect: categories(shop) };
     },
   },
   {
@@ -141,7 +141,7 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
         shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Bếp" }),
         201,
       );
-      return { request: { method: "DELETE", url }, effect: stations(shop) };
+      return { request: { method: "DELETE", url: `${url}?version=1` }, effect: stations(shop) };
     },
   },
 ];

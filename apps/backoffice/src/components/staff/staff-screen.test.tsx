@@ -22,7 +22,7 @@ function serving(answer: (member: NewStaffMember) => ReturnType<typeof ok<{ staf
   const staff: StaffMember[] = [];
   const createStaff = mock.fn(async (member: NewStaffMember) => {
     const result = answer(member);
-    if (result.ok) staff.push({ id: "s1", displayName: member.displayName, roleId: member.roleId, active: true, branchIds: member.branchIds, lockedOutUntil: null, failedSignIns: 0 });
+    if (result.ok) staff.push({ id: "s1", displayName: member.displayName, roleId: member.roleId, active: true, branchIds: member.branchIds, lockedOutUntil: null, failedSignIns: 0, version: 1 });
     return result;
   });
   return {

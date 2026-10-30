@@ -17,11 +17,11 @@ export interface NewStaffMember {
 export type { StaffUpdateBody };
 
 export interface StaffApi {
-  /** `GET /staff` → `{ staff: [{ id, displayName, roleId, active, branchIds, lockedOutUntil, failedSignIns }] }`. */
+  /** `GET /staff` → `{ staff: [{ id, displayName, roleId, active, branchIds, lockedOutUntil, failedSignIns, version }] }`. */
   listStaff(): Promise<ApiResult<StaffMember[]>>;
   createStaff(member: NewStaffMember): Promise<ApiResult<{ staffId: string }>>;
-  /** `PATCH /staff/:id` `{ displayName?, roleId? }` → 204. */
-  updateStaff(staffId: string, body: StaffUpdateBody): Promise<ApiResult<true>>;
+  /** `PATCH /staff/:id?version=` of the member last read, `{ displayName?, roleId? }` → 204; 409 when they changed since. */
+  updateStaff(staffId: string, version: number, body: StaffUpdateBody): Promise<ApiResult<true>>;
   /** `POST /staff/:id/deactivate` → 204: their shift ends and the tills refuse them. */
   deactivateStaff(staffId: string): Promise<ApiResult<true>>;
   /** `POST /staff/:id/reactivate` → 204. */
@@ -50,8 +50,8 @@ export function httpStaffApi(base: string, fetchImpl: FetchLike): StaffApi {
         return staffId === null ? null : { staffId };
       });
     },
-    async updateStaff(staffId, body) {
-      const url = `${base}/staff/${encodeURIComponent(staffId)}`;
+    async updateStaff(staffId, version, body) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}?version=${version}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "PATCH", body }), done);
     },
     async deactivateStaff(staffId) {

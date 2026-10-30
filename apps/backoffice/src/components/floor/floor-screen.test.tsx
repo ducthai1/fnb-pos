@@ -77,7 +77,7 @@ describe("the floor plan of a branch", () => {
     expect(floor.removeTable).not.toHaveBeenCalled();
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: T.removeConfirm }));
     await waitFor(() => expect(row(TABLE_1.id).textContent).toContain(T.archived));
-    expect(floor.removeTable).toHaveBeenCalledWith(TABLE_1.id);
+    expect(floor.removeTable).toHaveBeenCalledWith(TABLE_1.id, TABLE_1.version);
   });
 
   it("keeps a refused removal in that table's confirmation with the reason", async () => {
@@ -87,6 +87,17 @@ describe("the floor plan of a branch", () => {
     const alert = await within(row(TABLE_1.id)).findByRole("alert");
     expect(alert.textContent).toBe(vi.errors.byCode.API_FLOOR_TABLE_HAS_OPEN_ORDER);
     expect(within(areaCard(TERRACE.id)).getAllByRole("alert")).toHaveLength(1);
+  });
+
+  it("says the table changed under it and reads the plan again when its removal is stale", async () => {
+    const floor = fakeFloor();
+    await openFloor(floor, { removeTable: async () => refused(409, "API_FLOOR_VERSION_CONFLICT") });
+    const reads = floor.listTables.mock.calls.length;
+    fireEvent.click(within(row(TABLE_1.id)).getByRole("button", { name: T.removeTable(TABLE_1.name) }));
+    fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: T.removeConfirm }));
+    const alert = await within(row(TABLE_1.id)).findByRole("alert");
+    expect(alert.textContent).toBe(vi.errors.byCode.API_FLOOR_VERSION_CONFLICT);
+    await waitFor(() => expect(floor.listTables.mock.calls.length).toBeGreaterThan(reads));
   });
 
   it("explains a role without manage_settings when the plan cannot be changed", async () => {

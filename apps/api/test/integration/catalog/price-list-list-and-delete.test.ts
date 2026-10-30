@@ -80,9 +80,9 @@ describe("DELETE /catalog/price-lists/:id", () => {
   it("removes the list and its rules, and is not repeatable", async () => {
     const id = newId();
     await expectStatus(save(id, "Hết khuyến mãi", [happyHour()]), 201);
-    const first = await shop.call("DELETE", `/catalog/price-lists/${id}`);
+    const first = await shop.call("DELETE", `/catalog/price-lists/${id}?version=1`);
     const read = await shop.call("GET", `/catalog/price-lists/${id}`);
-    const second = await shop.call("DELETE", `/catalog/price-lists/${id}`);
+    const second = await shop.call("DELETE", `/catalog/price-lists/${id}?version=1`);
     expect([first.statusCode, read.statusCode, second.statusCode, second.json()]).toEqual([
       204,
       404,
@@ -101,14 +101,14 @@ describe("DELETE /catalog/price-lists/:id", () => {
       });
     const before = await feed();
     expect(before).toBeGreaterThan(0);
-    await expectStatus(shop.call("DELETE", `/catalog/price-lists/${id}`), 204);
+    await expectStatus(shop.call("DELETE", `/catalog/price-lists/${id}?version=1`), 204);
     expect(await feed()).toBeGreaterThan(before);
   });
 
   it("cannot remove another tenant's list", async () => {
     const id = newId();
     await expectStatus(save(id, "Của tôi", []), 201);
-    const theirs = await other.call("DELETE", `/catalog/price-lists/${id}`);
+    const theirs = await other.call("DELETE", `/catalog/price-lists/${id}?version=1`);
     const still = await shop.call("GET", `/catalog/price-lists/${id}`);
     expect([theirs.statusCode, still.statusCode]).toEqual([404, 200]);
   });

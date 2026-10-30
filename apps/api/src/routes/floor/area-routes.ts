@@ -1,4 +1,9 @@
-import { areaBodySchema, floorBranchQuerySchema, floorIdParamsSchema } from "@fnb/contracts";
+import {
+  areaBodySchema,
+  expectedVersionQuerySchema,
+  floorBranchQuerySchema,
+  floorIdParamsSchema,
+} from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
@@ -90,11 +95,15 @@ export function registerAreaRoutes(app: FastifyInstance, context: ApiContext): v
     write,
     floorHandler(async (request, reply) => {
       const { id } = parseOrReject(floorIdParamsSchema, request.params);
+      const { version } = parseOrReject(expectedVersionQuerySchema, request.query);
       const writer = floorWriterOf(request, context);
       const outcome = await withTenant(context.pool, writer.tenantId, async (client) => {
         const stored = await readArea(client, id, "FOR UPDATE");
         if (stored === undefined) {
           throw new FloorRequestError(404, FLOOR_API_ERROR_CODES.areaNotFound);
+        }
+        if (stored.version !== version) {
+          throw new FloorRequestError(409, FLOOR_API_ERROR_CODES.versionConflict);
         }
         const tables = await client.query<{ active: boolean }>(
           "SELECT bool_or(archived_at IS NULL) AS active FROM dining_table WHERE area_id = $1",

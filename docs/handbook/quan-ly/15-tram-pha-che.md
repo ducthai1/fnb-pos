@@ -4,8 +4,10 @@ audience: quan-ly
 screens:
   - /menu/stations
 decisions:
+  - D-145
   - D-118
 tests:
+  - apps/api/test/integration/catalog/removing-a-catalog-row-needs-the-version-last-read.test.ts
   - apps/backoffice/src/components/menu/stations-screen.test.tsx
   - apps/api/test/integration/catalog/catalog-categories-and-stations.test.ts
   - apps/api/test/integration/catalog/catalog-writes-need-edit-menu.test.ts
@@ -40,7 +42,7 @@ tests:
 - **Món chưa gán trạm thì không in phiếu bếp**, và món gán cho một trạm của chi nhánh khác cũng không in ở chi nhánh này. Vì vậy máy chủ **không cho xóa trạm còn món gán cho nó**: xóa sẽ làm các món ấy mất phiếu.
 - Trạm **đã từng in phiếu bếp** cũng không xóa được (lịch sử phiếu còn trỏ tới nó); muốn dùng tên khác thì **đổi tên**.
 - Thêm, đổi tên, xóa tới mọi máy quầy của chi nhánh ở lần đồng bộ kế tiếp.
-- Hai người sửa cùng một trạm: người lưu sau bị từ chối, trang tải lại danh sách và báo "Có người đã sửa trạm này trước bạn."
+- Hai người sửa cùng một trạm: người lưu sau bị từ chối, trang tải lại danh sách và báo "Có người đã sửa trạm này trước bạn." **Xóa** cũng vậy: nút xóa gửi kèm số phiên bản của trạm trang đã đọc, nên người A không xóa được trạm mà người B vừa đổi tên; trang báo như trên, tải lại, và bấm xóa lần nữa nếu vẫn muốn.
 
 ## Khi có lỗi
 

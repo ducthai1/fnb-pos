@@ -38,7 +38,7 @@ export function TableRowEditor({ table, onChanged }: { table: DiningTable; onCha
 
   async function remove() {
     const removed = await write.run(
-      () => api.removeTable(table.id),
+      () => api.removeTable(table.id, table.version),
       (outcome) => (outcome === "deleted" ? T.removed(table.name) : T.archivedDone(table.name)),
     );
     if (removed) setConfirming(false);

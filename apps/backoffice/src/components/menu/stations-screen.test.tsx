@@ -21,11 +21,17 @@ function stationServer(start: Station[]) {
     list = [...list.filter((each) => each.id !== id), saved].sort((a, b) => a.name.localeCompare(b.name));
     return ok(saved);
   });
-  const deleteStation = mock.fn(async (id: string) => {
+  const deleteStation = mock.fn(async (id: string, version: number) => {
+    const stored = list.find((each) => each.id === id);
+    if (stored !== undefined && stored.version !== version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
     list = list.filter((each) => each.id !== id);
     return ok(true as const);
   });
-  return { api: { listStations: async () => ok([...list]), putStation, deleteStation }, putStation, deleteStation };
+  /** Someone else renames the station: the next read shows it one version on. */
+  const editedByAnother = (id: string) => {
+    list = list.map((each) => (each.id === id ? { ...each, name: `${each.name} (đã sửa)`, version: each.version + 1 } : each));
+  };
+  return { api: { listStations: mock.fn(async () => ok([...list])), putStation, deleteStation }, putStation, deleteStation, editedByAnother };
 }
 
 describe("the stations page", () => {
@@ -71,7 +77,24 @@ describe("the stations page", () => {
     await screen.findByText(T.deleteTitle("Bếp"));
     fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
     await screen.findByText(T.deleted("Bếp"));
-    expect(server.deleteStation).toHaveBeenCalledWith("s2");
+    expect(server.deleteStation).toHaveBeenCalledWith("s2", 1);
+  });
+
+  it("refuses a delete of a station someone edited meanwhile, says so, and reads the list again", async () => {
+    const server = stationServer([station("s1", "Bar")]);
+    await renderSignedIn(<StationsScreen />, server.api);
+    fireEvent.click(await screen.findByRole("button", { name: T.deleteLabel("Bar") }));
+    await screen.findByText(T.deleteTitle("Bar"));
+    server.editedByAnother("s1");
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.conflict);
+    expect(server.deleteStation).toHaveBeenCalledWith("s1", 1);
+    // The list now shows their version, and a delete of it names that version.
+    fireEvent.click(await screen.findByRole("button", { name: T.deleteLabel("Bar (đã sửa)") }));
+    await screen.findByText(T.deleteTitle("Bar (đã sửa)"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.deleted("Bar (đã sửa)"));
+    expect(server.deleteStation).toHaveBeenLastCalledWith("s1", 2);
   });
 
   it("explains why a station still in use stays, and keeps it listed", async () => {

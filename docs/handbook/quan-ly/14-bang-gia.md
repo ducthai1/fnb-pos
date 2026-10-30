@@ -5,8 +5,10 @@ screens:
   - /menu/price-lists
   - /menu/price-lists/[priceListId]
 decisions:
+  - D-145
   - D-117
 tests:
+  - apps/api/test/integration/catalog/removing-a-catalog-row-needs-the-version-last-read.test.ts
   - apps/backoffice/src/lib/catalog/price-list/check-price-list-draft.test.ts
   - apps/backoffice/src/lib/catalog/price-list/clock-and-date-text.test.ts
   - apps/backoffice/src/components/menu/price-lists/price-lists-screen.test.tsx
@@ -53,7 +55,7 @@ Một **bảng giá** là một tên gọi cùng nhiều **quy tắc**. Mỗi qu
    Dòng đầu thẻ quy tắc đọc lại bằng chữ quy tắc đang nói gì: "Giảm 20% · Trà sữa · T2–T6, 14:00–17:00 · mọi chi nhánh".
 4. Bấm **Lưu bảng giá**. Quy tắc tới mọi máy quầy của thương hiệu ở lần đồng bộ kế tiếp.
 5. Sửa: bấm **Sửa** ở dòng bảng giá. Xóa quy tắc bằng nút **Xóa** của thẻ rồi **Lưu bảng giá**.
-6. Xóa cả bảng giá: bấm **Xóa** ở dòng, xác nhận. Các quy tắc của nó ngừng áp dụng; đơn đã bán giữ nguyên giá đã bán.
+6. Xóa cả bảng giá: bấm **Xóa** ở dòng, xác nhận. Nếu người khác vừa lưu bảng giá đó, việc xóa bị từ chối với "Có người đã sửa mục này trước bạn", danh sách được tải lại và bạn xem bản mới rồi quyết định có xóa không. Các quy tắc của nó ngừng áp dụng; đơn đã bán giữ nguyên giá đã bán.
 
 ## Luật và giới hạn
 

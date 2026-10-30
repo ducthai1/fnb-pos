@@ -86,7 +86,7 @@ describe("the floor plan on the tills", () => {
     const call = floorCall(app, s.shop.managerCookie);
     const renamed = { ...tableBody(floor.areaId, "B03 cửa sổ"), version: 1 };
     expect((await call("PUT", `/floor/tables/${floor.tables.B03}`, renamed)).statusCode).toBe(200);
-    expect((await call("DELETE", `/floor/tables/${floor.tables.B04}`)).statusCode).toBe(200);
+    expect((await call("DELETE", `/floor/tables/${floor.tables.B04}?version=1`)).statusCode).toBe(200);
     const changes = (await pullAll(app, s.tillA, cursor)).changes;
     expect(changesOf(changes, FLOOR_TABLE_ENTITY, floor.tables.B03).map((c) => c.snapshot)).toEqual(
       [expect.objectContaining({ name: "B03 cửa sổ", version: 2, areaId: floor.areaId })],

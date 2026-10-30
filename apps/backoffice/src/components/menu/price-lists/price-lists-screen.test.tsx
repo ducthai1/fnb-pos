@@ -42,7 +42,7 @@ describe("the price lists page", () => {
     await screen.findByText(T.deleteTitle("Giờ vàng"));
     fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
     await screen.findByText(T.deleted("Giờ vàng"));
-    expect(deletePriceList).toHaveBeenCalledWith(list(1).id);
+    expect(deletePriceList).toHaveBeenCalledWith(list(1).id, 1);
     expect(screen.queryAllByText("Giờ vàng")).toHaveLength(0);
   });
 
@@ -57,6 +57,30 @@ describe("the price lists page", () => {
     fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
     await screen.findByText(vi.errors.byCode.API_CATALOG_PRICE_LIST_NOT_FOUND as string);
     expect(screen.getAllByText("Giờ vàng").length).toBeGreaterThan(0);
+  });
+
+  it("says someone changed the list first, reads the lists again, and deletes by the new version", async () => {
+    let lists = [list(1, "Giờ vàng")];
+    const listPriceLists = mock.fn(async () => ok([...lists]));
+    const deletePriceList = mock.fn(async (_id: string, version: number) => {
+      if (version !== 2) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+      lists = [];
+      return ok(true as const);
+    });
+    await renderSignedIn(<PriceListsScreen />, { listPriceLists, deletePriceList });
+    await screen.findAllByText("Giờ vàng");
+    // Another manager saves the list after this page read it.
+    lists = [{ ...list(1, "Giờ vàng"), version: 2 }];
+    fireEvent.click(screen.getAllByRole("button", { name: T.deleteLabel("Giờ vàng") })[0] as HTMLElement);
+    await screen.findByText(T.deleteTitle("Giờ vàng"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(vi.errors.byCode.API_CATALOG_VERSION_CONFLICT as string);
+    await mock.waitFor(() => expect(listPriceLists).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getAllByRole("button", { name: T.deleteLabel("Giờ vàng") })[0] as HTMLElement);
+    await screen.findByText(T.deleteTitle("Giờ vàng"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.deleted("Giờ vàng"));
+    expect(deletePriceList).toHaveBeenLastCalledWith(list(1).id, 2);
   });
 
   it("shows a failed load with a way to retry", async () => {

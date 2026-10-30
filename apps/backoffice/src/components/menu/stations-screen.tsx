@@ -83,7 +83,7 @@ export function StationsScreen() {
   async function remove(station: Station) {
     setBusy(true);
     setFailure(null);
-    const result = await api.deleteStation(station.id);
+    const result = await api.deleteStation(station.id, station.version);
     setBusy(false);
     setAsking(null);
     if (!result.ok) return report(result, result.code === "API_CATALOG_IN_USE" ? T.inUse : undefined);

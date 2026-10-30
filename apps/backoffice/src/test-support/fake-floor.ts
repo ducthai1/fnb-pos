@@ -57,5 +57,5 @@ export function fakeFloor(areas: Area[] = [TERRACE], tables: DiningTable[] = [TA
     return ok("deleted" as const);
   });
   const api: FloorApi = { listAreas, listTables, putArea, putTable, removeArea, removeTable };
-  return { api, plan, putArea, putTable, removeArea, removeTable };
+  return { api, plan, putArea, putTable, removeArea, removeTable, listTables };
 }

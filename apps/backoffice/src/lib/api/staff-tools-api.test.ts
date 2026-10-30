@@ -19,13 +19,13 @@ describe("the staff tool calls", () => {
   it("send each tool to its route and read a 204 as done", async () => {
     const done = answering(204);
     const api = httpStaffApi("/api", done.fetchImpl);
-    expect(await api.updateStaff(STAFF, { displayName: "Mai" })).toEqual({ ok: true, value: true });
+    expect(await api.updateStaff(STAFF, 6, { displayName: "Mai" })).toEqual({ ok: true, value: true });
     expect(await api.deactivateStaff(STAFF)).toEqual({ ok: true, value: true });
     expect(await api.reactivateStaff(STAFF)).toEqual({ ok: true, value: true });
     expect(await api.resetStaffPin(STAFF, "7391")).toEqual({ ok: true, value: true });
     expect(await api.unlockStaffPin(STAFF)).toEqual({ ok: true, value: true });
     expect(done.calls).toEqual([
-      { url: `/api/staff/${STAFF}`, method: "PATCH", body: { displayName: "Mai" } },
+      { url: `/api/staff/${STAFF}?version=6`, method: "PATCH", body: { displayName: "Mai" } },
       { url: `/api/staff/${STAFF}/deactivate`, method: "POST", body: undefined },
       { url: `/api/staff/${STAFF}/reactivate`, method: "POST", body: undefined },
       { url: `/api/staff/${STAFF}/pin`, method: "PUT", body: { pin: "7391" } },

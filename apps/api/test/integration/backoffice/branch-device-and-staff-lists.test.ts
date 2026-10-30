@@ -150,6 +150,7 @@ describe("GET /staff", () => {
       branchIds: [shop.branchId],
       lockedOutUntil: null,
       failedSignIns: 0,
+      version: 1,
     });
     expect(listed.get(leaver)).toMatchObject({ active: false, roleId: shop.roleIds.manager });
   });

@@ -4,6 +4,7 @@ import type pg from "pg";
 import { lockTenantChangeFeed } from "../sync/change-feed";
 import { recordPriceListChange } from "./catalog-change-feed";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
+import { CatalogRequestError } from "./catalog-request-error";
 import { type CatalogWriteContext, insertCatalogRow, putVersionedRow } from "./catalog-row-writes";
 import { amountOf } from "./product-document";
 
@@ -132,20 +133,25 @@ export async function listPriceLists(client: pg.PoolClient, brandId: string) {
 
 /**
  * Removes the list and its rules. Nothing else points at a list (an order keeps the price
- * it was sold at), so it can always go; the brand's tills are told it is gone.
+ * it was sold at), so it can always go, provided the caller saw its current version; the
+ * brand's tills are told it is gone.
  */
 export async function deletePriceList(
   client: pg.PoolClient,
   tenantId: string,
   id: string,
+  expectedVersion: number,
 ): Promise<boolean> {
   await lockTenantChangeFeed(client, tenantId);
-  const found = await client.query<{ brand_id: string }>(
-    "SELECT brand_id FROM price_list WHERE id = $1 FOR UPDATE",
+  const found = await client.query<{ brand_id: string; version: number }>(
+    "SELECT brand_id, version FROM price_list WHERE id = $1 FOR UPDATE",
     [id],
   );
   const brandId = found.rows[0]?.brand_id;
   if (brandId === undefined) return false;
+  if (found.rows[0]?.version !== expectedVersion) {
+    throw new CatalogRequestError(409, CATALOG_API_ERROR_CODES.versionConflict);
+  }
   await client.query("DELETE FROM price_list_item WHERE price_list_id = $1", [id]);
   await client.query("DELETE FROM price_list WHERE id = $1", [id]);
   await recordPriceListChange(client, tenantId, brandId, id);

@@ -24,6 +24,7 @@ const member = {
   branchIds: [id(2)],
   lockedOutUntil: null,
   failedSignIns: 0,
+  version: 1,
 };
 
 describe("the list calls", () => {
