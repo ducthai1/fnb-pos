@@ -184,6 +184,16 @@ const SHOTS: readonly Shot[] = [
   { name: "cai-dat-thu-tien", path: () => "/settings", act: click(text.settings.groups.money) },
   { name: "cai-dat-hoa-don", path: () => "/settings", act: click(text.settings.groups.invoices) },
   { name: "doanh-thu-ngay", path: () => "/reports/daily-sales" },
+  {
+    name: "doanh-thu-ngay-lich",
+    path: () => "/reports/daily-sales",
+    // The calendar of the day field opened under it: today ringed, the days to come faded.
+    act: async (page) => {
+      await page.getByRole("button", { name: new RegExp(text.dateField.openCalendar) }).click();
+      await page.getByRole("dialog").waitFor();
+      await page.waitForTimeout(400);
+    },
+  },
   { name: "chot-ngay", path: () => "/day-close" },
   { name: "khop-chuyen-khoan", path: () => "/payments" },
   { name: "phieu-in-loi", path: () => "/reports/print-failures" },

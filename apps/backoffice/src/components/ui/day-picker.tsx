@@ -1,16 +1,22 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { dayAfter, dayBefore, isCalendarDate, todaysBusinessDate } from "../../lib/format/business-day";
+import {
+  dayAfter,
+  dayBefore,
+  isCalendarDate,
+  todaysBusinessDate,
+} from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { Icon } from "./icon";
-import { TextField } from "./text-field";
+import { DateField } from "./date-field";
 
 const T = vi.dayPicker;
 
 /**
- * A business day to look at: the date field, a step back, a step on (not past today) and a
- * way back to today. The field alone still takes any day typed or picked.
+ * A business day to look at: the date field (typed as dd/mm/yyyy or picked on a calendar), a
+ * step back, a step on (not past today) and a way back to today. The field alone still takes
+ * any day up to today.
  */
 export function DayPicker({
   label,
@@ -36,7 +42,7 @@ export function DayPicker({
       >
         <Icon of={ChevronLeft} />
       </button>
-      <TextField label={label} type="date" value={value} max={today} error={error} onChange={onChange} />
+      <DateField label={label} value={value} max={today} error={error} onChange={onChange} />
       <button
         type="button"
         className="bo-icon-button"
@@ -46,7 +52,12 @@ export function DayPicker({
       >
         <Icon of={ChevronRight} />
       </button>
-      <button type="button" className="bo-button" disabled={value === today} onClick={() => onChange(today)}>
+      <button
+        type="button"
+        className="bo-button"
+        disabled={value === today}
+        onClick={() => onChange(today)}
+      >
         {T.today}
       </button>
     </div>

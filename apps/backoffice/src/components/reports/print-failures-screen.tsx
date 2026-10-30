@@ -13,7 +13,7 @@ import { useSession } from "../shell/session-context";
 import { useApiLoad } from "../shell/use-api-load";
 import { type DataColumn, DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
-import { TextField } from "../ui/text-field";
+import { DateField } from "../ui/date-field";
 
 const T = vi.printFailures;
 const C = T.columns;
@@ -145,8 +145,8 @@ export function PrintFailuresScreen() {
         hint={T.hint}
       />
       <div className="bo-row">
-        <TextField label={T.fromLabel} type="date" value={fromDate} onChange={setFromDate} />
-        <TextField label={T.toLabel} type="date" value={toDate} onChange={setToDate} />
+        <DateField label={T.fromLabel} value={fromDate} onChange={setFromDate} />
+        <DateField label={T.toLabel} value={toDate} onChange={setToDate} />
         <div className="bo-tabs" role="group" aria-label={T.rangesLabel}>
           {RANGES.map(({ key, days }) => {
             const today = todaysBusinessDate();

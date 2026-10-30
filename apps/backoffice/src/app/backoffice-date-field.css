@@ -1,0 +1,165 @@
+/* The app's own day field (components/ui/date-field.tsx): a box that takes dd/mm/yyyy, a
+   button beside it, and a calendar card that drops under it, the chosen day filled with the
+   brand, today ringed, the days that cannot be chosen faded. Same card as the listbox's. */
+
+.bo-date-field {
+  position: relative;
+}
+
+.bo-date-field__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bo-date-field__box .bo-input {
+  padding-right: calc(var(--control-h) + 2px);
+}
+
+.bo-date-field__open {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  display: grid;
+  place-items: center;
+  width: var(--control-h);
+  padding: 0;
+  border: 0;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: transparent;
+  color: var(--c-text-3);
+  cursor: pointer;
+  transition:
+    color var(--t-state) var(--ease-out),
+    background-color var(--t-state) var(--ease-out);
+}
+
+.bo-date-field__open:hover,
+.bo-date-field[data-open] .bo-date-field__open {
+  background: var(--c-brand-soft);
+  color: var(--c-brand-strong);
+}
+
+.bo-date-field__open:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-date-field__popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 300px;
+  max-width: min(320px, calc(100vw - 2 * var(--gutter)));
+  padding: var(--sp-3);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-menu);
+  transform-origin: top left;
+  /* In by a keyframe at mount; out by a transition that turns back if the card opens again. */
+  animation: bo-rise-in var(--t-enter) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.bo-date-field__popup[data-leaving] {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--rise))) scale(0.98);
+  pointer-events: none;
+}
+
+.bo-date-field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.bo-date-field__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+}
+
+.bo-date-field__week,
+.bo-date-field__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.bo-date-field__week span {
+  padding: var(--sp-1) 0;
+  text-align: center;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-text-3);
+}
+
+.bo-date-field__day {
+  display: grid;
+  place-items: center;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color var(--t-tap) var(--ease-out),
+    color var(--t-tap) var(--ease-out);
+}
+
+.bo-date-field__day[data-outside] {
+  color: var(--c-text-3);
+}
+
+.bo-date-field__day:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: var(--c-hover);
+  border-color: var(--c-border-soft);
+}
+
+.bo-date-field__day[data-today] {
+  border-color: var(--c-brand);
+  font-weight: var(--fw-semibold);
+}
+
+.bo-date-field__day[aria-pressed="true"] {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: #fff;
+  font-weight: var(--fw-semibold);
+}
+
+.bo-date-field__day:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.bo-date-field__day:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bo-date-field__today {
+  align-self: stretch;
+}
+
+/* In a day picker the field stays as wide as the old date box. */
+.bo-day-picker > .bo-date-field {
+  flex: 0 1 190px;
+}
