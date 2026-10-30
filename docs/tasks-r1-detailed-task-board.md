@@ -577,7 +577,7 @@
 
 > Nhãn `[đợt 4]` … `[đợt 7]` từ 2026-10-29 trở đi theo kế hoạch tới R1 (Bàn giao 2026-10-28 12:05 và 2026-10-29 17:30: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý" · 7 quán giả lập). Ngoài các đợt còn `[sau R1]` (không chặn quán thí điểm), `[thấp]`, `[R2]`, `[khi làm luồng đó]`. Các dòng 2026-10-20 … 10-28 đã rà lại 2026-10-29 và xếp theo nhãn ở mục con cuối; dòng mới thì gắn nhãn ngay lúc ghi. Việc chờ server / máy thật / tài khoản nằm ở [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md), không ở đây.
 
-- 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k):
+- 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k): **Làm một phần (lượt 7a, D-148–D-150):** tầng nhanh không trình duyệt xong (`pnpm sim:day`, 2 seed ngày ngắn trong `test:sync`, 5 sự cố, 7 nhóm bất biến cuối ngày, trang `docs/handbook/van-hanh/07`). **Chưa làm** (lượt 7b): Chrome chạy giao diện máy quầy thật (3–4 máy), duyệt quản lý thay vì đăng nhập quản lý, combo / món cân / giá nhập tay / phí phục vụ trong ngày giả lập.
   - **Máy ảo:** nhiều máy quầy ảo chạy đúng `@fnb/sync-client` với API thật trên Postgres nhúng (2 quầy, 1 máy order bàn, 1 máy pha chế).
   - **Kịch bản một ngày:** mở ca → sáng vắng → trưa cao điểm → chiều thưa → đóng ca → chốt ngày, xen chuyển bàn, hủy món, hoàn tiền, QR báo có trễ.
   - **Bơm sự cố:** mất mạng một máy 20′, lệch giờ, server khởi động lại giữa giờ, hai máy cùng sửa một bàn, cập nhật app giữa ca.
@@ -647,24 +647,32 @@
   - Đã loại: hai test dọn mã ghép dùng database riêng; mã 8 ký tự / 30 chữ thì trùng gần như không thể; route ghép không đổi.
   - Còn nghi: thứ gì đó sửa `device_pairing_code` / `pairing_code_route` của tenant khác trên database dùng chung, hoặc đồng hồ của app thanh toán đi trước giữa lúc cấp và lúc ghép.
   - Lặp lại thì in body của 401 và trạng thái hàng mã trong DB lúc hỏng.
-- 2026-10-30 · Hai test nữa đỏ khi cả bộ chạy song song trên máy tải nặng, chạy riêng thì xanh:
+  - Lượt 7a: `pairDevice` nay báo thân của 401, thứ máy chủ đã cấp (không kèm mã) và giờ thật khi hỏng; chưa lặp lại được nên chưa tìm ra gốc. Lặp lại thì đọc thông báo đó trước khi nghi chỗ khác.
+~~- 2026-10-30 · Hai test nữa đỏ khi cả bộ chạy song song trên máy tải nặng, chạy riêng thì xanh:~~ **Làm xong ở lượt 7a, chờ cổng xác nhận:**
+  - `sync-change-cursor-never-skips`: **gốc tìm ra, không phải chậm mà là kéo số**. Ca "qua một chữ số" đẩy dãy `change_seq` CHUNG của cả bộ tới sát mốc 10^k bằng `generate_series` + `nextval`; file khác rút số cùng lúc làm lô không còn qua mốc, rồi vòng thử lại phải rút gấp 10 lần (hàng triệu lần gọi) ⇒ quá 30 giây. Đo riêng: 129 ms. Nay ca đó chạy trên database riêng (`provisionScratchDatabase`), một lượt, không thử lại.
+  - `stations-screen` và `home-screen`: `findBy…`/`waitFor` chờ theo trạng thái nhưng hạn mặc định 1 giây; đặt `asyncUtilTimeout` 10 giây ở `vitest-setup.ts` (xong là trả về ngay, hạn chỉ cho màn không bao giờ hiện).
+  - Phần gốc cũ của dòng này (giữ làm lịch sử):
   - `sync-change-cursor-never-skips` ("follows change_seq as a number once it gains a digit"): timeout 30 s, **hai lần** (lần đầu cổng của lượt 6a, và cổng do agent lượt 6b tự chạy).
   - `apps/backoffice/src/components/menu/stations-screen.test.tsx` ("adds the first, refusing an empty name"): `findByText` hết 1 s chờ chữ báo lỗi, một lần.
   - Lượt 6c (cổng của agent): `sync-change-cursor-never-skips` đỏ **lần ba**, và `apps/backoffice/src/components/home/home-screen.test.tsx` đỏ một lần; chạy riêng xanh, cổng chạy lại không cache khi gộp xanh cả hai.
   - Việc cần làm: đo thời gian thật của test feed khi chạy cả bộ (có thể chỉ cần chia nhỏ hoặc nới timeout, nếu đúng là chậm chứ không treo); test trang quản lý chờ theo nút / trạng thái thay vì theo giờ.
 - 2026-10-28 · Combo chưa có e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp); hiện chỉ có test component và API.
-- 2026-10-20 · Ratchet test của spike: phần hội tụ nhiều máy đã có ở `packages/sync-client/test/scenarios`. Chưa đối chiếu từng ca:
+~~- 2026-10-20 · Ratchet test của spike: phần hội tụ nhiều máy đã có ở `packages/sync-client/test/scenarios`. Chưa đối chiếu từng ca:~~ **Đối chiếu xong (lượt 7a), đủ cả 6 ca, không thêm test:** commit muộn + phân trang qua chữ số = `apps/api/test/integration/sync/sync-change-cursor-never-skips.test.ts` (2 ca) và scenario `pull-resumes-from-cursor`; giao trùng đồng thời = scenario `duplicate-command-is-noop` ("hai bản cùng lúc") và `sync-duplicate-and-reordered-delivery`; lô đảo thứ tự = scenario `out-of-order-commands`; trạng thái máy = server = `two-tills-at-peak-converge` và nay mỗi cuối ngày của quán giả lập so sâu từng đơn, từng ca; tổng ngày = tổng dòng = `reports/revenue-definitions` ("agrees with itself") và quán giả lập (giờ, phương thức, món cộng lại đúng tổng).
   - commit muộn (advisory lock);
   - phân trang qua `change_seq` 2 chữ số;
   - giao trùng đồng thời;
   - lô đảo thứ tự;
   - trạng thái máy = server (hash);
   - tổng ngày = tổng dòng.
-- 2026-10-20 · Giảm % toàn đơn rồi hủy món: tầng ứng dụng phải áp lại phần trăm sau khi hủy. Chưa kiểm lại.
-- 2026-10-21 · `voidsOfTheDay` / `cancelledOrderCount` (`apps/api/src/reports/daily-sales-report.ts`) chưa loại đơn sau chốt. Chưa kiểm lại.
-- 2026-10-21 · Đơn bị trả hoặc hủy ở máy khác trong lúc nháp của máy này đang chờ ⇒ món của máy này mất, sơ đồ không báo.
-- 2026-10-20 · `packages/sync-client/test/support/scenario-server.ts` chạy API trên đồng hồ thật trong khi lệnh ghi giờ cố định. Chuyển sang đồng hồ tay, cần cho kịch bản lệch giờ.
-- 2026-10-20 · e2e bàn để lại nháp chưa trả ở bàn E3 trên stack chung ⇒ spec chốt ngày chạy sau trên cùng stack sẽ bị chặn.
+~~- 2026-10-20 · Giảm % toàn đơn rồi hủy món: tầng ứng dụng phải áp lại phần trăm sau khi hủy. Chưa kiểm lại.~~ **Trả lời (lượt 7a): không áp lại % — theo thiết kế.** Giảm giá toàn đơn là một số tiền cố định; hủy món chỉ bị chặn khi phần giảm vượt mức người đó được tự giảm (`draft-discount-guard.ts`, test `sync-void-line-cannot-raise-an-approved-order-discount`) hoặc vượt số còn phải trả (`DOMAIN_TOTALS_DISCOUNT_EXCEEDS_BASE`, quán giả lập gặp khi hủy hết món của đơn đã giảm); máy quầy có câu báo "Gỡ giảm giá đơn trước, hủy món, rồi giảm lại" (sổ tay máy quầy 06). Quán giả lập làm đúng cách đó (D-150).
+~~- 2026-10-21 · `voidsOfTheDay` / `cancelledOrderCount` (`apps/api/src/reports/daily-sales-report.ts`) chưa loại đơn sau chốt. Chưa kiểm lại.~~ **Xong (lượt 7a, D-151, commit `fix(api): leave late cancels and voids…`):** kiểm lại thấy ĐÚNG là lỗi: đơn hủy và món hủy bớt báo lên sau chốt vẫn đổi báo cáo ngày đã chốt trong khi doanh thu thì không. Test đỏ trước khi sửa (`revenue-definitions`), migration `0040`.
+~~- 2026-10-21 · Đơn bị trả hoặc hủy ở máy khác trong lúc nháp của máy này đang chờ ⇒ món của máy này mất, sơ đồ không báo.~~ **Trả lời (lượt 7a):** món của máy này KHÔNG mất lặng lẽ ở tầng đồng bộ: lệnh lưu bị từ chối `SYNC_ORDER_VERSION_STALE`, nằm ở "Cần xử lý" cùng bản đơn của máy chủ, đơn vẫn là đơn đã trả (scenario `draft-edited-offline-while-paid-elsewhere`); màn "Cần xử lý" của máy quầy (lượt 6) hiện nó. Còn chưa kiểm: sơ đồ bàn có đánh dấu riêng bàn đó không (chỉ có thanh "Cần xử lý" chung) — hạng `[thấp]`.
+~~- 2026-10-20 · `packages/sync-client/test/support/scenario-server.ts` chạy API trên đồng hồ thật trong khi lệnh ghi giờ cố định. Chuyển sang đồng hồ tay, cần cho kịch bản lệch giờ.~~ **Xong (lượt 7a, D-149):** `ScenarioServer` nhận `{ clock, fakeGateway }`; quán giả lập chạy máy chủ trên đồng hồ tay dùng chung với các máy.
+~~- 2026-10-20 · e2e bàn để lại nháp chưa trả ở bàn E3 trên stack chung ⇒ spec chốt ngày chạy sau trên cùng stack sẽ bị chặn.~~ **Xong (lượt 7a):** spec dọn nháp ở E1–E3 trong `afterAll` (`abandonDraftsAt`); chạy lại `pos/table-service.spec.ts` xanh 2/2.
+
+- 2026-10-30 · **[đợt 7]** Quán giả lập tìm ra, chưa sửa (cần quyết sản phẩm): máy order bàn thêm món rồi **gửi bar ngay** khi lệnh thêm đó bị máy chủ từ chối `SYNC_ORDER_VERSION_STALE` (máy khác sửa bàn trước) ⇒ phiếu bar đã in nhưng lệnh `order.mark_sent_to_kitchen` bị từ chối `SYNC_KITCHEN_NOT_OWED`: bar pha món mà máy chủ không ghi là đã gửi, lần gửi sau sẽ in lại món đó. Tái hiện: seed 2 của `pnpm sim:day --seed 2` lúc chưa bắt người phục vụ chờ máy chủ nhận món (bỏ điều kiện `pendingCount() > 0` ở `sendToBar` trong `test/simulation/table-service.ts`). Hướng: giữ nút Gửi pha chế tới khi lệnh lưu của bàn được nhận.
+- 2026-10-30 · **[đợt 7]** Quán giả lập: khách chuyển khoản QR trong lúc máy quầy mất mạng, thu ngân gỡ mã và lấy tiền mặt ⇒ máy chủ từ chối cả `order.pay` tiền mặt (`SYNC_ORDER_HAS_SETTLED_QR`) lẫn `payment.cancel_intent` (`DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION`), đơn kẹt nháp, khách trả hai lần. Hệ thống từ chối đúng; chỗ cần nghĩ là màn máy quầy: khi mất mạng không nên cho "gỡ QR, lấy tiền mặt" mà không cảnh báo là có thể khách đã chuyển. Quán giả lập nay chỉ gỡ mã với khách không định trả QR (D-150).
+- 2026-10-30 · **[đợt 7]** Quán giả lập chỉ chạy bán mang đi / bàn, một thuế suất 8%, không phí phục vụ, không combo, món cân, giá nhập tay, giảm giá món; đăng nhập bằng quản lý nên chưa kiểm luồng duyệt. Mở rộng khi cần (cùng nơi với các dòng 7b).
 
 **[sau R1] — không chặn quán thí điểm**
 
