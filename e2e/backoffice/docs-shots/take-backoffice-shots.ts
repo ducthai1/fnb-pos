@@ -84,6 +84,38 @@ function sampleHappyHour(stack: SampleShopStack): Promise<string> {
   return made;
 }
 
+/**
+ * A station the sample café stopped using: one that a retired product still names, so removing
+ * it archives it instead of deleting it. Made once per stack for the stations picture.
+ */
+const archivedStations = new Map<string, Promise<void>>();
+function sampleArchivedStation(stack: SampleShopStack): Promise<void> {
+  const made =
+    archivedStations.get(stack.apiOrigin) ??
+    (async () => {
+      const send = (method: string, path: string, body?: object) =>
+        fetch(`${stack.apiOrigin}${path}`, {
+          method,
+          headers: { cookie: stack.ownerCookie, ...(body === undefined ? {} : { "content-type": "application/json" }) },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        });
+      const stationId = randomUUID();
+      const productId = randomUUID();
+      const steps: [() => Promise<Response>, number][] = [
+        [() => send("PUT", `/catalog/stations/${stationId}`, { version: null, branchId: stack.shop.branchId, name: "Quầy bánh mùa tết" }), 201],
+        [() => send("PUT", `/catalog/products/${productId}`, { version: null, brandId: stack.shop.brandId, kind: "prepared_drink", name: "Bánh tết", basePrice: 25_000, pricingMode: "fixed", stationId }), 201],
+        [() => send("POST", `/catalog/products/${productId}/archive`), 200],
+        [() => send("DELETE", `/catalog/stations/${stationId}?version=1`), 200],
+      ];
+      for (const [step, status] of steps) {
+        const response = await step();
+        if (response.status !== status) throw new Error(`archived station not made: ${response.status}`);
+      }
+    })();
+  archivedStations.set(stack.apiOrigin, made);
+  return made;
+}
+
 const SHOTS: readonly Shot[] = [
   { name: "tong-quan", path: () => "/" },
   { name: "tong-quan-dien-thoai", path: () => "/", viewport: PHONE },
@@ -112,6 +144,7 @@ const SHOTS: readonly Shot[] = [
   { name: "bang-gia", path: async (stack) => (await sampleHappyHour(stack), "/menu/price-lists") },
   { name: "bang-gia-sua", path: async (stack) => `/menu/price-lists/${await sampleHappyHour(stack)}` },
   { name: "tram-pha-che", path: () => "/menu/stations" },
+  { name: "tram-pha-che-luu-tru", path: async (stack) => (await sampleArchivedStation(stack), "/menu/stations") },
   { name: "het-mon", path: () => "/menu/availability" },
   { name: "het-mon-dien-thoai", path: () => "/menu/availability", viewport: PHONE },
   { name: "nhap-excel", path: () => "/menu/import" },

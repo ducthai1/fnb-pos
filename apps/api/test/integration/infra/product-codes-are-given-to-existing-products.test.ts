@@ -77,7 +77,7 @@ describe("the migration that adds product codes", () => {
     await tenantWithProducts(a!, "0199f000-0000-7000-8000-0000000000a2", ["Cà phê", "Trà", "Bánh"]);
     await tenantWithProducts(b!, "0199f000-0000-7000-8000-0000000000b2", ["Nước"]);
 
-    await copyMigrations(() => true);
+    await copyMigrations((name) => name < "0039");
     const report = await runMigrations(scratch.ownerUrl, { directory: directory.path });
     expect(report.applied).toEqual([expect.stringMatching(/^0038_/)]);
 

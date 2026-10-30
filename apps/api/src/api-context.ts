@@ -20,6 +20,8 @@ export interface ApiContext {
   requireSession: onRequestHookHandler;
   /** onRequest hook: sets request.device from `Authorization: Device <token>`, or answers 401. */
   requireDevice: onRequestHookHandler;
+  /** onRequest hook after requireDevice: a till below the server's minimum build gets 426. */
+  requireCurrentBuild: onRequestHookHandler;
   /** Product photos on disk; null when the server is started without a media directory. */
   productImages: ProductImageStore | null;
   /** onRequest hook after requireSession: the member's role allows `key`, or 403. */

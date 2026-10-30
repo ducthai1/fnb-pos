@@ -43,6 +43,11 @@ export function CategoriesScreen() {
   const report = (result: ApiFailure) => {
     if (isSignedOut(result)) signedOut();
     setFailure(failureMessage(result));
+    // Someone changed the category since this page read it: show theirs, not a stale copy.
+    if (result.status === 409 && result.code === "API_CATALOG_VERSION_CONFLICT") {
+      setRenaming(null);
+      refresh();
+    }
   };
 
   async function add(event: FormEvent, categories: readonly Category[]) {
@@ -89,7 +94,7 @@ export function CategoriesScreen() {
   async function remove(category: Category) {
     setDone(null);
     setFailure(null);
-    const result = await api.deleteCategory(category.id);
+    const result = await api.deleteCategory(category.id, category.version);
     if (!result.ok) return report(result);
     setDone(T.deleted(category.name));
     refresh();

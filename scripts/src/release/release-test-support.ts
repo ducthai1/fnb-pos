@@ -28,7 +28,9 @@ export function makeBuiltRepo(root: string, releaseId: string, migrations: reado
   write(root, "apps/pos/package.json", '{"name":"@fnb/pos","version":"1.2.3"}\n');
   write(root, "apps/pos/src/main.tsx", "// the POS source is left out\n");
   write(root, "apps/pos/dist/index.html", "<html></html>\n");
-  write(root, "apps/pos/dist/assets/app-abc123.js", "console.log(1);\n");
+  // Named by content, as the build does: one release's file never has another's name.
+  const chunk = releaseId.replace(/[^A-Za-z0-9]/g, "");
+  write(root, `apps/pos/dist/assets/app-${chunk}.js`, `console.log("${releaseId}");\n`);
   write(root, "apps/pos/dist/version.json", `${JSON.stringify({ releaseId })}\n`);
   write(root, "apps/backoffice/package.json", '{"name":"@fnb/backoffice"}\n');
   write(root, "apps/backoffice/next.config.ts", "export default {};\n");

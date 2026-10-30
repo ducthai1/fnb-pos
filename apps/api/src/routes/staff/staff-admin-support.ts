@@ -23,6 +23,7 @@ export const refusedWith = (status: 404 | 409, code: string) =>
   ({ ok: false, status, code }) as const;
 
 export interface LockedStaff {
+  version: number;
   display_name: string;
   role_id: string;
   active: boolean;
@@ -33,7 +34,7 @@ export interface LockedStaff {
 /** The staff row, locked for the rest of the transaction; another tenant's reads as missing. */
 export async function lockedStaff(client: pg.ClientBase, id: string): Promise<LockedStaff | null> {
   const { rows } = await client.query<LockedStaff>(
-    "SELECT display_name, role_id, active, pin_failed_attempts, pin_locked_until FROM staff " +
+    "SELECT version, display_name, role_id, active, pin_failed_attempts, pin_locked_until FROM staff " +
       "WHERE id = $1 FOR UPDATE",
     [id],
   );

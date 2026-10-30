@@ -169,6 +169,27 @@ export const DEVICE_BINDING_CONTRACT: LocalStoreContractGroup = {
       },
     },
     {
+      name: "forgets everything on a wipe and numbers its next command 1, for another device",
+      async run(harness) {
+        const { store } = await harness.open();
+        await store.bindDevice(testId());
+        const orderId = testId();
+        await store.enqueue(orderCommand(orderId));
+        await store.enqueue(orderCommand(orderId));
+        await store.saveClockOffset(60_000);
+        assertEqual((await store.pendingCommands(10)).length, 2, "two waiting");
+        await store.wipe();
+        assertEqual(await store.pendingCount(), 0, "nothing waiting");
+        assertEqual(await store.cursor(), "0", "feed starts again");
+        assertEqual(await store.clockOffset(), null, "no clock offset");
+        assertEqual((await store.rejectedCommands()).length, 0, "nothing refused");
+        assertEqual(await store.snapshot("order", orderId), null, "no copies");
+        await store.bindDevice(testId());
+        const next = await store.enqueue(orderCommand(testId()));
+        assertEqual(next.command.deviceSeq, 1, "numbers start again");
+      },
+    },
+    {
       name: "refuses another till's database, whose numbers would collide on the server",
       async run(harness) {
         const { store } = await harness.open();

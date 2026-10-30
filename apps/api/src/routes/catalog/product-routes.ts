@@ -20,6 +20,7 @@ import { MEDIA_API_ERROR_CODES } from "../../media/media-api-error-codes";
 import { productImageUrl } from "../../media/product-image-store";
 import { lockTenantChangeFeed } from "../../sync/change-feed";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { refuseResumingWithArchivedStation } from "../../catalog/refuse-archived-station";
 
 export function registerProductRoutes(app: FastifyInstance, context: ApiContext): void {
   const { read, write } = catalogGates(context);
@@ -164,6 +165,7 @@ export function registerProductRoutes(app: FastifyInstance, context: ApiContext)
         }
         // Already selling: nothing to do, and the tills are told nothing new.
         if (current.archived_at === null) return current;
+        await refuseResumingWithArchivedStation(client, id);
         // A code another product took while this one was archived is a clash to explain.
         const restored = await refusingTakenCode(() =>
           client.query<{ version: number }>(

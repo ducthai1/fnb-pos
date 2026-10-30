@@ -57,12 +57,14 @@
 
 .pos-slips {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   align-items: start;
   gap: var(--sp-3);
 }
 
 .pos-slip {
+  /* The paper below sizes its type by this card's width (see .pos-slip__preview). */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -82,8 +84,11 @@
 }
 
 /* A slip keeps its printed columns on white paper, centred, whatever the till's theme: it
-   is what the printer puts on the roll. It scrolls sideways inside itself on a phone rather
-   than wrapping a column out of line. */
+   is what the printer puts on the roll. Its type shrinks, in proportion, until the widest
+   line fits the card, so the amounts and dates at the right edge are never cut off; it never
+   grows past 12px. The style sheet guesses from --slip-cols (the widest line's characters,
+   at 0.62em each); SlipPaper then measures the real line, since letters the monospace face
+   lacks are drawn wider by another face, and shrinks it a little more where needed. */
 .pos-slip__preview {
   color-scheme: light;
   box-sizing: border-box;
@@ -91,7 +96,7 @@
   width: max-content;
   max-width: 100%;
   margin: var(--sp-1) 0 0;
-  padding: var(--sp-4) var(--sp-3);
+  padding: var(--sp-4) var(--slip-pad, var(--sp-3));
   overflow-x: auto;
   border-top: 3px solid var(--c-paper-edge);
   border-radius: 2px 2px var(--r-sm) var(--r-sm);
@@ -99,7 +104,12 @@
   box-shadow: var(--shadow-card);
   color: var(--c-paper-ink);
   font-family: ui-monospace, "Cascadia Mono", "Roboto Mono", monospace;
-  font-size: 12px;
+  --slip-pad: var(--sp-3);
+  font-size: clamp(
+    8px,
+    calc((100cqw - 2 * var(--slip-pad)) / (var(--slip-cols, 42) * 0.62)),
+    12px
+  );
   line-height: 1.35;
 }
 

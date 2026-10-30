@@ -46,8 +46,8 @@ async function everyWrite(cookie: string) {
   return [
     await answer(call("PUT", `/floor/areas/${newId()}`, areaBody(shop.branchId))),
     await answer(call("PUT", `/floor/tables/${newId()}`, tableBody(owned.areaId))),
-    await answer(call("DELETE", `/floor/tables/${owned.tableIds[0]}`)),
-    await answer(call("DELETE", `/floor/areas/${newId()}`)),
+    await answer(call("DELETE", `/floor/tables/${owned.tableIds[0]}?version=1`)),
+    await answer(call("DELETE", `/floor/areas/${newId()}?version=1`)),
   ];
 }
 

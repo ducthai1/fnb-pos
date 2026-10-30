@@ -19,7 +19,7 @@ import { vi } from "../../messages/vi";
 import { useTillKey } from "../shared/use-till-key";
 import { Icon } from "../shared/icon";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
-import { useLeaveThen } from "../shared/use-leave-motion";
+import { useFinishThen, useLeaveThen } from "../shared/use-leave-motion";
 import { ComboPickerScreen } from "./combo-picker-screen";
 import { ModifierGroupField } from "./modifier-group-field";
 import { PickerProductHead } from "./picker-product-head";
@@ -56,6 +56,8 @@ function ItemOptionsPicker({
 }: ModifierPickerScreenProps) {
   // Back plays the step's leaving movement before the flow closes it.
   const { leaving, leave } = useLeaveThen(onCancel, "--t-exit");
+  // Adding the line sinks the step away the same way, then the flow puts the line on the order.
+  const { closing, finish } = useFinishThen<CartLine>(onAdd);
   const [variantId, setVariantId] = useState<string | null>(product.variants[0]?.id ?? null);
   const [choices, setChoices] = useState<Choices>([]);
   const [quantity, setQuantity] = useState(1);
@@ -93,7 +95,7 @@ function ItemOptionsPicker({
       optionId,
       quantity: units,
     }));
-    onAdd({
+    finish({
       lineId: newId(),
       productId: product.id,
       variantId,
@@ -106,7 +108,7 @@ function ItemOptionsPicker({
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || closing}
       title={product.name}
       dock={
         <>

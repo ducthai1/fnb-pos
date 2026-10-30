@@ -73,7 +73,7 @@ export function AreaCard({ area, tables, onChanged }: { area: Area; tables: read
 
   async function remove() {
     const removed = await write.run(
-      () => api.removeArea(area.id),
+      () => api.removeArea(area.id, area.version),
       (outcome) => (outcome === "deleted" ? T.removed(area.name) : T.archivedDone(area.name)),
     );
     if (removed) setConfirming(false);

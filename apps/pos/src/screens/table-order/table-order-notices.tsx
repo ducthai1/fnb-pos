@@ -2,6 +2,7 @@ import { TriangleAlert } from "lucide-react";
 import type { PreBillState } from "../../features/table-order/table-order-session";
 import { refusalSentence, vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
+import { Presence } from "../shared/presence";
 import { Alert } from "../shared/screen-frame";
 
 const T = vi.tables.order;
@@ -20,7 +21,8 @@ export function TableOrderNotices(props: TableOrderNoticesProps) {
   const { refusal, preBill, leavingWithUnsent } = props;
   return (
     <>
-      {leavingWithUnsent === null ? null : (
+      <Presence>
+        {leavingWithUnsent === null ? null : (
         <section className="pos-card pos-confirm" role="alertdialog" aria-label={T.leaveTitle}>
           <h2 className="pos-confirm__title">
             <Icon of={TriangleAlert} size={24} />
@@ -36,20 +38,27 @@ export function TableOrderNotices(props: TableOrderNoticesProps) {
             </button>
           </div>
         </section>
-      )}
-      {refusal === null ? null : (
-        <Alert message={`${refusalSentence(refusal.type, refusal.code)} ${T.blocked}`} />
-      )}
-      {preBill === "changed" ? (
-        <p className="pos-alert pos-wrap" role="alert" data-pre-bill="changed">
-          {T.changedAfterPreBill}
-        </p>
-      ) : null}
-      {preBill === "current" ? (
-        <p className="pos-notice" role="status" data-pre-bill="current">
-          {T.preBillCurrent}
-        </p>
-      ) : null}
+        )}
+      </Presence>
+      <Presence>
+        {refusal === null ? null : (
+          <Alert message={`${refusalSentence(refusal.type, refusal.code)} ${T.blocked}`} />
+        )}
+      </Presence>
+      <Presence>
+        {preBill === "changed" ? (
+          <p className="pos-alert pos-wrap" role="alert" data-pre-bill="changed">
+            {T.changedAfterPreBill}
+          </p>
+        ) : null}
+      </Presence>
+      <Presence>
+        {preBill === "current" ? (
+          <p className="pos-notice" role="status" data-pre-bill="current">
+            {T.preBillCurrent}
+          </p>
+        ) : null}
+      </Presence>
     </>
   );
 }

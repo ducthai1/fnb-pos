@@ -1,4 +1,9 @@
-import { diningTableBodySchema, floorBranchQuerySchema, floorIdParamsSchema } from "@fnb/contracts";
+import {
+  diningTableBodySchema,
+  expectedVersionQuerySchema,
+  floorBranchQuerySchema,
+  floorIdParamsSchema,
+} from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
@@ -107,11 +112,15 @@ export function registerDiningTableRoutes(app: FastifyInstance, context: ApiCont
     write,
     floorHandler(async (request, reply) => {
       const { id } = parseOrReject(floorIdParamsSchema, request.params);
+      const { version } = parseOrReject(expectedVersionQuerySchema, request.query);
       const writer = floorWriterOf(request, context);
       const outcome = await withTenant(context.pool, writer.tenantId, async (client) => {
         const stored = await readTable(client, id, "FOR UPDATE OF t");
         if (stored === undefined) {
           throw new FloorRequestError(404, FLOOR_API_ERROR_CODES.tableNotFound);
+        }
+        if (stored.version !== version) {
+          throw new FloorRequestError(409, FLOOR_API_ERROR_CODES.versionConflict);
         }
         const outcome = await removeOrArchiveTable(client, writer, id);
         await announceFloorRow(client, writer.tenantId, stored.branch_id, { kind: "table", id });

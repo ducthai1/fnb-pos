@@ -29,15 +29,19 @@ describe("selling a product again", () => {
 });
 
 describe("stations", () => {
-  it("are written and deleted by id, and a station read without a version is refused", async () => {
-    const station = { id: id(2), branchId: id(3), name: "Bar", version: 1 };
+  it("are written, deleted or archived, and put back in use, by id; a station read without a version is refused", async () => {
+    const station = { id: id(2), branchId: id(3), name: "Bar", version: 1, archivedAt: null };
     const put = answering(201, station);
     expect(await httpCatalogApi("/api", put.fetchImpl).putStation(id(2), { version: null, branchId: id(3), name: "Bar" })).toEqual({ ok: true, value: station });
     expect(put.calls[0]).toEqual({ url: `/api/catalog/stations/${id(2)}`, method: "PUT", body: { version: null, branchId: id(3), name: "Bar" } });
-    const removed = answering(204, null);
-    expect(await httpCatalogApi("/api", removed.fetchImpl).deleteStation(id(2))).toEqual({ ok: true, value: true });
-    expect(removed.calls[0]).toMatchObject({ url: `/api/catalog/stations/${id(2)}`, method: "DELETE" });
-    expect((await httpCatalogApi("/api", answering(200, { id: id(2), branchId: id(3), name: "Bar" }).fetchImpl).putStation(id(2), { version: 1, branchId: id(3), name: "Bar" })).ok).toBe(false);
+    const removed = answering(200, { id: id(2), outcome: "archived", version: 5 });
+    expect(await httpCatalogApi("/api", removed.fetchImpl).deleteStation(id(2), 4)).toEqual({ ok: true, value: "archived" });
+    expect(removed.calls[0]).toMatchObject({ url: `/api/catalog/stations/${id(2)}?version=4`, method: "DELETE" });
+    expect((await httpCatalogApi("/api", answering(200, { id: id(2) }).fetchImpl).deleteStation(id(2), 4)).ok).toBe(false);
+    const resumed = answering(200, { id: id(2), version: 6, archivedAt: null });
+    expect(await httpCatalogApi("/api", resumed.fetchImpl).resumeStation(id(2), 5)).toEqual({ ok: true, value: true });
+    expect(resumed.calls[0]).toEqual({ url: `/api/catalog/stations/${id(2)}/unarchive`, method: "POST", body: { version: 5 } });
+    expect((await httpCatalogApi("/api", answering(200, { id: id(2), branchId: id(3), name: "Bar", archivedAt: null }).fetchImpl).putStation(id(2), { version: 1, branchId: id(3), name: "Bar" })).ok).toBe(false);
   });
 });
 
@@ -58,8 +62,8 @@ describe("price lists", () => {
 
   it("delete by id", async () => {
     const reply = answering(204, null);
-    expect(await httpPriceListApi("/api", reply.fetchImpl).deletePriceList(id(4))).toEqual({ ok: true, value: true });
-    expect(reply.calls[0]).toMatchObject({ url: `/api/catalog/price-lists/${id(4)}`, method: "DELETE" });
+    expect(await httpPriceListApi("/api", reply.fetchImpl).deletePriceList(id(4), 3)).toEqual({ ok: true, value: true });
+    expect(reply.calls[0]).toMatchObject({ url: `/api/catalog/price-lists/${id(4)}?version=3`, method: "DELETE" });
   });
 });
 

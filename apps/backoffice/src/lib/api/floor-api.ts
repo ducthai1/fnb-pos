@@ -74,9 +74,12 @@ export interface FloorApi {
   /** `PUT /floor/areas/:id`: creates (version null) or replaces the version it was based on. */
   putArea(id: string, body: AreaBodyInput): Promise<ApiResult<Area>>;
   putTable(id: string, body: DiningTableBodyInput): Promise<ApiResult<DiningTable>>;
-  /** `DELETE /floor/areas/:id`: deleted when no table ever stood in it, else archived. */
-  removeArea(id: string): Promise<ApiResult<RemoveOutcome>>;
-  removeTable(id: string): Promise<ApiResult<RemoveOutcome>>;
+  /**
+   * `DELETE /floor/areas/:id?version=` of the area last read: deleted when no table ever stood in
+   * it, else archived; 409 when it changed since.
+   */
+  removeArea(id: string, version: number): Promise<ApiResult<RemoveOutcome>>;
+  removeTable(id: string, version: number): Promise<ApiResult<RemoveOutcome>>;
 }
 
 export function httpFloorApi(base: string, fetchImpl: FetchLike): FloorApi {
@@ -96,11 +99,13 @@ export function httpFloorApi(base: string, fetchImpl: FetchLike): FloorApi {
       const answer = await requestJson(fetchImpl, at("tables", id), { method: "PUT", body });
       return resultOf(answer, asRecord(readDiningTable));
     },
-    async removeArea(id) {
-      return resultOf(await requestJson(fetchImpl, at("areas", id), { method: "DELETE" }), readOutcome);
+    async removeArea(id, version) {
+      const url = `${at("areas", id)}?version=${version}`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "DELETE" }), readOutcome);
     },
-    async removeTable(id) {
-      return resultOf(await requestJson(fetchImpl, at("tables", id), { method: "DELETE" }), readOutcome);
+    async removeTable(id, version) {
+      const url = `${at("tables", id)}?version=${version}`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "DELETE" }), readOutcome);
     },
   };
 }

@@ -77,6 +77,7 @@ export function StaffTable({
   onOpen,
   onClose,
   onDone,
+  onStale,
 }: {
   staff: readonly StaffMember[];
   roles: readonly Role[];
@@ -84,6 +85,7 @@ export function StaffTable({
   onOpen: (open: OpenTool) => void;
   onClose: () => void;
   onDone: (message: string) => void;
+  onStale: () => void;
 }) {
   const { branches } = useSession();
   const branchName = (id: string) =>
@@ -143,6 +145,7 @@ export function StaffTable({
             roles={roles}
             onCancel={onClose}
             onDone={onDone}
+            onStale={onStale}
           />
         ) : null
       }

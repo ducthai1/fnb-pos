@@ -44,6 +44,7 @@ export function StaffScreen() {
                     setOpen(tool);
                   }}
                   onClose={() => setOpen(null)}
+                  onStale={refreshStaff}
                   onDone={(message) => {
                     setOpen(null);
                     setDone(message);

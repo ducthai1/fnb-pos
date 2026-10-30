@@ -48,12 +48,14 @@ const DONE: Record<StaffTool, (name: string) => string> = {
  * One tool on one staff member, in place under their row: the fields it needs, and one tap
  * that sends it. What the server refuses stays here with its reason, beside the fields.
  */
-export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
+export function StaffToolPanel({ tool, member, roles, onDone, onCancel, onStale }: {
   tool: StaffTool;
   member: StaffMember;
   roles: readonly Role[];
   onDone: (message: string) => void;
   onCancel: () => void;
+  /** The member changed since the list was read: the list is read again, the panel stays open. */
+  onStale: () => void;
 }) {
   const api = useApi();
   const { signedOut } = useSession();
@@ -81,7 +83,7 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
       ...(roleId === member.roleId ? {} : { roleId }),
     };
     if (Object.keys(body).length === 0) return { form: T.nothingChanged };
-    return api.updateStaff(member.id, body);
+    return api.updateStaff(member.id, member.version, body);
   }
 
   async function submit() {
@@ -97,6 +99,7 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel }: {
     setBusy(false);
     if (!result.ok) {
       if (isSignedOut(result)) signedOut();
+      if (result.status === 409 && result.code === "API_STAFF_VERSION_CONFLICT") onStale();
       return setError(failureMessage(result));
     }
     onDone(DONE[tool](tool === "edit" ? name.trim() : member.displayName));

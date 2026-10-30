@@ -43,7 +43,8 @@ export interface PriceListApi {
   listPriceLists(brandId: string): Promise<ApiResult<PriceListSummary[]>>;
   getPriceList(id: string): Promise<ApiResult<PriceListDocument>>;
   putPriceList(id: string, body: PriceListDocumentInput): Promise<ApiResult<PriceListDocument>>;
-  deletePriceList(id: string): Promise<ApiResult<true>>;
+  /** `DELETE /catalog/price-lists/:id?version=` of the list last read; 409 when it changed since. */
+  deletePriceList(id: string, version: number): Promise<ApiResult<true>>;
 }
 
 export function httpPriceListApi(base: string, fetchImpl: FetchLike): PriceListApi {
@@ -60,8 +61,8 @@ export function httpPriceListApi(base: string, fetchImpl: FetchLike): PriceListA
       const answer = await requestJson(fetchImpl, url(`/${id}`), { method: "PUT", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readDocument(reply) : null));
     },
-    async deletePriceList(id) {
-      return resultOf(await requestJson(fetchImpl, url(`/${id}`), { method: "DELETE" }), noContent);
+    async deletePriceList(id, version) {
+      return resultOf(await requestJson(fetchImpl, url(`/${id}?version=${version}`), { method: "DELETE" }), noContent);
     },
   };
 }

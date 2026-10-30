@@ -31,8 +31,9 @@ import {
  */
 export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): void {
   const { pool, clock } = context;
+  const tillOfCurrentBuild = [context.requireDevice, context.requireCurrentBuild];
 
-  app.post("/sync/commands", { onRequest: context.requireDevice }, async (request, reply) => {
+  app.post("/sync/commands", { onRequest: tillOfCurrentBuild }, async (request, reply) => {
     const device = deviceAuth(request);
     const parsed = syncCommandBatchSchema.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
@@ -70,7 +71,7 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
       .send({ results });
   });
 
-  app.get("/sync/changes", { onRequest: context.requireDevice }, async (request, reply) => {
+  app.get("/sync/changes", { onRequest: tillOfCurrentBuild }, async (request, reply) => {
     const device = deviceAuth(request);
     const parsed = syncChangesQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
@@ -88,7 +89,7 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
   // What the server holds of this till, asked by a till that met a new generation: it sends
   // again every command it numbered after lastDeviceSeq. Needs only the till's credential,
   // since the staff sessions a till held may be the very rows a restore took away.
-  app.get("/sync/device-state", { onRequest: context.requireDevice }, async (request, reply) => {
+  app.get("/sync/device-state", { onRequest: tillOfCurrentBuild }, async (request, reply) => {
     const device = deviceAuth(request);
     const state = await withTenant(pool, device.tenantId, async (client) => ({
       serverGeneration: await readServerGeneration(client),

@@ -51,6 +51,7 @@ export const LOCAL_STORE_METHODS = [
   "clockOffset",
   "saveClockOffset",
   "retimePending",
+  "wipe",
   "close",
 ] as const satisfies readonly (keyof LocalStore)[];
 

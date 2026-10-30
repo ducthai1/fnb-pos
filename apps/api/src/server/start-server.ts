@@ -81,6 +81,7 @@ function dependenciesOf(config: ServerConfig, pool: pg.Pool, log: ServerLog): Ap
     secureCookies: config.secureCookies,
     mediaDirectory: config.mediaDirectory,
   };
+  if (config.minimumPosBuild !== null) dependencies.minimumPosBuild = config.minimumPosBuild;
   if (config.paymentSecretKey !== null) dependencies.paymentSecretKey = config.paymentSecretKey;
   if (config.allowedOrigins !== null) dependencies.allowedOrigins = config.allowedOrigins;
   dependencies.wallets = walletGateways(config.zaloPayEnvironment);

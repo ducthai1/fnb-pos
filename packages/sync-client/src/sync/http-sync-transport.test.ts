@@ -182,3 +182,52 @@ describe("the sync endpoints over HTTP", () => {
     }
   });
 });
+
+describe("naming the build and reading the refusal's code", () => {
+  const withBuild = (answer: { status: number; body: string }) => {
+    const requests: HttpRequest[] = [];
+    const transport = createHttpSyncTransport({
+      send: async (request) => {
+        requests.push(request);
+        return answer;
+      },
+      deviceToken: "device-token",
+      staffSessionToken: () => "staff-token",
+      posBuild: 1_761_800_000,
+    });
+    return { transport, requests };
+  };
+
+  it("names its build on every request, and none when it has none", async () => {
+    const page = { status: 200, body: JSON.stringify({ changes: [], nextCursor: "0", hasMore: false }) };
+    const { transport, requests } = withBuild(page);
+    await transport.pullChanges("0", 10).catch(() => undefined);
+    await transport.deviceState().catch(() => undefined);
+    await transport.pushCommands([envelope]).catch(() => undefined);
+    expect(requests.map((request) => request.headers["x-fnb-pos-build"])).toEqual([
+      "1761800000",
+      "1761800000",
+      "1761800000",
+    ]);
+    const plain = transportAnswering(200, JSON.stringify({ results: [] }));
+    await plain.transport.pushCommands([envelope]);
+    expect(plain.requests[0]?.headers).not.toHaveProperty("x-fnb-pos-build");
+  });
+
+  it("carries the code of an error answer, so two kinds of 401 can be told apart", async () => {
+    const codeOf = async (status: number, body: string) => {
+      const { transport } = transportAnswering(status, body);
+      const error = await transport.pushCommands([envelope]).catch((caught: unknown) => caught);
+      return error instanceof SyncTransportError ? [error.status, error.code] : error;
+    };
+    expect(await codeOf(426, '{"code":"API_POS_RELEASE_TOO_OLD"}')).toEqual([
+      426,
+      "API_POS_RELEASE_TOO_OLD",
+    ]);
+    expect(await codeOf(401, '{"code":"API_DEVICE_UNAUTHENTICATED"}')).toEqual([
+      401,
+      "API_DEVICE_UNAUTHENTICATED",
+    ]);
+    expect(await codeOf(502, "<html>bad gateway</html>")).toEqual([502, undefined]);
+  });
+});

@@ -69,8 +69,20 @@ describe("server configuration", () => {
         },
         cleanup: { intervalMillis: 3_600_000, sessionRetentionMillis: 30 * 86_400_000 },
         mediaDirectory: DEVELOPMENT_MEDIA_DIRECTORY,
+        minimumPosBuild: null,
       },
     });
+  });
+
+  it("reads the oldest POS build to serve, and refuses what is not a build number", () => {
+    const result = readServerConfig({ ...development, FNB_MIN_POS_BUILD: "1761800000" });
+    expect(result.ok && result.config.minimumPosBuild).toBe(1_761_800_000);
+    expect(problemsOf({ ...development, FNB_MIN_POS_BUILD: "0.0.0+abc1234" })).toEqual([
+      "FNB_MIN_POS_BUILD must be a whole number: the build of the oldest POS to serve",
+    ]);
+    expect(problemsOf({ ...development, FNB_MIN_POS_BUILD: "0" })).toEqual([
+      "FNB_MIN_POS_BUILD must be at least 1",
+    ]);
   });
 
   it("reads the cleanup job's schedule and retention, or leaves it off", () => {

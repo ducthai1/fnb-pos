@@ -92,4 +92,27 @@ export function registerStaffSessionRoutes(app: FastifyInstance, context: ApiCon
       };
     },
   );
+
+  // Signing out at the till. Ends only the session the till presents, and only on the till
+  // it was issued to; a session that is already over (or never was) answers the same, so a
+  // till that signs out twice, or after the session expired, learns nothing it can probe.
+  app.delete(
+    "/pos/staff-sessions/current",
+    { onRequest: context.requireDevice },
+    async (request) => {
+      const device = deviceAuth(request);
+      const token = request.headers[STAFF_SESSION_HEADER];
+      if (typeof token !== "string") return { ended: false };
+      const now = clock.now();
+      const ended = await withTenant(pool, device.tenantId, async (client) => {
+        const result = await client.query(
+          "UPDATE staff_session SET revoked_at = $3, updated_at = $3 WHERE token_hash = $1 " +
+            "AND device_id = $2 AND revoked_at IS NULL AND expires_at > $3",
+          [hashToken(token), device.deviceId, now],
+        );
+        return (result.rowCount ?? 0) > 0;
+      });
+      return { ended };
+    },
+  );
 }

@@ -15,25 +15,31 @@ export function staffTools(app: FastifyInstance, cookie: string) {
     answered(
       await app.inject({ method, url, headers: { cookie }, ...(payload ? { payload } : {}) }),
     );
+  const listed = async () => {
+    const response = await app.inject({ method: "GET", url: "/staff", headers: { cookie } });
+    // A member without manage_staff gets no list: the update then names a placeholder and is refused first.
+    return (response.json().staff ?? []) as {
+      id: string;
+      displayName: string;
+      roleId: string;
+      active: boolean;
+      lockedOutUntil: string | null;
+      failedSignIns: number;
+      version: number;
+    }[];
+  };
   return {
-    update: (staffId: string, body: object): Promise<Answer> =>
-      send("PATCH", `/staff/${staffId}`, body),
+    /** Renames or re-roles as of `version`, or as of the row's current one when none is named. */
+    update: async (staffId: string, body: object, version?: number): Promise<Answer> => {
+      const read = version ?? (await listed()).find((member) => member.id === staffId)?.version ?? 1;
+      return send("PATCH", `/staff/${staffId}?version=${read}`, body);
+    },
     deactivate: (staffId: string) => send("POST", `/staff/${staffId}/deactivate`),
     reactivate: (staffId: string) => send("POST", `/staff/${staffId}/reactivate`),
     resetPin: (staffId: string, pin: string) => send("PUT", `/staff/${staffId}/pin`, { pin }),
     unlockPin: (staffId: string) => send("POST", `/staff/${staffId}/pin-unlock`),
     archiveRole: (roleId: string) => send("POST", `/roles/${roleId}/archive`),
-    async list() {
-      const response = await app.inject({ method: "GET", url: "/staff", headers: { cookie } });
-      return response.json().staff as {
-        id: string;
-        displayName: string;
-        roleId: string;
-        active: boolean;
-        lockedOutUntil: string | null;
-        failedSignIns: number;
-      }[];
-    },
+    list: listed,
   };
 }
 

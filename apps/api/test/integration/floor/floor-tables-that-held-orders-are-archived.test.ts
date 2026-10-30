@@ -45,8 +45,8 @@ const tableOfOrder = (orderId: string) =>
 describe("taking a table off the floor plan", () => {
   it("deletes a table no order ever sat at", async () => {
     const { tableIds } = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B01"]);
-    const removed = await answer(call("DELETE", `/floor/tables/${tableIds[0]}`));
-    const again = await answer(call("DELETE", `/floor/tables/${tableIds[0]}`));
+    const removed = await answer(call("DELETE", `/floor/tables/${tableIds[0]}?version=1`));
+    const again = await answer(call("DELETE", `/floor/tables/${tableIds[0]}?version=1`));
     expect({ removed, again }).toEqual({
       removed: { status: 200, body: { id: tableIds[0], outcome: "deleted" } },
       again: { status: 404, body: { code: "API_FLOOR_TABLE_NOT_FOUND" } },
@@ -60,7 +60,7 @@ describe("taking a table off the floor plan", () => {
     ]);
     const tableId = tableIds[0]!;
     const orderId = await orderSeatedAt(pool, shop, tableId, "cancelled");
-    const removed = await answer(call("DELETE", `/floor/tables/${tableId}`));
+    const removed = await answer(call("DELETE", `/floor/tables/${tableId}?version=1`));
     const edited = await answer(
       call("PUT", `/floor/tables/${tableId}`, { ...tableBody(areaId), version: 2 }),
     );
@@ -75,7 +75,7 @@ describe("taking a table off the floor plan", () => {
   it("refuses while guests are seated at the table", async () => {
     const { tableIds } = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B03"]);
     await orderSeatedAt(pool, shop, tableIds[0]!, "draft");
-    const removed = await answer(call("DELETE", `/floor/tables/${tableIds[0]}`));
+    const removed = await answer(call("DELETE", `/floor/tables/${tableIds[0]}?version=1`));
     expect(removed).toEqual({ status: 409, body: { code: "API_FLOOR_TABLE_HAS_OPEN_ORDER" } });
     expect(await listedIds("tables")).toContainEqual({ id: tableIds[0], archived: false });
   });
@@ -86,9 +86,9 @@ describe("taking an area off the floor plan", () => {
     const empty = await areaWithTables(app, shop.managerCookie, shop.branchId, []);
     const used = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B04"]);
     await orderSeatedAt(pool, shop, used.tableIds[0]!, "cancelled");
-    await answer(call("DELETE", `/floor/tables/${used.tableIds[0]}`));
-    const deleted = await answer(call("DELETE", `/floor/areas/${empty.areaId}`));
-    const archived = await answer(call("DELETE", `/floor/areas/${used.areaId}`));
+    await answer(call("DELETE", `/floor/tables/${used.tableIds[0]}?version=1`));
+    const deleted = await answer(call("DELETE", `/floor/areas/${empty.areaId}?version=1`));
+    const archived = await answer(call("DELETE", `/floor/areas/${used.areaId}?version=1`));
     expect({ deleted, archived }).toEqual({
       deleted: { status: 200, body: { id: empty.areaId, outcome: "deleted" } },
       archived: { status: 200, body: { id: used.areaId, outcome: "archived" } },
@@ -103,8 +103,8 @@ describe("taking an area off the floor plan", () => {
     const tableId = used.tableIds[0]!;
     await orderSeatedAt(pool, shop, tableId, "cancelled");
     const { cursor } = await feedAfter(app, shop.deviceToken);
-    await answer(call("DELETE", `/floor/tables/${tableId}`));
-    expect((await answer(call("DELETE", `/floor/areas/${used.areaId}`))).status).toBe(200);
+    await answer(call("DELETE", `/floor/tables/${tableId}?version=1`));
+    expect((await answer(call("DELETE", `/floor/areas/${used.areaId}?version=1`))).status).toBe(200);
     const { changes } = await feedAfter(app, shop.deviceToken, cursor);
     const last = (entity: string, id: string) => changesOf(changes, entity, id).at(-1);
     expect(last(FLOOR_TABLE_ENTITY, tableId)).toMatchObject({ snapshot: null });
@@ -113,7 +113,7 @@ describe("taking an area off the floor plan", () => {
 
   it("refuses while a table of the area is still on the floor", async () => {
     const { areaId } = await areaWithTables(app, shop.managerCookie, shop.branchId, ["B05"]);
-    const removed = await answer(call("DELETE", `/floor/areas/${areaId}`));
+    const removed = await answer(call("DELETE", `/floor/areas/${areaId}?version=1`));
     expect(removed).toEqual({ status: 409, body: { code: "API_FLOOR_AREA_HAS_TABLES" } });
     expect(await listedIds("areas")).toContainEqual({ id: areaId, archived: false });
   });

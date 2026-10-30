@@ -14,4 +14,6 @@ export const STAFF_ERROR_CODES = {
   /** No wrong PIN is counted against them: there is nothing to clear. */
   pinNotLocked: "API_STAFF_PIN_NOT_LOCKED",
   roleArchived: "API_ROLE_ARCHIVED",
+  /** Renaming or re-roling someone whose row changed since the caller read it. */
+  versionConflict: "API_STAFF_VERSION_CONFLICT",
 } as const;

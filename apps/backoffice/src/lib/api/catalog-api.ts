@@ -19,7 +19,12 @@ export interface Station {
   readonly branchId: string;
   readonly name: string;
   readonly version: number;
+  /** When it was taken out of use; null while it is in use. */
+  readonly archivedAt: string | null;
 }
+
+/** What became of a station that was removed: gone, or kept out of use because tickets point at it. */
+export type StationRemoval = "deleted" | "archived";
 
 /** A row of the product list of a brand. */
 export interface ProductSummary {
@@ -59,7 +64,9 @@ const readCategory = (item: Record<string, unknown>): Category | null => {
 const readStation = (item: Record<string, unknown>): Station | null => {
   const [id, branchId, name] = [textOf(item, "id"), textOf(item, "branchId"), textOf(item, "name")];
   const version = wholeNumberOf(item, "version");
-  return id === null || branchId === null || name === null || version === null ? null : { id, branchId, name, version };
+  const archivedAt = nullableTextOf(item, "archivedAt");
+  if (id === null || branchId === null || name === null || version === null || archivedAt === undefined) return null;
+  return { id, branchId, name, version, archivedAt };
 };
 
 const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
@@ -112,10 +119,17 @@ export interface CatalogApi {
     id: string,
     body: { version: number | null; brandId: string; name: string; sortOrder: number },
   ): Promise<ApiResult<Category>>;
-  deleteCategory(id: string): Promise<ApiResult<true>>;
+  /** `DELETE /catalog/categories/:id?version=` of the category last read; 409 when it changed since. */
+  deleteCategory(id: string, version: number): Promise<ApiResult<true>>;
   listStations(branchId: string): Promise<ApiResult<Station[]>>;
   putStation(id: string, body: { version: number | null; branchId: string; name: string }): Promise<ApiResult<Station>>;
-  deleteStation(id: string): Promise<ApiResult<true>>;
+  /**
+   * `DELETE /catalog/stations/:id?version=` of the station last read: deleted when nothing points at it,
+   * archived when printed tickets do; 409 when it changed since or a product on the menu still names it.
+   */
+  deleteStation(id: string, version: number): Promise<ApiResult<StationRemoval>>;
+  /** `POST /catalog/stations/:id/unarchive` `{ version }`: the station is in use again. */
+  resumeStation(id: string, version: number): Promise<ApiResult<true>>;
   listProducts(brandId: string): Promise<ApiResult<ProductSummary[]>>;
   getProduct(id: string): Promise<ApiResult<ProductDocument>>;
   putProduct(id: string, body: ProductBody): Promise<ApiResult<ProductDocument>>;
@@ -139,16 +153,23 @@ export function httpCatalogApi(base: string, fetchImpl: FetchLike): CatalogApi {
       const answer = await requestJson(fetchImpl, url(`/categories/${id}`), { method: "PUT", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readCategory(reply) : null));
     },
-    async deleteCategory(id) {
-      return resultOf(await requestJson(fetchImpl, url(`/categories/${id}`), { method: "DELETE" }), noContent);
+    async deleteCategory(id, version) {
+      return resultOf(await requestJson(fetchImpl, url(`/categories/${id}${query("version", String(version))}`), { method: "DELETE" }), noContent);
     },
     listStations: (branchId) => get(`/stations${query("branchId", branchId)}`, list(readStation)),
     async putStation(id, body) {
       const answer = await requestJson(fetchImpl, url(`/stations/${id}`), { method: "PUT", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readStation(reply) : null));
     },
-    async deleteStation(id) {
-      return resultOf(await requestJson(fetchImpl, url(`/stations/${id}`), { method: "DELETE" }), noContent);
+    async deleteStation(id, version) {
+      const answer = await requestJson(fetchImpl, url(`/stations/${id}${query("version", String(version))}`), { method: "DELETE" });
+      return resultOf(answer, (reply) => {
+        const outcome = isRecord(reply) ? reply.outcome : null;
+        return outcome === "deleted" || outcome === "archived" ? outcome : null;
+      });
+    },
+    async resumeStation(id, version) {
+      return resultOf(await requestJson(fetchImpl, url(`/stations/${id}/unarchive`), { method: "POST", body: { version } }), () => true as const);
     },
     listProducts: (brandId) => get(`/products${query("brandId", brandId)}`, list(readSummary)),
     getProduct: (id) => get(`/products/${id}`, readProductDocument),

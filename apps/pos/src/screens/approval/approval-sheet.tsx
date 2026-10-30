@@ -7,7 +7,7 @@ import { vi } from "../../messages/vi";
 import { PIN_FORMAT, PinPad } from "../shared/pin-pad";
 import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
-import { useLeaveThen } from "../shared/use-leave-motion";
+import { useFinishThen, useLeaveThen } from "../shared/use-leave-motion";
 import { StaffAvatar } from "../shared/staff-avatar";
 
 const A = vi.approval;
@@ -31,6 +31,10 @@ export interface ApprovalSheetProps {
 export function ApprovalSheet(props: ApprovalSheetProps) {
   // Back plays the step's leaving movement before the flow closes it.
   const { leaving, leave } = useLeaveThen(props.onCancel, "--t-exit");
+  // An approval given sinks the sheet away the same way, then the flow goes on.
+  const { closing, finish } = useFinishThen<readonly [string, string]>(([approvalId, approver]) =>
+    props.onApproved(approvalId, approver),
+  );
   const [chosen, setChosen] = useState<BootstrapStaff | null>(null);
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +47,7 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
     setBusy(true);
     setError(null);
     const result = await props.approve(chosen.id, pin);
-    if (result.ok) return props.onApproved(result.value, chosen.id);
+    if (result.ok) return finish([result.value, chosen.id]);
     if (result.code === SESSION_INVALID) return props.onSessionExpired();
     setPin("");
     setBusy(false);
@@ -59,7 +63,7 @@ export function ApprovalSheet(props: ApprovalSheetProps) {
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || closing}
       title={A.title}
       width="narrow"
       dock={

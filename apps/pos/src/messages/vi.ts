@@ -5,7 +5,7 @@ import { VI_CHECKOUT } from "./vi-checkout";
 import { VI_HISTORY, VI_REFUND } from "./vi-history-refund";
 import { VI_INVOICE } from "./vi-invoice";
 import { VI_ORDER_ADJUST, VI_ORDER_ADJUST_ERRORS, VI_REASONS } from "./vi-order-adjust";
-import { VI_CRASH, VI_UPDATE } from "./vi-operations";
+import { VI_CRASH, VI_REVOKED, VI_UPDATE } from "./vi-operations";
 import { VI_ORDER_VERSION_ERRORS } from "./vi-order-version";
 import { VI_RATE_LIMIT_ERRORS } from "./vi-rate-limit";
 import { VI_QR_PAYMENT } from "./vi-qr-payment";
@@ -34,6 +34,8 @@ export const vi = {
     hint: "Nhập mã 8 ký tự hiện trong trang quản lý, mục Thiết bị.",
     codeLabel: "Mã ghép máy",
     deviceNameLabel: "Tên máy",
+    revokedNotice:
+      "Máy vừa được gỡ khỏi cửa hàng và đã xóa dữ liệu bán hàng cũ. Nhập mã ghép mới (trang quản lý, mục Thiết bị) để dùng lại.",
     deviceNameDefault: "Máy bán hàng",
     submit: "Ghép máy",
     submitting: "Đang ghép…",
@@ -75,6 +77,7 @@ export const vi = {
   shell: VI_SHELL,
   crash: VI_CRASH,
   update: VI_UPDATE,
+  revoked: VI_REVOKED,
   theme: VI_THEME,
   tools: { label: "Công cụ của máy" },
   kitchen: { commonSlip: "Phiếu chung" },

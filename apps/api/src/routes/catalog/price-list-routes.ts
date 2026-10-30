@@ -1,4 +1,9 @@
-import { catalogIdParamsSchema, catalogIdSchema, priceListDocumentSchema } from "@fnb/contracts";
+import {
+  catalogIdParamsSchema,
+  catalogIdSchema,
+  expectedVersionQuerySchema,
+  priceListDocumentSchema,
+} from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -67,9 +72,10 @@ export function registerPriceListRoutes(app: FastifyInstance, context: ApiContex
     write,
     catalogHandler(async (request, reply) => {
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
+      const { version } = parseOrReject(expectedVersionQuerySchema, request.query);
       const tenantId = backofficeAuth(request).tenantId;
       const removed = await withTenant(context.pool, tenantId, (client) =>
-        deletePriceList(client, tenantId, id),
+        deletePriceList(client, tenantId, id, version),
       );
       if (!removed) throw new CatalogRequestError(404, CATALOG_API_ERROR_CODES.priceListNotFound);
       return reply.code(204).send();

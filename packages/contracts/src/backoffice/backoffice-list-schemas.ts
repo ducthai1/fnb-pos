@@ -45,6 +45,8 @@ export const staffSummarySchema = z
     lockedOutUntil: instantSchema.nullable(),
     /** Wrong PINs counted since the last right one: the next lock grows with it. */
     failedSignIns: z.number().int().nonnegative(),
+    /** What a rename or a change of role must name (`?version=`), so it never overwrites a newer one. */
+    version: z.number().int().min(1),
   })
   .strict();
 

@@ -5,6 +5,7 @@ screens:
   - /staff
   - /roles
 decisions:
+  - D-145
   - D-029
   - D-032
   - D-036
@@ -12,6 +13,7 @@ decisions:
   - D-060
   - D-061
 tests:
+  - apps/api/test/integration/staff/renaming-someone-needs-the-version-last-read.test.ts
   - apps/backoffice/src/components/staff/staff-screen.test.tsx
   - apps/backoffice/src/components/staff/staff-tools.test.tsx
   - apps/backoffice/src/components/roles/roles-screen.test.tsx
@@ -58,7 +60,7 @@ Mỗi dòng nhân viên có nút ở cột **Thao tác**:
 
 | Nút | Làm gì |
 |---|---|
-| **Sửa** | Đổi tên hiển thị và vai trò ("Chưa đổi gì để lưu." nếu không đổi gì) |
+| **Sửa** | Đổi tên hiển thị và vai trò ("Chưa đổi gì để lưu." nếu không đổi gì). Lưu theo **số phiên bản** của người đó mà trang đã đọc: nếu người khác vừa đổi tên / vai trò (hoặc khóa, mở lại) thì máy chủ từ chối, trang tải lại danh sách và bạn lưu lại nếu vẫn cần — không ghi đè lên chỗ người kia vừa sửa |
 | **Khóa** (với người đang làm) | Người nghỉ việc / tạm ngưng: **ca đang mở của người này kết thúc ngay**, máy quầy không cho đăng nhập và **ẩn tên khỏi màn PIN**. Mở lại được sau |
 | **Mở lại** (thay nút Khóa với người đã khóa) | Cho đăng nhập lại bằng PIN; phiên đã kết thúc lúc khóa không sống lại |
 | **Đặt lại PIN** | Đặt PIN mới (người quên PIN). Xóa luôn số lần nhập sai; **không** đăng xuất người đó khỏi máy đang dùng |
@@ -138,6 +140,7 @@ Năm quyền quản trị cuối không mượn được tại chỗ: đó là q
 
 | Màn hình báo | Làm gì |
 |---|---|
+| Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần. | Xem bản mới trên danh sách, rồi **Lưu** lại |
 | PIN gồm 4 đến 6 chữ số. | Nhập lại |
 | PIN quá dễ đoán (như 1234, 1111, 1212, 2580 hoặc một năm sinh). Chọn PIN khác. | Chọn PIN khác |
 | Chọn vai trò. / Chọn ít nhất một chi nhánh. / Nhập tên hiển thị. | Điền đủ |

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChefHat, Pencil, Trash2 } from "lucide-react";
+import { ChefHat, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import type { ApiFailure } from "../../lib/api/api-result";
 import type { Station } from "../../lib/api/catalog-api";
@@ -83,11 +83,22 @@ export function StationsScreen() {
   async function remove(station: Station) {
     setBusy(true);
     setFailure(null);
-    const result = await api.deleteStation(station.id);
+    const result = await api.deleteStation(station.id, station.version);
     setBusy(false);
     setAsking(null);
     if (!result.ok) return report(result, result.code === "API_CATALOG_IN_USE" ? T.inUse : undefined);
-    setDone(T.deleted(station.name));
+    setDone(result.value === "archived" ? T.archivedDone(station.name) : T.deleted(station.name));
+    refresh();
+  }
+
+  async function resume(station: Station) {
+    setBusy(true);
+    setDone(null);
+    setFailure(null);
+    const result = await api.resumeStation(station.id, station.version);
+    setBusy(false);
+    if (!result.ok) return report(result);
+    setDone(T.resumed(station.name));
     refresh();
   }
 
@@ -97,7 +108,10 @@ export function StationsScreen() {
       <ErrorNotice message={failure} />
       <SuccessNotice message={done} />
       <LoadStateView loaded={loaded} retry={reload}>
-        {(stations) => (
+        {(everyStation) => {
+          const stations = everyStation.filter((station) => station.archivedAt === null);
+          const archived = everyStation.filter((station) => station.archivedAt !== null);
+          return (
           <>
             <form className="bo-card bo-field-row" onSubmit={(event) => void add(event)} noValidate>
               <TextField label={T.newLabel} value={name} onChange={setName} error={nameError} />
@@ -149,6 +163,28 @@ export function StationsScreen() {
                 </li>
               ))}
             </ul>
+            {archived.length > 0 && (
+              <section className="bo-stack" aria-labelledby="archived-stations-title">
+                <h2 id="archived-stations-title" className="bo-subtitle">
+                  {T.archivedTitle(archived.length)}
+                </h2>
+                <p className="bo-muted">{T.archivedHint}</p>
+                <ul className="bo-choice-list" aria-label={T.archivedTitle(archived.length)}>
+                  {archived.map((station) => (
+                    <li key={station.id} className="bo-card bo-row bo-station-row" data-archived>
+                      <span className="bo-station-row__icon" aria-hidden="true">
+                        <Icon of={ChefHat} size={18} />
+                      </span>
+                      <span className="bo-wrap bo-grow bo-station-row__name bo-muted">{station.name}</span>
+                      <button type="button" className="bo-button" disabled={busy} aria-label={T.resumeLabel(station.name)} onClick={() => void resume(station)}>
+                        <Icon of={RotateCcw} size={16} />
+                        {T.resume}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             {asking !== null && (
               <ConfirmPanel
                 title={T.deleteTitle(asking.name)}
@@ -162,7 +198,8 @@ export function StationsScreen() {
               />
             )}
           </>
-        )}
+          );
+        }}
       </LoadStateView>
     </section>
   );

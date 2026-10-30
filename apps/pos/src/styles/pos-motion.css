@@ -24,6 +24,11 @@
   animation: pos-drop var(--t-enter) var(--ease-out);
 }
 
+/* ...and they sink the same way when they go (the notice stays for --t-exit, then is removed). */
+.pos-presence[data-leaving] {
+  animation: pos-sink var(--t-exit) var(--ease-in) forwards;
+}
+
 /* A line put on the order slides in from where the menu is. */
 .pos-cart-line {
   animation: pos-line-in var(--t-state) var(--ease-out);

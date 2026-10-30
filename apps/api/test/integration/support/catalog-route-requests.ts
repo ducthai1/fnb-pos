@@ -85,7 +85,7 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
       const payload = { version: null, brandId: shop.brandId, name: "Giờ vàng", items: [] };
       await expectStatus(shop.call("PUT", url, payload), 201);
       return {
-        request: { method: "DELETE", url },
+        request: { method: "DELETE", url: `${url}?version=1` },
         effect: { method: "GET", url: `/catalog/price-lists?brandId=${shop.brandId}` },
       };
     },
@@ -120,7 +120,7 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
         shop.call("PUT", url, { version: null, brandId: shop.brandId, name: "Bánh" }),
         201,
       );
-      return { request: { method: "DELETE", url }, effect: categories(shop) };
+      return { request: { method: "DELETE", url: `${url}?version=1` }, effect: categories(shop) };
     },
   },
   {
@@ -133,15 +133,36 @@ export const CATALOG_WRITES: readonly CatalogWrite[] = [
     },
   },
   {
+    route: "POST /catalog/stations/:id/unarchive",
+    status: 200,
+    prepare: async (shop) => {
+      // A station a retired product still names is archived, not deleted, when it is removed.
+      const stationId = newId();
+      const url = `/catalog/stations/${stationId}`;
+      await expectStatus(
+        shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Bếp cũ" }),
+        201,
+      );
+      const product = pearlMilkTeaDocument({ ...shop, stationId });
+      await expectStatus(shop.call("PUT", product.url, product.body), 201);
+      await expectStatus(shop.call("POST", `${product.url}/archive`), 200);
+      await expectStatus(shop.call("DELETE", `${url}?version=1`), 200);
+      return {
+        request: { method: "POST", url: `${url}/unarchive`, payload: { version: 2 } },
+        effect: stations(shop),
+      };
+    },
+  },
+  {
     route: "DELETE /catalog/stations/:id",
-    status: 204,
+    status: 200,
     prepare: async (shop) => {
       const url = `/catalog/stations/${newId()}`;
       await expectStatus(
         shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Bếp" }),
         201,
       );
-      return { request: { method: "DELETE", url }, effect: stations(shop) };
+      return { request: { method: "DELETE", url: `${url}?version=1` }, effect: stations(shop) };
     },
   },
 ];

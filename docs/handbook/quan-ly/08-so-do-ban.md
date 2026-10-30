@@ -4,10 +4,12 @@ audience: quan-ly
 screens:
   - /floor
 decisions:
+  - D-145
   - D-043
   - D-060
   - D-070
 tests:
+  - apps/api/test/integration/floor/removing-a-table-or-area-needs-the-version-last-read.test.ts
   - apps/backoffice/src/components/ui/text-field.test.tsx
   - apps/backoffice/src/components/floor/floor-screen.test.tsx
   - apps/backoffice/src/components/floor/area-plan.test.tsx
@@ -38,7 +40,7 @@ Cần quyền **Cài đặt cửa hàng**. Muốn máy quầy hiện chế độ
 3. Trong khung của khu vực: nhập **Tên bàn mới** và **Số ghế**, bấm **Thêm bàn**.
 4. Sửa tên hoặc số ghế ở từng dòng bàn rồi bấm lưu bàn; đổi tên khu vực rồi bấm lưu tên khu vực.
 5. Ở **Sơ đồ <khu vực>**: kéo bàn tới chỗ của nó, hoặc chọn bàn rồi bấm **phím mũi tên** (giữ **Shift** để đi xa hơn). **Mỗi lần thả được lưu ngay** ("Đã dời …").
-6. Xóa bàn hoặc khu vực bằng nút xóa, xác nhận **Xóa**.
+6. Xóa bàn hoặc khu vực bằng nút xóa, xác nhận **Xóa**. Nếu người khác vừa sửa bàn hoặc khu vực đó, việc xóa bị từ chối với "Có người đã sửa mục này trước bạn" và sơ đồ được tải lại.
 
 ## Luật và giới hạn
 

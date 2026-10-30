@@ -157,6 +157,18 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
     retimePending: async (fromDeviceSeq, notAfter) =>
       retimePending(driver, fromDeviceSeq, notAfter),
 
+    // Tables are dropped, not emptied: an emptied outbox would go on counting from its last
+    // command number, and a new device's first command must be number 1.
+    wipe: async () =>
+      inTransaction(driver, () => {
+        for (const table of ["rejected_command", "entity_snapshot", "outbox", "sync_meta"]) {
+          driver.exec(`DROP TABLE IF EXISTS ${table}`);
+        }
+        driver.exec(LOCAL_SCHEMA_SQL);
+        ensureJournalColumns(driver);
+        ensureClockColumns(driver);
+      }),
+
     close: async () => driver.close(),
   };
 }

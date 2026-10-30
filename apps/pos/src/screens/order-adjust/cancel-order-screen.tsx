@@ -24,6 +24,8 @@ export function CancelOrderScreen(props: {
   release?: string;
   onConfirm(reason: ChosenReason): Promise<string | null>;
   onBack(): void;
+  /** The step's work is done and it is playing its leaving movement before the flow moves on. */
+  closing?: boolean;
 }) {
   // Back plays the step's leaving movement before the flow closes it.
   const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
@@ -38,7 +40,7 @@ export function CancelOrderScreen(props: {
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || props.closing === true}
       title={releasing ? R.title(props.release ?? "") : T.title(props.orderNo)}
       dock={
         <>

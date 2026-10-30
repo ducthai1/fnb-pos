@@ -21,6 +21,8 @@ export interface DiscountScreenProps {
   /** Present when the item or the order already has a discount: takes it off. */
   onRemove?: (() => Promise<string | null>) | undefined;
   onBack(): void;
+  /** The step's work is done and it is playing its leaving movement before the flow moves on. */
+  closing?: boolean;
 }
 
 /** A discount on one item or on the whole order: a quick rate, a typed rate, or an amount. */
@@ -46,7 +48,7 @@ export function DiscountScreen(props: DiscountScreenProps) {
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || props.closing === true}
       title={props.title}
       dock={
         <>

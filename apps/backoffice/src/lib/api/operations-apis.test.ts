@@ -129,8 +129,8 @@ describe("the floor calls", () => {
     const tables = answering(200, [TABLE_1]);
     expect(await httpFloorApi("/api", tables.fetchImpl).listTables(BRANCH)).toEqual({ ok: true, value: [TABLE_1] });
     const removed = answering(200, { id: TABLE_1.id, outcome: "archived" });
-    expect(await httpFloorApi("/api", removed.fetchImpl).removeTable(TABLE_1.id)).toEqual({ ok: true, value: "archived" });
-    expect(removed.calls[0]).toMatchObject({ url: `/api/floor/tables/${TABLE_1.id}`, method: "DELETE" });
+    expect(await httpFloorApi("/api", removed.fetchImpl).removeTable(TABLE_1.id, 5)).toEqual({ ok: true, value: "archived" });
+    expect(removed.calls[0]).toMatchObject({ url: `/api/floor/tables/${TABLE_1.id}?version=5`, method: "DELETE" });
   });
 
   it("treat a table of a shape the plan does not draw as a failed call", async () => {

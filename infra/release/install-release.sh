@@ -8,6 +8,11 @@
 # 1. checks the tarball's checksum, extracts it to releases/<id>, checks every file's sum
 # 2. installs the production dependencies
 # 3. backs the database up, then runs the migrations
+#    and copies the POS files the previous release shipped under apps/pos/dist/assets into
+#    the new one (names carry a content hash, so nothing is overwritten): a till still
+#    running the previous build loads its lazy chunks by name, and a deleted one is a crash
+#    screen. Only the files the previous release itself shipped are copied, so older files
+#    do not pile up release after release.
 # 4. switches `current` to the release in one rename and restarts the services
 # 5. asks /health; when it never answers, switches back to the previous release and exits 1
 # 6. keeps the newest FNB_KEEP_RELEASES releases (default 5)
@@ -56,6 +61,19 @@ rm -rf "${FNB_RELEASES_DIR:?}/${RELEASE}"
 mv "${INCOMING}" "${FNB_RELEASES_DIR}/${RELEASE}"
 DIR="${FNB_RELEASES_DIR}/${RELEASE}"
 log "extracted release ${RELEASE}"
+
+if [ -n "${PREVIOUS}" ] && [ -f "${FNB_RELEASES_DIR}/${PREVIOUS}/SHA256SUMS" ]; then
+  KEPT_FOR_OPEN_TILLS=0
+  while IFS= read -r asset; do
+    [ -n "${asset}" ] || continue
+    if [ -f "${FNB_RELEASES_DIR}/${PREVIOUS}/${asset}" ] && [ ! -e "${DIR}/${asset}" ]; then
+      mkdir -p "$(dirname "${DIR}/${asset}")"
+      cp -p "${FNB_RELEASES_DIR}/${PREVIOUS}/${asset}" "${DIR}/${asset}"
+      KEPT_FOR_OPEN_TILLS=$((KEPT_FOR_OPEN_TILLS + 1))
+    fi
+  done < <(sed -n 's|^[0-9a-f]\{64\}  \(apps/pos/dist/assets/[^/]*\)$|\1|p' "${FNB_RELEASES_DIR}/${PREVIOUS}/SHA256SUMS")
+  log "kept ${KEPT_FOR_OPEN_TILLS} POS file(s) of ${PREVIOUS} for tills still on it"
+fi
 
 log "installing production dependencies"
 (cd "${DIR}" && ${FNB_PNPM} install --frozen-lockfile --prod) || die "dependency install failed; nothing changed"

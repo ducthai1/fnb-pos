@@ -1,4 +1,5 @@
 import {
+  POS_BUILD_HEADER,
   SERVER_GENERATION_HEADER,
   SERVER_TIME_HEADER,
   SYNC_FEATURES_HEADER,
@@ -36,13 +37,31 @@ export interface HttpSyncTransportOptions {
   deviceToken: string;
   /** The staff member signed in on the till, read per push: commands are recorded as theirs. */
   staffSessionToken: () => string | null;
+  /** The build this till runs (see POS_BUILD_HEADER), sent on every request; none in development. */
+  posBuild?: number | null;
 }
 
 const STAFF_SESSION_HEADER = "x-staff-session";
 
+/** The stable code of an error answer's body; the server's bodies are `{code}` and nothing else. */
+function codeOf(body: string): string | undefined {
+  try {
+    const code = (JSON.parse(body) as { code?: unknown } | null)?.code;
+    return typeof code === "string" ? code : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function bodyOf(response: HttpResponse): unknown {
   if (response.status !== 200) {
-    throw new SyncTransportError("http", response.status, `answered ${response.status}`);
+    const code = codeOf(response.body);
+    throw new SyncTransportError(
+      "http",
+      response.status,
+      `answered ${response.status}`,
+      ...(code === undefined ? [] : [code]),
+    );
   }
   try {
     return JSON.parse(response.body);
@@ -74,6 +93,9 @@ function serverTimeOf(response: HttpResponse): { serverTimeMs?: number } {
 /** The sync endpoints over HTTP, every answer checked against the contracts before use. */
 export function createHttpSyncTransport(options: HttpSyncTransportOptions): SyncTransport {
   const authorization = `Device ${options.deviceToken}`;
+  const build = options.posBuild ?? null;
+  const identity: Record<string, string> =
+    build === null ? { authorization } : { authorization, [POS_BUILD_HEADER]: String(build) };
   const send = async (request: HttpRequest) => {
     try {
       return await options.send(request);
@@ -88,7 +110,7 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
         method: "POST",
         path: "/sync/commands",
         headers: {
-          authorization,
+          ...identity,
           "content-type": "application/json",
           [SYNC_FEATURES_HEADER]: SYNC_FEATURE_SHIFT_VERSION,
           ...(staff === null ? {} : { [STAFF_SESSION_HEADER]: staff }),
@@ -109,7 +131,7 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       const response = await send({
         method: "GET",
         path: `/sync/changes?${query.toString()}`,
-        headers: { authorization },
+        headers: identity,
       });
       const parsed = syncChangesPageSchema.safeParse(bodyOf(response));
       if (!parsed.success) throw protocolError("the page breaks the contract");
@@ -119,7 +141,7 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       const response = await send({
         method: "GET",
         path: "/sync/device-state",
-        headers: { authorization },
+        headers: identity,
       });
       const parsed = syncDeviceStateSchema.safeParse(bodyOf(response));
       if (!parsed.success) throw protocolError("the device state breaks the contract");

@@ -39,7 +39,7 @@ export async function readPosStations(
 ): Promise<Unversioned<PosStationWire>[]> {
   const [where, value] = whereOf(scope, "branch_id");
   const { rows } = await client.query(
-    `SELECT id, branch_id, name FROM station WHERE ${where} ORDER BY name, id`,
+    `SELECT id, branch_id, name FROM station WHERE ${where} AND archived_at IS NULL ORDER BY name, id`,
     [value],
   );
   return rows.map((row) => ({ id: row.id, branchId: row.branch_id, name: row.name }));

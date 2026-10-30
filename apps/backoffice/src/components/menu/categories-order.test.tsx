@@ -51,6 +51,22 @@ describe("the order of the menu's categories", () => {
     expect((screen.getByRole("button", { name: T.moveDown("Cà phê") }) as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it("says someone changed the category first when deleting it, and reads the list again", async () => {
+    const server = categoryServer(CATEGORIES);
+    const listCategories = mock.fn(server.api.listCategories);
+    const sent: [string, number][] = [];
+    const deleteCategory = async (id: string, version: number) => {
+      sent.push([id, version]);
+      return refused(409, "API_CATALOG_VERSION_CONFLICT");
+    };
+    await renderSignedIn(<CategoriesScreen />, { ...server.api, listCategories, deleteCategory });
+    await screen.findByText("Bánh");
+    fireEvent.click(screen.getByRole("button", { name: T.deleteLabel("Bánh") }));
+    expect((await screen.findByRole("alert")).textContent).toBe(vi.errors.byCode.API_CATALOG_VERSION_CONFLICT);
+    expect(sent).toEqual([["c3", 1]]);
+    await mock.waitFor(() => expect(listCategories).toHaveBeenCalledTimes(2));
+  });
+
   it("says why a move was refused and reads the list again", async () => {
     const server = categoryServer(CATEGORIES);
     const putCategory = mock.fn(async () => refused(409, "API_CATALOG_VERSION_CONFLICT"));

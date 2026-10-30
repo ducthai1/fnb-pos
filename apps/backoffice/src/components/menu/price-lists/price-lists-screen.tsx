@@ -37,11 +37,16 @@ export function PriceListsScreen() {
   async function remove(list: PriceListSummary) {
     setBusy(true);
     setFailure(null);
-    const result = await api.deletePriceList(list.id);
+    const result = await api.deletePriceList(list.id, list.version);
     setBusy(false);
     if (!result.ok) {
       if (isSignedOut(result)) signedOut();
       setFailure(failureMessage(result));
+      // Someone changed the list since this page read it: show their version, not a stale one.
+      if (result.status === 409 && result.code === "API_CATALOG_VERSION_CONFLICT") {
+        setAsking(null);
+        refresh();
+      }
       return;
     }
     setAsking(null);

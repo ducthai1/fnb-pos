@@ -32,7 +32,7 @@ export function retryAfterOf(header: string | null, now: number): number | null 
 export async function requestJson(
   fetchImpl: FetchLike,
   url: string,
-  init: { method: "GET" | "POST"; headers?: Record<string, string>; body?: unknown },
+  init: { method: "GET" | "POST" | "DELETE"; headers?: Record<string, string>; body?: unknown },
 ): Promise<JsonAnswer> {
   try {
     const response = await fetchImpl(url, {

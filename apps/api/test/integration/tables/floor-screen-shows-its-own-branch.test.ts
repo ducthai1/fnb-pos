@@ -57,7 +57,7 @@ describe("the till's floor screen", () => {
     await expectStatus(
       app.inject({
         method: "DELETE",
-        url: `/floor/tables/${removed}`,
+        url: `/floor/tables/${removed}?version=1`,
         headers: { cookie: s.shop.managerCookie },
       }),
       200,
