@@ -11,6 +11,8 @@ decisions:
   - D-061
   - D-078
   - D-098
+  - D-096
+  - D-138
 tests:
   - apps/backoffice/src/components/settings/settings-switches.test.tsx
   - apps/backoffice/src/components/settings/settings-forms.test.tsx
@@ -21,6 +23,9 @@ tests:
   - packages/feature-flags/src/resolve-inherited-config.test.ts
   - apps/api/test/integration/config/settings-routes-keep-flag-rules-and-access.test.ts
   - apps/api/test/integration/config/settings-routes-set-and-clear-values.test.ts
+  - apps/api/test/integration/sync/happy-hour-prices-follow-the-switch.test.ts
+  - apps/pos/src/features/printing/kitchen-routing-and-cup-label-switches.test.ts
+  - packages/feature-flags/src/feature-flag-till-support.test.ts
   - apps/api/test/integration/config/config-layers-resolve-per-device.test.ts
   - apps/api/test/integration/config/config-changes-reach-the-tills-under-their-scope.test.ts
   - apps/api/test/integration/payments/payment-account-setting-reaches-tills.test.ts
@@ -60,17 +65,17 @@ Cần quyền **Cài đặt cửa hàng** (vai trò mẫu: chỉ Chủ quán). C
 | Công tắc | Mặc định | Đặt được tới tầng | Ràng buộc | Hiện có tác dụng gì |
 |---|---|---|---|---|
 | Quản lý bàn | tắt | chi nhánh | — | Máy quầy hiện chế độ **bán tại bàn** và sơ đồ bàn |
-| Quầy trả tiền trước | **bật** | máy | — | chưa có tác dụng (máy quầy chưa đọc) |
-| In tem ly | tắt | máy | — | chưa có tác dụng (tem ly theo ô "In tem dán ly" của từng món) |
-| Chia phiếu theo trạm pha chế/bếp | tắt | chi nhánh | — | chưa có tác dụng |
-| Ra món theo lượt | tắt | chi nhánh | cần **Quản lý bàn** | chưa có tác dụng |
-| Khách gọi món bằng QR tại bàn | tắt | chi nhánh | cần **Quản lý bàn** | chưa có tác dụng |
-| Giá theo khung giờ | tắt | thương hiệu | — | chưa có tác dụng |
-| Theo dõi tồn kho | tắt | chi nhánh | — | chưa có tác dụng |
-| Tự báo hết món khi tồn về 0 | tắt | chi nhánh | cần **Theo dõi tồn kho**; không bật cùng **Cho bán khi tồn âm** | chưa có tác dụng |
-| Cho bán khi tồn âm | tắt | chi nhánh | cần **Theo dõi tồn kho**; không bật cùng **Tự báo hết món…** | chưa có tác dụng |
-| Hóa đơn điện tử | tắt | chi nhánh | — | chưa có tác dụng: việc xuất hóa đơn do ô **"Xuất hóa đơn cho mọi đơn đã thanh toán"** trong hồ sơ hóa đơn quyết định |
-| Làm tròn tiền mặt | tắt | chi nhánh | — | chưa có tác dụng |
+| Quầy trả tiền trước | **bật** | máy | — | **luôn bật, khóa** (nhãn **Sắp có**): máy quầy thu tiền trước khi gửi bếp; quầy gửi bếp trước khi trả chưa có. Ô bật / tắt bị khóa ở "bật", máy chủ từ chối lệnh tắt (`API_SETTINGS_FLAG_LOCKED_ON`) |
+| In tem ly | tắt | máy | — | Máy quầy in **tem dán ly** (cho món đánh dấu "In tem dán ly") khi thu tiền đơn quầy, và **khi gửi bếp một đơn bàn** (tem của phần vừa gửi). **Tắt ⇒ không in tem ly nào** |
+| Chia phiếu theo trạm pha chế/bếp | tắt | chi nhánh | — | **Bật**: mỗi trạm một phiếu. **Tắt**: **một phiếu chung** tiêu đề "Phiếu chung", gồm mọi món có trạm, in ở máy in của trạm **đầu tiên theo tên** của chi nhánh (món không gán trạm vẫn không lên phiếu nào) |
+| Ra món theo lượt | tắt | chi nhánh | cần **Quản lý bàn** | khóa, nhãn **Sắp có**: máy quầy chưa làm theo |
+| Khách gọi món bằng QR tại bàn | tắt | chi nhánh | cần **Quản lý bàn** | khóa, nhãn **Sắp có**: máy quầy chưa làm theo |
+| Giá theo khung giờ | tắt | thương hiệu | — | **Bật**: máy quầy và máy chủ áp giá theo khung giờ / ngày / thời hạn của [Bảng giá](14-bang-gia.md). **Tắt**: bỏ các dòng giá có hẹn giờ, mọi món bán theo giá gốc (giá cả ngày của chi nhánh, của kênh bán vẫn áp) |
+| Theo dõi tồn kho | tắt | chi nhánh | — | khóa, nhãn **Sắp có** |
+| Tự báo hết món khi tồn về 0 | tắt | chi nhánh | cần **Theo dõi tồn kho**; không bật cùng **Cho bán khi tồn âm** | khóa, nhãn **Sắp có** |
+| Cho bán khi tồn âm | tắt | chi nhánh | cần **Theo dõi tồn kho**; không bật cùng **Tự báo hết món…** | khóa, nhãn **Sắp có** |
+| Hóa đơn điện tử | tắt | chi nhánh | — | không có ô bật / tắt: dòng ghi "Công tắc này không có tác dụng. Bật / tắt hóa đơn điện tử ở Hồ sơ hóa đơn điện tử bên dưới" kèm đường dẫn tới nhóm **Hóa đơn và kết nối**; việc xuất hóa đơn do ô **"Xuất hóa đơn cho mọi đơn đã thanh toán"** trong hồ sơ hóa đơn quyết định |
+| Làm tròn tiền mặt | tắt | chi nhánh | — | khóa, nhãn **Sắp có** |
 | Hủy món đã gửi bếp phải có người duyệt | **bật** | chi nhánh | — | Bật: thu ngân không có quyền "Hủy món đã gửi bếp/pha chế" phải nhờ người duyệt; tắt: ai cũng hủy được món đã gửi |
 
 "Chưa có tác dụng" nghĩa là giá trị được lưu, kiểm ràng buộc và gửi tới máy quầy, nhưng chưa phần nào của hệ thống làm theo nó (xem [discrepancies](../discrepancies.md#backoffice-và-vận-hành)).
@@ -134,7 +139,7 @@ Sửa cài đặt cần mạng. Máy quầy đang mất mạng dùng cài đặt
 
 ## Chưa làm / sắp có
 
-- Phần lớn công tắc tính năng (bảng trên) chưa có tác dụng: tồn kho, giá theo giờ, gọi món QR, ra món theo lượt, chia phiếu theo trạm, làm tròn tiền mặt.
+- Các công tắc có nhãn **Sắp có** (ra món theo lượt, gọi món QR, tồn kho ×3, làm tròn tiền mặt) bị khóa vì máy quầy chưa làm theo; mở khóa khi tính năng có. Quầy **gửi bếp trước khi trả** cũng chưa có (công tắc Quầy trả tiền trước khóa ở "bật").
 - Chưa có cài đặt giờ bắt đầu ngày kinh doanh hay múi giờ trên màn hình (mặc định 04:00, giờ Việt Nam khi tạo chi nhánh).
 - Chưa có cài đặt máy in, mẫu hóa đơn in, logo.
 - Ví **MoMo** và **VNPay** chưa có (làm khi có tài khoản thử, cùng khung **Ví điện tử**); chưa hoàn tiền qua ví.

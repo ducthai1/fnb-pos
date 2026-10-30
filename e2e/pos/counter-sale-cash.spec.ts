@@ -44,6 +44,8 @@ const money = (amount: number) => formatVnd(vnd(amount));
 
 /** This spec's own menu, so no other spec's edits can move its prices. */
 async function setUpMenu() {
+  // Cup labels print only where the branch turned the switch on.
+  await backoffice(stack, "PUT", `/settings/branch/${stack.branchId}/cup_labels`, { value: true }, 200);
   await backoffice(
     stack,
     "PUT",

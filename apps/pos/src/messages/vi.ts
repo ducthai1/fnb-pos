@@ -77,6 +77,7 @@ export const vi = {
   update: VI_UPDATE,
   theme: VI_THEME,
   tools: { label: "Công cụ của máy" },
+  kitchen: { commonSlip: "Phiếu chung" },
   sales: {
     title: "Bán hàng",
     signedInAs: (name: string) => `Đang đứng quầy: ${name}`,

@@ -36,7 +36,7 @@ export type TemplateChange =
   | { readonly kind: "set_flag"; readonly flag: FeatureFlagKey; readonly value: boolean };
 
 /** Why a switch the template wants is left as the shop has it. */
-export type KeptReason = "chosen_by_shop" | "breaks_a_rule";
+export type KeptReason = "chosen_by_shop" | "breaks_a_rule" | "locked";
 
 export interface KeptFlag {
   readonly flag: FeatureFlagKey;

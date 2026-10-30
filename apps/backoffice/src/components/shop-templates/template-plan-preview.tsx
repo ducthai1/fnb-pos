@@ -115,7 +115,9 @@ export function TemplatePlanPreview({ template, branch }: { template: ShopTempla
           <ul className="bo-template-list" aria-label={T.keeps}>
             {kept.map((entry) => (
               <li key={entry.flag} className="bo-wrap">
-                {(entry.reason === "chosen_by_shop" ? T.keptChosen : T.keptRule)(flagName(entry.flag), entry.current, entry.wanted)}
+                {entry.reason === "locked"
+                  ? T.keptLocked(flagName(entry.flag))
+                  : (entry.reason === "chosen_by_shop" ? T.keptChosen : T.keptRule)(flagName(entry.flag), entry.current, entry.wanted)}
               </li>
             ))}
           </ul>

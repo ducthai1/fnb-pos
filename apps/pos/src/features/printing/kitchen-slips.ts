@@ -8,6 +8,7 @@ import {
 } from "@fnb/domain";
 import { buildKitchenTicket, renderEscPosChunks, renderPreview } from "@fnb/printing";
 import { newId } from "../ids/new-id";
+import { vi } from "../../messages/vi";
 import type { TillMenu } from "../menu/till-menu";
 import type { PrintJob } from "./printer-port";
 import { PRINTER_KEYS, RECEIPT_PRINTER } from "./printer-profiles";
@@ -61,13 +62,25 @@ export function recordablePart(
  * server knows no other). Null for an item nobody makes, which never goes on a ticket.
  */
 export function stationRoutingOf(menu: TillMenu): StationRouting {
+  const common = menu.config.flags.kitchen_routing === true ? null : commonStationOf(menu);
   return (line) => {
     const stationId =
       line.productId === null ? null : menu.productsById.get(line.productId)?.stationId;
-    return stationId !== null && stationId !== undefined && menu.stations.has(stationId)
-      ? stationId
-      : null;
+    if (stationId === null || stationId === undefined || !menu.stations.has(stationId)) return null;
+    // Routing off: whatever someone makes goes on the one shared slip.
+    return common ?? stationId;
   };
+}
+
+/**
+ * The station whose printer takes the shared slip when tickets are not split by station: the
+ * first of the branch by name, then by id, so every till of the branch picks the same one.
+ */
+export function commonStationOf(menu: TillMenu): string | null {
+  const stations = [...menu.stations.values()].sort(
+    (a, b) => a.name.localeCompare(b.name, "vi") || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+  );
+  return stations[0]?.id ?? null;
 }
 
 /**
@@ -106,7 +119,10 @@ export function kitchenSlips(
       }),
     );
     const document = buildKitchenTicket({
-      stationName: menu.stations.get(ticket.stationId)?.name ?? "",
+      stationName:
+        menu.config.flags.kitchen_routing === true
+          ? (menu.stations.get(ticket.stationId)?.name ?? "")
+          : vi.kitchen.commonSlip,
       orderNumber: head.orderNumber,
       callNumber: head.callNumber,
       tableName: head.tableName,

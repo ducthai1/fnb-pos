@@ -7,7 +7,7 @@ import type {
   PosProduct,
   PosStation,
 } from "@fnb/contracts";
-import { type PriceListItem, measureUnitOf } from "@fnb/domain";
+import { type PriceListItem, measureUnitOf, withoutScheduledPrices } from "@fnb/domain";
 import type { CallNumbering } from "../order/device-order-number";
 import type { BootstrapSnapshot } from "../bootstrap/bootstrap-source";
 
@@ -111,6 +111,13 @@ export function buildTillMenu(
     (row) => row.productId,
   );
   const ownConfig = copies.device_config.get(bootstrap.config.id);
+  const config =
+    ownConfig !== undefined && ownConfig.version > bootstrap.config.version
+      ? ownConfig
+      : bootstrap.config;
+  const priceItems = priceLists
+    .flatMap((list) => list.items)
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return {
     branch: bootstrap.branch,
     callNumbering: bootstrap.callNumbering ?? null,
@@ -119,13 +126,11 @@ export function buildTillMenu(
     products: products.filter(sellableOnCounter).sort(byName),
     productsById: new Map(products.map((product) => [product.id, product])),
     stations: new Map(stations.map((station) => [station.id, station])),
-    priceItems: priceLists
-      .flatMap((list) => list.items)
-      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
+    // With the happy-hour switch off the till sells at base prices: the server prices the
+    // draft the same way, so the two never disagree on an hour's price.
+    priceItems:
+      config.flags.happy_hour_pricing === true ? priceItems : withoutScheduledPrices(priceItems),
     availability: new Map(availability.map((row) => [row.productId, row])),
-    config:
-      ownConfig !== undefined && ownConfig.version > bootstrap.config.version
-        ? ownConfig
-        : bootstrap.config,
+    config,
   };
 }

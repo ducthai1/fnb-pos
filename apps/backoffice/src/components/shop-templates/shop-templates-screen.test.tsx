@@ -17,8 +17,12 @@ const FULL = plan("restaurant", [
   { kind: "add_category", name: "Món chính" },
   { kind: "add_station", name: "Bếp nóng" },
   { kind: "set_flag", flag: "tables", value: true },
-  { kind: "set_flag", flag: "pay_first_counter", value: false },
-], [{ flag: "course_firing", wanted: true, current: false, reason: "breaks_a_rule" }, { flag: "cup_labels", wanted: false, current: true, reason: "chosen_by_shop" }]);
+  { kind: "set_flag", flag: "kitchen_routing", value: true },
+], [
+  { flag: "course_firing", wanted: true, current: false, reason: "breaks_a_rule" },
+  { flag: "cup_labels", wanted: false, current: true, reason: "chosen_by_shop" },
+  { flag: "pay_first_counter", wanted: false, current: true, reason: "locked" },
+]);
 
 const pick = (name: string) => fireEvent.click(screen.getByRole("radio", { name: new RegExp(name) }));
 
@@ -42,7 +46,9 @@ describe("the shop template page", () => {
     expect(within(screen.getByRole("list", { name: T.addsCategories(2) })).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["Khai vị", "Món chính"]);
     expect(within(screen.getByRole("list", { name: T.addsStations(1) })).getByText("Bếp nóng")).toBeTruthy();
     expect(screen.getByText(T.flagOn("Quản lý bàn"))).toBeTruthy();
-    expect(screen.getByText(T.flagOff("Quầy trả tiền trước"))).toBeTruthy();
+    expect(screen.getByText(T.flagOn("Chia phiếu theo trạm pha chế/bếp"))).toBeTruthy();
+    expect(screen.queryByText(T.flagOff("Quầy trả tiền trước"))).toBeNull();
+    expect(screen.getByText(T.keptLocked("Quầy trả tiền trước"))).toBeTruthy();
     expect(screen.getByText(T.keptRule("Ra món theo lượt", false, true))).toBeTruthy();
     expect(screen.getByText(T.keptChosen("In tem ly", true, false))).toBeTruthy();
   });

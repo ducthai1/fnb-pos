@@ -25,6 +25,14 @@ export const VI_SETTINGS = {
   notEditableHere: "Không sửa ở tầng này: đặt ở chi nhánh hoặc thương hiệu.",
   useInherited: "Dùng lại giá trị của tầng trên",
   switchesTitle: "Công tắc tính năng",
+  comingSoon: "Sắp có",
+  support: {
+    comingSoon: "Máy quầy chưa làm theo công tắc này nên chưa bật / tắt được.",
+    lockedOn:
+      "Luôn bật: máy quầy thu tiền trước khi gửi bếp. Quầy gửi bếp trước khi trả: sắp có.",
+    seeProfile: "Công tắc này không có tác dụng. Bật / tắt hóa đơn điện tử ở Hồ sơ hóa đơn điện tử bên dưới.",
+    seeProfileLink: "Tới Hồ sơ hóa đơn điện tử",
+  },
   groups: { features: "Tính năng", money: "Thu tiền và két", invoices: "Hóa đơn và kết nối" },
   groupsLabel: "Các nhóm cài đặt",
   flags: {

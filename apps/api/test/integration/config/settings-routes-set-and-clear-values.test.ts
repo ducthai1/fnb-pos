@@ -59,6 +59,7 @@ describe("GET /settings", () => {
       source: "system",
       editableHere: true,
       setHere: false,
+      support: "locked_on",
     });
     expect(entryOf(shown, "tables")?.editableHere).toBe(false);
     expect(entryOf(shown, "shift_close_difference_tolerance")).toMatchObject({

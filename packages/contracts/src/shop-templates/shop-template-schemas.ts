@@ -28,7 +28,7 @@ const keptSchema = z
     flag: z.string().min(1).max(60),
     wanted: z.boolean(),
     current: z.boolean(),
-    reason: z.enum(["chosen_by_shop", "breaks_a_rule"]),
+    reason: z.enum(["chosen_by_shop", "breaks_a_rule", "locked"]),
   })
   .strict();
 

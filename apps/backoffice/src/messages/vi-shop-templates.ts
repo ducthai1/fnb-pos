@@ -22,6 +22,8 @@ export const VI_SHOP_TEMPLATES = {
     `“${name}” đang ${current ? "bật" : "tắt"} do bạn đặt (mẫu muốn ${wanted ? "bật" : "tắt"}).`,
   keptRule: (name: string, current: boolean, wanted: boolean) =>
     `“${name}” đang ${current ? "bật" : "tắt"}: mẫu muốn ${wanted ? "bật" : "tắt"} nhưng sẽ vướng luật giữa các công tắc.`,
+  keptLocked: (name: string) =>
+    `“${name}” luôn bật vì máy quầy chưa làm được kiểu gửi bếp trước khi trả, nên mẫu không tắt được (sắp có).`,
   nothing: "Chi nhánh đã có đủ mọi thứ của mẫu này. Không có gì để thêm.",
   apply: (branch: string) => `Áp dụng cho ${branch}`,
   confirmTitle: (template: string, branch: string) => `Áp mẫu “${template}” cho chi nhánh ${branch}?`,

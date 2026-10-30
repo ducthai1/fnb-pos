@@ -200,7 +200,7 @@ Tải lại trang (hoặc mở máy lại) khi đơn quầy chưa trả tiền: 
 ## Luật và giới hạn
 
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
-- Bảng giá theo giờ (ví dụ giờ vàng) áp theo **giờ của máy lúc bán**.
+- Bảng giá theo giờ (ví dụ giờ vàng) áp theo **giờ của máy lúc bán**, và chỉ khi công tắc **Giá theo khung giờ** bật (tắt thì máy và máy chủ bán theo giá gốc, bỏ các dòng giá có hẹn giờ / ngày / thời hạn).
 - Món **Hết món** (bật ở trang quản lý) hiện ảnh xám với con dấu **Hết món**, giá gạch ngang, không chạm được. Món **Chưa có giá** cũng không chạm được. Món hết hoặc chưa có giá không có nút **+** và không mang nhãn **Bán chạy**.
 - Máy quầy bán món **giá cố định**, **giá nhập tay**, **bán theo cân** và **combo**. Món theo cân mà bản sao trên máy chưa có đơn vị (từ trước khi có đơn vị) thì chưa hiện, tới lần đồng bộ sau; combo chưa có phần nào (bản sao cũ) cũng chưa hiện.
 - **Combo**: tiền = giá combo (kể cả giá theo khung giờ) + phụ thu của từng món đã chọn + tùy chọn của từng món; mọi món trong combo tính **thuế của combo**. Máy chủ tính lại toàn bộ và từ chối combo chọn sai phần, quá số món, thiếu phần bắt buộc, có món đã ngừng bán hoặc **hết món** (kể cả khi đổi món trong combo đã có trên đơn). Combo đã gửi bếp thì khóa như món thường: thêm số combo được, đổi món trong combo thì không — phải **Hủy món** cả combo (hủy và trả hàng combo luôn theo **nguyên combo**, các món bên trong đi theo).

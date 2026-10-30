@@ -1,4 +1,4 @@
-import { type FeatureFlagKey, type FlagViolation, featureFlagDefaults, validateFlags } from "@fnb/feature-flags";
+import { type FeatureFlagKey, type FlagViolation, featureFlagDefaults, isFlagLockedOn, validateFlags } from "@fnb/feature-flags";
 import { sameNameKey } from "./same-name-key";
 import type { KeptFlag, ShopSetup, ShopTemplate, TemplateChange, TemplatePlan } from "./shop-template-types";
 
@@ -30,7 +30,8 @@ function missingNames(wanted: readonly string[], present: readonly string[]): st
  * the shop has them. It only ever adds: nothing the shop made is renamed or removed. A
  * switch the shop chose stays, even against the template; one still on its built-in value
  * is set if the template wants another, unless that would break a rule between switches
- * (course firing without a floor plan), in which case it is left too.
+ * (course firing without a floor plan), in which case it is left too. A switch the till
+ * cannot turn off (the pay-first counter) is left as it is, whatever the template says.
  */
 export function planTemplate(template: ShopTemplate, shop: ShopSetup): TemplatePlan {
   const changes: TemplateChange[] = [
@@ -41,6 +42,11 @@ export function planTemplate(template: ShopTemplate, shop: ShopSetup): TemplateP
   const chosen: Partial<Record<FeatureFlagKey, boolean>> = { ...shop.flagsSetByShop };
   const current = (flag: FeatureFlagKey): boolean => chosen[flag] ?? defaults[flag];
   for (const [flag, wanted] of Object.entries(template.flags) as [FeatureFlagKey, boolean][]) {
+    // A switch the till always follows as "on" is not the template's to turn off.
+    if (isFlagLockedOn(flag) && !wanted) {
+      kept.push({ flag, wanted, current: true, reason: "locked" });
+      continue;
+    }
     if (current(flag) === wanted) continue;
     if (Object.hasOwn(chosen, flag)) {
       kept.push({ flag, wanted, current: current(flag), reason: "chosen_by_shop" });

@@ -11,6 +11,7 @@ import {
   resolveUnitPrice,
   validateModifierSelection,
   vnd,
+  withoutScheduledPrices,
 } from "@fnb/domain";
 import type pg from "pg";
 import {
@@ -35,6 +36,8 @@ export async function priceDraftLines(
   payload: SaveDraftPayload,
   at: number,
   previousLines: readonly OrderLine[],
+  /** The till's happy-hour switch: off, prices that apply only at certain times are ignored. */
+  scheduledPrices: boolean,
 ): Promise<OrderLine[]> {
   // A pick taken off the menu is refused like an item would be: the combo cannot be made.
   const products = await loadSellableProducts(
@@ -45,7 +48,8 @@ export async function priceDraftLines(
       ...(line.comboPicks ?? []).map((pick) => pick.productId),
     ]),
   );
-  const priceList = await loadBrandPriceList(client, branch.brandId);
+  const brandPriceList = await loadBrandPriceList(client, branch.brandId);
+  const priceList = scheduledPrices ? brandPriceList : withoutScheduledPrices(brandPriceList);
   const previousIds = previousChildLineIds(previousLines);
   return payload.lines.flatMap((intent) => {
     const sellable = products.get(intent.productId);

@@ -49,7 +49,10 @@ const GROUPS = {
     option(OPT.sugar70, "70% đường"),
     option(OPT.sugar100, "100% đường"),
   ]),
-  ice: group(OPT.ice, "Đá", 1, 1, [option(OPT.iceLess, "Ít đá"), option(OPT.iceNormal, "Đá bình thường")]),
+  ice: group(OPT.ice, "Đá", 1, 1, [
+    option(OPT.iceLess, "Ít đá"),
+    option(OPT.iceNormal, "Đá bình thường"),
+  ]),
   topping: group(OPT.topping, "Topping", 0, 3, [
     option(OPT.pearl, "Trân châu đen", 5_000, 2),
     option(OPT.cheese, "Kem cheese", 10_000),
@@ -71,40 +74,82 @@ const ROWS: Row[] = [
   [0x9106, "Latte", "latte", CATEGORY.coffee, 45_000, 55_000, ["sugar"]],
   [0x9107, "Cappuccino", "cappuccino", CATEGORY.coffee, 45_000, 55_000, []],
   [0x9108, "Cold brew cam sả", "cold-brew-cam-sa", CATEGORY.coffee, 49_000, null, ["sugar"]],
-  [0x9109, "Trà sữa trân châu", "tra-sua-tran-chau", CATEGORY.milkTea, 35_000, 45_000, ["sugar", "ice", "topping"]],
-  [0x910a, "Trà sữa matcha", "tra-sua-matcha", CATEGORY.milkTea, 39_000, 49_000, ["sugar", "ice", "topping"]],
-  [0x910b, "Trà sữa ô long", "tra-sua-o-long", CATEGORY.milkTea, 39_000, 49_000, ["sugar", "ice", "topping"]],
-  [0x910c, "Hồng trà sữa", "hong-tra-sua", CATEGORY.milkTea, 35_000, 45_000, ["sugar", "ice", "topping"]],
-  [0x910d, "Sữa tươi trân châu đường đen", "sua-tuoi-tran-chau-duong-den", CATEGORY.milkTea, 42_000, 52_000, ["ice", "topping"]],
+  [
+    0x9109,
+    "Trà sữa trân châu",
+    "tra-sua-tran-chau",
+    CATEGORY.milkTea,
+    35_000,
+    45_000,
+    ["sugar", "ice", "topping"],
+  ],
+  [
+    0x910a,
+    "Trà sữa matcha",
+    "tra-sua-matcha",
+    CATEGORY.milkTea,
+    39_000,
+    49_000,
+    ["sugar", "ice", "topping"],
+  ],
+  [
+    0x910b,
+    "Trà sữa ô long",
+    "tra-sua-o-long",
+    CATEGORY.milkTea,
+    39_000,
+    49_000,
+    ["sugar", "ice", "topping"],
+  ],
+  [
+    0x910c,
+    "Hồng trà sữa",
+    "hong-tra-sua",
+    CATEGORY.milkTea,
+    35_000,
+    45_000,
+    ["sugar", "ice", "topping"],
+  ],
+  [
+    0x910d,
+    "Sữa tươi trân châu đường đen",
+    "sua-tuoi-tran-chau-duong-den",
+    CATEGORY.milkTea,
+    42_000,
+    52_000,
+    ["ice", "topping"],
+  ],
   [0x910e, "Trà đào cam sả", "tra-dao-cam-sa", CATEGORY.fruitTea, 39_000, 49_000, ["sugar", "ice"]],
   [0x910f, "Trà vải", "tra-vai", CATEGORY.fruitTea, 39_000, 49_000, ["sugar", "ice", "topping"]],
 ];
 
-export const PRODUCTS: PosProductWire[] = ROWS.map(([n, name, photo, categoryId, base, large, groups]) => ({
-  id: tid(n),
-  name,
-  version: 10,
-  brandId: MENU.brand,
-  categoryId,
-  stationId: MENU.bar,
-  kind: "prepared_drink",
-  basePrice: base,
-  pricingMode: "fixed",
-  taxRate: 800,
-  trackStock: false,
-  earnsPoints: true,
-  printCupLabel: true,
-  variants:
-    large === null
-      ? []
-      : [
-          { id: SIZE.m, name: "M", price: null },
-          { id: SIZE.l, name: "L", price: large },
-        ],
-  modifierGroups: groups.map((kind) => GROUPS[kind]),
-  combo: null,
-  imageUrl: PHOTO_URLS[photo],
-})) as PosProductWire[];
+export const PRODUCTS: PosProductWire[] = ROWS.map(
+  ([n, name, photo, categoryId, base, large, groups]) => ({
+    id: tid(n),
+    name,
+    version: 10,
+    brandId: MENU.brand,
+    categoryId,
+    stationId: MENU.bar,
+    kind: "prepared_drink",
+    basePrice: base,
+    pricingMode: "fixed",
+    taxRate: 800,
+    trackStock: false,
+    earnsPoints: true,
+    printCupLabel: true,
+    variants:
+      large === null
+        ? []
+        : [
+            { id: SIZE.m, name: "M", price: null },
+            { id: SIZE.l, name: "L", price: large },
+          ],
+    modifierGroups: groups.map((kind) => GROUPS[kind]),
+    combo: null,
+    imageUrl: PHOTO_URLS[photo],
+  }),
+) as PosProductWire[];
 
 /** Product ids by name, so the screens name what the guest ordered. */
 export const P = Object.fromEntries(PRODUCTS.map((p) => [p.name, p.id])) as Record<string, string>;
@@ -121,7 +166,17 @@ export function prettyTillMenu() {
   const bootstrap = tillBootstrap({
     branch: { ...wire.branch, name: SHOP.branch },
     brand: { ...wire.brand, name: SHOP.brand },
-    config: { ...wire.config, chargeProfile: PROFILE, flags: { pay_first_counter: true, tables: true } },
+    config: {
+      ...wire.config,
+      chargeProfile: PROFILE,
+      flags: {
+        pay_first_counter: true,
+        tables: true,
+        cup_labels: true,
+        kitchen_routing: true,
+        happy_hour_pricing: true,
+      },
+    },
     menu: {
       ...wire.menu,
       categories: [
@@ -132,7 +187,11 @@ export function prettyTillMenu() {
       stations: [{ ...wire.menu.stations[0]!, name: "Quầy pha chế" }],
       products: PRODUCTS,
       availability: [
-        { productId: P["Cold brew cam sả"]!, version: 10, entries: [{ channelKey: null, unavailableUntil: null }] },
+        {
+          productId: P["Cold brew cam sả"]!,
+          version: 10,
+          entries: [{ channelKey: null, unavailableUntil: null }],
+        },
       ],
     },
   });

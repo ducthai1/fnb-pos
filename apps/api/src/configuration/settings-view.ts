@@ -1,5 +1,5 @@
 import type { SettingsView } from "@fnb/contracts";
-import { resolveConfig } from "@fnb/feature-flags";
+import { resolveConfig, tillSupportOf } from "@fnb/feature-flags";
 import { CONFIG_KEY_DEFINITIONS, layerMaySet, systemLayer } from "./config-key-definitions";
 import type { ScopeConfig } from "./read-scope-config";
 
@@ -22,6 +22,7 @@ export function settingsViewOf(scope: ScopeConfig): SettingsView {
       source: resolved.source,
       editableHere: layerMaySet(definition, scope.kind),
       setHere: Object.hasOwn(own, definition.key),
+      ...(definition.kind === "flag" ? { support: tillSupportOf(definition.key) } : {}),
     };
   });
   const layers: SettingsView["layers"] = { system, brand: { ...scope.layers.brand } };

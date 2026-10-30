@@ -38,6 +38,15 @@ beforeAll(async () => {
     scopeKind: "branch",
     scopeId: s.shop.branchId,
   });
+  await expectStatus(
+    app.inject({
+      method: "PUT",
+      url: `/settings/brand/${s.brandId}/happy_hour_pricing`,
+      headers: { cookie: s.shop.managerCookie },
+      payload: { value: true },
+    }),
+    200,
+  );
   // Happy hour: peach tea at half price from 14:00 to 17:00, Vietnam time.
   await expectStatus(
     app.inject({

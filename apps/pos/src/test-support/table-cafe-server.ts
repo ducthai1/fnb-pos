@@ -32,10 +32,13 @@ export function tableCafeServer(
   settings: Record<string, unknown> = {},
   staff: { id: string; displayName: string; active: boolean }[] = [LAN],
   /** More of the bootstrap: the floor plan, the drafts open at the tables. */
-  start: Pick<PosBootstrapWire, "floor" | "openOrders"> & Partial<Pick<PosBootstrapWire, "menu">> = {},
+  start: Pick<PosBootstrapWire, "floor" | "openOrders"> &
+    Partial<Pick<PosBootstrapWire, "menu">> = {},
+  /** Feature switches set apart from the sample café's. */
+  switches: Record<string, boolean> = {},
 ) {
   const { config } = tillBootstrapWire();
-  const flags = { ...config.flags, tables: tablesOn };
+  const flags = { ...config.flags, tables: tablesOn, ...switches };
   const bootstrap = tillBootstrap({ ...start, staff, config: { ...config, flags, settings } });
   const server = fakeServer(bootstrap);
   server.state.pins.set(LAN.id, "4826");

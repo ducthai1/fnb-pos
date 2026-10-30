@@ -5,6 +5,8 @@ screens:
   - /settings/templates
 decisions:
   - D-119
+  - D-138
+  - D-138
 tests:
   - packages/shop-templates/src/apply-template-is-idempotent.test.ts
   - packages/shop-templates/src/plan-template.test.ts
@@ -32,8 +34,8 @@ Cần **cả hai** quyền **Sửa menu** (vì mẫu thêm danh mục và trạm
 1. Chọn chi nhánh ở thanh trên, mở **Cửa hàng → Mẫu loại quán**.
 2. Ở **Chọn kiểu quán**, bấm một thẻ: mỗi thẻ ghi cách quán bán và số danh mục, số trạm mẫu có.
 3. Trang hiện **Mẫu “…” sẽ làm gì ở chi nhánh …** theo đúng tình trạng chi nhánh lúc này:
-   - **Sẽ thêm**: các danh mục, các trạm, các công tắc sẽ được đặt ("Bật “Quản lý bàn”", "Tắt “Quầy trả tiền trước”").
-   - **Giữ nguyên**: các công tắc mẫu muốn đặt khác nhưng chi nhánh giữ như bạn đã chọn.
+   - **Sẽ thêm**: các danh mục, các trạm, các công tắc sẽ được đặt ("Bật “Quản lý bàn”", "Bật “Chia phiếu theo trạm pha chế/bếp”").
+   - **Giữ nguyên**: các công tắc mẫu muốn đặt khác nhưng chi nhánh giữ như bạn đã chọn, và công tắc **Quầy trả tiền trước** (luôn bật, mẫu quán ăn / quán bar muốn tắt nhưng máy quầy chưa làm được kiểu gửi bếp trước khi trả).
 4. Bấm **Áp dụng cho …**, đọc câu xác nhận, bấm **Áp mẫu**. Trang báo "Đã thêm 5 danh mục, 2 trạm, 3 công tắc." rồi xem lại chi nhánh: lúc này thường là "Chi nhánh đã có đủ mọi thứ của mẫu này. Không có gì để thêm."
 5. Sang [Thực đơn](03-thuc-don.md) để thêm món vào các danh mục, [Trạm pha chế/bếp](15-tram-pha-che.md) để xem các trạm, [Cài đặt](09-cai-dat.md) để xem các công tắc.
 
@@ -41,14 +43,14 @@ Cần **cả hai** quyền **Sửa menu** (vì mẫu thêm danh mục và trạm
 
 - **Mỗi kiểu quán có**: 
   - **Cà phê** và **Trà sữa**: một trạm **Bar**, bật tem dán ly, chia phiếu theo trạm, không bàn, trả tiền trước ở quầy.
-  - **Quán ăn**: ba trạm (**Bếp nóng**, **Bếp lạnh**, **Bar nước**), bật Quản lý bàn và Ra món theo lượt, tắt trả tiền trước, chia phiếu theo trạm.
-  - **Quán bar**: hai trạm (**Quầy bar**, **Bếp**), bật Quản lý bàn, tắt trả tiền trước, chia phiếu theo trạm.
+  - **Quán ăn**: ba trạm (**Bếp nóng**, **Bếp lạnh**, **Bar nước**), bật Quản lý bàn, Ra món theo lượt (hiện **Sắp có** ở trang Cài đặt) và chia phiếu theo trạm; Quầy trả tiền trước giữ bật.
+  - **Quán bar**: hai trạm (**Quầy bar**, **Bếp**), bật Quản lý bàn và chia phiếu theo trạm; Quầy trả tiền trước giữ bật.
   - **Tiệm bánh**: hai trạm (**Quầy bánh**, **Quầy nước**), chia phiếu theo trạm, không bàn.
 - **Danh mục và trạm** được so theo tên **không phân biệt hoa thường, dấu và dấu cách thừa**: bạn đã có "ca phe" thì mẫu không thêm "Cà phê". Danh mục mới xếp **sau** các danh mục đang có.
 - **Công tắc** mẫu chỉ đặt khi chi nhánh **chưa ai đặt** (ở thương hiệu hay chi nhánh) và giá trị hiện tại khác điều mẫu muốn. Đã có người đặt (kể cả đặt giống mẫu) thì giữ nguyên. Mẫu đặt ở **tầng chi nhánh**, không đụng các chi nhánh khác.
 - Mẫu cũng **không đặt** công tắc nào mà làm các công tắc vi phạm ràng buộc (ví dụ **Ra món theo lượt** cần **Quản lý bàn** — bạn đã tắt bàn thì mẫu quán ăn để nguyên Ra món theo lượt). Các công tắc đó hiện ở **Giữ nguyên**.
 - Mẫu chỉ có các thứ hệ thống **đang có chỗ chứa**: danh mục, trạm, công tắc. Mẫu **không** thêm món, giá, nhóm tùy chọn, **giờ cắt ngày kinh doanh**, máy in, tồn kho hay công tắc **Giá theo khung giờ** (xem [Bảng giá](14-bang-gia.md) để đặt giờ vàng).
-- Một số công tắc mẫu đặt **chưa có tác dụng ở máy quầy** (xem bảng ở [Cài đặt](09-cai-dat.md)): giá trị được lưu và gửi xuống máy, máy quầy làm theo khi tính năng đó có. Danh mục và trạm thì dùng được ngay.
+- **Quầy trả tiền trước** luôn bật nên mẫu không tắt nó: nó hiện ở **Giữ nguyên**. **Ra món theo lượt** mẫu quán ăn vẫn đặt, nhưng máy quầy chưa làm theo (trang [Cài đặt](09-cai-dat.md) ghi **Sắp có**): giá trị được lưu, máy quầy làm theo khi tính năng đó có. Tem dán ly và chia phiếu theo trạm thì máy quầy làm theo ngay. Danh mục và trạm dùng được ngay.
 - Áp mẫu cho chi nhánh có **bảng giá, món hay đơn** sẵn không làm đổi chúng.
 - Hai người bấm áp cùng lúc vẫn chỉ thêm mỗi mục một lần.
 

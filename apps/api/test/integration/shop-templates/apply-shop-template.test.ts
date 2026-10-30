@@ -66,13 +66,13 @@ describe("applying a template to a branch", () => {
     const [categoriesBefore, stationsBefore] = [await categoriesOf(shop), await stationsOf(shop)];
     const [feedCategories, feedStations, feedConfigs] = [await changeCount(shop, "catalog_category"), await changeCount(shop, "catalog_station"), await changeCount(shop, "device_config")];
     const response = await expectStatus(apply(shop, "restaurant"), 200);
-    expect(response.json()).toMatchObject({ templateId: "restaurant", branchId: shop.branchId, kept: [] });
+    expect(response.json()).toMatchObject({ templateId: "restaurant", branchId: shop.branchId, kept: [{ flag: "pay_first_counter", wanted: false, current: true, reason: "locked" }] });
     const categories = await categoriesOf(shop);
     const stations = await stationsOf(shop);
     expect(categories).toEqual(expect.arrayContaining([...categoriesBefore, "Khai vị", "Món chính", "Món nước", "Cơm", "Tráng miệng", "Đồ uống"]));
     expect(stations).toEqual(expect.arrayContaining([...stationsBefore, "Bếp nóng", "Bếp lạnh", "Bar nước"]));
     expect(await flagOf(shop, "tables")).toEqual({ value: true, source: "branch" });
-    expect(await flagOf(shop, "pay_first_counter")).toEqual({ value: false, source: "branch" });
+    expect(await flagOf(shop, "pay_first_counter")).toEqual({ value: true, source: "system" });
     expect(await flagOf(shop, "course_firing")).toEqual({ value: true, source: "branch" });
     expect(await changeCount(shop, "catalog_category")).toBe(feedCategories + 6);
     expect(await changeCount(shop, "catalog_station")).toBe(feedStations + 3);
@@ -129,15 +129,15 @@ describe("applying a template to a branch", () => {
     expect(response.kept).toEqual(expect.arrayContaining([{ flag: "tables", wanted: true, current: false, reason: "chosen_by_shop" }, { flag: "course_firing", wanted: true, current: false, reason: "breaks_a_rule" }]));
     expect(await flagOf(shop, "tables")).toEqual({ value: false, source: "branch" });
     expect((await flagOf(shop, "course_firing")).value).toBe(false);
-    expect(await flagOf(shop, "pay_first_counter")).toEqual({ value: false, source: "branch" });
+    expect(await flagOf(shop, "pay_first_counter")).toEqual({ value: true, source: "system" });
   });
 
   it("leaves a switch the brand chose for every branch", async () => {
     const shop = await freshShop();
-    await expectStatus(shop.call("PUT", `/settings/brand/${shop.brandId}/pay_first_counter`, { value: false }), 200);
+    await expectStatus(shop.call("PUT", `/settings/brand/${shop.brandId}/cup_labels`, { value: false }), 200);
     const response = (await expectStatus(apply(shop, "cafe"), 200)).json() as { kept: { flag: string; reason: string }[] };
-    expect(response.kept).toContainEqual({ flag: "pay_first_counter", wanted: true, current: false, reason: "chosen_by_shop" });
-    expect(await flagOf(shop, "pay_first_counter")).toEqual({ value: false, source: "brand" });
+    expect(response.kept).toContainEqual({ flag: "cup_labels", wanted: true, current: false, reason: "chosen_by_shop" });
+    expect(await flagOf(shop, "cup_labels")).toEqual({ value: false, source: "brand" });
   });
 });
 

@@ -26,6 +26,18 @@ const KEYS: readonly (readonly [string, "flag" | "setting", ConfigScopeKind, unk
   ["shift_close_difference_tolerance", "setting", "device", "0"],
 ];
 
+/** How far the till follows each switch, as the server's view says. */
+const SUPPORT: Readonly<Record<string, NonNullable<SettingEntry["support"]>>> = {
+  pay_first_counter: "locked_on",
+  course_firing: "coming_soon",
+  qr_ordering: "coming_soon",
+  inventory_tracking: "coming_soon",
+  auto_86_on_zero_stock: "coming_soon",
+  allow_negative_stock: "coming_soon",
+  einvoice: "see_profile",
+  cash_rounding: "coming_soon",
+};
+
 export const BRANCH_SCOPE: SettingsScope = { kind: "branch", id: BRANCHES[0]!.id };
 export const BRAND_SCOPE: SettingsScope = { kind: "brand", id: BRANCHES[0]!.brandId };
 
@@ -43,6 +55,7 @@ export function settingsView(scope: SettingsScope, own: Readonly<Record<string, 
       source: setHere ? scope.kind : "system",
       editableHere: RANK[scope.kind] <= RANK[mostSpecific],
       setHere,
+      ...(kind === "flag" ? { support: SUPPORT[key] ?? "works" } : {}),
     };
   });
   return {

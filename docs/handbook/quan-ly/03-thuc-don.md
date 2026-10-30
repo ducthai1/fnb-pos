@@ -170,7 +170,7 @@ Trang quản lý cần mạng để lưu. Máy quầy đang mất mạng vẫn b
 
 ## Chưa làm / sắp có
 
-- **Bảng giá** (giờ vàng, giá theo chi nhánh / ngày) có trang riêng: xem [Bảng giá](14-bang-gia.md). Công tắc "Giá theo khung giờ" ở Cài đặt chưa có tác dụng (bảng giá áp dụng không cần nó).
+- **Bảng giá** (giờ vàng, giá theo chi nhánh / ngày) có trang riêng: xem [Bảng giá](14-bang-gia.md). Quy tắc có hẹn giờ / ngày chỉ áp khi công tắc "Giá theo khung giờ" ở Cài đặt bật.
 - Combo: chưa có **món mặc định** đánh dấu sẵn (máy quầy chỉ tự chọn khi phần bắt buộc có đúng một món), chưa có combo **giá nhập tay / theo cân**, chưa có combo trong combo, chưa đổi một món lẻ thành combo (hay ngược lại) sau khi lưu. Các ô **Loại** dùng danh sách của trang; **Danh mục** và **Trạm** vẫn là ô chọn của trình duyệt.
 - Hết món có giờ tự có lại (máy chủ có trường này) chưa có trên màn hình.
 - Công thức/định lượng và tồn kho: chưa làm (kho thuộc giai đoạn sau); ô "Theo dõi tồn kho" chỉ lưu lại lựa chọn.
