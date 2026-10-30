@@ -6,7 +6,15 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
 import { freshTill } from "../support/shift-commands";
 import { approve, closeUnpaid, hireManager } from "../support/sync-approvals";
-import { command, line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
+import {
+  command,
+  line,
+  orderIdOf,
+  pay,
+  pushOne,
+  saveDraft,
+  tillsClock,
+} from "../support/sync-commands";
 import { withApproval } from "../support/sync-order-commands";
 import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
@@ -174,6 +182,88 @@ describe("setting aside a command the server refused", () => {
       const manager = await freshTill(app, s, managerId);
       const set = dismissal("payment.cancel_intent", WORDS, undefined, manager);
       expect((await pushOne(app, manager, set.envelope)).status).toBe("accepted");
+    });
+
+    describe("held to the server's record of the refused command", () => {
+      /** A cash payment the server refused: the till named an amount due the order does not have. */
+      async function refusedPayment(from: Till = till()) {
+        const draft = saveDraft(from, [line(s.menu.coffee.id)]);
+        expect((await pushOne(app, from, draft)).status).toBe("accepted");
+        const orderId = orderIdOf(draft);
+        const payment = pay(from, orderId, 1);
+        expect((await pushOne(app, from, payment)).status).toBe("rejected");
+        return { orderId, commandId: payment.commandId };
+      }
+      const claim = (
+        refused: { commandId: string },
+        rejectedType: string,
+        orderId: string | undefined,
+        from: Till = till(),
+      ) =>
+        command(from, "sync.rejection_dismissed", {
+          rejectedCommandId: refused.commandId,
+          rejectedType,
+          rejectedCode: "DOMAIN_ORDER_TOTAL_MISMATCH",
+          ...(orderId === undefined ? {} : { orderId }),
+          ...WORDS,
+        });
+
+      it("refuses a refused payment named as a command that needs no approval", async () => {
+        const refused = await refusedPayment();
+        expect(
+          await pushOne(app, till(), claim(refused, "order.save_draft", refused.orderId)),
+        ).toMatchObject({
+          status: "rejected",
+          code: "SYNC_INVALID_PAYLOAD",
+        });
+        expect(await auditOf(refused.commandId)).toHaveLength(0);
+      });
+
+      it("refuses an approval of another order passed off as the payment's", async () => {
+        const refused = await refusedPayment();
+        const other = saveDraft(till(), [line(s.menu.coffee.id)]);
+        expect((await pushOne(app, till(), other)).status).toBe("accepted");
+        const approvalId = await approve(app, till(), managerId, closeUnpaid(orderIdOf(other)));
+        const passedOff = withApproval(claim(refused, "order.pay", orderIdOf(other)), approvalId);
+        expect(await pushOne(app, till(), passedOff)).toMatchObject({
+          status: "rejected",
+          code: "SYNC_INVALID_PAYLOAD",
+        });
+        expect(await auditOf(refused.commandId)).toHaveLength(0);
+      });
+
+      it("refuses setting aside a command another till sent", async () => {
+        const refused = await refusedPayment(s.tillB);
+        const manager = await freshTill(app, s, managerId);
+        expect(
+          await pushOne(app, manager, claim(refused, "order.pay", refused.orderId, manager)),
+        ).toMatchObject({
+          status: "rejected",
+          code: "SYNC_INVALID_PAYLOAD",
+        });
+      });
+
+      it("binds the approval to the payment's own order when the till named none", async () => {
+        const refused = await refusedPayment();
+        const approvalId = await approve(app, till(), managerId, closeUnpaid(refused.orderId));
+        const set = withApproval(claim(refused, "order.pay", undefined), approvalId);
+        expect((await pushOne(app, till(), set)).status).toBe("accepted");
+        expect((await auditOf(refused.commandId))[0]).toMatchObject({
+          entity_kind: "sales_order",
+          entity_id: refused.orderId,
+        });
+      });
+
+      it("sets the payment aside with the approval of its own order", async () => {
+        const refused = await refusedPayment();
+        const approvalId = await approve(app, till(), managerId, closeUnpaid(refused.orderId));
+        const set = withApproval(claim(refused, "order.pay", refused.orderId), approvalId);
+        expect((await pushOne(app, till(), set)).status).toBe("accepted");
+        expect((await auditOf(refused.commandId))[0]?.payload).toMatchObject({
+          rejectedType: "order.pay",
+          approvalId,
+        });
+      });
     });
 
     it("leaves the shift commands to the staff member's words and the audit trail", async () => {
