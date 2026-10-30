@@ -1,4 +1,4 @@
-import { type ClosingAssessment, localClockParts } from "@fnb/domain";
+import { type ClosingAssessment, formatBusinessDate, localClockParts } from "@fnb/domain";
 import { PRINT_LABELS_VI, type PrintBlock, buildShiftClose } from "@fnb/printing";
 import { vi } from "../../messages/vi";
 import type { TillMenu } from "../menu/till-menu";
@@ -39,7 +39,11 @@ export function shiftCloseSlip(input: {
   });
   const dayOnly = document.map((block): PrintBlock => {
     if (block.kind === "columns" && block.left === PRINT_LABELS_VI.shiftOpened) {
-      return { ...block, left: vi.closeShift.slipDay, right: input.shift.businessDate };
+      return {
+        ...block,
+        left: vi.closeShift.slipDay,
+        right: formatBusinessDate(input.shift.businessDate),
+      };
     }
     if (
       input.provisional === true &&

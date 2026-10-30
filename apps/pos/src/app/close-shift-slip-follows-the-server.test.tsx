@@ -48,6 +48,9 @@ describe("the closing slip", () => {
     expect(pushedOf(server, "shift.close")).toHaveLength(1);
     expect(slipTexts()[0]).toContain("PHIẾU CHỐT CA");
     expect(slipTexts()[0]).not.toContain("TẠM");
+    // The business day reads day/month/year, as every date on the till does.
+    expect(slipTexts()[0]).toMatch(new RegExp(`${T.slipDay} +\\d{2}/\\d{2}/\\d{4}`));
+    expect(slipTexts()[0]).not.toMatch(/\d{4}-\d{2}-\d{2}/);
     expect(screen.queryByRole("button", { name: T.printOfficial })).toBeNull();
     expect(screen.queryByRole("button", { name: T.officialWaiting })).toBeNull();
   });
