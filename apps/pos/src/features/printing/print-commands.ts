@@ -25,11 +25,18 @@ export function withSent(
   return [...earlier.filter((line) => !replaced.has(line.lineId)), ...printed];
 }
 
+/** What order.mark_sent_to_kitchen reports of a ticket: its id, station and lines. */
+export interface TicketReport {
+  readonly job: Pick<PrintJob, "jobId">;
+  readonly stationId: string;
+  readonly lines: KitchenTicketJob["lines"];
+}
+
 /** order.mark_sent_to_kitchen for a ticket the printer took; never for one only shown. */
 export function markSentCommand(
   place: TillPlace,
   recorded: RecordedOrder,
-  ticket: KitchenTicketJob,
+  ticket: TicketReport,
   sentSoFar: readonly SentLineState[],
   at: number,
 ): LocalCommand {

@@ -1,14 +1,13 @@
-import type { SyncCommandEnvelope } from "@fnb/contracts";
-import { DOMAIN_VERSION } from "@fnb/domain";
 import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { vi as text } from "../messages/vi";
 import {
   FLOOR,
-  OTHER_TILL,
   type TableServer,
   addCoffees,
+  OTHER_TILLS_LINE,
   addMilkTea,
+  anotherTillAddsCoffee,
   anotherTillSeats,
   openTable,
   pushedOf,
@@ -16,48 +15,12 @@ import {
   tileStatus,
   tillOnTheFloor,
 } from "../test-support/table-cafe-server";
-import { MENU, tid } from "../test-support/till-fixtures";
+import { MENU } from "../test-support/till-fixtures";
 
 const STALE = "SYNC_ORDER_VERSION_STALE";
-const OTHER_TILLS_LINE = tid(0x9e01);
-
 type Line = { id: string; productId: string | null; parentLineId: string | null };
 const itemsOnServer = (server: TableServer, orderId: string) =>
   ((server.rows.get(orderId)?.lines ?? []) as Line[]).filter((line) => line.parentLineId === null);
-
-/** The other till adds a milk coffee to the order at the version it holds, as the server keeps it. */
-function anotherTillAddsCoffee(server: TableServer, seated: { orderId: string; lineId: string }) {
-  const before = server.rows.get(seated.orderId)!;
-  const coffee = (lineId: string, quantity: string) => ({
-    lineId,
-    productId: MENU.coffee,
-    variantId: null,
-    modifiers: [],
-    quantity,
-    note: null,
-  });
-  const command: SyncCommandEnvelope = {
-    commandId: tid(0x9e10),
-    deviceSeq: 50,
-    type: "order.save_draft",
-    payload: {
-      orderId: seated.orderId,
-      deviceOrderNo: before.deviceOrderNo,
-      serviceType: "dine_in",
-      channelKey: null,
-      tableId: FLOOR.t1,
-      tableTag: null,
-      lines: [coffee(seated.lineId, "2"), coffee(OTHER_TILLS_LINE, "1")],
-      expectedVersion: before.version,
-    },
-    businessDate: "2026-10-20",
-    domainVersion: DOMAIN_VERSION,
-    createdAt: new Date().toISOString(),
-  };
-  const row = { ...server.answer(command)!, deviceId: OTHER_TILL };
-  server.rows.set(seated.orderId, row);
-  server.state.feed.push({ entity: "order", entityId: seated.orderId, snapshot: row });
-}
 
 /** This till opens table 1, where the other till seated two coffees, its pushes held. */
 async function bothTillsAtTableOne() {

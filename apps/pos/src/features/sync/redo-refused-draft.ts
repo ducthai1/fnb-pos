@@ -2,7 +2,7 @@ import type { LocalCommand, RejectedCommand, SyncClient } from "@fnb/sync-client
 import type { TillMenu } from "../menu/till-menu";
 import { serverCopyNow } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
-import { redoDraftCommand, redoneCart } from "../table-order/redo-stale-draft";
+import { redoDraftCommands, redoneCart, refusedTickets } from "../table-order/redo-stale-draft";
 
 /**
  * What saving a refused draft again over the order as the server holds it came to: saved
@@ -17,7 +17,7 @@ export type RedoOutcome = "sent" | "nothing_to_add" | "not_a_draft" | "no_server
  * draft added that the server lacks. The refusal is left to the caller to take off the list.
  */
 export async function redoRefusedDraft(
-  client: Pick<SyncClient, "snapshot" | "enqueue">,
+  client: Pick<SyncClient, "snapshot" | "enqueue" | "rejectedCommands" | "resolveRejected">,
   place: TillPlace,
   menu: TillMenu,
   refused: RejectedCommand,
@@ -28,7 +28,17 @@ export async function redoRefusedDraft(
   if (latest.status !== "draft") return "not_a_draft";
   const cart = redoneCart(menu, latest, [refused]);
   if (cart === null) return "nothing_to_add";
-  const command: LocalCommand = redoDraftCommand(place, menu, latest, cart, at);
-  await client.enqueue(command);
+  // Tickets the stations hold for these items, refused because the server did not have them.
+  const tickets = await refusedTickets(client, refused.entityId, cart);
+  const commands: LocalCommand[] = redoDraftCommands(
+    place,
+    menu,
+    latest,
+    cart,
+    tickets.map((entry) => entry.ticket),
+    at,
+  );
+  for (const command of commands) await client.enqueue(command);
+  for (const entry of tickets) await client.resolveRejected(entry.commandId);
   return "sent";
 }
