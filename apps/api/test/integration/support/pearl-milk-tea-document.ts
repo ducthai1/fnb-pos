@@ -1,3 +1,4 @@
+import { expect } from "vitest";
 import { newId } from "@fnb/db";
 import type { CatalogShop } from "./catalog-shop";
 
@@ -87,6 +88,13 @@ export function storedDocument(
 ) {
   const rest = Object.fromEntries(Object.entries(body).filter(([key]) => key !== "version"));
   // A body that names no unit saves a product without one, as an unweighed product is.
-  const stored = { archivedAt: null, imageKey: null, imageUrl: null, measureUnit: null };
+  // The code is the server's to give when the body names none.
+  const stored = {
+    archivedAt: null,
+    imageKey: null,
+    imageUrl: null,
+    measureUnit: null,
+    code: expect.any(String),
+  };
   return { id, version, ...stored, ...rest };
 }

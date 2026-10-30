@@ -4,6 +4,7 @@ import { lockTenantChangeFeed } from "../sync/change-feed";
 import { CATALOG_API_ERROR_CODES } from "./catalog-api-error-codes";
 import { productCopies, productsSharingGroups, recordProductChanges } from "./catalog-change-feed";
 import { CatalogRequestError } from "./catalog-request-error";
+import { codeToStore, refusingTakenCode } from "./product-code";
 import {
   type CatalogWriteContext,
   insertCatalogRow,
@@ -36,28 +37,32 @@ export async function writeProductDocument(
   const groupIds = product.modifierGroups.map((group) => group.id);
   const sharing = (await productsSharingGroups(client, groupIds)).filter((id) => id !== product.id);
   const before = await productCopies(client, sharing);
-  const saved = await putVersionedRow(client, context, {
-    table: "product",
-    id: product.id,
-    expectedVersion: input.version,
-    parent: { column: "brand_id", value: input.brandId },
-    notFoundCode: CATALOG_API_ERROR_CODES.productNotFound,
-    cells: {
-      category_id: product.categoryId,
-      kind: product.kind,
-      name: product.name,
-      base_price: product.basePrice,
-      pricing_mode: product.pricingMode,
-      measure_unit: product.measureUnit ?? null,
-      tax_rate_bp: taxRate,
-      station_id: input.stationId,
-      track_stock: input.trackStock,
-      earns_points: input.earnsPoints,
-      print_cup_label: input.printCupLabel,
-      // Left out of the body: the stored photo stays.
-      ...(input.imageKey === undefined ? {} : { image_key: input.imageKey }),
-    },
-  });
+  const code = await codeToStore(client, input.brandId, product.id, input.code);
+  const saved = await refusingTakenCode(() =>
+    putVersionedRow(client, context, {
+      table: "product",
+      id: product.id,
+      expectedVersion: input.version,
+      parent: { column: "brand_id", value: input.brandId },
+      notFoundCode: CATALOG_API_ERROR_CODES.productNotFound,
+      cells: {
+        category_id: product.categoryId,
+        kind: product.kind,
+        name: product.name,
+        base_price: product.basePrice,
+        pricing_mode: product.pricingMode,
+        measure_unit: product.measureUnit ?? null,
+        tax_rate_bp: taxRate,
+        station_id: input.stationId,
+        track_stock: input.trackStock,
+        earns_points: input.earnsPoints,
+        print_cup_label: input.printCupLabel,
+        code,
+        // Left out of the body: the stored photo stays.
+        ...(input.imageKey === undefined ? {} : { image_key: input.imageKey }),
+      },
+    }),
+  );
   await writeVariants(client, context, checked);
   await writeProductModifierGroups(client, context, product);
   await writeProductCombo(client, context, product);

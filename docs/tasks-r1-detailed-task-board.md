@@ -634,9 +634,10 @@
 **[sau R1] — không chặn quán thí điểm**
 
 - 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn (`sales_order_line.measure_unit` + snapshot). Hiện đổi đơn vị khi còn đơn mở, hoặc in lại bill cũ, thì in sai đơn vị.
+- 2026-10-30 · **[đợt 7]** Mã hàng (`product.code`, D-139) chưa vào bootstrap / feed của máy quầy: thêm khi máy quầy cần (tìm món theo mã, in mã trên phiếu), lọc theo máy xin để máy bản cũ không hỏng vì trường lạ.
 - 2026-10-28 · Nhập/xuất Excel:
   - bỏ qua món theo cân và giá nhập tay;
-  - chưa nhập tồn kho, giá vốn, ĐVT lớn, ảnh, thuộc tính → size, ghi chú nhanh, máy in theo tên (mã hàng: D-095, đợt 6);
+  - chưa nhập tồn kho, giá vốn, ĐVT lớn, ảnh, thuộc tính → size, ghi chú nhanh, máy in theo tên (mã hàng: xong, D-139);
   - nhập đi từng món một (~1 lượt đi-về/món) ⇒ file vài nghìn món chậm; cần route nhập lô có transaction.
 - 2026-10-20 · `change_log` giữ bao lâu và phình theo (món đổi × số chi nhánh): chưa có dọn. Dọn định kỳ D-066 chỉ lo mã ghép và phiên.
 - 2026-10-20 · Đăng ký tổ chức mới: chưa có route (phase 11).

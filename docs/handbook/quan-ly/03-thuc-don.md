@@ -7,6 +7,8 @@ screens:
   - /menu/categories
   - /menu/availability
 decisions:
+  - D-095
+  - D-139
   - D-009
   - D-033
   - D-044
@@ -16,6 +18,9 @@ decisions:
   - D-116
   - D-120
 tests:
+  - apps/api/test/integration/catalog/catalog-product-codes.test.ts
+  - apps/api/test/integration/infra/product-codes-are-given-to-existing-products.test.ts
+  - apps/backoffice/src/components/menu/menu-lists.test.tsx
   - apps/backoffice/src/components/ui/table-pager.test.tsx
   - apps/backoffice/src/components/menu/menu-lists.test.tsx
   - apps/backoffice/src/components/menu/product-bulk-move.test.tsx
@@ -66,7 +71,7 @@ Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu
 ![Danh sách món](../images/quan-ly/mon.webp)
 
 1. Mở **Thực đơn → Món**. Bảng hiện ảnh, tên, danh mục, giá, trạng thái (Đang bán / Đã ngừng bán / Giá nhập tay). Món bán theo cân ghi giá kèm đơn vị, ví dụ "32.000 ₫ / 100 g".
-2. Ô **Tìm món** lọc theo tên; tick **Hiện cả món đã ngừng bán** để thấy cả món đã ngừng. Danh sách hiện 25 món mỗi trang (đổi được 50 / 100 ở cuối danh sách, kèm **Trang trước** / **Trang sau**); hàng tiêu đề Món · Danh mục · Giá · Trạng thái đứng yên trên cùng khi cuộn.
+2. Ô **Tìm món** lọc theo tên **hoặc mã hàng** (gõ không dấu cũng được); tick **Hiện cả món đã ngừng bán** để thấy cả món đã ngừng. Danh sách hiện 25 món mỗi trang (đổi được 50 / 100 ở cuối danh sách, kèm **Trang trước** / **Trang sau**); hàng tiêu đề Món · Mã hàng · Danh mục · Giá · Trạng thái đứng yên trên cùng khi cuộn.
 3. **Chuyển nhiều món sang một danh mục**: tick ô đầu các dòng (hoặc **Chọn mọi món đang hiện**), chọn danh mục ở **Chuyển sang danh mục** (ô chọn có ô tìm khi nhiều danh mục), bấm **Chuyển**. Trang báo "Đã chuyển N món sang “…”"; món nào không chuyển được thì báo riêng lý do.
 4. **Thêm món** mở trang món mới; bấm tên một món để sửa.
 5. **Nhập từ Excel / Xuất Excel**: xem [Nhập và xuất Excel](05-nhap-xuat-excel.md).
@@ -77,7 +82,7 @@ Thực đơn thuộc **thương hiệu**: mọi chi nhánh cùng thương hiệu
 
 Trang chia các phần (bấm tab trên cùng để nhảy tới): **Thông tin · Giá & thuế · Size · Tùy chọn · Xem trước**; món **Combo** có **Thông tin · Giá & thuế · Phần combo · Xem trước** (xem mục [Combo](#combo) bên dưới).
 
-1. **Thông tin chung**: ảnh món (xem [Ảnh món](04-anh-mon.md)), **Tên món**, **Loại** (Đồ uống pha chế, Món làm tại quán, Hàng bán sẵn, Dịch vụ, Combo), **Danh mục**, **Trạm pha chế/bếp (chi nhánh đang xem)** — phiếu của món in ở trạm này, và ba ô tick **In tem dán ly**, **Theo dõi tồn kho**, **Tích điểm**.
+1. **Thông tin chung**: ảnh món (xem [Ảnh món](04-anh-mon.md)), **Tên món**, **Mã hàng** (1–40 chữ cái không dấu, chữ số, `.` `_` `-`; mỗi món đang bán một mã, không phân biệt hoa thường; **để trống** thì hệ thống tự cấp SP00001, SP00002… và món đã có luôn giữ mã của nó; trùng mã với món khác thì báo "Mã hàng này đã có món khác đang bán dùng"; món ngừng bán trả mã lại, nên cho bán lại một món mà mã đã bị món khác dùng thì bị từ chối), **Loại** (Đồ uống pha chế, Món làm tại quán, Hàng bán sẵn, Dịch vụ, Combo), **Danh mục**, **Trạm pha chế/bếp (chi nhánh đang xem)** — phiếu của món in ở trạm này, và ba ô tick **In tem dán ly**, **Theo dõi tồn kho**, **Tích điểm**.
 2. **Giá & thuế**: **Cách tính giá** (Giá cố định / Thu ngân nhập giá / Bán theo cân) — chọn trong danh sách của trang, dưới ô có một câu nói máy quầy bán món này thế nào; **Giá bán (đồng)**; **Thuế VAT (%)**.
    - **Bán theo cân**: hiện thêm ô **Giá tính cho** (**Mỗi kg** / **Mỗi 100 g (1 lạng)**), ô giá đổi tên thành **Giá mỗi kg (đồng)** hoặc **Giá mỗi 100 g (đồng)**. Ở máy quầy thu ngân nhập cân nặng theo **gam**; tiền = giá × cân nặng, làm tròn tới đồng (350 g × 200.000 ₫/kg = 70.000 ₫).
    - **Thu ngân nhập giá**: ô giá không bắt buộc ("Không bắt buộc: máy quầy bán theo giá thu ngân gõ."); người không có quyền **Bán món giá nhập tay** cần quản lý nhập PIN duyệt đúng giá đó.
@@ -129,6 +134,7 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 
 ## Luật và giới hạn
 
+- **Mã hàng** hiện ở trang quản lý, file Excel và (sau này) máy quầy; máy quầy hiện chưa nhận mã hàng.
 - Tên món tối đa **120 ký tự**; tên danh mục tối đa 120 ký tự.
 - Giá là **số đồng nguyên**, không âm. Món giá cố định hoặc bán theo cân phải có giá (ở món, hoặc ở từng size): thiếu thì báo "Món bán giá cố định hoặc theo cân cần có giá: nhập giá món, hoặc giá cho từng size."
 - Món bán theo cân **luôn có đơn vị** (kg hoặc 100 g); món khác không có. Đổi món từ "Bán theo cân" sang cách khác thì đơn vị bỏ đi khi lưu. Món đặt "Theo cân" từ trước khi có ô đơn vị được coi là **giá mỗi kg**.

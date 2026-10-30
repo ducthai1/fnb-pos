@@ -31,6 +31,8 @@ export interface ProductSummary {
   readonly pricingMode: string;
   /** What a weighed product's price is per ("kg", "100g"); null or absent on any other. */
   readonly measureUnit?: string | null;
+  /** The product code (mã hàng); empty from an API that has none yet. */
+  readonly code?: string;
   readonly version: number;
   readonly archivedAt: string | null;
   /** The photo's address under the API; null or absent without one. */
@@ -71,6 +73,7 @@ const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
   if (basePrice === null && item.basePrice !== null) return null;
   const imageUrl = nullableTextOf(item, "imageUrl") ?? null;
   const measureUnit = nullableTextOf(item, "measureUnit") ?? null;
+  const code = textOf(item, "code") ?? "";
   const variants = Array.isArray(item.variants)
     ? item.variants.flatMap((variant: unknown) => {
         if (typeof variant !== "object" || variant === null) return [];
@@ -87,6 +90,7 @@ const readSummary = (item: Record<string, unknown>): ProductSummary | null => {
     basePrice,
     pricingMode: mode,
     measureUnit,
+    code,
     version,
     archivedAt,
     imageUrl,

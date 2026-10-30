@@ -44,10 +44,18 @@ const FRESH_VARIANT =
   "fresh_variant AS (INSERT INTO product_variant (id, tenant_id, product_id, name) " +
   "SELECT gen_random_uuid(), tenant_id, id, 'x' FROM product ORDER BY id LIMIT 1 RETURNING id)";
 const FRESH_PRODUCT =
-  "fresh_product AS (INSERT INTO product (id, tenant_id, brand_id, kind, name, pricing_mode) " +
-  "SELECT gen_random_uuid(), tenant_id, id, 'retail_item', 'x', 'fixed' FROM brand ORDER BY id LIMIT 1 RETURNING id)";
+  "fresh_product AS (INSERT INTO product (id, tenant_id, brand_id, kind, name, pricing_mode, code) " +
+  "SELECT gen_random_uuid(), tenant_id, id, 'retail_item', 'x', 'fixed', substr(md5(random()::text), 1, 12) FROM brand ORDER BY id LIMIT 1 RETURNING id)";
 const aBranch: Sql = { sql: "(SELECT id FROM branch ORDER BY id LIMIT 1)" };
-const aProduct = { kind: "prepared_drink", name: "x", pricing_mode: "fixed" };
+// A fresh code on every spread: products of one brand may not share one.
+const aProduct = {
+  kind: "prepared_drink",
+  name: "x",
+  pricing_mode: "fixed",
+  get code() {
+    return randomBytes(6).toString("hex");
+  },
+};
 
 // A membership needs an account of its own: one account belongs to an organization once.
 const freshAccount: Sql = {

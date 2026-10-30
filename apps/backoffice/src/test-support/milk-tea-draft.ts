@@ -29,6 +29,7 @@ export function milkTeaDraft(): ProductDraft {
     id: TEA.product,
     version: 3,
     archivedAt: null,
+    code: "TSTC",
     brandId: BRANCHES[0]!.brandId,
     categoryId: null,
     kind: "prepared_drink",

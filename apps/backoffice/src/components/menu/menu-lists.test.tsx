@@ -8,9 +8,15 @@ import { renderSignedIn } from "../../test-support/render-signed-in";
 import { AvailabilityScreen } from "./availability-screen";
 import { ProductListScreen } from "./product-list-screen";
 
-const summary = (id: string, name: string, archivedAt: string | null = null): ProductSummary => ({
+const summary = (
+  id: string,
+  name: string,
+  archivedAt: string | null = null,
+  code = `SP0000${id.slice(1)}`,
+): ProductSummary => ({
   id,
   name,
+  code,
   kind: "prepared_drink",
   categoryId: null,
   basePrice: 35_000,
@@ -26,6 +32,19 @@ const PRODUCTS = [
 ];
 
 describe("the product list", () => {
+  it("shows each product's code and finds a product by it", async () => {
+    await renderSignedIn(<ProductListScreen />, {
+      listProducts: async () => ok(PRODUCTS),
+      listCategories: async () => ok([]),
+    });
+    await screen.findByText("Trà sữa trân châu");
+    expect(screen.getByText("SP00001")).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: vi.menu.products.columns.code })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(vi.menu.products.search), { target: { value: "sp00002" } });
+    expect(screen.getByText("Cà phê đen đá")).toBeTruthy();
+    expect(screen.queryByText("Trà sữa trân châu")).toBeNull();
+  });
+
   it("finds a product typed without tone marks, and hides archived ones unless asked", async () => {
     await renderSignedIn(<ProductListScreen />, {
       listProducts: async () => ok(PRODUCTS),

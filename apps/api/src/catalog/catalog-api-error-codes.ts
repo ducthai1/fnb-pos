@@ -14,5 +14,7 @@ export const CATALOG_API_ERROR_CODES = {
   idConflict: "API_CATALOG_ID_CONFLICT",
   parentChangeNotAllowed: "API_CATALOG_PARENT_CHANGE_NOT_ALLOWED",
   inUse: "API_CATALOG_IN_USE",
+  /** Another product of the brand on the menu already has this code (ignoring case). */
+  productCodeTaken: "API_CATALOG_PRODUCT_CODE_TAKEN",
   unavailableUntilNotInFuture: "API_CATALOG_UNAVAILABLE_UNTIL_NOT_IN_FUTURE",
 } as const;

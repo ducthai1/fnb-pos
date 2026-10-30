@@ -20,6 +20,8 @@ export interface ProductDocument {
   readonly trackStock: boolean;
   readonly earnsPoints: boolean;
   readonly printCupLabel: boolean;
+  /** The product code (mã hàng); empty from an API that has none yet. */
+  readonly code: string;
   /** The stored photo's name, and its address under the API; null without one. */
   readonly imageKey: string | null;
   readonly imageUrl: string | null;
@@ -79,6 +81,7 @@ export function readProductDocument(body: unknown): ProductDocument | null {
     trackStock: body.trackStock as boolean,
     earnsPoints: body.earnsPoints as boolean,
     printCupLabel: body.printCupLabel as boolean,
+    code: textOf(body, "code") ?? "",
     // An API from before photos sends neither: the product has none.
     imageKey: nullableTextOf(body, "imageKey") ?? null,
     imageUrl: nullableTextOf(body, "imageUrl") ?? null,
@@ -107,6 +110,7 @@ export function bodyOfDocument(document: ProductDocument): ProductBody {
     trackStock: document.trackStock,
     earnsPoints: document.earnsPoints,
     printCupLabel: document.printCupLabel,
+    ...(document.code === "" ? {} : { code: document.code }),
     variants: document.variants,
     modifierGroups: document.modifierGroups,
     combo: document.combo,

@@ -53,6 +53,7 @@ export async function seedCatalogRows(
     stationId: ids.station,
     kind: "prepared_drink",
     name: "Trà sữa trân châu",
+    code: "TSTC",
     basePrice: 35_000n,
     pricingMode: "fixed",
   });

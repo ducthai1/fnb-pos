@@ -19,6 +19,7 @@ export {
   resumeProductBodySchema,
 } from "./product-document-schema";
 export { productDocumentToDomain } from "./product-document-to-domain";
+export { PRODUCT_CODE_PATTERN } from "./product-document-schema";
 export {
   type ProductImageUpload,
   productImageKeySchema,

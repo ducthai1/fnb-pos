@@ -23,6 +23,7 @@ export function fakeCatalog(categories: Category[] = []) {
     const photo = imageKey === undefined ? (stored?.imageKey ?? null) : imageKey;
     const saved: ProductDocument = {
       ...rest,
+      code: rest.code ?? stored?.code ?? `SP${String(products.size + 1).padStart(5, "0")}`,
       id,
       version: (stored?.version ?? 0) + 1,
       archivedAt: stored?.archivedAt ?? null,

@@ -21,6 +21,7 @@ interface ProductRow {
   track_stock: boolean;
   earns_points: boolean;
   print_cup_label: boolean;
+  code: string;
 }
 
 /** The product with its live variants and options, or null when this tenant has none by that id. */
@@ -53,6 +54,7 @@ export async function readProductDocument(
     trackStock: row.track_stock,
     earnsPoints: row.earns_points,
     printCupLabel: row.print_cup_label,
+    code: row.code,
     imageKey: row.image_key,
     imageUrl: row.image_key === null ? null : productImageUrl(row.tenant_id, row.image_key),
     variants: variants.rows.map((variant) => ({

@@ -45,6 +45,7 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_CATALOG_VERSION_CONFLICT: "Có người đã sửa mục này trước bạn. Tải lại để xem bản mới nhất.",
   API_CATALOG_ID_CONFLICT: "Mã của một mục bị trùng với mục đã có. Tải lại trang rồi thử lại.",
   API_CATALOG_PARENT_CHANGE_NOT_ALLOWED: "Không chuyển được mục này sang thương hiệu khác.",
+  API_CATALOG_PRODUCT_CODE_TAKEN: "Mã hàng này đã có món khác đang bán dùng (không phân biệt hoa thường). Đổi mã khác.",
   API_CATALOG_IN_USE: "Mục này đang được món hoặc bảng giá dùng. Gỡ khỏi chúng trước khi xóa.",
   API_CATALOG_UNAVAILABLE_UNTIL_NOT_IN_FUTURE: "Giờ có lại món phải ở sau bây giờ.",
   API_SHOP_TEMPLATE_NOT_FOUND: "Không tìm thấy mẫu này. Tải lại trang.",
