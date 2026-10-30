@@ -26,13 +26,19 @@ Quán giả lập có 4 máy ảo của một chi nhánh, chạy **đúng `@fnb/
 
 Cả ngày chạy trên **đồng hồ ảo** (máy chủ và các máy dùng chung một đồng hồ, mỗi máy có thể lệch giờ): ngày ngắn mất vài giây, ngày đầy đủ (07:00 đến 22:00) chừng 20 giây.
 
+## Ai dùng, cần quyền gì
+
+Người làm phần mềm, trên máy dev: không cần tài khoản hay quyền gì của quán (mọi thứ chạy trên cơ sở dữ liệu nhúng của bài kiểm). Thu ngân, quản lý và chủ quán không dùng trang này.
+
 ## Một ngày diễn ra thế nào
 
 Mở ca (két 500.000 ₫) → sáng vắng → **trưa cao điểm 11:30–13:30** → chiều thưa → hết giờ nhận khách → mọi khách được phục vụ hoặc bỏ về → đếm két, đóng ca → các máy đồng bộ hết → chốt ngày.
 
 Khách và món sinh **ngẫu nhiên có seed**: tên món, số lượng (có cả đơn 20–60 ly), ghi chú dài, ký tự lạ, giảm 10%, khách đổi ý bỏ về, hủy món đã gửi pha chế, chuyển bàn, hoàn tiền mặt, thanh toán QR có **báo có trễ** (vài phút sau khi hiện mã; có khách không chịu trả QR nên thu ngân gỡ mã và lấy tiền mặt).
 
-## Sự cố được bơm vào ngày
+## Luật và giới hạn
+
+### Sự cố được bơm vào ngày
 
 | Sự cố | Chỗ trong ngày |
 |---|---|
@@ -44,7 +50,7 @@ Khách và món sinh **ngẫu nhiên có seed**: tên món, số lượng (có c
 
 Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ. Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
 
-## Cuối ngày tự kiểm
+### Cuối ngày tự kiểm
 
 Mỗi mục là một lời khẳng định có câu báo rõ; **tất cả cái sai được gom lại**, không dừng ở cái đầu tiên:
 
@@ -56,7 +62,9 @@ Mỗi mục là một lời khẳng định có câu báo rõ; **tất cả cái
 6. **Số gọi** không trùng giữa các máy cùng chi nhánh.
 7. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
 
-## Cách chạy
+## Các bước
+
+### Cách chạy
 
 ```bash
 # nhanh, như cổng CI: hai seed ngày ngắn (10:00–15:00), cùng bộ pnpm test:sync
@@ -72,13 +80,13 @@ pnpm sim:day --seed 7 --days 3 --full
 
 `--seed 3,9` chạy hai seed; `--seeds 1-20` chạy hai mươi seed. Mỗi seed in một dòng `seed N day D: {…}` (số đơn, số lệnh, số lệnh bị từ chối) và các sự cố đã xảy ra.
 
-## Đọc kết quả và tái hiện
+## Khi có lỗi
 
 Hỏng thì bài kiểm in **mọi** chỗ lệch kèm dòng `replay with: pnpm sim:day --seed N --days D [--full]`. Chạy lại đúng lệnh đó ra đúng ngày đó (hạt giống quyết định khách, món, sự cố, lỗi mạng); thứ không tất định là mã định danh đơn (mỗi lần mỗi khác) và thời gian thực của máy chủ.
 
 Hai lỗi gặp khi dựng nằm ở "Việc phát sinh" của bảng task, kèm seed.
 
-## Chưa làm
+## Chưa làm / sắp có
 
 - Chưa có Chrome chạy giao diện máy quầy thật (tầng sau của quán giả lập).
 - Chưa có duyệt của quản lý: cả bốn máy đăng nhập bằng một **quản lý** (được giảm giá, hoàn tiền, hủy món đã gửi không cần người thứ hai). Luồng duyệt có test riêng.
