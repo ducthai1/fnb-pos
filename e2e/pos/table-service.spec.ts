@@ -24,7 +24,7 @@ beforeAll(async () => {
   await shop.setUp();
 }, 60_000);
 afterAll(async () => {
-  await shop.close().catch(console.error);
+  await shop.close(pool).catch(console.error);
   await browser?.close();
   await pool.end();
 });

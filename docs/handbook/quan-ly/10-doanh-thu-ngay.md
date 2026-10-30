@@ -8,6 +8,7 @@ decisions:
   - D-053
   - D-059
   - D-064
+  - D-151
 tests:
   - apps/backoffice/src/components/reports/daily-sales-screen.test.tsx
   - apps/backoffice/src/components/reports/daily-sales-overview.test.tsx
@@ -51,7 +52,7 @@ Cần quyền **Xem báo cáo** (vai trò mẫu: Chủ quán, Quản lý ca).
 - **Đơn hoàn tính riêng, vào ngày hoàn** (không trừ ngược vào ngày bán).
 - **Tiền QR đã hoàn lại khách** là tiền ngân hàng báo nhận mà không đơn nào dùng (trả thiếu, trả thừa, hoặc đơn đã trả cách khác), tính vào **ngày ghi hoàn**: **không phải doanh thu**, không nằm trong số liệu nào khác.
 - **Ngày kinh doanh** của chi nhánh bắt đầu lúc **04:00** (mặc định): bảng theo giờ xếp từ 04:00 tới 03:59 hôm sau, nên đơn 01:00 sáng nằm cuối ngày hôm trước.
-- Ngày **đã chốt** giữ nguyên số liệu: đơn trả tiền hoặc tiền QR hoàn sau lúc chốt **không** làm đổi báo cáo ngày đó (được liệt kê riêng ở [Chốt ngày](11-chot-ngay.md)).
+- Ngày **đã chốt** giữ nguyên số liệu: đơn trả tiền hoặc tiền QR hoàn sau lúc chốt **không** làm đổi báo cáo ngày đó (được liệt kê riêng ở [Chốt ngày](11-chot-ngay.md)). Đơn **hủy** và món **hủy bớt** mà máy mất mạng qua lúc chốt chỉ báo lên máy chủ sau đó cũng **không** làm đổi số "Hủy món" và "Đơn hủy" của ngày đã chốt.
 - Số liệu là những gì máy quầy **đã đồng bộ**.
 
 ## Khi có lỗi

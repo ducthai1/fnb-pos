@@ -59,6 +59,7 @@ Mọi điều trong sổ tay được viết theo **code, test và câu chữ th
 4. [Giới hạn thử, kiểm Origin và dọn dẹp định kỳ](van-hanh/04-gioi-han-va-bao-mat.md)
 5. [Nhật ký lỗi từ máy quầy và trang quản lý](van-hanh/05-nhat-ky-loi-may-quay-va-trang-quan-ly.md)
 6. [Bản phát hành — đóng gói, cài và quay lui](van-hanh/06-ban-phat-hanh-va-quay-lui.md)
+7. [Quán giả lập một ngày bán — công cụ kiểm cho người làm phần mềm](van-hanh/07-quan-gia-lap-mot-ngay-ban.md)
 
 ### Khác
 

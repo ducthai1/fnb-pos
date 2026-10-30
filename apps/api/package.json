@@ -6,6 +6,12 @@
   "exports": {
     "./build-app": "./src/build-app.ts",
     "./test-support/sync-shop": "./test/integration/support/sync-shop.ts",
+    "./test-support/fake-payment-gateway": "./test/integration/support/fake-payment-gateway.ts",
+    "./test-support/staffed-shop": "./test/integration/support/staffed-shop.ts",
+    "./test-support/paired-devices": "./test/integration/support/paired-devices.ts",
+    "./test-support/floor-plan": "./test/integration/support/floor-plan.ts",
+    "./test-support/kitchen-commands": "./test/integration/support/kitchen-commands.ts",
+    "./test-support/einvoice-profiles": "./test/integration/support/einvoice-profiles.ts",
     "./test-support/provisioned-scratch-database": "./test/integration/support/provisioned-scratch-database.ts",
     "./test-support/payment-webhooks": "./test/integration/support/payment-webhooks.ts",
     "./fake-einvoice-provider": "./src/einvoice/providers/fake-einvoice-provider.ts",

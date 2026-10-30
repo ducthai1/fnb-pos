@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -29,7 +30,10 @@ export function useShownError(error: string | undefined, value: string, commitsO
   const [sent, setSent] = useState(false);
   const stepAttempted = useContext(FieldAttemptContext);
 
-  useEffect(() => {
+  // Attached as the field is put on the page, not a moment after: a form sent in that moment
+  // (a screen that renders it the instant its data arrives, then is clicked at once) would be
+  // refused with no error shown, because nothing yet heard it was sent.
+  useLayoutEffect(() => {
     const form = input.current?.form;
     if (form === null || form === undefined) return;
     const onSubmit = () => setSent(true);

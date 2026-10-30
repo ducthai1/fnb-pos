@@ -9,7 +9,7 @@ import { ManualClock } from "../support/manual-clock";
 import { SALES_DAY_SYNCED_AT, salesDay } from "../support/sales-day";
 import { closeTillShifts, payInShift } from "../support/shift-commands";
 import { BUSINESS_DATE, line, orderIdOf, pushOne, saveDraft } from "../support/sync-commands";
-import { cancel } from "../support/sync-order-commands";
+import { cancel, markSent, voidUnits } from "../support/sync-order-commands";
 import { type SyncShop, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -190,6 +190,27 @@ describe("the daily sales report", () => {
     });
     expect(kept.json().dayClose.summary.report).toEqual(before);
     expect(kept.json().paidAfterClose).toMatchObject([{ id: orderIdOf(late) }]);
+  });
+
+  it("is unchanged too by orders cancelled and units voided that reach the server after the close", async () => {
+    const before = await report();
+    // A till offline through the close rang these up in the day's shift and tells the server now.
+    const dropped = saveDraft(s.tillA, [line(s.menu.coffee.id)]);
+    await pushOne(app, s.tillA, dropped);
+    expect((await pushOne(app, s.tillA, cancel(s.tillA, orderIdOf(dropped)))).status).toBe(
+      "accepted",
+    );
+    const teas = line(s.menu.peachTea.id, { variantId: s.menu.peachTea.sizeM, quantity: "2" });
+    const served = saveDraft(s.tillA, [teas]);
+    await pushOne(app, s.tillA, served);
+    await markSent(pool, s.shop.tenantId, teas.lineId, "2");
+    const voided = await pushOne(
+      app,
+      s.tillA,
+      voidUnits(s.tillA, orderIdOf(served), teas.lineId, "1"),
+    );
+    expect(voided.status).toBe("accepted");
+    expect(await report()).toEqual(before);
   });
 
   it("is refused without view_reports, and answers 404 for another organization's branch", async () => {

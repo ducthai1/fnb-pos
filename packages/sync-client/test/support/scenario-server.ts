@@ -1,10 +1,24 @@
 import { buildApp } from "@fnb/api/build-app";
+import { PAYMENT_GATEWAYS } from "@fnb/api/payment-gateways";
+import { fakePaymentGateway } from "@fnb/api/test-support/fake-payment-gateway";
+import { TEST_PAYMENT_SECRET_KEY } from "@fnb/api/test-support/payment-webhooks";
 import { type SyncShop, type SyncShopOptions, syncShop } from "@fnb/api/test-support/sync-shop";
 import { testConnectionString } from "@fnb/db/test-support";
 import pg from "pg";
 import { inject } from "vitest";
 import type { HttpSend } from "../../src";
 import { injectHttpSend } from "./inject-http-send";
+
+/** What a scenario may choose about the server it runs against. */
+export interface ScenarioServerOptions {
+  /**
+   * The API's only source of "now". A scenario that passes one moves the server's time by
+   * hand, together with its tills'; without one the server reads the real clock.
+   */
+  clock?: { now(): Date };
+  /** Takes bank notices from the fake gateway, so a scenario can have a customer pay a QR. */
+  fakeGateway?: boolean;
+}
 
 export interface BackofficeRequest {
   readonly method: "GET" | "PUT" | "POST" | "DELETE";
@@ -23,7 +37,10 @@ export class ScenarioServer {
   pool: pg.Pool;
   private minimumPosBuild: number | undefined;
 
-  private constructor(private readonly connectionString: string) {
+  private constructor(
+    private readonly connectionString: string,
+    private readonly serverOptions: ScenarioServerOptions,
+  ) {
     this.pool = this.connect();
     this.app = this.build();
   }
@@ -31,6 +48,13 @@ export class ScenarioServer {
   private build(): ReturnType<typeof buildApp> {
     return buildApp({
       pool: this.pool,
+      ...(this.serverOptions.clock === undefined ? {} : { clock: this.serverOptions.clock }),
+      ...(this.serverOptions.fakeGateway === true
+        ? {
+            paymentSecretKey: TEST_PAYMENT_SECRET_KEY,
+            paymentGateways: [...PAYMENT_GATEWAYS, fakePaymentGateway()],
+          }
+        : {}),
       ...(this.minimumPosBuild === undefined ? {} : { minimumPosBuild: this.minimumPosBuild }),
     });
   }
@@ -43,14 +67,20 @@ export class ScenarioServer {
   static async withShop(
     connectionString = testConnectionString(inject("testPostgres"), "app"),
     options: SyncShopOptions = {},
+    serverOptions: ScenarioServerOptions = {},
   ): Promise<{ server: ScenarioServer; shop: SyncShop }> {
-    const server = new ScenarioServer(connectionString);
+    const server = new ScenarioServer(connectionString, serverOptions);
     return { server, shop: await syncShop(server.app, server.pool, options) };
   }
 
   private connect(): pg.Pool {
     // max above the number of requests two tills and their duplicates have in flight.
     return new pg.Pool({ connectionString: this.connectionString, max: 20 });
+  }
+
+  /** The API as it runs now, for a scenario that sets the shop up through its routes. */
+  get api(): ReturnType<typeof buildApp> {
+    return this.app;
   }
 
   /** Requests go to whichever server is running when they are sent. */
