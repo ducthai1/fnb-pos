@@ -6,6 +6,7 @@ screens:
   - /roles
 decisions:
   - D-145
+  - D-156
   - D-029
   - D-032
   - D-036
@@ -13,6 +14,9 @@ decisions:
   - D-060
   - D-061
 tests:
+  - apps/api/test/integration/staff/staff-access-tools-check-the-version.test.ts
+  - apps/api/test/integration/roles/role-writes-check-the-version.test.ts
+  - apps/backoffice/src/components/roles/roles-screen.test.tsx
   - apps/api/test/integration/staff/renaming-someone-needs-the-version-last-read.test.ts
   - apps/backoffice/src/components/staff/staff-screen.test.tsx
   - apps/backoffice/src/components/staff/staff-tools.test.tsx
@@ -140,7 +144,8 @@ Năm quyền quản trị cuối không mượn được tại chỗ: đó là q
 
 | Màn hình báo | Làm gì |
 |---|---|
-| Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần. | Xem bản mới trên danh sách, rồi **Lưu** lại |
+| Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần. (cũng hiện khi **Khóa**, **Mở lại** hay **Đặt lại PIN** một nhân viên mà người khác vừa đổi) | Xem bản mới trên danh sách, rồi làm lại |
+| Có người đã sửa vai trò này trước bạn. Tải lại danh sách để xem bản mới nhất, rồi làm lại nếu vẫn cần. (khi sửa quyền hay **Lưu trữ** vai trò) | Tải lại trang **Vai trò**, xem bản mới, rồi sửa hoặc lưu trữ lại |
 | PIN gồm 4 đến 6 chữ số. | Nhập lại |
 | PIN quá dễ đoán (như 1234, 1111, 1212, 2580 hoặc một năm sinh). Chọn PIN khác. | Chọn PIN khác |
 | Chọn vai trò. / Chọn ít nhất một chi nhánh. / Nhập tên hiển thị. | Điền đủ |

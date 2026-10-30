@@ -28,17 +28,31 @@ export function staffTools(app: FastifyInstance, cookie: string) {
       version: number;
     }[];
   };
+  const versionOf = async (staffId: string, version?: number) =>
+    version ?? (await listed()).find((member) => member.id === staffId)?.version ?? 1;
+  const roleVersionOf = async (roleId: string, version?: number) => {
+    if (version !== undefined) return version;
+    const response = await app.inject({ method: "GET", url: "/roles", headers: { cookie } });
+    const roles = (response.json().roles ?? []) as { id: string; version: number }[];
+    return roles.find((role) => role.id === roleId)?.version ?? 1;
+  };
   return {
     /** Renames or re-roles as of `version`, or as of the row's current one when none is named. */
     update: async (staffId: string, body: object, version?: number): Promise<Answer> => {
-      const read = version ?? (await listed()).find((member) => member.id === staffId)?.version ?? 1;
+      const read =
+        version ?? (await listed()).find((member) => member.id === staffId)?.version ?? 1;
       return send("PATCH", `/staff/${staffId}?version=${read}`, body);
     },
-    deactivate: (staffId: string) => send("POST", `/staff/${staffId}/deactivate`),
-    reactivate: (staffId: string) => send("POST", `/staff/${staffId}/reactivate`),
-    resetPin: (staffId: string, pin: string) => send("PUT", `/staff/${staffId}/pin`, { pin }),
+    // Each of these is done as of `version`, or as of the row's current one when none is named.
+    deactivate: async (staffId: string, version?: number) =>
+      send("POST", `/staff/${staffId}/deactivate?version=${await versionOf(staffId, version)}`),
+    reactivate: async (staffId: string, version?: number) =>
+      send("POST", `/staff/${staffId}/reactivate?version=${await versionOf(staffId, version)}`),
+    resetPin: async (staffId: string, pin: string, version?: number) =>
+      send("PUT", `/staff/${staffId}/pin?version=${await versionOf(staffId, version)}`, { pin }),
     unlockPin: (staffId: string) => send("POST", `/staff/${staffId}/pin-unlock`),
-    archiveRole: (roleId: string) => send("POST", `/roles/${roleId}/archive`),
+    archiveRole: async (roleId: string, version?: number) =>
+      send("POST", `/roles/${roleId}/archive?version=${await roleVersionOf(roleId, version)}`),
     list: listed,
   };
 }

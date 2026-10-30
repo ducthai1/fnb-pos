@@ -1,4 +1,4 @@
-import { staffPinBodySchema } from "@fnb/contracts";
+import { expectedVersionQuerySchema, staffPinBodySchema } from "@fnb/contracts";
 import { type AuditEntry, appendAudit, withTenant } from "@fnb/db";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type pg from "pg";
@@ -33,20 +33,33 @@ type Step = (
 /**
  * Locking someone out of the tills and letting them back, and the PIN they sign in with.
  * Each runs on the locked staff row and goes on the audit trail under the member who did
- * it; another organization's staff answer 404 like a missing one.
+ * it; another organization's staff answer 404 like a missing one. Locking, letting back and
+ * a new PIN are done as of the version of the member the caller read (`?version=`): a member
+ * changed since is refused with 409 rather than acted on from a stale list.
  */
 export function registerStaffAccessRoutes(app: FastifyInstance, context: ApiContext): void {
   const run = async (
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
     step: Step,
+    /** Whether the caller names the version of the member it read (`?version=`). */
+    versioned = true,
   ) => {
+    const expected = versioned ? expectedVersionQuerySchema.safeParse(request.query) : null;
+    if (expected !== null && !expected.success) {
+      return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
+    }
     const { tenantId, appUserId } = backofficeAuth(request);
     const staffId = request.params.id;
     const now = context.clock.now();
     const outcome = await withTenant(context.pool, tenantId, async (client) => {
       const staff = await lockedStaff(client, staffId);
       if (staff === null) return refusedWith(404, CODES.staffNotFound);
+      // Read before this change: someone else's lock, rename or role change since must not
+      // be overwritten by acting on a list that no longer holds.
+      if (expected !== null && staff.version !== expected.data.version) {
+        return refusedWith(409, CODES.versionConflict);
+      }
       const done = await step(client, staff, now);
       if (!done.ok) return done;
       const entry = { actor: { kind: "app_user", id: appUserId }, entityKind: "staff" } as const;
@@ -121,21 +134,26 @@ export function registerStaffAccessRoutes(app: FastifyInstance, context: ApiCont
   // Wrong PINs lock for longer each time, up to a day: a manager lets the person back in,
   // and the count starts again from nothing.
   app.post<{ Params: { id: string } }>("/staff/:id/pin-unlock", route, (request, reply) =>
-    run(request, reply, async (client, staff, now) => {
-      const locked = staff.pin_locked_until !== null && staff.pin_locked_until > now;
-      if (!locked && staff.pin_failed_attempts === 0) return refusedWith(409, CODES.pinNotLocked);
-      await client.query(
-        "UPDATE staff SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1",
-        [request.params.id],
-      );
-      const payload = {
-        failedAttempts: staff.pin_failed_attempts,
-        lockedUntil: locked ? staff.pin_locked_until?.toISOString() : null,
-      };
-      return {
-        ok: true,
-        value: { audit: { action: "staff.pin_unlocked", payload }, announce: false },
-      };
-    }),
+    run(
+      request,
+      reply,
+      async (client, staff, now) => {
+        const locked = staff.pin_locked_until !== null && staff.pin_locked_until > now;
+        if (!locked && staff.pin_failed_attempts === 0) return refusedWith(409, CODES.pinNotLocked);
+        await client.query(
+          "UPDATE staff SET pin_failed_attempts = 0, pin_locked_until = NULL WHERE id = $1",
+          [request.params.id],
+        );
+        const payload = {
+          failedAttempts: staff.pin_failed_attempts,
+          lockedUntil: locked ? staff.pin_locked_until?.toISOString() : null,
+        };
+        return {
+          ok: true,
+          value: { audit: { action: "staff.pin_unlocked", payload }, announce: false },
+        };
+      },
+      false,
+    ),
   );
 }

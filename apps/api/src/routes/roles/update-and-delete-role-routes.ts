@@ -1,6 +1,8 @@
+import { expectedVersionQuerySchema } from "@fnb/contracts";
 import { appendAudit, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
+import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { clientPermissionErrorCode } from "../../permissions/permission-error-codes";
 import {
@@ -34,6 +36,8 @@ export function registerUpdateAndDeleteRoleRoutes(app: FastifyInstance, context:
     "/roles/:id",
     { onRequest: gate, schema: { params: roleParams, body: updateRoleBody } },
     async (request, reply) => {
+      const expected = expectedVersionQuerySchema.safeParse(request.query);
+      if (!expected.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
       const auth = backofficeAuth(request);
       const { name, permissionKeys, thresholds } = request.body;
       let stored;
@@ -54,6 +58,10 @@ export function registerUpdateAndDeleteRoleRoutes(app: FastifyInstance, context:
         );
         const before = found.rows[0];
         if (before === undefined) return { refused: ROLE_ERROR_CODES.roleNotFound };
+        // As of the version the caller read: a role changed since is not overwritten.
+        if (before.version !== expected.data.version) {
+          return { refused: ROLE_ERROR_CODES.versionConflict };
+        }
         const losesAdministration =
           stored !== undefined &&
           before.permission_keys.includes("manage_staff") &&
@@ -98,26 +106,38 @@ export function registerUpdateAndDeleteRoleRoutes(app: FastifyInstance, context:
     "/roles/:id",
     { onRequest: gate, schema: { params: roleParams } },
     async (request, reply) => {
+      const expected = expectedVersionQuerySchema.safeParse(request.query);
+      if (!expected.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
       const auth = backofficeAuth(request);
       const roleId = request.params.id;
-      let deleted: boolean;
+      let deleted: "gone" | "missing" | "changed";
       try {
         deleted = await withTenant(context.pool, auth.tenantId, async (client) => {
-          const result = await client.query("DELETE FROM role WHERE id = $1", [roleId]);
-          if (result.rowCount === 0) return false;
+          const found = await client.query<{ version: number }>(
+            "SELECT version FROM role WHERE id = $1 FOR UPDATE",
+            [roleId],
+          );
+          if (found.rows[0] === undefined) return "missing" as const;
+          // As of the version the caller read: a role edited since is not deleted unseen.
+          if (found.rows[0].version !== expected.data.version) return "changed" as const;
+          await client.query("DELETE FROM role WHERE id = $1", [roleId]);
           await appendAudit(client, {
             actor: { kind: "app_user", id: auth.appUserId },
             action: "role.deleted",
             entityKind: "role",
             entityId: roleId,
           });
-          return true;
+          return "gone" as const;
         });
       } catch (error) {
         if ((error as { code?: unknown }).code !== FOREIGN_KEY_VIOLATION) throw error;
         return reply.code(409).send({ code: ROLE_ERROR_CODES.roleInUse });
       }
-      if (!deleted) return reply.code(404).send({ code: ROLE_ERROR_CODES.roleNotFound });
+      if (deleted === "missing")
+        return reply.code(404).send({ code: ROLE_ERROR_CODES.roleNotFound });
+      if (deleted === "changed") {
+        return reply.code(409).send({ code: ROLE_ERROR_CODES.versionConflict });
+      }
       return reply.code(204).send();
     },
   );

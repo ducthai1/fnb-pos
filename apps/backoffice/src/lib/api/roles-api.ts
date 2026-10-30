@@ -58,9 +58,10 @@ const readRole = (item: Record<string, unknown>): Role | null => {
 export interface RolesApi {
   listRoles(): Promise<ApiResult<Role[]>>;
   createRole(body: RoleGrantsBody): Promise<ApiResult<{ roleId: string }>>;
-  updateRole(roleId: string, body: RoleGrantsBody): Promise<ApiResult<Role>>;
-  /** `POST /roles/:id/archive` → the role; 409 API_ROLE_IN_USE names who holds it. */
-  archiveRole(roleId: string): Promise<ApiResult<Role>>;
+  /** `PATCH /roles/:id?version=` of the role last read → the role; 409 when it changed since. */
+  updateRole(roleId: string, version: number, body: RoleGrantsBody): Promise<ApiResult<Role>>;
+  /** `POST /roles/:id/archive?version=` → the role; 409 API_ROLE_IN_USE names who holds it, or the role changed since. */
+  archiveRole(roleId: string, version: number): Promise<ApiResult<Role>>;
 }
 
 export function httpRolesApi(base: string, fetchImpl: FetchLike): RolesApi {
@@ -76,13 +77,13 @@ export function httpRolesApi(base: string, fetchImpl: FetchLike): RolesApi {
         return roleId === null ? null : { roleId };
       });
     },
-    async updateRole(roleId, body) {
-      const url = `${base}/roles/${encodeURIComponent(roleId)}`;
+    async updateRole(roleId, version, body) {
+      const url = `${base}/roles/${encodeURIComponent(roleId)}?version=${version}`;
       const answer = await requestJson(fetchImpl, url, { method: "PATCH", body });
       return resultOf(answer, (reply) => (isRecord(reply) ? readRole(reply) : null));
     },
-    async archiveRole(roleId) {
-      const url = `${base}/roles/${encodeURIComponent(roleId)}/archive`;
+    async archiveRole(roleId, version) {
+      const url = `${base}/roles/${encodeURIComponent(roleId)}/archive?version=${version}`;
       const answer = await requestJson(fetchImpl, url, { method: "POST" });
       return resultOf(answer, (reply) => (isRecord(reply) ? readRole(reply) : null));
     },

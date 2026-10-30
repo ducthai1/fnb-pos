@@ -20,22 +20,30 @@ describe("the staff tool calls", () => {
     const done = answering(204);
     const api = httpStaffApi("/api", done.fetchImpl);
     expect(await api.updateStaff(STAFF, 6, { displayName: "Mai" })).toEqual({ ok: true, value: true });
-    expect(await api.deactivateStaff(STAFF)).toEqual({ ok: true, value: true });
-    expect(await api.reactivateStaff(STAFF)).toEqual({ ok: true, value: true });
-    expect(await api.resetStaffPin(STAFF, "7391")).toEqual({ ok: true, value: true });
+    expect(await api.deactivateStaff(STAFF, 7)).toEqual({ ok: true, value: true });
+    expect(await api.reactivateStaff(STAFF, 8)).toEqual({ ok: true, value: true });
+    expect(await api.resetStaffPin(STAFF, 9, "7391")).toEqual({ ok: true, value: true });
     expect(await api.unlockStaffPin(STAFF)).toEqual({ ok: true, value: true });
     expect(done.calls).toEqual([
       { url: `/api/staff/${STAFF}?version=6`, method: "PATCH", body: { displayName: "Mai" } },
-      { url: `/api/staff/${STAFF}/deactivate`, method: "POST", body: undefined },
-      { url: `/api/staff/${STAFF}/reactivate`, method: "POST", body: undefined },
-      { url: `/api/staff/${STAFF}/pin`, method: "PUT", body: { pin: "7391" } },
+      { url: `/api/staff/${STAFF}/deactivate?version=7`, method: "POST", body: undefined },
+      { url: `/api/staff/${STAFF}/reactivate?version=8`, method: "POST", body: undefined },
+      { url: `/api/staff/${STAFF}/pin?version=9`, method: "PUT", body: { pin: "7391" } },
       { url: `/api/staff/${STAFF}/pin-unlock`, method: "POST", body: undefined },
     ]);
   });
 
+  it("send the version of the role last read when changing it", async () => {
+    const role = { id: ROLE, name: "Ca đêm", permissionKeys: [], thresholds: {}, isTemplate: false, archivedAt: null, version: 4 };
+    const changed = answering(200, role);
+    const body = { name: "Ca đêm", permissionKeys: [], thresholds: {} };
+    await httpRolesApi("/api", changed.fetchImpl).updateRole(ROLE, 3, body);
+    expect(changed.calls[0]).toMatchObject({ url: `/api/roles/${ROLE}?version=3`, method: "PATCH" });
+  });
+
   it("read a refusal as its code", async () => {
     const refusal = answering(409, { code: "API_STAFF_ALREADY_INACTIVE" });
-    expect(await httpStaffApi("/api", refusal.fetchImpl).deactivateStaff(STAFF)).toMatchObject({
+    expect(await httpStaffApi("/api", refusal.fetchImpl).deactivateStaff(STAFF, 7)).toMatchObject({
       ok: false,
       status: 409,
       code: "API_STAFF_ALREADY_INACTIVE",
@@ -45,11 +53,11 @@ describe("the staff tool calls", () => {
   it("archive a role and read it back archived, or keep the holders of a refusal", async () => {
     const role = { id: ROLE, name: "Ca đêm", permissionKeys: [], thresholds: {}, isTemplate: false, archivedAt: "2026-10-20T04:00:00.000Z", version: 2 };
     const archived = answering(200, role);
-    expect(await httpRolesApi("/api", archived.fetchImpl).archiveRole(ROLE)).toEqual({ ok: true, value: role });
-    expect(archived.calls[0]).toMatchObject({ url: `/api/roles/${ROLE}/archive`, method: "POST" });
+    expect(await httpRolesApi("/api", archived.fetchImpl).archiveRole(ROLE, 2)).toEqual({ ok: true, value: role });
+    expect(archived.calls[0]).toMatchObject({ url: `/api/roles/${ROLE}/archive?version=2`, method: "POST" });
     const held = { code: "API_ROLE_IN_USE", staff: [], members: [] };
-    expect(await httpRolesApi("/api", answering(409, held).fetchImpl).archiveRole(ROLE)).toMatchObject({ ok: false, body: held });
+    expect(await httpRolesApi("/api", answering(409, held).fetchImpl).archiveRole(ROLE, 2)).toMatchObject({ ok: false, body: held });
     const garbled = answering(200, { ...role, archivedAt: 5 });
-    expect((await httpRolesApi("/api", garbled.fetchImpl).archiveRole(ROLE)).ok).toBe(false);
+    expect((await httpRolesApi("/api", garbled.fetchImpl).archiveRole(ROLE, 2)).ok).toBe(false);
   });
 });

@@ -22,12 +22,12 @@ export interface StaffApi {
   createStaff(member: NewStaffMember): Promise<ApiResult<{ staffId: string }>>;
   /** `PATCH /staff/:id?version=` of the member last read, `{ displayName?, roleId? }` → 204; 409 when they changed since. */
   updateStaff(staffId: string, version: number, body: StaffUpdateBody): Promise<ApiResult<true>>;
-  /** `POST /staff/:id/deactivate` → 204: their shift ends and the tills refuse them. */
-  deactivateStaff(staffId: string): Promise<ApiResult<true>>;
-  /** `POST /staff/:id/reactivate` → 204. */
-  reactivateStaff(staffId: string): Promise<ApiResult<true>>;
-  /** `PUT /staff/:id/pin` `{ pin }` → 204. */
-  resetStaffPin(staffId: string, pin: string): Promise<ApiResult<true>>;
+  /** `POST /staff/:id/deactivate?version=` of the member last read → 204: their shift ends and the tills refuse them; 409 when they changed since. */
+  deactivateStaff(staffId: string, version: number): Promise<ApiResult<true>>;
+  /** `POST /staff/:id/reactivate?version=` → 204; 409 when they changed since. */
+  reactivateStaff(staffId: string, version: number): Promise<ApiResult<true>>;
+  /** `PUT /staff/:id/pin?version=` `{ pin }` → 204; 409 when they changed since. */
+  resetStaffPin(staffId: string, version: number, pin: string): Promise<ApiResult<true>>;
   /** `POST /staff/:id/pin-unlock` → 204. */
   unlockStaffPin(staffId: string): Promise<ApiResult<true>>;
 }
@@ -54,16 +54,16 @@ export function httpStaffApi(base: string, fetchImpl: FetchLike): StaffApi {
       const url = `${base}/staff/${encodeURIComponent(staffId)}?version=${version}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "PATCH", body }), done);
     },
-    async deactivateStaff(staffId) {
-      const url = `${base}/staff/${encodeURIComponent(staffId)}/deactivate`;
+    async deactivateStaff(staffId, version) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/deactivate?version=${version}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), done);
     },
-    async reactivateStaff(staffId) {
-      const url = `${base}/staff/${encodeURIComponent(staffId)}/reactivate`;
+    async reactivateStaff(staffId, version) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/reactivate?version=${version}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), done);
     },
-    async resetStaffPin(staffId, pin) {
-      const url = `${base}/staff/${encodeURIComponent(staffId)}/pin`;
+    async resetStaffPin(staffId, version, pin) {
+      const url = `${base}/staff/${encodeURIComponent(staffId)}/pin?version=${version}`;
       return resultOf(await requestJson(fetchImpl, url, { method: "PUT", body: { pin } }), done);
     },
     async unlockStaffPin(staffId) {

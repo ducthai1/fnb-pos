@@ -6,4 +6,6 @@ export const ROLE_ERROR_CODES = {
   lastAdministrator: "API_ROLE_LAST_ADMINISTRATOR",
   /** The role was archived: it is given to no one, and kept only for the record. */
   roleArchived: "API_ROLE_ARCHIVED",
+  /** The role changed since the caller read it (`?version=`): nothing was written. */
+  versionConflict: "API_ROLE_VERSION_CONFLICT",
 } as const;
