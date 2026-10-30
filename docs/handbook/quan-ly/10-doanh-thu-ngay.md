@@ -38,6 +38,9 @@ Cần quyền **Xem báo cáo** (vai trò mẫu: Chủ quán, Quản lý ca).
 
 1. Mở **Bán hàng & tiền → Doanh thu ngày**.
 2. Chọn **Ngày kinh doanh**: gõ ngày vào ô theo dạng **ngày/tháng/năm** (ví dụ `30/10/2026`, ô luôn hiện đúng dạng này dù trình duyệt dùng ngôn ngữ nào), hoặc bấm biểu tượng lịch cạnh ô để chọn trên **lịch** (tuần bắt đầu từ T2; ngày hôm nay có viền, ngày sau hôm nay mờ và không chọn được; mũi tên đổi tháng; phím mũi tên đi từng ngày / tuần, Page Up / Page Down đổi tháng, Enter chọn, Esc đóng). Hoặc dùng nút **Ngày trước / Ngày sau / Hôm nay**. Gõ chưa đúng thì ô báo ngay dưới ("Nhập ngày theo dạng ngày/tháng/năm, ví dụ 30/10/2026.") và báo cáo giữ ngày cũ.
+
+   ![Chọn ngày trên lịch](../images/quan-ly/doanh-thu-ngay-lich.webp)
+
 3. Đọc **Tóm tắt ngày**: Khách đã trả, Số đơn bán (kèm số đơn hủy), Trung bình mỗi đơn, Giảm giá (trên tiền hàng …), Tiền đã hoàn (số đơn hoàn), Món hủy (số món).
 4. **Doanh thu theo giờ**: biểu đồ cột.
 5. **Tổng ngày**: bảng chỉ tiêu — Số đơn bán · Tiền hàng trước giảm giá · Giảm giá · Tiền hàng sau giảm giá · Phí dịch vụ · Doanh thu chưa VAT · Thuế VAT (tách theo từng mức VAT) · Khách đã trả · Số đơn hoàn · Tiền đã hoàn · VAT của phần hoàn · Số đơn hủy · Số món hủy · Giá trị món hủy · Số lần hoàn tiền QR cho khách · Tiền QR đã hoàn lại khách.
