@@ -60,6 +60,8 @@ export const salesOrder = pgTable("sales_order", {
   einvoiceBuyer: jsonb("einvoice_buyer"),
   /** Paid into a business day already closed; set by the database, see 0022. */
   paidAfterDayClose: boolean("paid_after_day_close").notNull().default(false),
+  /** Cancelled into a business day already closed; set by the database, see 0040. */
+  cancelledAfterDayClose: boolean("cancelled_after_day_close").notNull().default(false),
 });
 
 export const salesOrderLine = pgTable("sales_order_line", {
@@ -120,6 +122,8 @@ export const lineVoidRecord = pgTable("line_void_record", {
   approvedByStaffId: uuid("approved_by_staff_id"),
   approvalId: uuid("approval_id"),
   reversalLineId: uuid("reversal_line_id"),
+  /** Voided into a business day already closed; set by the database, see 0040. */
+  afterDayClose: boolean("after_day_close").notNull().default(false),
 });
 
 /** A closed shift cannot be edited; see 0014_shift_and_cash.sql. */

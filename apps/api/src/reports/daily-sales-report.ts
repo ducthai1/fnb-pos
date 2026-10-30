@@ -131,7 +131,11 @@ interface VoidSum {
   value: Vnd;
 }
 
-/** Units cancelled from the day's orders, by product and variant, whatever became of them. */
+/**
+ * Units cancelled from the day's orders, by product and variant, whatever became of them.
+ * Units voided once the day was closed are left out, as the sales paid then are: the close
+ * froze the day's figures.
+ */
 async function voidsOfTheDay(
   client: pg.ClientBase,
   branchId: string,
@@ -141,6 +145,7 @@ async function voidsOfTheDay(
   const { rows } = await client.query<{ order_id: string; line_id: string; quantity: string }>(
     "SELECT v.order_id, v.line_id, v.quantity::text AS quantity FROM line_void_record v " +
       "JOIN sales_order o ON o.id = v.order_id WHERE o.branch_id = $1 AND o.business_date = $2 " +
+      "AND NOT v.after_day_close " +
       "ORDER BY v.created_at, v.id",
     [branchId, businessDate],
   );
@@ -183,7 +188,8 @@ async function voidsOfTheDay(
 async function cancelledOrderCount(client: pg.ClientBase, branchId: string, businessDate: string) {
   const { rows } = await client.query<{ n: number }>(
     "SELECT count(*)::int AS n FROM sales_order " +
-      "WHERE branch_id = $1 AND business_date = $2 AND status = 'cancelled'",
+      "WHERE branch_id = $1 AND business_date = $2 AND status = 'cancelled' " +
+      "AND NOT cancelled_after_day_close",
     [branchId, businessDate],
   );
   return rows[0]?.n ?? 0;
