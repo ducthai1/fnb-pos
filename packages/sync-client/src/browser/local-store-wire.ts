@@ -34,6 +34,7 @@ export const LOCAL_STORE_METHODS = [
   "enqueue",
   "pendingCommands",
   "pendingCount",
+  "acceptedShiftCommands",
   "recordResults",
   "applyChanges",
   "cursor",

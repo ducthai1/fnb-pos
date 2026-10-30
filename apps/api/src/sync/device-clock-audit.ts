@@ -8,7 +8,7 @@ import type { SyncCommandContext } from "./sync-command-context";
  * whether or not the command is then accepted, since the clock was off either way.
  */
 export async function auditClampedClock(
-  context: Omit<SyncCommandContext, "time">,
+  context: Omit<SyncCommandContext, "time" | "answer">,
   time: CommandTime,
 ): Promise<void> {
   const { client, device, command } = context;

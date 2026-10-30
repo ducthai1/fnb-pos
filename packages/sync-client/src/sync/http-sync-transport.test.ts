@@ -53,6 +53,8 @@ describe("the sync endpoints over HTTP", () => {
         headers: {
           authorization: "Device device-token",
           "content-type": "application/json",
+          // It says which optional fields of an answer it can read.
+          "x-fnb-sync-features": "shift-version",
           "x-staff-session": "staff-token",
         },
         body: JSON.stringify({ commands: [envelope] }),

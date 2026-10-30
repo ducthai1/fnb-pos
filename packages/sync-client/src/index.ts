@@ -5,6 +5,7 @@ export type {
   EntityView,
   LocalCommand,
   LocalStore,
+  AcceptedShiftCommand,
   RejectedCommand,
   RestoreState,
   ServerRebase,

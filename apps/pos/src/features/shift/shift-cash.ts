@@ -7,6 +7,7 @@ import {
   cashMoveAction,
   vnd,
 } from "@fnb/domain";
+import type { AcceptedShiftCommand } from "@fnb/sync-client";
 import type { StoredShift } from "./stored-shift";
 
 const CASH = "cash";
@@ -35,6 +36,23 @@ export function waitingShiftCash(
     }
   }
   return events;
+}
+
+/**
+ * Cash the server took from this till (an accepted payment or refund) that the till's copy of
+ * the shift does not hold yet: the answer named the version of the shift the cash reaches,
+ * and the copy is still older. Without this the figure would drop by that cash for the moment
+ * between the answer and the shift's next copy, and a close counted then would be short.
+ */
+export function heldShiftCash(
+  accepted: readonly AcceptedShiftCommand[],
+  shift: Pick<StoredShift, "id" | "version">,
+): ShiftCashEvent[] {
+  const ahead = accepted.filter((entry) => entry.shiftVersion > shift.version);
+  return waitingShiftCash(
+    ahead.map((entry) => entry.command),
+    shift.id,
+  );
 }
 
 /**

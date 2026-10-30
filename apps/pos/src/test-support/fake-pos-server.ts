@@ -197,6 +197,7 @@ export function fakeDependencies(
     store?: Promise<LocalStore>;
     credentials?: DeviceCredentialStore;
     printer?: PrinterPort;
+    closeWaitMs?: number;
   } = {},
 ): PosDependencies {
   return {
@@ -224,6 +225,7 @@ export function fakeDependencies(
     // the default backoff would then hold the next pass longer than a test waits for it.
     syncBackoff: { baseMs: 20, maxMs: 100 },
     printer: options.printer ?? previewOnlyPrinter,
+    ...(options.closeWaitMs === undefined ? {} : { closeWaitMs: options.closeWaitMs }),
     reload: () => {},
   };
 }

@@ -19,6 +19,8 @@ export {
   type SyncCommandResult,
   type SyncCommandStatus,
   syncCommandResultSchema,
+  SYNC_FEATURES_HEADER,
+  SYNC_FEATURE_SHIFT_VERSION,
 } from "./sync-command-result-schema";
 export * from "./commands";
 export {

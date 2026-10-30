@@ -35,6 +35,8 @@ export interface SyncCommandResult<Snapshot extends CommandSnapshot = CommandSna
   readonly code?: string;
   /** The order as the server holds it after the command (accepted) or now (rejected). */
   readonly snapshot?: Snapshot;
+  /** The shift's copy version once the command's cash is in its book (accepted pay, refund, cash move). */
+  readonly shiftVersion?: number;
 }
 
 export interface SyncChange {

@@ -17,6 +17,11 @@ export function shiftCloseSlip(input: {
   assessment: ClosingAssessment;
   staffName: string;
   at: number;
+  /**
+   * Printed from the till's own numbers before the server answered: the title says so, so
+   * nobody files it as the shift's record.
+   */
+  provisional?: boolean;
 }): PrintJob {
   const closedAt = localClockParts(input.at, input.menu.branch.utcOffsetMinutes);
   const document = buildShiftClose({
@@ -32,10 +37,18 @@ export function shiftCloseSlip(input: {
       },
     ],
   });
-  const dayOnly = document.map((block): PrintBlock =>
-    block.kind === "columns" && block.left === PRINT_LABELS_VI.shiftOpened
-      ? { ...block, left: vi.closeShift.slipDay, right: input.shift.businessDate }
-      : block,
-  );
+  const dayOnly = document.map((block): PrintBlock => {
+    if (block.kind === "columns" && block.left === PRINT_LABELS_VI.shiftOpened) {
+      return { ...block, left: vi.closeShift.slipDay, right: input.shift.businessDate };
+    }
+    if (
+      input.provisional === true &&
+      block.kind === "text" &&
+      block.text === PRINT_LABELS_VI.shiftCloseTitle
+    ) {
+      return { ...block, text: vi.closeShift.provisionalTitle };
+    }
+    return block;
+  });
   return receiptJob(dayOnly, "shift_report");
 }

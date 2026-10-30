@@ -19,6 +19,7 @@ decisions:
   - D-097
   - D-131
   - D-082
+  - D-083
 tests:
   - apps/pos/src/features/printing/print-sale-slips.test.ts
   - packages/printing/src/layout/lay-out-document.test.ts
@@ -34,6 +35,7 @@ tests:
   - apps/pos/src/app/sale-invoice-reprint.test.tsx
   - e2e/pos/table-service.spec.ts
   - apps/pos/src/app/table-kitchen-lock-without-a-printer.test.tsx
+  - apps/pos/src/app/close-shift-slip-follows-the-server.test.tsx
 ---
 
 # Phiếu in
@@ -77,7 +79,7 @@ Thu ngân đọc phiếu trên màn (hoặc xoay màn cho pha chế xem). Tem ly
 
    ![Phiếu hoàn tiền](../images/may-quay/refund-and-close-slips.webp)
 
-4. **Đóng ca**: màn **Đã đóng ca** hiện phiếu chốt ca (tiền hệ thống, tiền thực tế, chênh lệch, chỗ ký nhận); bấm **Mở ca mới**.
+4. **Đóng ca**: màn **Đã đóng ca** hiện phiếu chốt ca (có mạng: in theo số **máy chủ** đã ghi; mất mạng hoặc máy chủ chậm quá 10 giây: in bản **"PHIẾU ĐÓNG CA (TẠM — chưa đối chiếu máy chủ)"** theo số trên máy, rồi nút **In bản chính thức** khi máy chủ nhận ca — xem [07](07-thu-chi-va-dong-ca.md)) (tiền hệ thống, tiền thực tế, chênh lệch, chỗ ký nhận); bấm **Mở ca mới**.
 
    ![Phiếu chốt ca](../images/may-quay/close-shift-slip.webp)
 

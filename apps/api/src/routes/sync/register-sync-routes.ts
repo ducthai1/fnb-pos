@@ -1,4 +1,9 @@
-import { SERVER_GENERATION_HEADER, SERVER_TIME_HEADER } from "@fnb/contracts";
+import {
+  SERVER_GENERATION_HEADER,
+  SERVER_TIME_HEADER,
+  SYNC_FEATURES_HEADER,
+  SYNC_FEATURE_SHIFT_VERSION,
+} from "@fnb/contracts";
 import { readServerGeneration, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
@@ -50,7 +55,15 @@ export function registerSyncRoutes(app: FastifyInstance, context: ApiContext): v
     });
     if (sender === null) return reply.code(401).send({ code: STAFF_ERROR_CODES.sessionInvalid });
     const { generation, ...syncSender } = sender;
-    const results = await applySyncBatch(pool, syncSender, envelopesOf(parsed.data));
+    const answered = await applySyncBatch(pool, syncSender, envelopesOf(parsed.data));
+    // A till of an older release parses each answer strictly: it only gets the fields it asked for.
+    const features = String(request.headers[SYNC_FEATURES_HEADER] ?? "").split(",");
+    const results = features.map((name) => name.trim()).includes(SYNC_FEATURE_SHIFT_VERSION)
+      ? answered
+      : answered.map((result) => {
+          const { shiftVersion, ...plain } = result;
+          return shiftVersion === undefined ? result : plain;
+        });
     return reply
       .header(SERVER_GENERATION_HEADER, generation)
       .header(SERVER_TIME_HEADER, String(clock.now().getTime()))

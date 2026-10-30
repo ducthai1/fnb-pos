@@ -22,6 +22,8 @@ export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "m
   tillStart?: Pick<BootstrapSnapshot, "floor" | "openOrders">;
   /** Called after each sync pass; returns the unsubscribe. */
   onSyncPass(listener: () => void): () => void;
+  /** How long closing the shift waits for the server; the flow's own unless a test shortens it. */
+  closeWaitMs?: number;
   /** Records the shift's close outside these screens, which end with the shift. */
   onCloseShift(run: () => Promise<ShiftClosing>): void;
 }

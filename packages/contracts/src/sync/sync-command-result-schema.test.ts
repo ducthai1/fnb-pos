@@ -9,6 +9,7 @@ describe("syncCommandResultSchema", () => {
   it.each([
     { commandId, status: "accepted" },
     { commandId, status: "accepted", snapshot },
+    { commandId, status: "accepted", shiftVersion: 7 },
     { commandId, status: "rejected", code: "DOMAIN_ORDER_ALREADY_PAID" },
     { commandId, status: "rejected", code: "API_TABLE_TAKEN", snapshot },
     { commandId, status: "retry" },
@@ -29,6 +30,9 @@ describe("syncCommandResultSchema", () => {
     ["a snapshot that is not a row", { commandId, status: "accepted", snapshot: [snapshot] }],
     ["an uppercase command id", { commandId: commandId.toUpperCase(), status: "accepted" }],
     ["no command id", { status: "accepted" }],
+    ["a shift version that is negative", { commandId, status: "accepted", shiftVersion: -1 }],
+    ["a shift version that is not whole", { commandId, status: "accepted", shiftVersion: 1.5 }],
+    ["a shift version on a rejection", { commandId, status: "rejected", code: "API_X", shiftVersion: 1 }],
   ])("refuses %s", (_label, result) => {
     expect(outcomeOf(syncCommandResultSchema, result).ok).toBe(false);
   });

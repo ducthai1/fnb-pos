@@ -16,6 +16,7 @@ decisions:
   - D-076
   - D-078
   - D-080
+  - D-083
 tests:
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/screens/shift/shift-screens.test.tsx
@@ -31,6 +32,9 @@ tests:
   - apps/api/test/integration/config/config-changes-reach-the-tills-under-their-scope.test.ts
   - apps/api/test/integration/payments/qr-over-transfer-handed-back-from-the-drawer.test.ts
   - e2e/pos/close-shift-with-count.spec.ts
+  - apps/pos/src/app/close-shift-slip-follows-the-server.test.tsx
+  - apps/api/test/integration/shift/answers-carry-the-shift-version.test.ts
+  - packages/sync-client/src/local-store/shift-version-journal.test.ts
 ---
 
 # Thu/chi két và đóng ca
@@ -67,11 +71,13 @@ tests:
    ![Đóng ca: đếm được 1.790.000 đ, thiếu 9.000 đ](../images/may-quay/close-shift.webp)
 
 4. Bấm **Đóng ca**. Lệch quá mức cho phép thì máy báo "Chênh lệch vượt mức cho phép của quán: cần quản lý duyệt khi đóng ca." và mở màn duyệt, ghi rõ "Đóng ca lệch −9.000 ₫ so với tiền dự kiến".
-5. Máy hiện **Đã đóng ca** — "Ca đã đóng, chênh lệch …" — và **phiếu chốt ca** (xem [10-phieu-in.md](10-phieu-in.md)). Bấm **Mở ca mới** để bắt đầu ca sau (xem [02-mo-ca.md](02-mo-ca.md)).
+5. **Có mạng**: máy gửi lệnh đóng ca và **chờ máy chủ nhận** (tối đa khoảng 10 giây, màn hiện vòng chờ) rồi in **phiếu chốt ca theo số của máy chủ** (tiền dự kiến, tiền đếm, chênh lệch do máy chủ ghi). **Mất mạng hoặc máy chủ chậm quá 10 giây**: máy in phiếu **"PHIẾU ĐÓNG CA (TẠM — chưa đối chiếu máy chủ)"** theo số trên máy, kèm câu "Máy chưa nhận được số của máy chủ…"; nút **Đang chờ máy chủ nhận ca…** (xám) đổi thành **In bản chính thức** khi máy chủ đã nhận ca, bấm để in bản chính thức theo số máy chủ (phiếu tạm vẫn ở trên màn, không thay). Máy chủ **từ chối** đóng ca (ví dụ chênh lệch vượt mức mà chưa duyệt): không in phiếu, màn ghi "Máy chủ chưa nhận việc đóng ca này nên ca vẫn mở…" và bấm **Mở ca mới** để về màn bán rồi đếm lại.
+6. Máy hiện **Đã đóng ca** — "Ca đã đóng, chênh lệch …" — và **phiếu chốt ca** (xem [10-phieu-in.md](10-phieu-in.md)). Bấm **Mở ca mới** để bắt đầu ca sau (xem [02-mo-ca.md](02-mo-ca.md)).
 
 ## Luật và giới hạn
 
 - **Tiền dự kiến = tiền đầu ca + thu tiền mặt − hoàn tiền mặt + thu vào két − chi khỏi két.** Chỉ tiền mặt; chuyển khoản QR không tính vào két.
+- Khoản tiền mặt máy chủ **vừa nhận** từ máy này (thanh toán, hoàn tiền) được **giữ trong tiền dự kiến** cho tới khi bản sao ca trên máy đã đạt số thứ tự mà máy chủ báo kèm câu trả lời ("số phiên bản ca"), nên tiền dự kiến không tụt rồi nhảy lên trong khoảnh khắc giữa lúc máy chủ nhận và lúc bản ca mới về.
 - Tiền dự kiến lấy theo **sổ ca của máy chủ** (mọi khoản tiền mặt vào két ca này), **cộng thêm** các khoản máy này chưa gửi được. Thu/chi làm lúc mất mạng được tính ngay.
 - Ngưỡng thu/chi **cộng dồn trong cả ca**, **mọi nhân viên trên két đó cộng chung**, tính theo độ lớn (thu 400.000 rồi chi 400.000 là 800.000 đ đã qua tay). Không chia nhỏ để lách được.
 - Lý do thu/chi **bắt buộc**, tối đa **200 ký tự**. Số tiền chỉ gồm chữ số, lớn hơn 0.

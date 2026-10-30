@@ -1,6 +1,8 @@
 import {
   SERVER_GENERATION_HEADER,
   SERVER_TIME_HEADER,
+  SYNC_FEATURES_HEADER,
+  SYNC_FEATURE_SHIFT_VERSION,
   serverGenerationSchema,
   serverTimeSchema,
   syncChangesPageSchema,
@@ -88,6 +90,7 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
         headers: {
           authorization,
           "content-type": "application/json",
+          [SYNC_FEATURES_HEADER]: SYNC_FEATURE_SHIFT_VERSION,
           ...(staff === null ? {} : { [STAFF_SESSION_HEADER]: staff }),
         },
         body: JSON.stringify({ commands }),

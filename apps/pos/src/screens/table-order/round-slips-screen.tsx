@@ -1,4 +1,4 @@
-import { ArrowLeft, ChefHat } from "lucide-react";
+import { ArrowLeft, ChefHat, Printer } from "lucide-react";
 import type { ReactNode } from "react";
 import type { PrintedSlip } from "../../features/printing/print-sale-slips";
 import { vi } from "../../messages/vi";
@@ -17,6 +17,8 @@ export function RoundSlipsScreen(props: {
   notice?: string | undefined;
   /** What the button back says; back to the order unless told otherwise. */
   backLabel?: string;
+  /** A second action beside going back, e.g. printing the official copy once it can be. */
+  extra?: { readonly label: string; readonly disabled: boolean; onClick(): void } | undefined;
   onBack(): void;
 }) {
   const { slips } = props;
@@ -25,14 +27,27 @@ export function RoundSlipsScreen(props: {
       title={props.title}
       wide
       dock={
-        <button
-          type="button"
-          className="pos-button pos-button--primary pos-button--lg pos-button--block"
-          onClick={props.onBack}
-        >
-          <Icon of={ArrowLeft} size={22} />
-          {props.backLabel ?? vi.tables.slips.backToOrder}
-        </button>
+        <>
+          {props.extra === undefined ? null : (
+            <button
+              type="button"
+              className="pos-button pos-button--lg pos-button--block"
+              disabled={props.extra.disabled}
+              onClick={props.extra.onClick}
+            >
+              <Icon of={Printer} size={22} />
+              {props.extra.label}
+            </button>
+          )}
+          <button
+            type="button"
+            className="pos-button pos-button--primary pos-button--lg pos-button--block"
+            onClick={props.onBack}
+          >
+            <Icon of={ArrowLeft} size={22} />
+            {props.backLabel ?? vi.tables.slips.backToOrder}
+          </button>
+        </>
       }
     >
       {props.header}
