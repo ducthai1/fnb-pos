@@ -9,6 +9,7 @@ import { useApprovalGate } from "../features/permissions/use-approval-gate";
 import { vi } from "../messages/vi";
 import { CancelOrderScreen } from "../screens/order-adjust/cancel-order-screen";
 import { type AdjustContext, approvalOf, attempt } from "./adjust-flow-parts";
+import { useFinishThen } from "../screens/shared/use-leave-motion";
 
 /**
  * Cancelling the draft (or, with `release`, closing a table's order that has nothing on it): refused while the kitchen still has units of it or the bank paid a
@@ -18,10 +19,13 @@ import { type AdjustContext, approvalOf, attempt } from "./adjust-flow-parts";
 export function CancelOrderFlow(props: AdjustContext & { release?: boolean }) {
   const { settled, session } = props;
   const gate = useApprovalGate();
+  // The step sinks away when its work is done, as it does when backed out of.
+  const { closing, finish } = useFinishThen(props.onDone);
   if (gate.sheet !== null) return gate.sheet;
   const orderId = settled.order.orderId;
   return (
     <CancelOrderScreen
+      closing={closing}
       header={props.header}
       orderNo={settled.order.deviceOrderNo}
       {...(props.release === true ? { release: settled.order.table?.name ?? "" } : {})}
@@ -47,7 +51,7 @@ export function CancelOrderFlow(props: AdjustContext & { release?: boolean }) {
           await session.record(
             cancelOrderCommand(props.place, now, reason, approvalId, Date.now()),
           );
-          props.onDone({ kind: "cancelled" });
+          finish({ kind: "cancelled" });
           return null;
         })
       }

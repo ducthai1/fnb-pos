@@ -2,8 +2,10 @@ import { CircleAlert, Eye, Printer } from "lucide-react";
 import type { PrintedSlip } from "../../features/printing/print-sale-slips";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
+import { SlipPaper } from "./slip-paper";
 
 const T = vi.checkout.done;
+
 
 function slipStatus(slip: PrintedSlip): string {
   switch (slip.outcome.status) {
@@ -42,7 +44,7 @@ export function PrintedSlipList({ slips }: { slips: readonly PrintedSlip[] | nul
               {slipStatus(slip)}
             </p>
             {/* Drawn as the paper comes out of the printer: its own columns, its own width. */}
-            <pre className="pos-slip__preview">{slip.job.preview}</pre>
+            <SlipPaper preview={slip.job.preview} />
           </article>
         );
       })}

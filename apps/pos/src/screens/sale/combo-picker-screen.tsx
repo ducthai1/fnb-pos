@@ -20,7 +20,7 @@ import { type CartLine, cleanNote } from "../../features/order/counter-order";
 import { linePreviewTotal } from "../../features/order/line-preview-total";
 import { vi } from "../../messages/vi";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
-import { useLeaveThen } from "../shared/use-leave-motion";
+import { useFinishThen, useLeaveThen } from "../shared/use-leave-motion";
 import { useTillKey } from "../shared/use-till-key";
 import { ComboSlotField } from "./combo-slot-field";
 import { PickerMoreSection } from "./picker-more-section";
@@ -53,6 +53,8 @@ export function ComboPickerScreen({
 }: ComboPickerScreenProps) {
   // Back plays the step's leaving movement before the flow closes it.
   const { leaving, leave } = useLeaveThen(onCancel, "--t-exit");
+  // Adding the line sinks the step away the same way, then the flow puts the line on the order.
+  const { closing, finish } = useFinishThen<CartLine>(onAdd);
   const soldOut = (option: ComboSlotOption) =>
     isSoldOut(menu.availability.get(option.productId), COUNTER_CHANNEL, now);
   const [picks, setPicks] = useState<PickerPick[]>(() =>
@@ -80,7 +82,7 @@ export function ComboPickerScreen({
     if (emptyRequired !== undefined) return setError(M.allSoldOut(emptyRequired.name));
     const checked = confirmComboPicks(menu, product, picks);
     if (!checked.ok) return setError(checked.message);
-    onAdd({
+    finish({
       lineId: newId(),
       productId: product.id,
       variantId: null,
@@ -94,7 +96,7 @@ export function ComboPickerScreen({
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || closing}
       title={product.name}
       dock={
         <>

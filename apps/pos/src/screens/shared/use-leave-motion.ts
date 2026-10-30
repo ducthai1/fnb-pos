@@ -74,3 +74,35 @@ export function usePresence(
   }, [lingering, durationToken]);
   return { present: open || lingering, leaving: !open && lingering };
 }
+
+/**
+ * Finishing a step by playing its leaving movement before the flow moves on: a step that ends
+ * because its work is done (a line voided, an order cancelled, a manager approved) sinks away
+ * as one that is backed out of does, instead of vanishing the instant the flow changes state.
+ * `finish(outcome)` marks the step `closing` and hands `outcome` to `then` when the movement
+ * has played, at a timer (never an animation callback, which a hidden page may not fire), and
+ * at once when nothing moves. A second finish while closing does nothing.
+ */
+export function useFinishThen<Outcome>(then: (outcome: Outcome) => void, durationToken = "--t-exit") {
+  const [closing, setClosing] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latest = useRef(then);
+  latest.current = then;
+  useEffect(
+    () => () => {
+      if (timer.current !== null) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const finish = useCallback(
+    (outcome: Outcome) => {
+      if (timer.current !== null) return;
+      const ms = motionPlays() ? tokenMs(durationToken) : 0;
+      if (ms === 0) return latest.current(outcome);
+      setClosing(true);
+      timer.current = setTimeout(() => latest.current(outcome), ms);
+    },
+    [durationToken],
+  );
+  return { closing, finish };
+}

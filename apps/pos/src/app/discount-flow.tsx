@@ -12,15 +12,18 @@ import { useApprovalGate } from "../features/permissions/use-approval-gate";
 import { vi } from "../messages/vi";
 import { DiscountScreen } from "../screens/order-adjust/discount-screen";
 import { type AdjustContext, approvalOf, attempt, nameOn } from "./adjust-flow-parts";
+import { useFinishThen } from "../screens/shared/use-leave-motion";
 
 /** A discount on an item or the order, judged by the share all such discounts then take. */
 export function DiscountFlow(props: AdjustContext & { scope: DiscountScope }) {
   const { settled, scope, session, place } = props;
   const gate = useApprovalGate();
+  // The step sinks away when its work is done, as it does when backed out of.
+  const { closing, finish } = useFinishThen(props.onDone);
   if (gate.sheet !== null) return gate.sheet;
   const lines = settled.priced.lines;
   const itemName = scope.kind === "line" ? nameOn(settled, scope.lineId) : null;
-  const done = () => props.onDone({ kind: "adjusted" });
+  const done = () => finish({ kind: "adjusted" });
 
   const preview = (input: DiscountInput) => {
     try {
@@ -58,6 +61,7 @@ export function DiscountFlow(props: AdjustContext & { scope: DiscountScope }) {
 
   return (
     <DiscountScreen
+      closing={closing}
       header={props.header}
       title={
         itemName === null ? vi.adjust.discount.titleOrder : vi.adjust.discount.titleLine(itemName)

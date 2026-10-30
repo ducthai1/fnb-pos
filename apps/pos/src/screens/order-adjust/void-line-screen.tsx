@@ -26,6 +26,8 @@ export interface VoidLineScreenProps {
   /** Records the void; answers why it did not, or null once recorded (or nobody approved). */
   onConfirm(units: number, reason: ChosenReason): Promise<string | null>;
   onBack(): void;
+  /** The step's work is done and it is playing its leaving movement before the flow moves on. */
+  closing?: boolean;
 }
 
 /** "Hủy món": how many, and why. Units the kitchen has are cancelled last, with a ticket. */
@@ -52,7 +54,7 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || props.closing === true}
       title={T.title}
       dock={
         <>

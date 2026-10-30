@@ -11,6 +11,7 @@ import type { TillMenu } from "../features/menu/till-menu";
 import { vi } from "../messages/vi";
 import { VoidLineScreen } from "../screens/order-adjust/void-line-screen";
 import { type AdjustContext, approvalOf, attempt, nameOn, units } from "./adjust-flow-parts";
+import { useFinishThen } from "../screens/shared/use-leave-motion";
 
 const voidNeedsApproval = (menu: TillMenu) =>
   menu.config.settings.void_after_sent_needs_approval !== false;
@@ -22,6 +23,8 @@ const voidNeedsApproval = (menu: TillMenu) =>
 export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
   const { settled, lineId } = props;
   const gate = useApprovalGate();
+  // The step sinks away when its work is done, as it does when backed out of.
+  const { closing, finish } = useFinishThen(props.onDone);
   const { authority } = useTillPermissions();
   if (gate.sheet !== null) return gate.sheet;
   const lines = settled.priced.lines;
@@ -73,12 +76,13 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
         record = adjusted.record;
         return adjusted;
       });
-      props.onDone(record === null ? { kind: "adjusted" } : { kind: "voided", record });
+      finish(record === null ? { kind: "adjusted" } : { kind: "voided", record });
       return null;
     });
 
   return (
     <VoidLineScreen
+      closing={closing}
       header={props.header}
       itemName={name}
       {...(grams === undefined ? {} : { weighedGrams: grams })}

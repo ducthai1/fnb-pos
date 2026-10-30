@@ -24,6 +24,7 @@ decisions:
 tests:
   - apps/pos/src/features/printing/kitchen-routing-and-cup-label-switches.test.ts
   - apps/pos/src/features/printing/print-sale-slips.test.ts
+  - apps/pos/test/browser/slips-read-whole-in-chrome.test.ts
   - packages/printing/src/layout/lay-out-document.test.ts
   - packages/printing/src/templates/bill-template.test.ts
   - packages/printing/src/templates/kitchen-ticket-template.test.ts
@@ -116,6 +117,10 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 | In lỗi (…) — phiếu chưa ra giấy. | Máy in không nhận (hết giấy, kẹt, mất kết nối) | Kiểm tra máy in; gửi bếp lại / in lại |
 | Không có món nào cần gửi bếp. | Gửi bếp khi không còn món mới | — |
 | Phiếu hủy đã in nhưng máy chưa báo được máy chủ: khi có mạng, lần gửi bếp sau có thể in lại phiếu hủy này. | Hủy món khi mất mạng | Báo bếp bỏ qua phiếu hủy in trùng |
+
+### Bản xem trước phải đọc được hết
+
+Khi máy chưa nối máy in, mỗi phiếu hiện **bản xem trước** trên màn: tờ giấy trắng chữ đen, đúng các cột như giấy in ra (bill, phiếu pha chế, tem ly, tạm tính, phiếu hủy món, phiếu hoàn, phiếu chốt ca tạm và chính thức). Tờ giấy **không bao giờ bị cắt cột bên phải** (số tiền, ngày): thẻ chứa phiếu giãn theo màn (một phiếu thì rộng hết cỡ, nhiều phiếu thì chia cột), và nếu thẻ vẫn hẹp hơn tờ giấy (điện thoại, nhiều phiếu cạnh nhau) thì **chữ thu nhỏ đúng tỉ lệ** cho vừa, tối thiểu 7 px, thay vì phải cuộn ngang. Kiểm ở 360, 768, 1280 và 1920 px.
 
 ## Mất mạng thì sao
 
