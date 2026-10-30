@@ -3,7 +3,7 @@
 
 export const VI_SYNC_ERRORS = {
   SYNC_ORDER_HAS_SETTLED_QR:
-    "Khách đã chuyển khoản đủ qua QR của đơn này, nên máy chủ không nhận thu tiền mặt, hủy đơn hay tạo QR mới. Trả lại tiền mặt cho khách (nếu đã thu) rồi đóng đơn bằng QR đã nhận.",
+    "Khách đã chuyển khoản đủ qua QR của đơn này, nên máy chủ không nhận thu tiền mặt, hủy đơn hay tạo QR mới. Trả lại tiền mặt cho khách (nếu đã thu) rồi đóng đơn bằng QR đã nhận. Khách muốn lấy lại khoản chuyển khoản thay vì tiền mặt thì nhờ quản lý hoàn ở trang quản lý, rồi bỏ qua lệnh này và ghi cách đã xử lý.",
   SYNC_PAYMENT_INTENT_ID_TAKEN: "Mã QR trùng với một mã đã có của cửa hàng. Tạo QR mới.",
   SYNC_PAYMENT_INTENT_NOT_FOUND: "Máy chủ không tìm thấy mã QR này ở chi nhánh của máy.",
   SYNC_PAYMENT_INTENT_ALREADY_PENDING:

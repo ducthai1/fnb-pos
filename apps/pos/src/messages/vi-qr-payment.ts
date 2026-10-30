@@ -29,6 +29,12 @@ export const VI_QR_PAYMENT = {
     withdrawn: "Mã QR này đã bị gỡ (đơn đã thu cách khác hoặc đã đổi). Tạo mã mới nếu cần.",
     refused: "Máy chủ không nhận mã QR này.",
   },
+  leaveWhileOffline: {
+    title: "Máy chưa biết khách đã chuyển khoản chưa",
+    hint: "Máy đang mất kết nối với máy chủ, nên ngân hàng có thể đã báo tiền về mà máy chưa nhận được. Kiểm tra app ngân hàng của quán (hoặc hỏi khách đã bấm chuyển chưa) trước khi lấy tiền mặt. Khách đã chuyển mà vẫn thu tiền mặt thì khách trả hai lần và quán phải hoàn một khoản.",
+    stay: "Quay lại, chờ khách chuyển",
+    go: "Khách chưa chuyển, thu cách khác",
+  },
   cancel: "Hủy QR",
   renew: "Tạo QR mới",
   otherMethod: "Thu cách khác",

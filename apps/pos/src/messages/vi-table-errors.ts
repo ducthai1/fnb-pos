@@ -24,6 +24,12 @@ export const VI_TABLE_ERRORS = {
   DOMAIN_ORDER_ALREADY_POSTED: "Đơn này đã chốt sổ nên không sửa được nữa.",
 } as const;
 
+const INTENT_CHANGED = "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION";
+
+/** A QR taken down after the bank paid it (or after it ran out): the money may be there. */
+const TAKE_DOWN_TOO_LATE =
+  "Mã QR đã đổi trạng thái trước khi máy gỡ được: có thể khách đã chuyển khoản. Xem đơn: nếu máy thấy khoản QR đã nhận thì làm như dòng thu tiền mặt bị từ chối ở trên (trả lại tiền mặt cho khách, đóng đơn bằng QR đã nhận). Nếu mã chỉ hết hạn hoặc đã được gỡ từ trước thì bỏ qua lệnh này và ghi lý do.";
+
 /** The same code means something else when it answers a move to another table. */
 const TRANSFER_SENTENCES: Readonly<Record<string, string>> = {
   [TABLE_OCCUPIED]:
@@ -38,5 +44,6 @@ const TRANSFER_SENTENCES: Readonly<Record<string, string>> = {
  */
 export function commandSpecificSentence(type: string, code: string): string | null {
   if (type === "table.transfer") return TRANSFER_SENTENCES[code] ?? null;
+  if (type === "payment.cancel_intent" && code === INTENT_CHANGED) return TAKE_DOWN_TOO_LATE;
   return null;
 }

@@ -1,11 +1,13 @@
 import type { PaymentAccount, WalletKey } from "@fnb/contracts";
 import type { Vnd } from "@fnb/domain";
 import type { LocalCommand, SyncClient } from "@fnb/sync-client";
-import type { ReactNode } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import type { TillPlace } from "../features/order/till-command";
 import type { Tender } from "../features/payment/tenders";
 import { useTillPermissions } from "../features/permissions/till-permissions-context";
+import { connectionIsDown, useTillConnection } from "../features/sync/till-connection-context";
 import { useApprovalGate } from "../features/permissions/use-approval-gate";
+import { LeaveQrWhileOfflineSheet } from "../screens/payment/leave-qr-while-offline-sheet";
 import { PaymentDrawer } from "../screens/payment/payment-drawer";
 import { QrPanel } from "../screens/payment/qr-panel";
 import { WalletPanel } from "../screens/payment/wallet-panel";
@@ -44,15 +46,38 @@ export function CounterPaymentDrawer(props: CounterPaymentDrawerProps) {
   const qr = useCounterQr({ ...props, staffId: authority.staffId, approve: gate.require });
   const wallet = useCounterWallet(props);
   const online = useNavigatorOnline();
-  const asking = gate.sheet !== null;
+  const unsure = connectionIsDown(useTillConnection()) || !online;
+  /** Answers the cashier's choice when asked to take a QR down that may have been paid. */
+  const [leaving, setLeaving] = useState<((takeDown: boolean) => void) | null>(null);
+  const takeDownQr = qr.leave;
+  // Offline, a transfer may have come in that the till has not heard of: taking the QR down
+  // to take cash would charge the guest twice, so the cashier is told first.
+  const leaveQr = useCallback(
+    () =>
+      unsure && qr.mayBePaid
+        ? new Promise<boolean>((resolve) =>
+            setLeaving(() => (takeDown: boolean) => {
+              setLeaving(null);
+              if (takeDown) void takeDownQr().then(resolve);
+              else resolve(false);
+            }),
+          )
+        : takeDownQr(),
+    [unsure, qr.mayBePaid, takeDownQr],
+  );
+  const asking = gate.sheet !== null || leaving !== null;
   return (
     <>
       <UnderLayer covered={asking}>
         <div style={{ display: asking ? "none" : "contents" }}>
-          {drawerOf(props, qr, wallet, online)}
+          {drawerOf(props, { ...qr, leave: leaveQr }, wallet, online)}
         </div>
       </UnderLayer>
-      {asking ? <CoverLayer>{gate.sheet}</CoverLayer> : null}
+      {asking ? (
+        <CoverLayer>
+          {leaving === null ? gate.sheet : <LeaveQrWhileOfflineSheet onChoose={leaving} />}
+        </CoverLayer>
+      ) : null}
     </>
   );
 }
