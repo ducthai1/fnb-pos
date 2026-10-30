@@ -41,6 +41,15 @@ describe("laying out a document", () => {
     expect(texts(layOutDocument(doc, 18))).toEqual([" Trà sữa    35.000", " trân châu"]);
   });
 
+  it("breaks a name at a line or paragraph separator as at a wrap, the amount on its first line", () => {
+    for (const separator of ["\n", "\u2028", "\u2029", "\u0085"]) {
+      const doc: PrintBlock[] = [
+        { kind: "columns", left: `Trà sữa${separator}trân châu`, right: "35.000" },
+      ];
+      expect(texts(layOutDocument(doc, 18))).toEqual(["Trà sữa     35.000", "trân châu"]);
+    }
+  });
+
   it("gives the left column its own lines when the right one leaves it too little room", () => {
     const doc: PrintBlock[] = [{ kind: "columns", left: "Tổng", right: "1.234.567.890.000" }];
     expect(texts(layOutDocument(doc, 20))).toEqual(["Tổng", "   1.234.567.890.000"]);
@@ -73,9 +82,13 @@ const blockArb: fc.Arbitrary<Extract<PrintBlock, { kind: "text" | "columns" }>> 
   }),
 );
 
+/**
+ * The cells that print ink: layout may drop or move any kind of space (a line of only an
+ * ideographic or no-break space is a blank line), but never a letter.
+ */
 const lettersOf = (text: string) =>
   toPrintCells(text)
-    .filter((c) => c !== " ")
+    .filter((c) => !/^\s+$/u.test(c))
     .join("");
 
 describe("layout over arbitrary text", () => {
@@ -87,8 +100,14 @@ describe("layout over arbitrary text", () => {
           if (line.kind !== "text") continue;
           expect(printWidth(line.text) * (line.large ? 2 : 1)).toBeLessThanOrEqual(columns);
         }
-        const source = block.kind === "text" ? block.text : block.left + block.right;
-        expect(lettersOf(texts(lines).join(""))).toBe(lettersOf(source));
+        const printed = lettersOf(texts(lines).join(""));
+        if (block.kind === "text") {
+          expect(printed).toBe(lettersOf(block.text));
+        } else {
+          // The amount is printed beside the first line of a name that wraps or breaks, so a
+          // column block keeps every letter but not their order across the two columns.
+          expect([...printed].sort()).toEqual([...lettersOf(block.left + block.right)].sort());
+        }
       }),
       { numRuns: 400 },
     );
