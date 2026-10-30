@@ -6,6 +6,15 @@
 
 ## Bàn giao phiên trước
 
+- 2026-10-30 — **Lượt 6a (khóa món đã gửi bếp, số gọi nhiều máy, phiếu đóng ca) xong mốc 1–3; mốc 4 "Cần xử lý" CHƯA làm** (1 agent, nhánh `feat/kitchen-lock-call-numbers-and-needs-attention`, chưa push).
+  - **Commit:** `202ee0b` (mốc 1) · `9ac1563` (mốc 2) · `4005c7c` (mốc 3) · cộng commit bàn giao.
+  - **Mốc 1 (D-131…D-134):** phiếu bếp chỉ xem trên màn tính là đã gửi (khóa món, hủy món xin duyệt + phiếu hủy); máy in lỗi thì chưa gửi; hủy lần cân nguyên; nút "Trả bàn"; đổi tùy chọn món đã gửi = hủy + gọi lại; sửa `kitchenStillHasItems` (dòng hủy không còn bị tính là bếp còn món).
+  - **Mốc 2 (D-135):** migration `0037_device_call_index`; bootstrap kèm `callNumbering` chỉ khi máy xin `?call-numbering=1`; số gọi = chỉ số × 100 + (số đơn mod 100) từ 2 máy; dải "Đơn số N chưa thanh toán" (Mở lại / Hủy đơn).
+  - **Mốc 3 (D-136):** `shiftVersion` ở kết quả `order.pay` / `order.refund` / `shift.cash_move` (header `x-fnb-sync-features`), cột `outbox.shift_version`, tiền dự kiến giữ khoản tới khi bản sao ca đạt version; đóng ca chờ máy chủ ≤ 10 s, phiếu tạm + "In bản chính thức".
+  - **Hợp đồng:** các trường mới đều tùy chọn và chỉ gửi cho máy xin (máy cũ parse nghiêm sẽ hỏng nếu gặp trường lạ).
+  - **Sổ tay:** `may-quay/03, 05, 06, 07, 10`, `quan-ly/07`; Q16 gỡ; ảnh mới `unpaid-orders-strip` (đã có file; các ảnh khác chưa chụp lại).
+  - **Phiên sau:** làm "Cần xử lý xử lý được từng lệnh" (dòng Backlog `[đợt 6]` mới nhất), rồi chụp lại toàn bộ ảnh sổ tay sau khi gộp.
+
 - 2026-10-29 23:30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, **0,41M token** theo số đo của hệ thống, merge `d824c0e`).
   - **Review khi gộp:** ngăn thanh toán ở 1280×800 đẩy bàn phím số xuống thấp hơn bản cũ một hàng ⇒ màn thấp (≤ 860 px) đặt hai thẻ nằm ngang, biểu tượng cạnh chữ (`aecd5fc`).
   - **Cổng trên `main`:** unit 3.208 · `test:api` 1.802 (+1 skip) · `test:sync` 22 · `test:browser` 237 (POS 177, e2e 28 + 10, sync-client 22) · build · `release:pack` (`0.0.0+d824c0e`).
@@ -360,7 +369,7 @@
 
 ### T04-04 Màn "cần xử lý"
 - **Test:** `apps/pos/src/features/sync/rejected-commands-panel.test.tsx`.
-- **Trạng thái:** một phần (2026-10-20) — màn "Cần xử lý" + đếm trong app POS; chưa có thao tác xử lý từng lệnh.
+- **Trạng thái:** một phần (2026-10-20) — màn "Cần xử lý" + đếm trong app POS; chưa có thao tác xử lý từng lệnh. **2026-10-30: chưa làm thêm**, dời sang lượt sau (xem Backlog `[đợt 6]` "Cần xử lý xử lý được từng lệnh").
 
 ### T04-05 POS: ghép máy, đăng nhập PIN, đổi người
 - **Test:** `e2e/pos/pair-and-pin-login.spec.ts`.
@@ -369,7 +378,7 @@
 ### T04-06 Màn bán
 - **Làm:** lưới món, tìm nhanh, chọn biến thể/tùy chọn, ghi chú, số lượng, giữ đơn, nhiều đơn song song.
 - **Test:** `apps/pos/src/features/order/modifier-picker.test.tsx`; `e2e/pos/counter-sale-cash.spec.ts`.
-- **Trạng thái:** done bản web (2026-10-20) — tab danh mục, tìm bỏ dấu, lưới món, bảng chọn tùy chọn theo luật domain, giỏ dạng cây, lưu nháp tự động. Chưa có: combo, ảnh món, mở lại nháp sau khi tải lại (giá mở + món cân: xong ở T04-07, 2026-10-28).
+- **Trạng thái:** done bản web (2026-10-20) — tab danh mục, tìm bỏ dấu, lưới món, bảng chọn tùy chọn theo luật domain, giỏ dạng cây, lưu nháp tự động. Chưa có: combo, ảnh món, mở lại nháp sau khi tải lại: xong 2026-10-30, D-135 (giá mở + món cân: xong ở T04-07, 2026-10-28).
 
 ### T04-07 Tổng tiền + giảm tay + giá nhập tay + theo cân
 - **Test:** `e2e/pos/manual-discount-over-threshold-needs-approval.spec.ts`.
@@ -583,14 +592,21 @@
 
 **[đợt 6]**
 
+- 2026-10-30 · **[đợt 6]** **Cần xử lý xử lý được từng lệnh (T04-04) — CHƯA LÀM.** Màn chỉ liệt kê (riêng đơn QR đã về tiền thì đóng được). Mỗi lệnh bị từ chối cần thao tác hợp loại lệnh và mã lỗi: làm lại trên trạng thái mới (dùng `redo-stale-draft`), mở đơn / bàn liên quan, xin duyệt rồi gửi lại, bỏ qua có lý do (audit; không bỏ im khoản tiền hay món đã gửi bếp); xử lý xong thì rơi khỏi danh sách và nhớ bền như "đã xử lý" của D-089. File: `apps/pos/src/app/needs-attention-flow.tsx`, `screens/needs-attention/`. Sổ tay `may-quay/09`, `11`.
+- 2026-10-30 · **[đợt 7]** Sửa tùy chọn / topping / ghi chú của món đã gửi bếp bằng MỘT thao tác "Đổi tùy chọn" (hủy món có duyệt + thêm lại với tùy chọn mới, hai phiếu). Hiện làm tay hai bước (D-134).
+- 2026-10-30 · **[thấp]** Trang quản lý Thiết bị chưa hiện số thứ tự máy (1–9, cột `device.call_index`); chi nhánh có hơn 9 máy: máy thứ 10 trở đi giữ số gọi 1–99 nên có thể trùng số gọi.
+- 2026-10-30 · **[thấp]** Máy ghép từ trước chỉ nhận số thứ tự máy ở lần tải khởi động đầu sau khi cập nhật (migration không điền được vì quyền hàng theo tenant); trước đó vẫn gọi 1–99.
+- 2026-10-30 · **[thấp]** `kitchenStillHasItems` từng tính cả dòng hủy (có phiếu riêng) là bếp "còn món", chặn hủy đơn sau khi đã hủy hết món: đã sửa (D-131) nhưng server `cancel-order-command.ts` (`kitchenHadIt`) chưa kiểm cùng cách trên dữ liệu thật hủy nhiều lượt; kiểm lại khi có test API hủy đơn sau hủy món đã gửi.
+- 2026-10-30 · **[đợt 7]** Test API cho hủy một phần-lẻ món cân đã gửi bếp (`order.void_line` quantity "3.51") trên máy chủ thật: máy quầy gửi đúng, test máy quầy dùng máy chủ giả.
+
 - 2026-10-28 · Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft`, vì máy chủ chỉ kiểm cân nặng của món theo cân. Chặn số lẻ cho món không bán theo cân.
 - 2026-10-28 · Combo: `PUT /catalog/products/:id` chưa từ chối phần combo trỏ tới **combo khác** hoặc món đã ngừng bán. Trang quản lý không cho chọn; máy quầy và máy chủ từ chối lúc bán.
-- 2026-10-28 · Hủy món **bán theo cân** đã gửi bếp: `VoidRequest.units` của máy quầy (`features/order-adjust/void-line-adjustment.ts`) đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp. Hợp đồng `order.void_line` đã nhận `quantity` lẻ; cho hủy nguyên lần cân.
+- ~~2026-10-28 · Hủy món **bán theo cân** đã gửi bếp: `VoidRequest.units` của máy quầy (`features/order-adjust/void-line-adjustment.ts`) đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp. Hợp đồng `order.void_line` đã nhận `quantity` lẻ; cho hủy nguyên lần cân.~~ **Xong** (D-132, commit `202ee0b`).
 - 2026-10-20 · Máy quầy bị thu hồi: chưa thấy đường xóa thông tin ghép rồi về màn ghép. Lỗi 401 hiện chỉ xử lý phiên nhân viên (`apps/pos/src/app/use-background-sync.ts`). Chưa có route đăng xuất phiên nhân viên (`/pos/staff-sessions` chỉ có POST và GET `current`).
-- 2026-10-20 · Bàn trống mà đơn đã xóa hết món vẫn giữ bàn: chưa kiểm lại; kiểm cùng D-097. Gộp bàn: R2.
-- 2026-10-21 · Hủy đơn trên bản lạc quan có thể không xin duyệt rồi bị server từ chối (luật D-063). Làm cùng "Cần xử lý".
+- ~~2026-10-20 · Bàn trống mà đơn đã xóa hết món vẫn giữ bàn: chưa kiểm lại; kiểm cùng D-097. Gộp bàn: R2.~~ **Xong** (D-133, commit `202ee0b`): D-088 ghi nút "Trả bàn" nhưng code chưa có; đã làm.
+- 2026-10-21 · Hủy đơn trên bản lạc quan có thể không xin duyệt rồi bị server từ chối (luật D-063). Làm cùng "Cần xử lý". **Chưa làm (lượt 6a hết ngân sách):** máy đã xin duyệt trước khi gửi khi đơn đã in tạm tính / đã gửi bếp (`cancelNeedsManager`), nên chỉ còn ca bản sao máy chưa biết đơn đã in tạm tính ở máy khác; làm cùng "Cần xử lý".
 - 2026-10-21 · `PATCH /staff` ghi sau thắng, chưa có `version`. Gộp vào dòng 2026-10-29 "Không lệnh xóa nào… kiểm `version`".
-- 2026-10-20 · Đổi topping sau khi món đã gửi bếp chưa được coi là thay đổi (phiếu bếp không ra lại). Làm cùng D-097.
+- ~~2026-10-20 · Đổi topping sau khi món đã gửi bếp chưa được coi là thay đổi (phiếu bếp không ra lại). Làm cùng D-097.~~ **Xong theo hướng khác** (D-134, commit `202ee0b`): luật máy chủ và máy quầy khóa tùy chọn của món đã gửi nên đổi = hủy món + gọi lại; sửa tại chỗ chuyển thành dòng [đợt 7] bên dưới.
 
 **[đợt 7] — quán giả lập kiểm luôn**
 
