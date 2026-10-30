@@ -6,14 +6,15 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-30 — **Lượt 6a (khóa món đã gửi bếp, số gọi nhiều máy, phiếu đóng ca) xong mốc 1–3; mốc 4 "Cần xử lý" CHƯA làm** (1 agent, nhánh `feat/kitchen-lock-call-numbers-and-needs-attention`, chưa push).
-  - **Commit:** `202ee0b` (mốc 1) · `9ac1563` (mốc 2) · `4005c7c` (mốc 3) · cộng commit bàn giao.
+- 2026-10-30 — **Lượt 6a (khóa món đã gửi bếp, số gọi nhiều máy, phiếu đóng ca) xong mốc 1–3; mốc 4 "Cần xử lý" CHƯA làm** (1 agent, 0,47M token theo số đo hệ thống, nhánh `feat/kitchen-lock-call-numbers-and-needs-attention`, gộp `e472c66`).
+  - **Commit:** `202ee0b` (mốc 1) · `9ac1563` (mốc 2) · `4005c7c` (mốc 3) · `57b0333` (bàn giao).
+  - **Cổng** (chạy lại không cache trên nhánh, cây trùng bản gộp): unit 3.241 · `test:api` 1.805 + 7 · `test:sync` 24 · `test:browser` 240 (POS 180, e2e 28 + 10, sync-client 22) · build — xanh. Lỗi 401 chập chờn của `test:api` không hiện lại. Ảnh sổ tay chụp lại toàn bộ sau gộp.
   - **Mốc 1 (D-131…D-134):** phiếu bếp chỉ xem trên màn tính là đã gửi (khóa món, hủy món xin duyệt + phiếu hủy); máy in lỗi thì chưa gửi; hủy lần cân nguyên; nút "Trả bàn"; đổi tùy chọn món đã gửi = hủy + gọi lại; sửa `kitchenStillHasItems` (dòng hủy không còn bị tính là bếp còn món).
   - **Mốc 2 (D-135):** migration `0037_device_call_index`; bootstrap kèm `callNumbering` chỉ khi máy xin `?call-numbering=1`; số gọi = chỉ số × 100 + (số đơn mod 100) từ 2 máy; dải "Đơn số N chưa thanh toán" (Mở lại / Hủy đơn).
   - **Mốc 3 (D-136):** `shiftVersion` ở kết quả `order.pay` / `order.refund` / `shift.cash_move` (header `x-fnb-sync-features`), cột `outbox.shift_version`, tiền dự kiến giữ khoản tới khi bản sao ca đạt version; đóng ca chờ máy chủ ≤ 10 s, phiếu tạm + "In bản chính thức".
   - **Hợp đồng:** các trường mới đều tùy chọn và chỉ gửi cho máy xin (máy cũ parse nghiêm sẽ hỏng nếu gặp trường lạ).
   - **Sổ tay:** `may-quay/03, 05, 06, 07, 10`, `quan-ly/07`; Q16 gỡ; ảnh mới `unpaid-orders-strip` (đã có file; các ảnh khác chưa chụp lại).
-  - **Phiên sau:** làm "Cần xử lý xử lý được từng lệnh" (dòng Backlog `[đợt 6]` mới nhất), rồi chụp lại toàn bộ ảnh sổ tay sau khi gộp.
+  - **Phiên sau:** lượt 6b, mở đầu bằng "Cần xử lý xử lý được từng lệnh" (dòng Backlog `[đợt 6]` mới nhất), rồi các dòng `[đợt 6]` còn lại.
 
 - 2026-10-29 23:30 — **Đợt 5 (giao diện máy quầy + ô chọn trang quản lý) xong** (1 agent, **0,41M token** theo số đo của hệ thống, merge `d824c0e`).
   - **Review khi gộp:** ngăn thanh toán ở 1280×800 đẩy bàn phím số xuống thấp hơn bản cũ một hàng ⇒ màn thấp (≤ 860 px) đặt hai thẻ nằm ngang, biểu tượng cạnh chữ (`aecd5fc`).
