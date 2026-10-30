@@ -161,9 +161,6 @@ async function doStep(
 }
 
 async function sendToBar(ctx: DayContext, device: SimDevice, order: BookedOrder, view: OrderView) {
-  // The waiter rings the bar once the server has the drinks: a drink another till's save made the
-  // server refuse would otherwise be made without ever being recorded as sent.
-  if (device.till.network.online && (await device.till.client.pendingCount()) > 0) return false;
   const shown = new Set(view.lines.map((line) => line.id));
   const owed = [...order.items]
     .filter(([lineId, item]) => shown.has(lineId) && order.sent.get(lineId) !== item.quantity)
