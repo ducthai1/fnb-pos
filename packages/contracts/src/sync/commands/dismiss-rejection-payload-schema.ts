@@ -18,6 +18,21 @@ export const DISMISSAL_NOTE_REQUIRED_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * The refused commands about an order whose setting aside also needs a manager when the
+ * staff member lacks close_unpaid_table: the money or the food they stood for is given up,
+ * which is what closing a table nobody paid for is. Shift commands (cash moves, closing) name
+ * a shift, not an order, so they keep to the staff member's words and the audit trail.
+ */
+export const DISMISSAL_APPROVAL_TYPES: ReadonlySet<string> = new Set([
+  "order.pay",
+  "order.refund",
+  "order.mark_sent_to_kitchen",
+  "payment.create_intent",
+  "payment.cancel_intent",
+  "payment.hand_back_excess",
+]);
+
+/**
  * sync.rejection_dismissed: the till's staff set aside a command the server refused for good,
  * and say why. The refused command stays in the till's journal; this one is the trace the
  * server keeps of who gave it up and for what reason.
@@ -33,6 +48,8 @@ export const dismissRejectionPayloadSchema = z.object({
   reasonCode: reasonCodeSchema,
   /** What became of it, in the staff member's words; needed for "other" and for money or kitchen commands. */
   reasonNote: reasonNoteSchema.optional(),
+  /** The manager's on-the-spot approval, for a command of DISMISSAL_APPROVAL_TYPES. */
+  approvalId: uuidSchema.optional(),
 });
 
 export type DismissRejectionPayload = z.infer<typeof dismissRejectionPayloadSchema>;

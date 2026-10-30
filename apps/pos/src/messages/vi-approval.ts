@@ -39,6 +39,8 @@ export const VI_APPROVAL = {
     handBackExcess: (amount: string) => `Thối lại ${amount} khách chuyển thừa, chi từ két`,
     closeDifference: (difference: string) => `Đóng ca lệch ${difference} so với tiền dự kiến`,
     transferTable: (from: string, to: string) => `Chuyển khách từ bàn ${from} sang bàn ${to}`,
+    dismissRefused: (command: string, orderNo: number | null) =>
+      `Bỏ qua lệnh bị từ chối "${command}"${orderNo === null ? "" : ` của đơn số ${orderNo}`}: tiền hoặc món của lệnh này sẽ không được ghi nhận nữa`,
     closeUnpaid: (orderNo: number) =>
       `Hủy đơn số ${orderNo} chưa thu tiền (đã in tạm tính hoặc đã gửi bếp)`,
   },

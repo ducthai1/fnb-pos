@@ -1,4 +1,4 @@
-import { DISMISSAL_NOTE_REQUIRED_TYPES } from "@fnb/contracts";
+import { DISMISSAL_APPROVAL_TYPES, DISMISSAL_NOTE_REQUIRED_TYPES } from "@fnb/contracts";
 import type { RejectedCommand } from "@fnb/sync-client";
 import {
   DISMISS_REASONS,
@@ -22,6 +22,13 @@ export const canRedo = (refused: Refused): boolean => isStaleDraft(refused);
  */
 export const dismissalNeedsWords = (refused: Refused): boolean =>
   DISMISSAL_NOTE_REQUIRED_TYPES.has(refused.command.type);
+
+/**
+ * Whether setting the command aside gives up money or food of an order, so a staff member
+ * without close_unpaid_table needs a manager's approval first, as the server judges it.
+ */
+export const dismissalNeedsApproval = (refused: Refused): boolean =>
+  DISMISSAL_APPROVAL_TYPES.has(refused.command.type);
 
 /** The reasons offered for setting a refusal aside. */
 export const dismissalReasonsOf = (refused: Refused): readonly ReasonCode[] =>

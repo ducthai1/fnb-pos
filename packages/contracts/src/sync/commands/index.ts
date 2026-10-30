@@ -3,6 +3,7 @@ export {
   applyDiscountPayloadSchema,
 } from "./apply-discount-payload-schema";
 export {
+  DISMISSAL_APPROVAL_TYPES,
   DISMISSAL_NOTE_REQUIRED_TYPES,
   type DismissRejectionPayload,
   dismissRejectionPayloadSchema,

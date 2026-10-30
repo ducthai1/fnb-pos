@@ -120,7 +120,7 @@ export const vi = {
       title: "Bỏ qua lệnh bị từ chối",
       hint: "Lệnh rời khỏi danh sách và không được gửi lại. Máy chủ ghi lại ai bỏ qua, lệnh nào và vì sao.",
       risky:
-        "Lệnh này có tiền hoặc phiếu bếp. Chỉ bỏ qua khi khoản đó đã được xử lý cách khác, và ghi rõ đã xử lý ra sao.",
+        "Lệnh này có tiền hoặc phiếu bếp. Chỉ bỏ qua khi khoản đó đã được xử lý cách khác, và ghi rõ đã xử lý ra sao. Lệnh của một đơn: người không có quyền hủy đơn chưa thu tiền cần quản lý duyệt tại chỗ.",
       noteLabel: "Đã xử lý ra sao",
       noteRequired: "Ghi vài chữ: tiền hoặc món này đã được xử lý thế nào.",
       confirm: "Bỏ qua lệnh",

@@ -4,19 +4,24 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
+import { freshTill } from "../support/shift-commands";
+import { approve, closeUnpaid, hireManager } from "../support/sync-approvals";
 import { command, line, orderIdOf, pushOne, saveDraft, tillsClock } from "../support/sync-commands";
-import { type SyncShop, syncShop } from "../support/sync-shop";
+import { withApproval } from "../support/sync-order-commands";
+import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
 let pool: pg.Pool;
 let app: FastifyInstance;
 let s: SyncShop;
+let managerId: string;
 
 beforeAll(async () => {
   pool = new pg.Pool({ connectionString: testConnectionString(info, "app") });
   app = buildApp({ pool, clock: tillsClock() });
   s = await syncShop(app, pool);
+  managerId = await hireManager(app, s);
 });
 
 afterAll(async () => {
@@ -26,9 +31,14 @@ afterAll(async () => {
 
 const till = () => s.tillA;
 
-const dismissal = (rejectedType: string, extra: Record<string, unknown>, orderId?: string) => {
+const dismissal = (
+  rejectedType: string,
+  extra: Record<string, unknown>,
+  orderId?: string,
+  from: Till = till(),
+) => {
   const id = newId();
-  const envelope = command(till(), "sync.rejection_dismissed", {
+  const envelope = command(from, "sync.rejection_dismissed", {
     rejectedCommandId: id,
     rejectedType,
     rejectedCode: "SYNC_ORDER_VERSION_STALE",
@@ -82,11 +92,93 @@ describe("setting aside a command the server refused", () => {
     ["order.mark_sent_to_kitchen", "no_longer_needed"],
     ["order.save_draft", "other"],
   ])("needs the staff member's words for %s with reason %s", async (type, reasonCode) => {
-    const bare = dismissal(type, { reasonCode });
-    expect((await pushOne(app, till(), bare.envelope)).code).toBe("SYNC_REASON_NOTE_REQUIRED");
+    // A manager holds close_unpaid_table, so only the words are in question here.
+    const manager = await freshTill(app, s, managerId);
+    const bare = dismissal(type, { reasonCode }, undefined, manager);
+    expect((await pushOne(app, manager, bare.envelope)).code).toBe("SYNC_REASON_NOTE_REQUIRED");
     expect(await auditOf(bare.id)).toHaveLength(0);
-    const said = dismissal(type, { reasonCode, reasonNote: "Đã thu tiền mặt, quản lý ghi sổ tay" });
-    expect((await pushOne(app, till(), said.envelope)).status).toBe("accepted");
+    const said = dismissal(
+      type,
+      { reasonCode, reasonNote: "Đã thu tiền mặt, quản lý ghi sổ tay" },
+      undefined,
+      manager,
+    );
+    expect((await pushOne(app, manager, said.envelope)).status).toBe("accepted");
     expect(await auditOf(said.id)).toHaveLength(1);
+  });
+
+  describe("a command that moved money or told the kitchen", () => {
+    const WORDS = { reasonCode: "handled_by_hand", reasonNote: "Đã hoàn tiền mặt cho khách" };
+    const types = [
+      "order.pay",
+      "order.refund",
+      "order.mark_sent_to_kitchen",
+      "payment.create_intent",
+      "payment.cancel_intent",
+      "payment.hand_back_excess",
+    ];
+
+    it.each(types)("%s is refused to a cashier without a manager's approval", async (type) => {
+      const draft = saveDraft(till(), [line(s.menu.coffee.id)]);
+      expect((await pushOne(app, till(), draft)).status).toBe("accepted");
+      const set = dismissal(type, WORDS, orderIdOf(draft));
+      expect(await pushOne(app, till(), set.envelope)).toMatchObject({
+        status: "rejected",
+        code: "SYNC_APPROVAL_REQUIRED",
+      });
+      expect(await auditOf(set.id)).toHaveLength(0);
+    });
+
+    it("is set aside with the approval of that order, which the audit trail names", async () => {
+      const draft = saveDraft(till(), [line(s.menu.coffee.id)]);
+      expect((await pushOne(app, till(), draft)).status).toBe("accepted");
+      const orderId = orderIdOf(draft);
+      const approvalId = await approve(app, till(), managerId, closeUnpaid(orderId));
+      const set = dismissal("order.pay", WORDS, orderId);
+      const approved = withApproval(set.envelope, approvalId);
+      expect((await pushOne(app, till(), approved)).status).toBe("accepted");
+      expect((await auditOf(set.id))[0]?.payload).toMatchObject({
+        rejectedType: "order.pay",
+        approvalId,
+        approvedByStaffId: managerId,
+      });
+    });
+
+    it("is not covered by an approval of another order", async () => {
+      const first = saveDraft(till(), [line(s.menu.coffee.id)]);
+      const second = saveDraft(till(), [line(s.menu.coffee.id)]);
+      expect((await pushOne(app, till(), first)).status).toBe("accepted");
+      expect((await pushOne(app, till(), second)).status).toBe("accepted");
+      const approvalId = await approve(app, till(), managerId, closeUnpaid(orderIdOf(first)));
+      const set = dismissal("order.pay", WORDS, orderIdOf(second));
+      const refused = await pushOne(app, till(), withApproval(set.envelope, approvalId));
+      expect(refused.status).toBe("rejected");
+      expect(await auditOf(set.id)).toHaveLength(0);
+    });
+
+    it("is the staff member's alone with close_unpaid_table, with no approval spent", async () => {
+      const manager = await freshTill(app, s, managerId);
+      const draft = saveDraft(manager, [line(s.menu.coffee.id)]);
+      expect((await pushOne(app, manager, draft)).status).toBe("accepted");
+      const set = dismissal("order.pay", WORDS, orderIdOf(draft), manager);
+      expect((await pushOne(app, manager, set.envelope)).status).toBe("accepted");
+      expect((await auditOf(set.id))[0]?.payload).not.toHaveProperty("approvalId");
+    });
+
+    it("names no order: only someone holding close_unpaid_table may set it aside", async () => {
+      const cashier = dismissal("payment.cancel_intent", WORDS);
+      expect(await pushOne(app, till(), cashier.envelope)).toMatchObject({
+        status: "rejected",
+        code: "SYNC_APPROVAL_REQUIRED",
+      });
+      const manager = await freshTill(app, s, managerId);
+      const set = dismissal("payment.cancel_intent", WORDS, undefined, manager);
+      expect((await pushOne(app, manager, set.envelope)).status).toBe("accepted");
+    });
+
+    it("leaves the shift commands to the staff member's words and the audit trail", async () => {
+      const set = dismissal("shift.cash_move", WORDS);
+      expect((await pushOne(app, till(), set.envelope)).status).toBe("accepted");
+    });
   });
 });
