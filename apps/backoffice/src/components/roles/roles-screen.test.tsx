@@ -17,7 +17,7 @@ const OWNER_ROLE: Role = {
   version: 1,
 };
 
-async function openEditor(updateRole: (id: string, body: RoleGrantsBody) => Promise<unknown>) {
+async function openEditor(updateRole: (id: string, version: number, body: RoleGrantsBody) => Promise<unknown>) {
   await renderSignedIn(<RolesScreen />, {
     listRoles: async () => ok([OWNER_ROLE]),
     updateRole: updateRole as never,
@@ -26,14 +26,23 @@ async function openEditor(updateRole: (id: string, body: RoleGrantsBody) => Prom
 }
 
 describe("editing a role", () => {
+  it("says so when someone changed the role first, and keeps the form", async () => {
+    const updateRole = mock.fn(async () => refused(409, "API_ROLE_VERSION_CONFLICT"));
+    await openEditor(updateRole);
+    fireEvent.click(screen.getByRole("button", { name: T.save }));
+    expect((await screen.findByRole("alert")).textContent).toBe(vi.errors.byCode.API_ROLE_VERSION_CONFLICT);
+    expect(updateRole).toHaveBeenCalledWith(OWNER_ROLE.id, OWNER_ROLE.version, expect.anything());
+    expect(screen.getByRole("button", { name: T.save })).toBeTruthy();
+  });
+
   it("saves the ticked keys with the discount cap typed next to them", async () => {
-    const updateRole = mock.fn(async (_id: string, body: RoleGrantsBody) => ok({ ...OWNER_ROLE, ...body }));
+    const updateRole = mock.fn(async (_id: string, _version: number, body: RoleGrantsBody) => ok({ ...OWNER_ROLE, ...body }));
     await openEditor(updateRole);
     fireEvent.change(screen.getByLabelText(T.maxRateLabel), { target: { value: "15" } });
     fireEvent.click(screen.getByRole("checkbox", { name: T.permissions.view_reports }));
     fireEvent.click(screen.getByRole("button", { name: T.save }));
     await screen.findByText(T.saved("Chủ quán"));
-    expect(updateRole).toHaveBeenCalledWith(OWNER_ROLE.id, {
+    expect(updateRole).toHaveBeenCalledWith(OWNER_ROLE.id, OWNER_ROLE.version, {
       name: "Chủ quán",
       permissionKeys: ["line_discount", "view_reports", "manage_staff"],
       thresholds: { line_discount: { maxRate: 1500 } },

@@ -42,7 +42,7 @@ describe("archiving a role", () => {
     expect(archiveRole).not.toHaveBeenCalled();
     fireEvent.click(within(panel).getByRole("button", { name: K.archive }));
     await screen.findByText(K.archived("Ca đêm"));
-    expect(archiveRole).toHaveBeenCalledWith(NIGHT.id);
+    expect(archiveRole).toHaveBeenCalledWith(NIGHT.id, NIGHT.version);
     expect(listRoles).toHaveBeenCalledTimes(2);
   });
 

@@ -17,7 +17,7 @@ import { VI_SETTINGS } from "./vi-settings";
 import { VI_STATIONS } from "./vi-stations";
 import { VI_SHOP_TEMPLATES } from "./vi-shop-templates";
 import { VI_STAFF_TOOLS } from "./vi-staff-tools";
-import { VI_COMMON, VI_DAY_PICKER, VI_LOGIN, VI_SHELL, VI_TABLE } from "./vi-shell";
+import { VI_COMMON, VI_DATE_FIELD, VI_DAY_PICKER, VI_LOGIN, VI_SHELL, VI_TABLE } from "./vi-shell";
 
 export const vi = {
   login: VI_LOGIN,
@@ -26,6 +26,7 @@ export const vi = {
   common: VI_COMMON,
   home: VI_HOME,
   table: VI_TABLE,
+  dateField: VI_DATE_FIELD,
   dayPicker: VI_DAY_PICKER,
   devices: VI_DEVICES,
   staff: VI_STAFF,

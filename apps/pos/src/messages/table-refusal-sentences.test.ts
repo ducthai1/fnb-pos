@@ -46,4 +46,16 @@ describe("what the till says when the server refuses a command about a table", (
     );
     expect(refusalSentence("table.transfer", "SYNC_SOMETHING_NEW")).toBe(vi.errors.unknown);
   });
+
+  it("sends a cashier whose cash or QR take-down met a paid QR to the way out", () => {
+    const cash = refusalSentence("order.pay", "SYNC_ORDER_HAS_SETTLED_QR");
+    expect(cash).toContain("Trả lại tiền mặt");
+    expect(cash).toContain("đóng đơn bằng QR đã nhận");
+    expect(cash).toContain("hoàn");
+    const takeDown = refusalSentence(
+      "payment.cancel_intent",
+      "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION",
+    );
+    expect(takeDown).toContain("có thể khách đã chuyển khoản");
+  });
 });

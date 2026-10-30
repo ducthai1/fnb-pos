@@ -48,6 +48,7 @@ import "./backoffice-settings.css";
 import "./backoffice-login.css";
 import "./backoffice-motion.css";
 import "./backoffice-listbox.css";
+import "./backoffice-date-field.css";
 import "./backoffice-pager.css";
 import "./backoffice-theme-picker.css";
 

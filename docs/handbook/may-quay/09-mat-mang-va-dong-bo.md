@@ -12,6 +12,7 @@ decisions:
   - D-024
   - D-089
   - D-137
+  - D-154
   - D-039
   - D-046
   - D-054
@@ -23,6 +24,8 @@ decisions:
   - D-104
   - D-108
 tests:
+  - apps/pos/src/app/needs-attention-dismiss-needs-a-manager.test.tsx
+  - apps/api/test/integration/sync/dismissing-a-refused-command-is-audited.test.ts
   - apps/pos/src/screens/sales-home/sync-status-badges.test.tsx
   - apps/pos/test/browser/topbar-shop-name-in-chrome.test.ts
   - apps/pos/src/screens/sales-home/server-restore-notice.test.tsx
@@ -93,6 +96,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
      - Máy **chưa mở ca** (ca cũ đã đóng, chưa mở ca mới — "Cần xử lý" vẫn mở được từ màn **Mở ca**): nút đổi thành **Mở ca để đóng đơn này**. Bấm vào, máy hiện màn **Mở ca** kèm dòng "Máy chưa mở ca. Mở ca xong, đơn được đóng ngay bằng QR khách đã chuyển, tiền vào ca vừa mở." Đếm tiền đầu ca như thường lệ rồi bấm **Mở ca**: máy mở ca, đóng đơn vào ca đó và quay lại danh sách. Đổi ý thì bấm **Quay lại danh sách**.
    - **Bỏ qua lệnh này…** — có ở mọi lệnh. Chọn lý do (**Đã xử lý cách khác**, **Không còn cần nữa**, **Lý do khác** kèm vài chữ) rồi **Bỏ qua lệnh**. Lệnh không được gửi lại và rơi khỏi danh sách; máy chủ ghi lại ai bỏ qua, lệnh nào, mã lỗi gì và lý do (nhật ký kiểm tra, xem được ở trang quản lý).
      - Lệnh **có tiền hoặc phiếu bếp** (thanh toán, hoàn tiền, thu chi két, đóng ca, mã QR, gửi phiếu pha chế): không có lý do "Không còn cần nữa", và dù chọn lý do nào cũng **phải ghi vài chữ đã xử lý ra sao** ("Quản lý đã hoàn tiền mặt cho khách") thì nút mới bấm được; máy chủ cũng không nhận khi thiếu. Khoản tiền hay món đã gửi bếp không bao giờ biến mất chỉ vì một cái chạm.
+     - Lệnh có tiền hoặc phiếu **của một đơn** (thanh toán, hoàn tiền, mã QR, thối tiền thừa, gửi phiếu pha chế) còn cần **quản lý duyệt tại chỗ** như hủy đơn đã gửi bếp: người không có quyền *Hủy đơn chưa thu tiền* bấm **Bỏ qua lệnh** xong thì máy hiện màn **Cần quản lý duyệt** ghi "Bỏ qua lệnh bị từ chối … của đơn số …"; quản lý chọn tên, nhập PIN thì lệnh mới được bỏ qua và nhật ký ghi cả người duyệt. Bấm **Không làm nữa** thì máy không ghi gì và ở lại màn lý do. Người có quyền đó (quản lý) tự bỏ qua, không phải duyệt. Máy chủ kiểm lại: thiếu lần duyệt thì không nhận. Lệnh thu chi két và đóng ca (không thuộc đơn nào) chỉ cần lý do và lời ghi.
    - Lệnh đã xử lý **được nhớ bền**: tắt máy mở lại vẫn không thấy nó nữa, và nút **Cần xử lý (n)** giảm theo.
 4. Bấm **Quay lại bán hàng**.
 

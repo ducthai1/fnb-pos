@@ -69,12 +69,12 @@ export function StaffToolPanel({ tool, member, roles, onDone, onCancel, onStale 
 
   /** The call this tool makes, or what to fix before it can be made. */
   function request(): Promise<ApiResult<true>> | { field?: string; form?: string } {
-    if (tool === "lock") return api.deactivateStaff(member.id);
-    if (tool === "reopen") return api.reactivateStaff(member.id);
+    if (tool === "lock") return api.deactivateStaff(member.id, member.version);
+    if (tool === "reopen") return api.reactivateStaff(member.id, member.version);
     if (tool === "unlock") return api.unlockStaffPin(member.id);
     if (tool === "pin") {
       if (!/^\d{4,6}$/.test(pin)) return { field: vi.staff.pinFormat };
-      return api.resetStaffPin(member.id, pin);
+      return api.resetStaffPin(member.id, member.version, pin);
     }
     const trimmed = name.trim();
     if (trimmed === "") return { field: T.nameMissing };

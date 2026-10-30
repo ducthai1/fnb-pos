@@ -122,6 +122,25 @@ describe("applying a template to a branch", () => {
     expect(await stationsOf(shop)).not.toContain("Bếp nóng");
   });
 
+  it("does not count a station the shop archived as one it has, and leaves the archived one as it was", async () => {
+    const shop = await freshShop();
+    const archivedId = newId();
+    await expectStatus(shop.call("PUT", `/catalog/stations/${archivedId}`, { version: null, branchId: shop.branchId, name: "Bếp nóng" }), 201);
+    await withTenant(pool, shop.tenant.tenantId, (client) => client.query("UPDATE station SET archived_at = now() WHERE id = $1", [archivedId]));
+    // The preview and the apply agree: the station the shop retired is not there for the template.
+    const previewed = (await expectStatus(plan(shop, "restaurant"), 200)).json() as { changes: { kind: string; name?: string }[] };
+    expect(JSON.stringify(previewed.changes)).toContain("Bếp nóng");
+    await expectStatus(apply(shop, "restaurant"), 200);
+    const rows = await withTenant(pool, shop.tenant.tenantId, async (client) => {
+      const found = await client.query("SELECT id, archived_at IS NOT NULL AS archived FROM station WHERE branch_id = $1 AND name = 'Bếp nóng'", [shop.branchId]);
+      return found.rows as { id: string; archived: boolean }[];
+    });
+    expect(rows.filter((row) => !row.archived)).toHaveLength(1);
+    expect(rows.find((row) => row.id === archivedId)?.archived).toBe(true);
+    // A second apply finds the new station and adds nothing more.
+    expect((await expectStatus(apply(shop, "restaurant"), 200)).json()).toMatchObject({ changes: [] });
+  });
+
   it("leaves a switch the owner chose, and one that would break a rule between switches", async () => {
     const shop = await freshShop();
     await expectStatus(shop.call("PUT", `/settings/branch/${shop.branchId}/tables`, { value: false }), 200);

@@ -8,11 +8,13 @@ screens:
   - payment
   - qr-payment
   - qr-payment-refused
+  - qr-leave-offline
   - buyer-info
   - sale-done
   - sale-done-invoice
 decisions:
   - D-130
+  - D-153
   - D-041
   - D-047
   - D-049
@@ -26,6 +28,7 @@ decisions:
   - D-098
   - D-110
 tests:
+  - apps/pos/src/app/counter-qr-leave-while-offline.test.tsx
   - apps/pos/src/app/counter-checkout.test.tsx
   - apps/pos/src/app/counter-payment-drawer.test.tsx
   - apps/pos/src/app/counter-qr-checkout.test.tsx
@@ -95,7 +98,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
    ![Mã QR đang chờ khách chuyển](../images/may-quay/qr-payment.webp)
 
 2. Đưa mã cho khách quét. **Không cần bấm gì**: khi ngân hàng báo tiền về đúng số, máy tự chuyển sang "Đã nhận đủ tiền chuyển khoản. Đang hoàn tất đơn…" rồi sang màn **Đã thanh toán**.
-3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần.
+3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần. **Máy đang mất kết nối với máy chủ** (ô trạng thái ghi mất mạng hoặc máy chủ lỗi) thì máy chưa biết khách đã chuyển chưa, nên hiện hộp **Máy chưa biết khách đã chuyển khoản chưa**: kiểm tra app ngân hàng của quán (hoặc hỏi khách đã bấm chuyển chưa). Khách đã chuyển mà vẫn thu tiền mặt là khách trả hai lần. Bấm **Quay lại, chờ khách chuyển** để giữ mã, hoặc **Khách chưa chuyển, thu cách khác** để gỡ mã. Hộp này cũng hiện khi chọn lại thẻ Tiền mặt hay đóng ngăn thanh toán lúc mã còn chờ; không hiện khi mã đã hết hạn có tiền muộn, đã nhận thiếu / thừa, hay khi máy đang thông.
 4. Mã hết hạn mà khách chưa chuyển: bấm **Tạo QR mới**.
 5. Khách **chuyển thiếu** (ví dụ 45.000 ₫ cho đơn 50.000 ₫): máy báo "Khách chuyển thiếu 5.000 ₫." và có hai nút:
    - **Thu nốt 5.000 ₫ tiền mặt**: máy chuyển sang thẻ tiền mặt, dòng **Chuyển khoản 45.000 ₫** đã nằm sẵn (không bỏ được — đó là tiền ngân hàng đã báo về), **Còn lại** 5.000 ₫. Nhận tiền mặt như thường rồi **Hoàn tất thanh toán**.
@@ -142,6 +145,7 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
 - Khách chuyển **thiếu**: đơn **không** tự đóng. Ngoại lệ duy nhất của luật "không trộn tiền mặt với QR": khoản chuyển thiếu được tính **đúng số ngân hàng báo về**, phần còn lại thu bằng tiền mặt hoặc **một mã QR mới đúng bằng phần còn lại** (máy chủ tính: tổng đơn trừ các khoản QR chuyển thiếu của đơn chưa hoàn cho khách; mã QR khác số đó bị từ chối). Đơn chỉ đóng khi các khoản cộng lại **đúng bằng** tổng máy chủ tính — không có "bớt cho khách" tự động; muốn bớt thì dùng giảm giá đơn. Khoản chuyển thiếu đã dùng trả đơn thì **ra khỏi** danh sách cần hoàn; khoản quản lý đã đánh dấu "đã hoàn cho khách" thì không dùng trả đơn được nữa.
 - Khách chuyển **thừa**: đơn **không** tự đóng; thu ngân chọn đóng đơn. Khoản chuyển khoản tính **đúng số của mã QR**, phần thừa là tiền của khách, **không** phải doanh thu. **Thối lại tiền mặt** là **một** thao tác ghi cả hai: khoản chi két của ca đang mở của máy (lý do cố định "Trả lại tiền chuyển thừa", gắn với mã QR) và "đã hoàn" trên mã QR — số tiền đúng bằng phần thừa ngân hàng báo về (máy chủ kiểm), mỗi mã chỉ một lần. Cần quyền **thu/chi két** theo **ngưỡng cộng dồn của ca** như mọi khoản chi (xem [07-thu-chi-va-dong-ca.md](07-thu-chi-va-dong-ca.md)); vượt ngưỡng thì phải có quản lý duyệt tại chỗ, và lần duyệt gắn với **ca đó** và **đúng tổng thu + chi trong ca** kể cả khoản thối này (khác một đồng là máy chủ từ chối). Máy chủ từ chối khoản thối không kèm lần duyệt khi vượt ngưỡng; máy không có ca mở thì đơn vẫn đóng và phần thừa nằm ở danh sách **cần hoàn**.
 - Khách **đã chuyển đủ qua QR** mà thu ngân lại thu tiền mặt / hủy đơn / tạo QR mới: máy chủ từ chối. Trả lại tiền mặt cho khách, rồi bấm **Đóng đơn bằng QR đã nhận**.
+- **Đơn kẹt sau khi mất mạng** (khách chuyển khoản lúc máy mất mạng, thu ngân gỡ mã và lấy tiền mặt): máy chủ từ chối cả tiền mặt lẫn lệnh gỡ mã, đơn còn nháp trên máy, mục **Cần xử lý** có hai dòng. Dòng "thu tiền mặt" (câu "Khách đã chuyển khoản đủ qua QR…") chỉ hai đường: (1) trả lại tiền mặt cho khách rồi **Đóng đơn bằng QR đã nhận** (giữ khoản chuyển khoản), hoặc (2) khách muốn lấy lại khoản chuyển khoản thì nhờ quản lý hoàn ở trang quản lý rồi **Bỏ qua lệnh** và ghi cách đã xử lý. Dòng "gỡ mã" cũng nói có thể khách đã chuyển, dẫn về dòng trên; mã chỉ hết hạn / đã gỡ từ trước thì bỏ qua và ghi lý do.
 - Tiền chuyển đến **sau khi mã hết hạn**: không tự trả đơn; quản lý khớp tay ở trang quản lý.
 - Chỉ **tiền mặt** đi vào két của ca. Đơn tính vào ca **lúc thanh toán**.
 - **Mọi thanh toán thuộc một ca**, với mọi cách trả (tiền mặt, QR…). Máy chưa mở ca thì không vào được màn bán; máy chủ cũng **từ chối** lệnh thanh toán không nêu ca khi máy đó không có ca nào đang mở (lệnh giả, máy bản cũ), để không có khoản tiền nào nằm ngoài két và ngoài báo cáo ca. Các khoản đã ghi trước đây giữ nguyên.

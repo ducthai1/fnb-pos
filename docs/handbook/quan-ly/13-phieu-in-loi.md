@@ -4,6 +4,7 @@ audience: quan-ly
 screens:
   - /reports/print-failures
 decisions:
+  - D-155
   - D-042
   - D-045
 tests:
@@ -27,7 +28,7 @@ Cần quyền **Xem báo cáo**.
 ## Các bước
 
 1. Mở **Bán hàng & tiền → Phiếu in lỗi**.
-2. Chọn **Từ ngày / Đến ngày**, hoặc bấm nhanh **Hôm nay / 7 ngày qua / 30 ngày qua**, rồi bấm **Xem**.
+2. Chọn **Từ ngày / Đến ngày** (gõ dạng ngày/tháng/năm như `30/10/2026`, hoặc bấm biểu tượng lịch cạnh ô; cách dùng như ô **Ngày kinh doanh** ở [Doanh thu ngày](10-doanh-thu-ngay.md)), hoặc bấm nhanh **Hôm nay / 7 ngày qua / 30 ngày qua**, rồi bấm **Xem**.
 3. Bảng: **Lúc**, **Loại phiếu** (Hóa đơn, Phiếu tạm tính, Phiếu bếp/pha chế, Tem ly, Báo cáo ca), **Đơn** (đơn số, số gọi), **Máy quầy** (6 ký tự cuối mã máy), **Máy in**, **Lỗi**, **Số lần thử**.
 4. Ô **Tìm máy in, đơn, mã lỗi** lọc nhanh.
 5. Xử lý ngoài đời: hỏi khách/pha chế xem đã nhận chưa, kiểm tra giấy, cáp, nguồn của máy in đó; in lại từ máy quầy (xem phần máy quầy, phiếu in).

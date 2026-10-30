@@ -46,7 +46,7 @@ export function RoleEditor({
     setErrors({});
     setBusy(true);
     const result =
-      role === null ? await api.createRole(checked.body) : await api.updateRole(role.id, checked.body);
+      role === null ? await api.createRole(checked.body) : await api.updateRole(role.id, role.version, checked.body);
     setBusy(false);
     if (result.ok) return onSaved(T.saved(checked.body.name));
     if (isSignedOut(result)) signedOut();

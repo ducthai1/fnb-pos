@@ -100,6 +100,19 @@ export const VI_COMMON = {
   countInvalid: "Nhập số nguyên từ 0.",
 } as const;
 
+export const VI_DATE_FIELD = {
+  placeholder: "dd/mm/yyyy",
+  openCalendar: "Chọn ngày trên lịch",
+  calendar: "Lịch chọn ngày",
+  previousMonth: "Tháng trước",
+  nextMonth: "Tháng sau",
+  weekdays: ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
+  today: "Hôm nay",
+  notADay: "Nhập ngày theo dạng ngày/tháng/năm, ví dụ 30/10/2026.",
+  tooLate: (limit: string) => `Không chọn được ngày sau ${limit}.`,
+  tooEarly: (limit: string) => `Không chọn được ngày trước ${limit}.`,
+} as const;
+
 export const VI_DAY_PICKER = {
   previous: "Ngày trước",
   next: "Ngày sau",
@@ -116,7 +129,8 @@ export const VI_TABLE = {
   sortNone: "Thứ tự gốc",
   sortOption: (label: string, ascending: boolean) => `${label} ${ascending ? "↑" : "↓"}`,
   sortColumn: (label: string) => `Sắp xếp theo ${label}`,
-  shown: (shown: number, total: number) => (shown === total ? `${total} dòng` : `Đang hiện ${shown} / ${total} dòng`),
+  shown: (shown: number, total: number) =>
+    shown === total ? `${total} dòng` : `Đang hiện ${shown} / ${total} dòng`,
   noMatch: "Không có dòng nào khớp. Thử bỏ bớt chữ tìm hoặc chọn bộ lọc khác.",
   actions: "Thao tác",
   pager: "Chia trang",

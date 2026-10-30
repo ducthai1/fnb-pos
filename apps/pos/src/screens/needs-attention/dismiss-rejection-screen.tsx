@@ -7,9 +7,17 @@ import {
 import { refusalSentence, vi } from "../../messages/vi";
 import { ReasonPicker } from "../order-adjust/reason-picker";
 import { Alert, ScreenFrame } from "../shared/screen-frame";
-import { useLeaveThen } from "../shared/use-leave-motion";
+import { useFinishThen, useLeaveThen } from "../shared/use-leave-motion";
 
 const T = vi.needsAttention.dismissal;
+
+/** What setting a command aside came to: done, refused for a reason to read, or not started. */
+export type DismissResult =
+  | { readonly kind: "done" }
+  | { readonly kind: "refused"; readonly message: string }
+  | { readonly kind: "nothing" };
+
+export const refusedWith = (message: string): DismissResult => ({ kind: "refused", message });
 
 /**
  * Setting aside a command the server refused: why, in the shop's own list of reasons. A
@@ -22,10 +30,14 @@ export function DismissRejectionScreen(props: {
   reasons: readonly ReasonCode[];
   /** The command moved money or told the kitchen to make food. */
   needsWords: boolean;
-  onConfirm(reason: ChosenReason): Promise<string | null>;
+  onConfirm(reason: ChosenReason): Promise<DismissResult>;
+  /** The command was set aside and the step has played its leaving movement. */
+  onDone(): void;
   onBack(): void;
 }) {
   const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
+  // The step sinks away when its work is done, as it does when backed out of.
+  const { closing, finish } = useFinishThen<void>(props.onDone);
   const [code, setCode] = useState<ReasonCode | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +55,7 @@ export function DismissRejectionScreen(props: {
   return (
     <ScreenFrame
       enter="sheet"
-      leaving={leaving}
+      leaving={leaving || closing}
       title={T.title}
       dock={
         <>
@@ -59,9 +71,10 @@ export function DismissRejectionScreen(props: {
               onClick={() => {
                 if (reason === null) return;
                 setBusy(true);
-                void props.onConfirm(reason).then((refused) => {
+                void props.onConfirm(reason).then((result) => {
+                  if (result.kind === "done") return finish();
                   setBusy(false);
-                  setError(refused);
+                  setError(result.kind === "refused" ? result.message : null);
                 });
               }}
             >

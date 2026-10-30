@@ -95,7 +95,7 @@ it("locks, lets back, re-PINs someone with the worst name, and lists who holds a
 
   // The archive's refusal is the one 4xx this walk asks for.
   const refusal = (p: { url: string; text: string }) =>
-    p.url.endsWith(`/api/roles/${roleId}/archive`) && /409/.test(p.text);
+    p.url.includes(`/api/roles/${roleId}/archive`) && /409/.test(p.text);
   expect(unexpectedProblems(problems).filter((p) => !refusal(p))).toEqual([]);
   await close();
 });

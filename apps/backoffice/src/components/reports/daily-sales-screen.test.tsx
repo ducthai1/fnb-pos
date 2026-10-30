@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
 import { dayBefore, todaysBusinessDate, vndText } from "../../lib/format/business-day";
+import { dayMonthYear } from "../../lib/format/calendar-days";
 import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { dailySalesReport } from "../../test-support/fake-reports-and-day";
@@ -32,7 +33,9 @@ describe("the daily sales report", () => {
   });
 
   it("lists sales by payment method, by hour and by item", async () => {
-    await renderSignedIn(<DailySalesScreen />, { getDailySales: async () => ok(dailySalesReport()) });
+    await renderSignedIn(<DailySalesScreen />, {
+      getDailySales: async () => ok(dailySalesReport()),
+    });
     const cash = (await screen.findByText(T.methods.cash!)).closest("tr")!;
     expect(within(cash).getByText(money(871_000))).toBeTruthy();
     expect(screen.getByText(T.methods.qr_transfer!)).toBeTruthy();
@@ -46,7 +49,7 @@ describe("the daily sales report", () => {
     const getDailySales = mock.fn(async () => ok(dailySalesReport()));
     await renderSignedIn(<DailySalesScreen />, { getDailySales });
     await screen.findByText(T.summaryTitle, { selector: "caption" });
-    fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "2026-10-18" } });
+    fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "18/10/2026" } });
     await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, "2026-10-18"));
     const calls = getDailySales.mock.calls.length;
     fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "" } });
@@ -61,19 +64,25 @@ describe("the daily sales report", () => {
     const P = vi.dayPicker;
     const today = todaysBusinessDate();
     expect((screen.getByRole("button", { name: P.next }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: P.today }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: P.today }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     fireEvent.click(screen.getByRole("button", { name: P.previous }));
     await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, dayBefore(today)));
-    expect((screen.getByLabelText(T.dateLabel) as HTMLInputElement).value).toBe(dayBefore(today));
+    expect((screen.getByLabelText(T.dateLabel) as HTMLInputElement).value).toBe(
+      dayMonthYear(dayBefore(today)),
+    );
     fireEvent.click(screen.getByRole("button", { name: P.next }));
     await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, today));
-    fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "2026-01-02" } });
+    fireEvent.change(screen.getByLabelText(T.dateLabel), { target: { value: "02/01/2026" } });
     fireEvent.click(screen.getByRole("button", { name: P.today }));
     await waitFor(() => expect(getDailySales).toHaveBeenLastCalledWith(Q1, today));
   });
 
   it("explains a role without view_reports instead of an empty report", async () => {
-    await renderSignedIn(<DailySalesScreen />, { getDailySales: async () => refused(403, "API_PERMISSION_DENIED") });
+    await renderSignedIn(<DailySalesScreen />, {
+      getDailySales: async () => refused(403, "API_PERMISSION_DENIED"),
+    });
     await screen.findByRole("heading", { name: vi.shell.permissionDeniedTitle });
     expect(screen.queryByText(T.summaryTitle)).toBeNull();
   });

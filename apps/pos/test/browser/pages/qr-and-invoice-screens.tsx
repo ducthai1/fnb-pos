@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { billSlip } from "../../../src/features/printing/bill-slip";
 import { BuyerInfoScreen } from "../../../src/screens/invoice/buyer-info-screen";
 import { SaleInvoicePanel } from "../../../src/screens/invoice/sale-invoice-panel";
+import { LeaveQrWhileOfflineSheet } from "../../../src/screens/payment/leave-qr-while-offline-sheet";
 import { PaymentDrawer } from "../../../src/screens/payment/payment-drawer";
 import { QrPanel } from "../../../src/screens/payment/qr-panel";
 import { SaleDoneScreen } from "../../../src/screens/payment/sale-done-screen";
@@ -60,6 +61,7 @@ const reprinted = billSlip(hostileSaleMenu, HOSTILE_SALE, Date.now(), lookup);
 export const QR_AND_INVOICE_SCREENS = {
   "qr-payment": () => qrScreen({ kind: "waiting", secondsLeft: 899 }),
   "qr-payment-refused": () => qrScreen({ kind: "refused", code: "SYNC_ORDER_HAS_SETTLED_QR" }),
+  "qr-leave-offline": () => <LeaveQrWhileOfflineSheet onChoose={nothing} />,
   "buyer-info": () => (
     <BuyerInfoScreen
       header={null}

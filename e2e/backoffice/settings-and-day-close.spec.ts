@@ -86,7 +86,9 @@ it("refuses to close a day while a till's shift is open, listing that shift", as
 
   const { page, problems, close } = await signedInBackoffice(browser!, stack);
   await openSection(page, text.shell.nav.dayClose);
-  await page.getByLabel(D.dateLabel).fill(todayAtTheBranch());
+  // The day field takes the day as dd/mm/yyyy, as a person types it.
+  const [year, month, day] = todayAtTheBranch().split("-");
+  await page.getByLabel(D.dateLabel, { exact: true }).fill(`${day}/${month}/${year}`);
   const openShifts = page.locator('[data-day-list="open-shifts"]');
   await openShifts.getByText(D.shift(shiftId)).waitFor();
 

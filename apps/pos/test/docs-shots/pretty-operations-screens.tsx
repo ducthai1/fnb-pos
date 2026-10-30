@@ -9,6 +9,7 @@ import { shiftCloseSlip } from "../../src/features/shift/shift-close-slip";
 import { readStoredShift } from "../../src/features/shift/stored-shift";
 import { vi } from "../../src/messages/vi";
 import { ApprovalSheet } from "../../src/screens/approval/approval-sheet";
+import { LeaveQrWhileOfflineSheet } from "../../src/screens/payment/leave-qr-while-offline-sheet";
 import { OrderHistoryScreen } from "../../src/screens/history/order-history-screen";
 import { CancelOrderScreen } from "../../src/screens/order-adjust/cancel-order-screen";
 import { DiscountScreen } from "../../src/screens/order-adjust/discount-screen";
@@ -100,6 +101,8 @@ export const OPERATIONS_SCREENS = {
       onSessionExpired={nothing}
     />
   ),
+  // Taking a QR down for cash while the till cannot hear the bank: the sheet replaces the drawer.
+  "qr-leave-offline": () => <LeaveQrWhileOfflineSheet onChoose={nothing} />,
   "sale-adjusted": () => (
     <SaleScreen
       header={tillHeader("counter")}

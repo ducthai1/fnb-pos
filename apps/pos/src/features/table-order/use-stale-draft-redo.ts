@@ -3,7 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { TillMenu } from "../menu/till-menu";
 import { serverCopyOf } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
-import { isStaleDraft, redoDraftCommand, redoneCart } from "./redo-stale-draft";
+import {
+  handedOverTicket,
+  isStaleDraft,
+  redoDraftCommands,
+  redoneCart,
+  refusedTickets,
+} from "./redo-stale-draft";
 
 /** How long a redo waits for the till's other commands on the order to be answered. */
 const REDO_WAIT_MS = 60_000;
@@ -14,7 +20,10 @@ export interface DraftRedone {
   readonly commandId: string;
 }
 
-type RedoClient = Pick<SyncClient, "rejectedCommands" | "onChange" | "snapshot" | "enqueue">;
+type RedoClient = Pick<
+  SyncClient,
+  "rejectedCommands" | "onChange" | "snapshot" | "enqueue" | "resolveRejected"
+>;
 
 /**
  * Drafts of the till's tables that the server refused because another till changed the
@@ -33,6 +42,8 @@ export function useStaleDraftRedo(
   const taken = useRef(new Set<string>()).current;
   const redos = useRef(new Set<string>()).current;
   const busy = useRef(new Set<string>()).current;
+  /** Tickets whose recording was refused and has been queued again after the redo. */
+  const recordedAgain = useRef(new Set<string>()).current;
   const [redone, setRedone] = useState<DraftRedone | null>(null);
   const live = useRef({ place, menu });
   live.current = { place, menu };
@@ -57,11 +68,37 @@ export function useStaleDraftRedo(
       const { place: at, menu: now } = live.current;
       const cart = redoneCart(now, latest, refused);
       if (cart === null) return;
-      const command = redoDraftCommand(at, now, latest, cart, Date.now());
-      recorded.add(command.commandId);
-      redos.add(command.commandId);
-      await client.enqueue(command);
-      if (mounted) setRedone({ orderId, commandId: command.commandId });
+      const tickets = await refusedTickets(
+        client,
+        orderId,
+        cart,
+        (id) => recorded.has(id) && !recordedAgain.has(id),
+      );
+      for (const entry of tickets) recordedAgain.add(entry.commandId);
+      const [draft, ...records] = redoDraftCommands(
+        at,
+        now,
+        latest,
+        cart,
+        tickets.map((entry) => entry.ticket),
+        Date.now(),
+      );
+      if (draft === undefined) return;
+      recorded.add(draft.commandId);
+      redos.add(draft.commandId);
+      await client.enqueue(draft);
+      for (const record of records) {
+        recorded.add(record.commandId);
+        await client.enqueue(record);
+      }
+      // The redo stands in for the refusals it answers: they are off the till's list.
+      for (const entry of [
+        ...refused.map((one) => one.command.commandId),
+        ...tickets.map((one) => one.commandId),
+      ]) {
+        await client.resolveRejected(entry);
+      }
+      if (mounted) setRedone({ orderId, commandId: draft.commandId });
     }
 
     async function look() {
@@ -87,11 +124,26 @@ export function useStaleDraftRedo(
     };
   }, [client, recorded, taken, redos, busy]);
 
-  /** Whether a refusal is the cashier's to read: a stale draft is redone, not shown. */
+  /**
+   * Whether a refusal is the cashier's to read: a stale draft is redone, not shown; nor is
+   * the refusal of a ticket recorded over it, which the redo records again.
+   */
   const shows = useMemo(
-    () => (refused: RejectedCommand) =>
-      !isStaleDraft(refused) || redos.has(refused.command.commandId),
-    [redos],
+    () => (refused: RejectedCommand, all: readonly RejectedCommand[]) => {
+      if (isStaleDraft(refused)) return redos.has(refused.command.commandId);
+      if (handedOverTicket(refused) === null) return true;
+      if (recordedAgain.has(refused.command.commandId)) return false;
+      // Held back while the redo is due or running; once it found nothing to add the items
+      // to, the refusal is the cashier's to read after all.
+      if (busy.has(refused.entityId)) return false;
+      return !all.some(
+        (entry) =>
+          entry.entityId === refused.entityId &&
+          isStaleDraft(entry) &&
+          !taken.has(entry.command.commandId),
+      );
+    },
+    [redos, recordedAgain, busy, taken],
   );
   return { redone, shows };
 }

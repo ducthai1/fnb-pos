@@ -82,11 +82,41 @@ const refused = (): RejectedCommand =>
     },
   }) as unknown as RejectedCommand;
 
-function clientHolding(row: EntitySnapshot | null) {
+/** A ticket for the cake the printer took, which the server refused to record: no cake yet. */
+const refusedTicket = (kind: "new" | "cancel" = "new"): RejectedCommand =>
+  ({
+    entity: "order",
+    entityId: tid(0x900),
+    code: "SYNC_KITCHEN_NOT_OWED",
+    serverSnapshot: null,
+    command: {
+      commandId: tid(0xc02),
+      type: "order.mark_sent_to_kitchen",
+      payload: {
+        orderId: tid(0x900),
+        ticketId: tid(0xc03),
+        stations: [
+          {
+            stationId: tid(0xc04),
+            lines: [{ lineId: cake.lineId, kind, quantity: "1", note: null }],
+          },
+        ],
+      },
+    },
+  }) as unknown as RejectedCommand;
+
+function clientHolding(row: EntitySnapshot | null, refusals: RejectedCommand[] = []) {
   const enqueued: LocalCommand[] = [];
+  const resolved: string[] = [];
   return {
     enqueued,
+    resolved,
     client: {
+      rejectedCommands: async () => refusals,
+      resolveRejected: async (commandId: string) => {
+        resolved.push(commandId);
+        return true;
+      },
       snapshot: async () =>
         row === null
           ? null
@@ -113,6 +143,27 @@ describe("saving a refused draft again over the order as the server holds it", (
     const lines = (held.enqueued[0]?.payload as { lines: { lineId: string }[] }).lines;
     expect(lines.map((line) => line.lineId)).toEqual([beans.lineId, cake.lineId]);
     expect(held.enqueued[0]?.payload).toMatchObject({ expectedVersion: 5 });
+  });
+
+  it("records the ticket the stations hold for an item it saves, and takes its refusal off", async () => {
+    const held = clientHolding(serverRow([beans], "draft"), [refusedTicket()]);
+    expect(await redoRefusedDraft(held.client, PLACE, MENU, refused(), AT)).toBe("sent");
+    expect(held.enqueued.map((command) => command.type)).toEqual([
+      "order.save_draft",
+      "order.mark_sent_to_kitchen",
+    ]);
+    expect(held.enqueued[1]?.payload).toMatchObject({
+      ticketId: tid(0xc03),
+      stations: [{ lines: [{ lineId: cake.lineId, kind: "new", quantity: "1" }] }],
+    });
+    expect(held.resolved).toEqual([tid(0xc02)]);
+  });
+
+  it("leaves the refusal of a cancel ticket to be read, not recorded again", async () => {
+    const held = clientHolding(serverRow([beans], "draft"), [refusedTicket("cancel")]);
+    await redoRefusedDraft(held.client, PLACE, MENU, refused(), AT);
+    expect(held.enqueued.map((command) => command.type)).toEqual(["order.save_draft"]);
+    expect(held.resolved).toEqual([]);
   });
 
   it("sends nothing when the server already has every item", async () => {

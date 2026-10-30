@@ -30,7 +30,7 @@ export function RoleArchivePanel({ role, onDone, onCancel }: {
     setBusy(true);
     setError(null);
     setHolders(null);
-    const result = await api.archiveRole(role.id);
+    const result = await api.archiveRole(role.id, role.version);
     setBusy(false);
     if (result.ok) return onDone(T.archived(role.name));
     if (isSignedOut(result)) signedOut();

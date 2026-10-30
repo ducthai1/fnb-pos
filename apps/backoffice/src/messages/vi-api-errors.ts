@@ -33,6 +33,8 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
     "Trạm này đã lưu trữ nên không gán cho món đang bán được. Chọn trạm khác, hoặc dùng lại trạm ở trang Trạm pha chế/bếp.",
   API_STAFF_VERSION_CONFLICT:
     "Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần.",
+  API_ROLE_VERSION_CONFLICT:
+    "Có người đã sửa vai trò này trước bạn. Tải lại danh sách để xem bản mới nhất, rồi làm lại nếu vẫn cần.",
   API_ROLE_ARCHIVED: "Vai trò này đã lưu trữ, không gán cho ai được nữa. Chọn vai trò khác.",
   API_ROLE_NOT_FOUND: "Không tìm thấy vai trò này. Tải lại trang.",
   API_ROLE_IN_USE: "Vai trò đang có người giữ. Chuyển họ sang vai trò khác trước.",

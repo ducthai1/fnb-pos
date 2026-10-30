@@ -6,6 +6,7 @@
   "exports": {
     "./build-app": "./src/build-app.ts",
     "./test-support/sync-shop": "./test/integration/support/sync-shop.ts",
+    "./test-support/milk-tea-till-shop": "./test/integration/support/milk-tea-till-shop.ts",
     "./test-support/fake-payment-gateway": "./test/integration/support/fake-payment-gateway.ts",
     "./test-support/staffed-shop": "./test/integration/support/staffed-shop.ts",
     "./test-support/paired-devices": "./test/integration/support/paired-devices.ts",

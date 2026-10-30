@@ -47,6 +47,11 @@ export interface CounterQr {
   /** What the QR on screen asks for: the amount due, less what short QRs of it brought. */
   readonly amount: Vnd;
   readonly phase: QrPhase;
+  /**
+   * The QR is out and the bank may already have paid it: waiting, or past its time with no
+   * transfer heard of. What the till holds of it is then only as new as its last sync.
+   */
+  readonly mayBePaid: boolean;
   readonly error: string | null;
   /** A QR command is being recorded: its buttons wait. */
   readonly busy: boolean;
@@ -194,6 +199,9 @@ export function useCounterQr(input: CounterQrInput): CounterQr {
     drawn,
     amount,
     phase,
+    mayBePaid:
+      drawn !== null &&
+      (phase.kind === "waiting" || (phase.kind === "expired" && !phase.lateTransfer)),
     error,
     busy,
     locked: busy || (drawn !== null && phase.kind === "paid"),

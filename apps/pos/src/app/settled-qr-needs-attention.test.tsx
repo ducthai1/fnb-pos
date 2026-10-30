@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { vi as text } from "../messages/vi";
+import { ROLE_TEMPLATES } from "@fnb/domain";
+import { refusalSentence, vi as text } from "../messages/vi";
 import {
   bankSettles,
   money,
@@ -9,7 +10,7 @@ import {
   tap,
   twoCoffeesOnQr,
 } from "../test-support/qr-cafe-server";
-import { signedInTill } from "../test-support/signed-in-till";
+import { LAN, signedInTill } from "../test-support/signed-in-till";
 
 const SETTLED_QR = "SYNC_ORDER_HAS_SETTLED_QR";
 const entryWith = (code: string) => document.querySelector(`[data-rejected-code="${code}"]`);
@@ -41,8 +42,10 @@ const openNeedsAttention = async () => {
   await screen.findByRole("heading", { name: text.needsAttention.title });
 };
 
-async function cashRefusedOverAPaidQr() {
+async function cashRefusedOverAPaidQr(asManager = false) {
   const server = qrCafeServer();
+  // Setting aside a refused payment is a manager's call: the grant of close_unpaid_table.
+  if (asManager) server.state.grants.set(LAN.id, [...ROLE_TEMPLATES.manager.grants]);
   const paid = await cashTakenOverAPaidQr(server);
   await openNeedsAttention();
   return { server, paid };
@@ -71,7 +74,9 @@ describe("an order the server would not take cash for, because its QR was paid",
   it("offers no such close on a refusal about something else", async () => {
     await cashRefusedOverAPaidQr();
     const other = entryWith("DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION");
-    expect(other?.textContent).toContain(text.errors.DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION);
+    expect(other?.textContent).toContain(
+      refusalSentence("payment.cancel_intent", "DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION"),
+    );
     // Nothing to close with a QR there: the one thing offered is setting it aside.
     expect(
       [...(other?.querySelectorAll("button") ?? [])].map((button) => button.textContent),
@@ -117,7 +122,7 @@ describe("an order the server would not take cash for, because its QR was paid",
 
 describe("setting aside a refusal that had money in it", () => {
   it("asks what became of it, sends the trace, and keeps it off the list afterwards", async () => {
-    const { server } = await cashRefusedOverAPaidQr();
+    const { server } = await cashRefusedOverAPaidQr(true);
     const entry = entryWith("DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION");
     const dismiss = entry?.querySelector("button");
     if (dismiss === null || dismiss === undefined) throw new Error("no dismiss button");

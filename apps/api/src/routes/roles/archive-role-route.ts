@@ -1,6 +1,8 @@
+import { expectedVersionQuerySchema } from "@fnb/contracts";
 import { appendAudit, withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
+import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { ROLE_ERROR_CODES } from "../../roles/role-error-codes";
 import { ROLE_COLUMNS, type RoleRow, roleParams, roleView } from "../../roles/role-representation";
@@ -10,7 +12,8 @@ import { ROLE_COLUMNS, type RoleRow, roleParams, roleView } from "../../roles/ro
  * and suspended members too, is named in the refusal, so the manager knows whom to move
  * first; nobody's rights change as a side effect of tidying the list. The role row is
  * locked, and a role is given to someone only under a share lock of it, so a hire running
- * at the same moment is either seen here or refused the archived role.
+ * at the same moment is either seen here or refused the archived role. Done as of the
+ * version of the role the caller read (`?version=`): one changed since is refused with 409.
  */
 export function registerArchiveRoleRoute(app: FastifyInstance, context: ApiContext): void {
   app.post<{ Params: { id: string } }>(
@@ -20,6 +23,8 @@ export function registerArchiveRoleRoute(app: FastifyInstance, context: ApiConte
       schema: { params: roleParams },
     },
     async (request, reply) => {
+      const expected = expectedVersionQuerySchema.safeParse(request.query);
+      if (!expected.success) return reply.code(400).send({ code: AUTH_ERROR_CODES.invalidRequest });
       const { tenantId, appUserId } = backofficeAuth(request);
       const roleId = request.params.id;
       const now = context.clock.now();
@@ -31,6 +36,10 @@ export function registerArchiveRoleRoute(app: FastifyInstance, context: ApiConte
         const role = found.rows[0];
         if (role === undefined)
           return { status: 404, body: { code: ROLE_ERROR_CODES.roleNotFound } };
+        // As of the version the caller read: a role changed since is not put away unseen.
+        if (role.version !== expected.data.version) {
+          return { status: 409, body: { code: ROLE_ERROR_CODES.versionConflict } };
+        }
         if (role.archived_at !== null) {
           return { status: 409, body: { code: ROLE_ERROR_CODES.roleArchived } };
         }

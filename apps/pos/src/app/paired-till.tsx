@@ -153,7 +153,13 @@ export function PairedTill(props: {
   // The server no longer knows this till: whatever else is on screen, nothing it holds can
   // be sent. The staff session's own 401 (another code) never gets here.
   if (revokedAtBootstrap || status.connection === "revoked") {
-    return <RevokedTill store={props.store} credentials={deps.credentials} onUnpaired={props.onUnpaired} />;
+    return (
+      <RevokedTill
+        store={props.store}
+        credentials={deps.credentials}
+        onUnpaired={props.onUnpaired}
+      />
+    );
   }
   // The server serves no build this old: nothing the till does would reach it, so the one
   // thing to do is update. What the till recorded stays in its database through the reload.
@@ -192,19 +198,21 @@ export function PairedTill(props: {
   }
   if (rejected !== null) {
     return withBanner(
-      <NeedsAttentionFlow
-        snapshot={snapshot}
-        client={till?.client ?? null}
-        place={place}
-        staffId={signedIn.staff.id}
-        rejected={rejected}
-        onSent={() => till?.sync.nudge()}
-        onOpenOrder={(orderId) => {
-          setFocusOrderId(orderId);
-          setRejected(null);
-        }}
-        onBack={() => setRejected(null)}
-      />,
+      <TillPermissionsProvider value={permissions}>
+        <NeedsAttentionFlow
+          snapshot={snapshot}
+          client={till?.client ?? null}
+          place={place}
+          staffId={signedIn.staff.id}
+          rejected={rejected}
+          onSent={() => till?.sync.nudge()}
+          onOpenOrder={(orderId) => {
+            setFocusOrderId(orderId);
+            setRejected(null);
+          }}
+          onBack={() => setRejected(null)}
+        />
+      </TillPermissionsProvider>,
     );
   }
   return withBanner(

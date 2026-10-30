@@ -49,6 +49,7 @@ const TILL = [
   "payment",
   "qr-payment",
   "qr-payment-refused",
+  "qr-leave-offline",
   "buyer-info",
   "sale-done",
   "sale-done-invoice",

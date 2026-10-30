@@ -90,6 +90,20 @@ describe("the staff tools", () => {
     await waitFor(() => expect(api.listStaff.mock.calls.length).toBeGreaterThan(reads));
   });
 
+  it.each([
+    ["lockLabel", "lock", "deactivateStaff"],
+    ["resetPinLabel", "resetPin", "resetStaffPin"],
+  ] as const)("says so and reads the list again when the member changed before %s", async (label, button, call) => {
+    const api = serving();
+    const stale = mock.fn(async () => refused(409, "API_STAFF_VERSION_CONFLICT"));
+    const { panel } = await openTool(K[label]("Lan"), { ...api, [call]: stale });
+    if (button === "resetPin") fireEvent.change(within(panel).getByLabelText(K.newPinLabel), { target: { value: "7391" } });
+    const reads = api.listStaff.mock.calls.length;
+    fireEvent.click(within(panel).getByRole("button", { name: K[button] }));
+    expect((await within(panel).findByRole("alert")).textContent).toBe(vi.errors.byCode.API_STAFF_VERSION_CONFLICT);
+    await waitFor(() => expect(api.listStaff.mock.calls.length).toBeGreaterThan(reads));
+  });
+
   it("sends nothing when nothing changed, or the name is blank", async () => {
     const { api, panel } = await openTool(K.editLabel("Lan"));
     fireEvent.click(within(panel).getByRole("button", { name: K.save }));
@@ -121,8 +135,8 @@ describe("the staff tools", () => {
     fireEvent.click(screen.getByRole("button", { name: K.reopenLabel("Lan") }));
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: K.reopen }));
     await screen.findByText(K.reopened("Lan"));
-    expect(api.deactivateStaff).toHaveBeenCalledWith(LAN.id);
-    expect(api.reactivateStaff).toHaveBeenCalledWith(LAN.id);
+    expect(api.deactivateStaff).toHaveBeenCalledWith(LAN.id, LAN.version);
+    expect(api.reactivateStaff).toHaveBeenCalledWith(LAN.id, LAN.version);
   });
 
   it("sets a new PIN only once it is 4 to 6 digits, and shows a weak one's refusal in place", async () => {
@@ -136,7 +150,7 @@ describe("the staff tools", () => {
     fireEvent.change(field, { target: { value: "1234" } });
     fireEvent.click(within(panel).getByRole("button", { name: K.resetPin }));
     expect((await within(panel).findByRole("alert")).textContent).toBe(vi.errors.byCode.API_STAFF_PIN_TOO_WEAK);
-    expect(api.resetStaffPin).toHaveBeenCalledWith(LAN.id, "1234");
+    expect(api.resetStaffPin).toHaveBeenCalledWith(LAN.id, LAN.version, "1234");
   });
 
   it("offers to unlock a PIN only for someone wrong PINs are counted against", async () => {

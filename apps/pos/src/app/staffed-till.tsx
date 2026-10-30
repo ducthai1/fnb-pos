@@ -12,6 +12,7 @@ import type { TillPlace } from "../features/order/till-command";
 import type { PrinterPort } from "../features/printing/printer-port";
 import { openShiftCommand } from "../features/shift/till-shift";
 import { useTillShift } from "../features/shift/use-till-shift";
+import { TillConnectionProvider } from "../features/sync/till-connection-context";
 import type { TillSyncStatus } from "../features/sync/till-sync-status";
 import { vi } from "../messages/vi";
 import { OpenShiftScreen } from "../screens/open-shift/open-shift-screen";
@@ -92,27 +93,29 @@ export function StaffedTill(props: StaffedTillProps) {
     );
   }
   return (
-    <SellingModes
-      loadFloor={props.loadFloor}
-      tillStart={snapshot}
-      onSyncPass={till?.sync.subscribe ?? noPasses}
-      client={client}
-      place={place}
-      menu={menu}
-      now={now}
-      header={header}
-      shiftId={shift.shift.id}
-      {...(props.focusOrderId === undefined ? {} : { focusOrderId: props.focusOrderId })}
-      cashierName={staff.displayName}
-      printer={props.printer}
-      {...(props.closeWaitMs === undefined ? {} : { closeWaitMs: props.closeWaitMs })}
-      onCloseShift={(run) => {
-        setClosing({ slips: null, said: "" });
-        run().then(setClosing, (error: unknown) => {
-          console.error(error);
-          setClosing({ slips: [], said: vi.closeShift.failed });
-        });
-      }}
-    />
+    <TillConnectionProvider value={props.status.connection}>
+      <SellingModes
+        loadFloor={props.loadFloor}
+        tillStart={snapshot}
+        onSyncPass={till?.sync.subscribe ?? noPasses}
+        client={client}
+        place={place}
+        menu={menu}
+        now={now}
+        header={header}
+        shiftId={shift.shift.id}
+        {...(props.focusOrderId === undefined ? {} : { focusOrderId: props.focusOrderId })}
+        cashierName={staff.displayName}
+        printer={props.printer}
+        {...(props.closeWaitMs === undefined ? {} : { closeWaitMs: props.closeWaitMs })}
+        onCloseShift={(run) => {
+          setClosing({ slips: null, said: "" });
+          run().then(setClosing, (error: unknown) => {
+            console.error(error);
+            setClosing({ slips: [], said: vi.closeShift.failed });
+          });
+        }}
+      />
+    </TillConnectionProvider>
   );
 }

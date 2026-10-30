@@ -8,7 +8,7 @@ export interface OrderRefusal {
 }
 
 /** Which refusals a screen tells the cashier of; every one by default. */
-type Shows = (refused: RejectedCommand) => boolean;
+type Shows = (refused: RejectedCommand, all: readonly RejectedCommand[]) => boolean;
 const EVERY_REFUSAL: Shows = () => true;
 
 /** The latest refusal of the commands in `ours`, among those the server refused for good. */
@@ -17,8 +17,9 @@ export async function refusalAmong(
   ours: ReadonlySet<string>,
   shows: Shows = EVERY_REFUSAL,
 ): Promise<OrderRefusal | null> {
-  const refused = (await client.rejectedCommands())
-    .filter((entry) => ours.has(entry.command.commandId) && shows(entry))
+  const all = await client.rejectedCommands();
+  const refused = all
+    .filter((entry) => ours.has(entry.command.commandId) && shows(entry, all))
     .at(-1);
   return refused === undefined
     ? null

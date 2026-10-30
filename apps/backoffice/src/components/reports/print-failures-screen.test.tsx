@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi as mock } from "vitest";
 import type { PrintFailure } from "../../lib/api/reports-api";
 import { firstOfLastDays, todaysBusinessDate } from "../../lib/format/business-day";
+import { dayMonthYear } from "../../lib/format/calendar-days";
 import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { fixtureId } from "../../test-support/fake-reports-and-day";
@@ -29,7 +30,13 @@ const failure = (n: number, change: Partial<PrintFailure> = {}): PrintFailure =>
 describe("slips the tills could not print", () => {
   it("asks for today's whole business day on the shop's clock and lists what is still missing", async () => {
     const getPrintFailures = mock.fn(async () =>
-      ok({ failures: [failure(1), failure(2, { kind: "kitchen", deviceOrderNo: null, callNumber: null })], truncated: false }),
+      ok({
+        failures: [
+          failure(1),
+          failure(2, { kind: "kitchen", deviceOrderNo: null, callNumber: null }),
+        ],
+        truncated: false,
+      }),
     );
     await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures });
     const bill = (await screen.findByText(T.kinds.bill!)).closest("tr")!;
@@ -37,7 +44,11 @@ describe("slips the tills could not print", () => {
     expect(within(bill).getByText("PRINTER_OFFLINE")).toBeTruthy();
     expect(screen.getByText(T.kinds.kitchen!)).toBeTruthy();
     const today = todaysBusinessDate();
-    const [branchId, from, to] = getPrintFailures.mock.calls[0]! as unknown as [string, string, string];
+    const [branchId, from, to] = getPrintFailures.mock.calls[0]! as unknown as [
+      string,
+      string,
+      string,
+    ];
     expect(branchId).toBe(BRANCHES[0]!.id);
     expect(Date.parse(from)).toBe(Date.parse(`${today}T04:00:00+07:00`));
     expect(Date.parse(to) - Date.parse(from)).toBe(24 * 60 * 60_000);
@@ -45,7 +56,9 @@ describe("slips the tills could not print", () => {
   });
 
   it("says when the list holds only the newest failures", async () => {
-    await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures: async () => ok({ failures: [failure(1)], truncated: true }) });
+    await renderSignedIn(<PrintFailuresScreen />, {
+      getPrintFailures: async () => ok({ failures: [failure(1)], truncated: true }),
+    });
     expect(await screen.findByText(T.truncated)).toBeTruthy();
   });
 
@@ -56,18 +69,24 @@ describe("slips the tills could not print", () => {
     const calls = getPrintFailures.mock.calls.length;
     // "To" first: both start on today, so moving "from" first would make a valid range
     // (and a call) whenever today is the 21st or later.
-    fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "2026-10-19" } });
-    fireEvent.change(screen.getByLabelText(T.fromLabel), { target: { value: "2026-10-21" } });
+    fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "19/10/2026" } });
+    fireEvent.change(screen.getByLabelText(T.fromLabel), { target: { value: "21/10/2026" } });
     expect((await screen.findByRole("alert")).textContent).toBe(T.rangeInvalid);
     expect(getPrintFailures.mock.calls.length).toBe(calls);
-    fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "2026-10-22" } });
+    fireEvent.change(screen.getByLabelText(T.toLabel), { target: { value: "22/10/2026" } });
     await waitFor(() =>
-      expect(getPrintFailures).toHaveBeenLastCalledWith(BRANCHES[0]!.id, "2026-10-20T21:00:00.000Z", "2026-10-22T21:00:00.000Z"),
+      expect(getPrintFailures).toHaveBeenLastCalledWith(
+        BRANCHES[0]!.id,
+        "2026-10-20T21:00:00.000Z",
+        "2026-10-22T21:00:00.000Z",
+      ),
     );
   });
 
   it("explains a role without view_reports instead of an empty list", async () => {
-    await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures: async () => refused(403, "API_PERMISSION_DENIED") });
+    await renderSignedIn(<PrintFailuresScreen />, {
+      getPrintFailures: async () => refused(403, "API_PERMISSION_DENIED"),
+    });
     await screen.findByRole("heading", { name: vi.shell.permissionDeniedTitle });
   });
 
@@ -76,7 +95,9 @@ describe("slips the tills could not print", () => {
     await renderSignedIn(<PrintFailuresScreen />, { getPrintFailures });
     await screen.findByText(T.empty);
     const week = screen.getByRole("button", { name: T.ranges.week });
-    expect(screen.getByRole("button", { name: T.ranges.today }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: T.ranges.today }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     fireEvent.click(week);
     const today = todaysBusinessDate();
     await mock.waitFor(() => expect(getPrintFailures).toHaveBeenCalledTimes(2));
@@ -84,6 +105,8 @@ describe("slips the tills could not print", () => {
     expect(Date.parse(to) - Date.parse(from)).toBe(7 * 24 * 60 * 60_000);
     expect(Date.parse(to)).toBe(Date.parse(`${today}T04:00:00+07:00`) + 24 * 60 * 60_000);
     expect(week.getAttribute("aria-pressed")).toBe("true");
-    expect((screen.getByLabelText(T.fromLabel) as HTMLInputElement).value).toBe(firstOfLastDays(today, 7));
+    expect((screen.getByLabelText(T.fromLabel) as HTMLInputElement).value).toBe(
+      dayMonthYear(firstOfLastDays(today, 7)),
+    );
   });
 });

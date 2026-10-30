@@ -166,3 +166,42 @@ export function addMilkTea() {
 
 export const pushedOf = (server: TableServer, type: string) =>
   server.state.pushed.filter((command) => command.type === type);
+
+export const OTHER_TILLS_LINE = tid(0x9e01);
+
+/** The other till adds a milk coffee to the order at the version it holds, as the server keeps it. */
+export function anotherTillAddsCoffee(
+  server: TableServer,
+  seated: { orderId: string; lineId: string },
+) {
+  const before = server.rows.get(seated.orderId)!;
+  const coffee = (lineId: string, quantity: string) => ({
+    lineId,
+    productId: MENU.coffee,
+    variantId: null,
+    modifiers: [],
+    quantity,
+    note: null,
+  });
+  const command: SyncCommandEnvelope = {
+    commandId: tid(0x9e10),
+    deviceSeq: 50,
+    type: "order.save_draft",
+    payload: {
+      orderId: seated.orderId,
+      deviceOrderNo: before.deviceOrderNo,
+      serviceType: "dine_in",
+      channelKey: null,
+      tableId: FLOOR.t1,
+      tableTag: null,
+      lines: [coffee(seated.lineId, "2"), coffee(OTHER_TILLS_LINE, "1")],
+      expectedVersion: before.version,
+    },
+    businessDate: "2026-10-20",
+    domainVersion: DOMAIN_VERSION,
+    createdAt: new Date().toISOString(),
+  };
+  const row = { ...server.answer(command)!, deviceId: OTHER_TILL };
+  server.rows.set(seated.orderId, row);
+  server.state.feed.push({ entity: "order", entityId: seated.orderId, snapshot: row });
+}

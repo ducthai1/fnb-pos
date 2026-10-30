@@ -42,6 +42,24 @@ const cartLinesOf = (menu: TillMenu, payload: Payload): CartLine[] =>
   });
 
 /**
+ * Whether a ticket reports a new item the server's copy of the order does not hold, or more
+ * units of it than are still unsent: the real server refuses such a ticket for good.
+ */
+function unownedTicketLine(payload: Payload, held: Row | undefined): boolean {
+  const lines = (held?.lines ?? []) as LineRow[];
+  const tickets = payload.stations as { lines: Payload[] }[];
+  return tickets.some((station) =>
+    station.lines.some((reported) => {
+      if (reported.kind !== "new") return false;
+      const line = lines.find((entry) => entry.id === reported.lineId);
+      if (line === undefined) return true;
+      const unsent = quantity(String(line.quantity)) - quantity(String(line.sentQuantity ?? "0"));
+      return quantity(String(reported.quantity)) > unsent;
+    }),
+  );
+}
+
+/**
  * The order rows a table's commands leave, shaped as the real server sends them, priced
  * from the bootstrap menu (the fake has no price lists), so a till reading a row it did not
  * write itself (another till's order, its own after a restart) reads the full order.
@@ -141,6 +159,9 @@ export function fakeTableRows(
       }
       if (command.type === "order.save_draft" && payload.tableId && !rows.has(orderId)) {
         return seatedAt(payload.tableId, orderId) === undefined ? undefined : "SYNC_TABLE_OCCUPIED";
+      }
+      if (command.type === "order.mark_sent_to_kitchen") {
+        return unownedTicketLine(payload, rows.get(orderId)) ? "SYNC_KITCHEN_NOT_OWED" : undefined;
       }
       if (command.type === "table.transfer") {
         return seatedAt(payload.toTableId, orderId) === undefined
