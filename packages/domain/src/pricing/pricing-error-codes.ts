@@ -12,6 +12,8 @@ export const PRICING_ERROR_CODES = {
   weightNotPositive: "DOMAIN_PRICING_WEIGHT_NOT_POSITIVE",
   weightNotWholeGrams: "DOMAIN_PRICING_WEIGHT_NOT_WHOLE_GRAMS",
   weightTooLarge: "DOMAIN_PRICING_WEIGHT_TOO_LARGE",
+  // Quantity of a line sold by the piece
+  quantityNotWhole: "DOMAIN_PRICING_QUANTITY_NOT_WHOLE",
   // Price list configuration
   fixedPriceOnBroadScope: "DOMAIN_PRICING_FIXED_PRICE_ON_BROAD_SCOPE",
   negativeFixedPrice: "DOMAIN_PRICING_NEGATIVE_FIXED_PRICE",

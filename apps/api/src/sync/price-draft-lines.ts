@@ -3,7 +3,11 @@ import { newId } from "@fnb/db";
 import {
   type OrderLine,
   type ValidatedModifierSelection,
+  DomainError,
+  PRICING_ERROR_CODES,
+  QUANTITY_SCALE,
   findProductVariant,
+  quantityToDecimalString,
   gramsOfWeighedQuantity,
   measureUnitOf,
   quantity,
@@ -112,6 +116,13 @@ function itemLine(
   // nothing, at most what one line may weigh. The amount is then the domain's price × weight.
   const unit = measureUnitOf(product);
   if (unit !== null) gramsOfWeighedQuantity(units, unit);
+  // Sold by the piece, the quantity is a whole number: 1.5 of a drink is nothing a till sells.
+  else if (units % QUANTITY_SCALE !== 0n) {
+    throw new DomainError(
+      PRICING_ERROR_CODES.quantityNotWhole,
+      `a product sold by the piece takes whole quantities, not ${quantityToDecimalString(units)}`,
+    );
+  }
   return {
     id: intent.lineId,
     parentLineId: null,

@@ -40,6 +40,8 @@ export const VI_SYNC_ERRORS = {
   DOMAIN_PRICING_WEIGHT_NOT_POSITIVE: "Món bán theo cân cần cân nặng lớn hơn 0 g. Cân lại món.",
   DOMAIN_PRICING_WEIGHT_NOT_WHOLE_GRAMS:
     "Cân nặng không tròn gam theo đơn vị của món (đơn vị vừa đổi). Cân lại món.",
+  DOMAIN_PRICING_QUANTITY_NOT_WHOLE:
+    "Món bán theo cái chỉ nhận số lượng nguyên (1, 2, 3…), không nhận số lẻ. Sửa số lượng rồi lưu lại.",
   DOMAIN_PRICING_WEIGHT_TOO_LARGE: "Một lần cân tối đa 100 kg. Cân lại món.",
   DOMAIN_PAYMENT_INVALID_INTENT_TRANSITION:
     "Mã QR đã đổi trạng thái (đã được trả, đã hết hạn hoặc đã gỡ) nên không làm được thao tác này.",

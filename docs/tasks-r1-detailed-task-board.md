@@ -602,8 +602,8 @@
 - ~~`kitchenStillHasItems` từng tính cả dòng hủy…~~ **Xong** (D-137, commit ở "Bàn giao phiên trước"; máy chủ `cancel-order-command.ts` đã sửa cùng cách tính, test hủy nhiều lượt).
 - 2026-10-30 · **[đợt 7]** Test API cho hủy một phần-lẻ món cân đã gửi bếp (`order.void_line` quantity "3.51") trên máy chủ thật: máy quầy gửi đúng, test máy quầy dùng máy chủ giả.
 
-- 2026-10-28 · Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft`, vì máy chủ chỉ kiểm cân nặng của món theo cân. Chặn số lẻ cho món không bán theo cân.
-- 2026-10-28 · Combo: `PUT /catalog/products/:id` chưa từ chối phần combo trỏ tới **combo khác** hoặc món đã ngừng bán. Trang quản lý không cho chọn; máy quầy và máy chủ từ chối lúc bán.
+- ~~Món đếm cái vẫn nhận số lượng lẻ ("1.5") trong `order.save_draft`.~~ **Xong** (D-140, commit ở "Bàn giao phiên trước").
+- ~~Combo: `PUT /catalog/products/:id` chưa từ chối phần combo trỏ tới combo khác hoặc món đã ngừng bán.~~ **Xong** (D-140, commit ở "Bàn giao phiên trước").
 - ~~2026-10-28 · Hủy món **bán theo cân** đã gửi bếp: `VoidRequest.units` của máy quầy (`features/order-adjust/void-line-adjustment.ts`) đếm số nguyên ⇒ một lần cân 351 g không hủy được sau khi gửi bếp. Hợp đồng `order.void_line` đã nhận `quantity` lẻ; cho hủy nguyên lần cân.~~ **Xong** (D-132, commit `202ee0b`).
 - 2026-10-20 · Máy quầy bị thu hồi: chưa thấy đường xóa thông tin ghép rồi về màn ghép. Lỗi 401 hiện chỉ xử lý phiên nhân viên (`apps/pos/src/app/use-background-sync.ts`). Chưa có route đăng xuất phiên nhân viên (`/pos/staff-sessions` chỉ có POST và GET `current`).
 - ~~2026-10-20 · Bàn trống mà đơn đã xóa hết món vẫn giữ bàn: chưa kiểm lại; kiểm cùng D-097. Gộp bàn: R2.~~ **Xong** (D-133, commit `202ee0b`): D-088 ghi nút "Trả bàn" nhưng code chưa có; đã làm.

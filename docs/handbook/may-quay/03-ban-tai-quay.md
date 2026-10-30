@@ -244,7 +244,7 @@ Tải lại trang (hoặc mở máy lại) khi đơn quầy chưa trả tiền: 
 | Giá tối đa 100.000.000 ₫ cho một món. | Gõ giá quá lớn (thường là thừa số 0) | Xóa bớt số |
 | Một lần cân tối đa 100 kg (100.000 g). | Gõ cân nặng quá lớn | Xóa bớt số |
 | Bạn không có quyền làm thao tác này và không ai duyệt hộ được. | Không ai có quyền duyệt giá nhập tay | Báo chủ quán |
-| Giá gõ vượt 100.000.000 ₫ cho một món nên máy chủ không nhận. Gõ lại giá. / Món bán theo cân cần cân nặng lớn hơn 0 g. Cân lại món. / Cân nặng không tròn gam theo đơn vị của món (đơn vị vừa đổi). Cân lại món. / Một lần cân tối đa 100 kg. Cân lại món. | Máy chủ từ chối dòng (hiện ở **Cần xử lý**) | Mở lại đơn, gõ lại giá / cân lại |
+| Giá gõ vượt 100.000.000 ₫ cho một món nên máy chủ không nhận. Gõ lại giá. / Món bán theo cân cần cân nặng lớn hơn 0 g. Cân lại món. / Cân nặng không tròn gam theo đơn vị của món (đơn vị vừa đổi). Cân lại món. / Một lần cân tối đa 100 kg. Cân lại món. / Món bán theo cái chỉ nhận số lượng nguyên (1, 2, 3…), không nhận số lẻ. Sửa số lượng rồi lưu lại. | Máy chủ từ chối dòng (hiện ở **Cần xử lý**) | Mở lại đơn, gõ lại giá / cân lại / sửa số lượng |
 | Lần duyệt này dành cho đơn, món hoặc ca khác với thao tác máy gửi. … / Quản lý đã duyệt một con số khác với thao tác máy gửi … | Lần duyệt giá nhập tay không khớp món / giá | Đổi giá lại, xin duyệt lại |
 
 ## Mất mạng thì sao
