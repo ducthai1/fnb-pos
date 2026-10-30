@@ -6,17 +6,18 @@
 
 ## Bàn giao phiên trước
 
-- 2026-10-30 — **Lượt 6b xong mốc 1, 2, 3, 6; mốc 4, 5, 7, 8, 9 CHƯA làm** (1 agent, hết ngân sách, nhánh `feat/needs-attention-actions-flags-and-item-codes`).
-  - **Commit:** `1bbe2ee` (mốc 1) · `310d9c6` (mốc 2) · `720e938` (mốc 3) · `bab587c` (mốc 6) · `b1ae483` (test đăng ký lệnh).
+- 2026-10-30 — **Lượt 6b xong mốc 1, 2, 3, 6; mốc 4, 5, 7, 8, 9 CHƯA làm** (1 agent, hết ngân sách: 0,51M token theo số đo hệ thống, nhánh `feat/needs-attention-actions-flags-and-item-codes`, gộp `5556140`).
+  - **Commit:** `1bbe2ee` (mốc 1) · `310d9c6` (mốc 2) · `720e938` (mốc 3) · `bab587c` (mốc 6) · `b1ae483` (test đăng ký lệnh) · `8bc6700` (sửa khi review: quán mẫu `dev:stack` bật `kitchen_routing` + `cup_labels` như mẫu quán cà phê, nếu không quán mẫu mất phiếu theo trạm và tem ly sau khi ba công tắc được nối thật) · `33ec8af` (sửa khi soát ảnh: "Cần xử lý" hiện `order.cancel` thay vì "Hủy đơn"; thêm tên tiếng Việt cho 6 lệnh còn thiếu, test đối chiếu mọi lệnh trong `SYNC_COMMANDS` của máy chủ).
+  - **Cổng khi gộp** (chạy lại không cache trên nhánh, cây trùng bản gộp): unit 3.295 · `test:api` 1.834 + 7 · `test:sync` 24 · `test:browser` 241 (POS 180, e2e 28 + 10, sync-client 23) · build — xanh. Lần chạy trước đó đỏ một test trang quản lý không liên quan (`stations-screen.test.tsx`, chờ chữ báo lỗi quá 1 s khi máy tải nặng; chạy riêng 3/3 xanh). Ảnh sổ tay chụp lại toàn bộ sau gộp.
   - **Cổng:** `pnpm verify` xanh (unit: pos 704, backoffice 619, api 364, contracts 391, domain ≈ 893, sync-client 78, printing 96, feature-flags 42, db 31, shop-templates 11); `test:api` 1.833 + 1 skip, **1 đỏ chập chờn** `sync-change-cursor-never-skips` (timeout 30 s khi cả bộ chạy song song; chạy riêng 4/4 xanh, không đụng tới feed); `test:sync` 24; `test:browser` 233 (POS 180, e2e 28 + 10, sync-client 23 − gộp); build xanh.
   - **Mốc 1 (D-137):** "Cần xử lý" có nút theo loại lệnh (làm lại trên bản mới, mở đơn / bàn kể cả "xin duyệt rồi gửi lại", đóng đơn QR, bỏ qua có lý do). Lệnh mới `sync.rejection_dismissed` ghi `audit_log`; lệnh có tiền / phiếu bếp bắt buộc lời ghi. `SyncClient.resolveRejected` nhớ bền. **Sửa lỗi máy chủ:** `order.cancel` tính nhầm dòng hủy là bếp "còn món" ⇒ hủy đơn sau hủy món nhiều lượt bị từ chối (test mới tái hiện).
   - **Mốc 2 (D-138):** `cup_labels`, `kitchen_routing`, `happy_hour_pricing` nối thật (máy chủ định giá nháp theo cùng công tắc); `pay_first_counter` khóa ở bật, các công tắc chưa làm khóa + "Sắp có", `einvoice` chỉ dẫn tới hồ sơ; `planTemplate` bỏ qua công tắc khóa. B1, B2, Q13 gỡ. **Đổi hành vi mặc định:** 3 công tắc đó mặc định tắt ⇒ quán đang chạy mất tem ly / chia phiếu / giá giờ cho tới khi bật.
   - **Mốc 3 (D-139):** migration `0038_product_code` (cấp mã cho món đang có bằng cách tắt / bật RLS của bảng trong giao dịch, có test migration thật). Ô Mã hàng, cột + tìm theo mã, nhập Excel khớp mã trước tên, xuất Excel có mã. **`code` chưa vào bootstrap / feed máy quầy** (lệch có chủ ý, xem D-139 + Backlog `[đợt 7]`).
   - **Mốc 6 (D-140):** số lượng lẻ của món đếm cái và combo trỏ combo / món ngừng bán bị máy chủ từ chối.
   - **Hợp đồng:** máy quầy không đổi trường nào (công tắc đã nằm sẵn ở `config.flags`). `GET /settings` thêm `support` cho từng công tắc (tùy chọn). `ProductDocument` + danh sách món thêm `code`; thân `PUT /catalog/products/:id` thêm `code` tùy chọn. Lệnh mới `sync.rejection_dismissed`: máy bản mới gửi lên máy chủ bản cũ sẽ bị từ chối lệnh không biết (máy chủ phát hành trước máy quầy, theo quy tắc mở rộng rồi mới thu hẹp).
-  - **Sổ tay:** `may-quay/03, 06, 09, 10`, `quan-ly/03, 05, 09, 14, 16`; B1, B2, Q13 gỡ. Ảnh "Cần xử lý" có thao tác: đã thêm vào dữ liệu chụp (`pretty-entry-screens.tsx`, `screens-page.tsx`), **chưa chụp lại** — chạy `pnpm docs:shots:may-quay` + `docs:shots:backoffice` sau khi gộp.
+  - **Sổ tay:** `may-quay/03, 06, 09, 10`, `quan-ly/03, 05, 09, 14, 16`; B1, B2, Q13 gỡ. Ảnh "Cần xử lý" có thao tác: đã thêm vào dữ liệu chụp (`pretty-entry-screens.tsx`, `screens-page.tsx`), đã chụp lại sau khi gộp.
   - **Chưa làm (giữ nguyên dòng `[đợt 6]` ở Backlog):** mốc 4 ép phiên bản máy quầy tối thiểu + chép `assets/` của bản trước (T11-04); mốc 5 máy bị thu hồi + route đăng xuất phiên nhân viên; mốc 7 kiểm `version` khi xóa / sửa nhân viên; mốc 8 lưu trữ trạm; mốc 9 hiệu ứng đóng ở đường "xong việc", thẻ xác nhận, phiếu chốt ca xem trước bị cắt.
-  - **Phiên sau:** lượt 6c, theo thứ tự mốc 4, 5, 7, 8, 9.
+  - **Phiên sau:** lượt 6c, theo thứ tự mốc 4, 5, 7, 8, 9 (cần chủ dự án duyệt token: ngoài ước tính hai lượt đã duyệt).
 
 - 2026-10-30 — **Lượt 6a (khóa món đã gửi bếp, số gọi nhiều máy, phiếu đóng ca) xong mốc 1–3; mốc 4 "Cần xử lý" CHƯA làm** (1 agent, 0,47M token theo số đo hệ thống, nhánh `feat/kitchen-lock-call-numbers-and-needs-attention`, gộp `e472c66`).
   - **Commit:** `202ee0b` (mốc 1) · `9ac1563` (mốc 2) · `4005c7c` (mốc 3) · `57b0333` (bàn giao).
@@ -629,6 +630,10 @@
   - Đã loại: hai test dọn mã ghép dùng database riêng; mã 8 ký tự / 30 chữ thì trùng gần như không thể; route ghép không đổi.
   - Còn nghi: thứ gì đó sửa `device_pairing_code` / `pairing_code_route` của tenant khác trên database dùng chung, hoặc đồng hồ của app thanh toán đi trước giữa lúc cấp và lúc ghép.
   - Lặp lại thì in body của 401 và trạng thái hàng mã trong DB lúc hỏng.
+- 2026-10-30 · Hai test nữa đỏ khi cả bộ chạy song song trên máy tải nặng, chạy riêng thì xanh:
+  - `sync-change-cursor-never-skips` ("follows change_seq as a number once it gains a digit"): timeout 30 s, **hai lần** (lần đầu cổng của lượt 6a, và cổng do agent lượt 6b tự chạy).
+  - `apps/backoffice/src/components/menu/stations-screen.test.tsx` ("adds the first, refusing an empty name"): `findByText` hết 1 s chờ chữ báo lỗi, một lần.
+  - Việc cần làm: đo thời gian thật của test feed khi chạy cả bộ (có thể chỉ cần chia nhỏ hoặc nới timeout, nếu đúng là chậm chứ không treo); test trang quản lý chờ theo nút / trạng thái thay vì theo giờ.
 - 2026-10-28 · Combo chưa có e2e trình duyệt (`e2e/backoffice` tạo combo → `e2e/pos` bán combo, phiếu bar + bếp); hiện chỉ có test component và API.
 - 2026-10-20 · Ratchet test của spike: phần hội tụ nhiều máy đã có ở `packages/sync-client/test/scenarios`. Chưa đối chiếu từng ca:
   - commit muộn (advisory lock);
