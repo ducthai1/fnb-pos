@@ -23,6 +23,8 @@ export interface ScenarioTillOptions {
   batchSize?: number;
   pullLimit?: number;
   maxPullPages?: number;
+  /** The POS build the till names to the server; none by default, as a build before the header. */
+  posBuild?: number;
 }
 
 /** A till as it runs in a shop: its own database file, network and sync client. */
@@ -53,6 +55,7 @@ export class ScenarioTill {
         send: this.network.send,
         deviceToken: till.deviceToken,
         staffSessionToken: () => till.staffToken,
+        ...(options.posBuild === undefined ? {} : { posBuild: options.posBuild }),
       }),
       deviceId: till.deviceId,
       clock: options.clock,

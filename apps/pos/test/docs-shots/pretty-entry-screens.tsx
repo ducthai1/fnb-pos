@@ -6,6 +6,7 @@ import { CrashScreen } from "../../src/screens/crash/crash-screen";
 import { BootstrapScreen } from "../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../src/screens/pair-device/pair-device-screen";
+import { UpdateRequiredScreen } from "../../src/screens/update/update-required-screen";
 import { PinEntry } from "../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../src/screens/staff-login/staff-picker";
 import { SHOP } from "./pretty-menu";
@@ -43,6 +44,10 @@ export const ENTRY_SCREENS = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={nothing} />,
   crash: () => <CrashScreen onReload={nothing} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
+  // A till that sold through a long outage before it learned the server moved on.
+  "update-required": () => (
+    <UpdateRequiredScreen pendingCommands={128} updating={false} onUpdate={nothing} />
+  ),
   "bootstrap-failed": () => <BootstrapScreen error={vi.errors.network} onRetry={nothing} />,
   "staff-picker": () => <StaffPicker branchName={SHOP.branch} staff={staff} onChoose={nothing} />,
   "pin-entry": () => (

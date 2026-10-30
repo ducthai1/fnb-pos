@@ -17,6 +17,8 @@ export class SyncTransportError extends Error {
     readonly kind: SyncTransportErrorKind,
     readonly status: number | null,
     message: string,
+    /** The `code` of the answer's body, when it had one: tells two kinds of 401 apart. */
+    readonly code?: string,
   ) {
     super(message);
     this.name = "SyncTransportError";

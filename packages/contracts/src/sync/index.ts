@@ -29,6 +29,11 @@ export {
   serverGenerationSchema,
   syncDeviceStateSchema,
 } from "./server-generation-schema";
+export {
+  POS_BUILD_HEADER,
+  POS_RELEASE_TOO_OLD_CODE,
+  POS_RELEASE_TOO_OLD_STATUS,
+} from "./pos-build-contract";
 export { SYNC_CLOCK_ERROR_CODES } from "./sync-clock-error-codes";
 export { SERVER_TIME_HEADER, serverTimeSchema } from "./server-time-header";
 export { SYNC_ORDER_VERSION_ERROR_CODES } from "./sync-order-version-error-codes";

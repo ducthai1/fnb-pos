@@ -174,6 +174,28 @@ describe("installing a release", () => {
     expect(releases()).toEqual(["1.2.0+c", "1.3.0+d", "1.4.0+e", "1.5.0+f", "1.6.0+g"]);
   });
 
+  it("keeps the previous release's POS files in the new one for tills still running it, one release back only", async () => {
+    const assetsOf = (id: string) =>
+      readdirSync(join(base, "releases", id, "apps/pos/dist/assets")).sort();
+    expect(install((await release("1.0.0+aaa", ["0001_a.sql"])).tarball).status).toBe(0);
+    ageReleases(join(base, "releases"), ["1.0.0+aaa"]);
+    const second = install((await release("1.1.0+bbb", ["0001_a.sql"])).tarball);
+    expect(second.status, second.err).toBe(0);
+    expect(assetsOf("1.1.0+bbb")).toEqual(["app-100aaa.js", "app-110bbb.js"]);
+    // The file kept is the previous release's own, byte for byte, and the new one is not touched.
+    expect(
+      readFileSync(join(base, "releases/1.1.0+bbb/apps/pos/dist/assets/app-100aaa.js"), "utf8"),
+    ).toContain("1.0.0+aaa");
+    expect(
+      readFileSync(join(base, "releases/1.1.0+bbb/apps/pos/dist/assets/app-110bbb.js"), "utf8"),
+    ).toContain("1.1.0+bbb");
+
+    ageReleases(join(base, "releases"), ["1.0.0+aaa", "1.1.0+bbb"]);
+    expect(install((await release("1.2.0+ccc", ["0001_a.sql"])).tarball).status).toBe(0);
+    // Two releases back is no longer carried: tills that old are told to update.
+    expect(assetsOf("1.2.0+ccc")).toEqual(["app-110bbb.js", "app-120ccc.js"]);
+  });
+
   it("will not install the release that is already running", async () => {
     const packed = await release("1.0.0+aaa", ["0001_a.sql"]);
     expect(install(packed.tarball).status).toBe(0);

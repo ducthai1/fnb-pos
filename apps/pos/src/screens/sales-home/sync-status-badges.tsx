@@ -4,6 +4,7 @@ import {
   CloudUpload,
   LoaderCircle,
   type LucideIcon,
+  RefreshCw,
   ServerCrash,
   ShieldAlert,
   Wifi,
@@ -24,6 +25,7 @@ const CONNECTION: Record<TillConnection, ConnectionLook> = {
   online: { text: vi.sync.online, icon: Wifi, tone: "ok" },
   offline: { text: vi.sync.offline, icon: WifiOff, tone: "warn" },
   server_error: { text: vi.sync.serverError, icon: ServerCrash, tone: "warn" },
+  update_required: { text: vi.update.required.title, icon: RefreshCw, tone: "danger" },
   origin_refused: { text: vi.errors.API_ORIGIN_NOT_ALLOWED, icon: ShieldAlert, tone: "danger" },
 };
 

@@ -7,7 +7,7 @@ export interface SyncFailure {
   /** out_of_order: every command of the batch was told to come again later. */
   readonly kind: "network" | "http" | "protocol" | "out_of_order";
   readonly status?: number;
-  /** The sync client's own code when it refused what the server sent. */
+  /** The server's error code of an HTTP failure, or the client's own when it refused what the server sent. */
   readonly code?: string;
 }
 
@@ -46,7 +46,12 @@ export const emptyReport = (): SyncReport => ({
  */
 export function failureOf(stage: SyncFailure["stage"], error: unknown): SyncFailure {
   if (error instanceof SyncTransportError) {
-    return { stage, kind: error.kind, ...(error.status === null ? {} : { status: error.status }) };
+    return {
+      stage,
+      kind: error.kind,
+      ...(error.status === null ? {} : { status: error.status }),
+      ...(error.code === undefined ? {} : { code: error.code }),
+    };
   }
   if (isSyncClientError(error)) return { stage, kind: "protocol", code: error.code };
   throw error;

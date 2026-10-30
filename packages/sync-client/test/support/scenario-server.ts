@@ -21,10 +21,18 @@ export interface BackofficeRequest {
 export class ScenarioServer {
   private app: ReturnType<typeof buildApp>;
   pool: pg.Pool;
+  private minimumPosBuild: number | undefined;
 
   private constructor(private readonly connectionString: string) {
     this.pool = this.connect();
-    this.app = buildApp({ pool: this.pool });
+    this.app = this.build();
+  }
+
+  private build(): ReturnType<typeof buildApp> {
+    return buildApp({
+      pool: this.pool,
+      ...(this.minimumPosBuild === undefined ? {} : { minimumPosBuild: this.minimumPosBuild }),
+    });
   }
 
   /**
@@ -59,6 +67,12 @@ export class ScenarioServer {
     return { status: response.statusCode, body: response.body };
   }
 
+  /** Restarts the server so that it serves no POS build below `build`, as a deploy that sets it does. */
+  async requirePosBuild(build: number): Promise<void> {
+    this.minimumPosBuild = build;
+    await this.restart();
+  }
+
   async restart(): Promise<void> {
     await this.close();
     this.start();
@@ -67,7 +81,7 @@ export class ScenarioServer {
   /** Back up after close(): a new pool and app on the same connection string. */
   start(): void {
     this.pool = this.connect();
-    this.app = buildApp({ pool: this.pool });
+    this.app = this.build();
   }
 
   async close(): Promise<void> {

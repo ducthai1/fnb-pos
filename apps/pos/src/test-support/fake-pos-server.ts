@@ -86,6 +86,10 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     pushed: [] as SyncCommandEnvelope[],
     /** Wallet payments the till asked the server to open, with the staff token it sent. */
     walletPayments: [] as (WalletPaymentBody & { staffToken: string })[],
+    /** Every sync call is answered 426: the server serves no build as old as this one. */
+    buildRefused: false,
+    /** Every sync call is answered 401 for the till's own credential: the till was revoked. */
+    deviceRevoked: false,
     /** Pushes fail as if the network dropped, while signing in still answers. */
     pushesHeld: false,
     /** The staff credential each batch was pushed with, and the commands in it. */
@@ -190,6 +194,15 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
   };
 }
 
+/** What the API answers a till below its minimum build, or one whose credential was revoked. */
+function refuseWhenTheServerSays(state: { buildRefused: boolean; deviceRevoked: boolean }) {
+  if (!state.buildRefused && !state.deviceRevoked) return;
+  if (state.deviceRevoked) {
+    throw new SyncTransportError("http", 401, "answered 401", "API_DEVICE_UNAUTHENTICATED");
+  }
+  throw new SyncTransportError("http", 426, "answered 426", "API_POS_RELEASE_TOO_OLD");
+}
+
 /** The POS wired to the fake server, an in-memory store and saved credentials. */
 export function fakeDependencies(
   server: ReturnType<typeof fakeServer>,
@@ -208,14 +221,18 @@ export function fakeDependencies(
     floor: server.floor,
     // A push with a staff session the server no longer knows is refused 401, as the API does.
     transportFor: (_credential, staffToken) => ({
-      pullChanges: (cursor, limit) => server.transport.pullChanges(cursor, limit),
+      pullChanges: (cursor, limit) => {
+        refuseWhenTheServerSays(server.state);
+        return server.transport.pullChanges(cursor, limit);
+      },
       deviceState: () => server.transport.deviceState(),
       async pushCommands(batch) {
+        refuseWhenTheServerSays(server.state);
         const token = staffToken();
         if (server.state.pushesHeld) throw new SyncTransportError("network", null, "held");
         if (server.state.online) server.state.pushedWith.push({ token, commands: [...batch] });
         if (server.state.online && token !== null && server.state.expiredTokens.has(token)) {
-          throw new SyncTransportError("http", 401, "answered 401");
+          throw new SyncTransportError("http", 401, "answered 401", "API_STAFF_SESSION_INVALID");
         }
         return server.transport.pushCommands(batch);
       },

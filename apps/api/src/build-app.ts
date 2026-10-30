@@ -11,6 +11,7 @@ import { type EInvoiceProvider, providersByKey } from "./einvoice/einvoice-provi
 import type { EInvoiceRetryPolicy } from "./einvoice/einvoice-retry-policy";
 import { startEInvoiceWorker } from "./einvoice/einvoice-worker";
 import { allowedOriginsHook } from "./http/allowed-origins-hook";
+import { minimumPosBuildHook } from "./http/minimum-pos-build-hook";
 import { PAYMENT_GATEWAYS, gatewaysByKey } from "./payments/gateways/payment-gateways";
 import type { PaymentGatewayAdapter } from "./payments/gateways/payment-gateway-adapter";
 import { walletsByKey } from "./payments/wallets/wallet-gateway-adapter";
@@ -112,6 +113,11 @@ export interface AppDependencies {
   onClientError?: (entry: ClientErrorEntry) => void;
   /** Where product photos are kept, a directory per tenant; without it uploads answer 503. */
   mediaDirectory?: string;
+  /**
+   * The oldest POS build (see POS_BUILD_HEADER) the sync endpoints still serve. Without it
+   * every build is served.
+   */
+  minimumPosBuild?: number;
 }
 
 /**
@@ -134,6 +140,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
     verifySecret: dependencies.verifySecret ?? verifySecret,
     requireSession: backofficeSessionHook(pool, resolvedClock, sessionCookies),
     requireDevice: deviceAuthHook(pool),
+    requireCurrentBuild: minimumPosBuildHook(dependencies.minimumPosBuild ?? null),
     requirePermission: requirePermissionHook(pool),
     productImages: mediaDirectory === undefined ? null : diskProductImageStore(mediaDirectory),
   };

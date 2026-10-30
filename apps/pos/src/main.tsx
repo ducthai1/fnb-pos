@@ -11,7 +11,7 @@ import {
 } from "./features/client-errors/client-error-reporter";
 import { httpSendReports } from "./features/client-errors/client-error-sender";
 import { releaseUpdateSource } from "./features/updates/release-watch";
-import { RUNNING_RELEASE } from "./features/updates/running-release";
+import { RUNNING_BUILD, RUNNING_RELEASE } from "./features/updates/running-release";
 import { httpPosApi } from "./features/api/pos-api";
 import { httpBootstrapSource } from "./features/bootstrap/bootstrap-source";
 import { API_BASE } from "./features/menu/api-base";
@@ -52,6 +52,7 @@ const deps: PosDependencies = {
       send: fetchHttpSend(API_BASE),
       deviceToken: credential.deviceToken,
       staffSessionToken,
+      posBuild: RUNNING_BUILD,
     }),
   syncIdleMs: 5_000,
   // The web build prints nothing; an end-to-end build may ask for a printer that always takes.

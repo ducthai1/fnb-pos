@@ -6,9 +6,14 @@ decisions:
   - D-067
   - D-123
   - D-124
+  - D-141
+  - D-142
 tests:
   - scripts/src/release/pack-release.test.ts
   - scripts/src/release/install-and-rollback-scripts.test.ts
+  - apps/api/test/integration/sync/sync-refuses-a-till-below-the-minimum-build.test.ts
+  - apps/api/src/server/server-config.test.ts
+  - apps/pos/build-release.test.ts
 ---
 
 # Bản phát hành — đóng gói, cài và quay lui
@@ -29,7 +34,8 @@ Người vận hành đăng nhập server bằng user `fnb` (chủ thư mục `/
    Lần đầu trên server mới thêm `--no-start` (chưa có unit systemd và file môi trường để khởi động).
 3. Script tự làm theo thứ tự: kiểm checksum → giải nén vào `releases/<mã bản>` → kiểm từng file → cài phụ thuộc `--prod` → **backup** → **migration** → đổi `current` → khởi động lại hai dịch vụ → hỏi `/health` → giữ 5 bản mới nhất.
 4. Thoát mã 0 là xong: chạy `pnpm ops:preflight`, đăng nhập thử, bán thử một đơn.
-5. **Quay lui**: `sudo -u fnb /srv/fnb/current/infra/release/rollback-release.sh [<mã bản>]` — về bản ngay trước hoặc bản chỉ định.
+5. **Ép máy quầy cũ cập nhật** (chỉ khi cần, xem mục "Bản tối thiểu" dưới đây).
+6. **Quay lui**: `sudo -u fnb /srv/fnb/current/infra/release/rollback-release.sh [<mã bản>]` — về bản ngay trước hoặc bản chỉ định.
 
 ## Luật và giới hạn
 
@@ -38,8 +44,11 @@ Người vận hành đăng nhập server bằng user `fnb` (chủ thư mục `/
 - Bản mới đã chạy migration mà không khởi động được: migration vẫn nằm trong database, script nói tên. Bản trước vẫn chạy trên database mới hơn, nên bản phát hành sau phải tương thích ngược (mở rộng rồi mới thu hẹp).
 - Bản mới không trả lời `/health` thì bị **gạt sang** `releases/.failed-<mã bản>-<giờ>` (giữ lại để xem, xóa tay khi xong): quay lui không ghi mã bản sẽ không bao giờ rơi vào bản vừa hỏng.
 - Mỗi lúc chỉ **một** lần cài hoặc quay lui: script giữ khóa `/srv/fnb/.release.lock`, lần thứ hai dừng ngay, không đổi gì.
+- Script **chép các file `assets/` của bản POS ngay trước** sang bản mới (tên file có mã băm nội dung nên không đè nhau; chỉ chép những file chính bản trước đó đã phát hành, không dồn từ các bản xa hơn). Lý do: máy quầy đang mở bản cũ tải các mảnh mã (chunk) khi dùng tới; nếu file đó bị xóa khỏi server thì máy hiện màn sự cố cho tới khi tải lại. Máy ở xa hơn một bản không được bảo vệ, nên phải được ép cập nhật (mục dưới).
 - Giữ **5** bản mới nhất trong `/srv/fnb/releases`; không bao giờ xóa bản đang chạy hay bản ngay trước nó.
 - **Quay lui bị từ chối** khi bản đang chạy đã thêm migration mà bản đích chưa có (hoặc một bên không có `migrations.txt`): in "REFUSED", tên các migration và ba cách xử lý (sửa tiến bằng bản vá; khôi phục backup chụp trước khi cài, vào database mới, mất đơn bán sau đó; hoặc `--after-migration-i-understand` khi chắc code cũ bỏ qua được migration). Mọi lần quay lui đều hỏi lại `/health`.
+- **Bản tối thiểu (`FNB_MIN_POS_BUILD`).** Mỗi bản POS có một **số bản** (`build`): giờ của commit tính bằng giây (không phải mã git, vì mã git không so lớn nhỏ được); `FNB_RELEASE_BUILD` ghi đè khi đóng gói. Số này ghi trong `version.json` cạnh `index.html` của bản phát hành (`curl https://<tên miền>/version.json`) và máy quầy gửi nó ở header `x-fnb-pos-build` trong mọi lần đồng bộ. Khi file môi trường của API có `FNB_MIN_POS_BUILD=<số>`, máy chủ trả **426** cho máy quầy có số bản thấp hơn: máy hiện màn **Cần cập nhật máy bán hàng**, lệnh chưa gửi vẫn nằm trên máy (không rơi vào "Cần xử lý") và tự gửi sau khi cập nhật. Để trống thì nhận mọi bản (mặc định). Thứ tự làm: đưa bản POS mới lên → xác nhận máy quầy đã tải bản mới → mới đặt `FNB_MIN_POS_BUILD` bằng số bản của bản mới (hoặc của bản cũ nhất còn chấp nhận) → khởi động lại `fnb-api`. Gỡ giá trị đó là máy cũ được nhận lại.
+- Máy quầy của bản **chưa gửi số bản** (bản trước khi có cơ chế này) **luôn được nhận**, kể cả khi đã đặt bản tối thiểu: máy đó không hiểu mã 426, và máy chủ vẫn nhận lệnh của bản POS ngay trước. Muốn chắc không còn máy như vậy thì xem lại danh sách thiết bị và cập nhật tay.
 - Máy quầy đổi theo bản đang phát hành, kể cả bản quay lui, vào lúc yên (xem [Cập nhật bản mới của máy quầy](../may-quay/12-cap-nhat-ban-moi.md)).
 - Mã bản = version của `apps/pos` + mã git ngắn; `FNB_RELEASE_ID` ghi đè. Cùng nội dung cho cùng byte (tarball dựng xác định).
 - Script nhận thư mục gốc và tên lệnh từ biến môi trường (`FNB_BASE_DIR`, `FNB_SUDO`, `FNB_SYSTEMCTL`, `FNB_PNPM`, `FNB_CURL`, `FNB_HEALTH_URL`, `FNB_BACKUP_COMMAND`, `FNB_PROVISION_COMMAND`…) để chạy thử không cần root.
@@ -54,6 +63,7 @@ Người vận hành đăng nhập server bằng user `fnb` (chủ thư mục `/
 | "the migrations failed; the previous release is still running" | Xem lỗi in ngay trên đó; sửa môi trường (`/etc/fnb/admin.env`) hoặc báo lập trình viên; bản cũ vẫn chạy |
 | "switched back to <bản cũ>" | Bản mới không trả lời `/health`: xem `journalctl -u fnb-api -n 50` của bản mới rồi báo lập trình viên |
 | "REFUSED: <bản> added migrations that <bản đích> does not have: …" | Làm theo ba cách in kèm; mặc định chọn sửa tiến |
+| Máy quầy hiện "Cần cập nhật máy bán hàng" | Bản của máy thấp hơn `FNB_MIN_POS_BUILD` | Bấm **Cập nhật ngay** trên máy. Hiện lại sau khi cập nhật thì bản trên server chưa phải bản mới (xóa bộ nhớ đệm trình duyệt, hoặc hạ `FNB_MIN_POS_BUILD`) |
 | "release … is the one running now" | Bản đó đang chạy rồi; muốn cài lại, cài một bản khác trước |
 | "another install or rollback is running (…/.release.lock)" | Có người đang cài hoặc quay lui: chờ lần đó xong rồi chạy lại |
 

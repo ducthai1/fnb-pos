@@ -27,6 +27,7 @@ import { vi } from "../messages/vi";
 import { BootstrapScreen } from "../screens/bootstrap/bootstrap-screen";
 import { TillFrame } from "../screens/update/till-frame";
 import { UpdateBanner } from "../screens/update/update-banner";
+import { UpdateRequiredScreen } from "../screens/update/update-required-screen";
 import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice";
 import { TillClockNotice } from "../screens/sales-home/till-clock-notice";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
@@ -65,6 +66,7 @@ export function PairedTill(props: {
   const [rejected, setRejected] = useState<readonly RejectedCommand[] | null>(null);
   /** An order the cashier left the needs-attention list to open; read once by the till. */
   const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
+  const [forcedUpdating, setForcedUpdating] = useState(false);
   const sessions = useRef(newTillStaffSessions());
   const signOutRef = useRef<(notice: string | null) => void>(() => {});
   const till = useBackgroundSync(deps, props.store, credential, sessions, (token) => {
@@ -139,6 +141,20 @@ export function PairedTill(props: {
     };
   }, [signedIn, snapshot, staff, deps, credential, signOut]);
 
+  // The server serves no build this old: nothing the till does would reach it, so the one
+  // thing to do is update. What the till recorded stays in its database through the reload.
+  if (status.connection === "update_required") {
+    return (
+      <UpdateRequiredScreen
+        pendingCommands={status.pending}
+        updating={forcedUpdating}
+        onUpdate={() => {
+          setForcedUpdating(true);
+          deps.reload();
+        }}
+      />
+    );
+  }
   if (snapshot === null) {
     return withBanner(<BootstrapScreen error={bootstrapError} onRetry={loadBootstrap} />);
   }

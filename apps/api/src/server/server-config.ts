@@ -33,6 +33,8 @@ export interface ServerConfig {
   readonly cleanup: CleanupSettings | null;
   /** Product photos, a directory per tenant; created at start if missing. */
   readonly mediaDirectory: string;
+  /** The oldest POS build the sync endpoints serve; null serves every build. */
+  readonly minimumPosBuild: number | null;
 }
 
 export type ServerConfigResult =
@@ -94,6 +96,11 @@ const environmentSchema = z
       .default(5_000),
     FNB_COOKIE_SECURE: flag.default("true"),
     FNB_ALLOWED_ORIGINS: origins.optional(),
+    FNB_MIN_POS_BUILD: z.coerce
+      .number({ message: "must be a whole number: the build of the oldest POS to serve" })
+      .int("must be a whole number: the build of the oldest POS to serve")
+      .min(1, "must be at least 1")
+      .optional(),
     ...rateLimitEnvironment,
     ...cleanupEnvironment,
     ...mediaEnvironment,
@@ -160,6 +167,7 @@ export function readServerConfig(
       rateLimits: rateLimitSettingsOf(values),
       cleanup: cleanupSettingsOf(values),
       mediaDirectory: mediaDirectoryOf(values),
+      minimumPosBuild: values.FNB_MIN_POS_BUILD ?? null,
     },
   };
 }

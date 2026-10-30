@@ -97,6 +97,34 @@
   min-width: 0;
 }
 
+/* A fact the cashier must read before pressing the one button (what is kept, what is lost). */
+.pos-gate__note {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-body);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.pos-gate__note[data-tone="danger"] {
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.pos-gate__fine-print {
+  margin: 0;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  text-align: center;
+  text-wrap: balance;
+}
+
 .pos-gate__action {
   min-height: var(--tap-lg);
   font-size: var(--fs-lg);

@@ -1,7 +1,13 @@
 import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
-import { releaseIdOf, releaseStamp, shortGitSha } from "./build-release";
+import {
+  buildNumberOf,
+  commitSecondsOf,
+  releaseIdOf,
+  releaseStamp,
+  shortGitSha,
+} from "./build-release";
 
 // The POS calls the API under /api on its own origin, so neither the API nor the till
 // needs CORS; the dev and preview servers forward it to wherever the API runs.
@@ -23,8 +29,14 @@ const releaseId = releaseIdOf({
   now: () => builtAt,
 });
 
+const buildNumber = buildNumberOf({
+  env: process.env,
+  commitSeconds: () => commitSecondsOf(process.cwd()),
+  now: () => builtAt,
+});
+
 export default defineConfig({
-  plugins: [react(), releaseStamp(releaseId, builtAt)],
+  plugins: [react(), releaseStamp(releaseId, builtAt, buildNumber)],
   // SQLite WASM finds its .wasm next to its own module; pre-bundling would move it away.
   optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
   // The database Worker imports modules, which the default classic Worker format cannot.
