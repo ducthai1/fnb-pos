@@ -16,7 +16,7 @@ import { kitchenSlips, recordablePart, stationRoutingOf } from "../printing/kitc
 import { preBillSlip } from "../printing/pre-bill-slip";
 import { jobReportedCommand, markSentCommand, withSent } from "../printing/print-commands";
 import { type PrintedSlip, printOne } from "../printing/print-sale-slips";
-import type { PrinterPort } from "../printing/printer-port";
+import { type PrinterPort, kitchenSlipHandedOver } from "../printing/printer-port";
 import { preBillPrintedCommand, transferTableCommand } from "./table-order-commands";
 import type { TableOrderSession } from "./table-order-session";
 
@@ -92,8 +92,9 @@ export async function report(
 
 /**
  * "Gửi bếp": a ticket per station with only what it has not seen since the last round, as
- * last saved. A ticket the printer took is recorded as sent and locks its items; one only
- * shown or jammed stays owed and prints again on the next send. Null: nothing saved yet.
+ * last saved. A ticket the printer took, or one only shown because the till has no printer,
+ * is recorded as sent and locks its items; a jammed one stays owed and prints again on the
+ * next send. Null: nothing saved yet.
  */
 export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip[] | null> {
   const { session, place } = input;
@@ -110,8 +111,8 @@ export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip
   for (const ticket of tickets) {
     const slip = { job: ticket.job, outcome: await printOne(input.printer, ticket.job) };
     printed.push(slip);
-    if (slip.outcome.status !== "printed") unprinted.add(ticket.job.jobId);
-    const part = slip.outcome.status === "printed" ? recordablePart(ticket, unprinted) : null;
+    if (!kitchenSlipHandedOver(slip.outcome)) unprinted.add(ticket.job.jobId);
+    const part = kitchenSlipHandedOver(slip.outcome) ? recordablePart(ticket, unprinted) : null;
     if (part !== null) {
       sent = withSent(sent, part.sent);
       const recorded = { ...settled, state: { ...settled.state, version } };

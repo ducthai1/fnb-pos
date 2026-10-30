@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import {
   CANCEL_REASONS,
   type ChosenReason,
+  TABLE_EMPTIED_REASON,
   type ReasonCode,
   chosenReason,
 } from "../../features/order-adjust/reason-codes";
@@ -11,11 +12,16 @@ import { useLeaveThen } from "../shared/use-leave-motion";
 import { ReasonPicker } from "./reason-picker";
 
 const T = vi.adjust.cancel;
+const R = vi.adjust.release;
 
-/** "Hủy đơn": a draft nobody will pay for, with why. */
+/**
+ * "Hủy đơn": a draft nobody will pay for, with why. With `release` (the table's name) it is
+ * "Trả bàn": an order with nothing on it, closed with its one fixed reason and no questions.
+ */
 export function CancelOrderScreen(props: {
   header: ReactNode;
   orderNo: number;
+  release?: string;
   onConfirm(reason: ChosenReason): Promise<string | null>;
   onBack(): void;
 }) {
@@ -23,14 +29,17 @@ export function CancelOrderScreen(props: {
   const { leaving, leave } = useLeaveThen(props.onBack, "--t-exit");
   const [code, setCode] = useState<ReasonCode | null>(null);
   const [note, setNote] = useState("");
-  const reason = chosenReason(code, note);
+  const releasing = props.release !== undefined;
+  const reason = releasing
+    ? ({ code: TABLE_EMPTIED_REASON, note: null } as const)
+    : chosenReason(code, note);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
     <ScreenFrame
       enter="sheet"
       leaving={leaving}
-      title={T.title(props.orderNo)}
+      title={releasing ? R.title(props.release ?? "") : T.title(props.orderNo)}
       dock={
         <>
           <Alert message={error} />
@@ -51,21 +60,23 @@ export function CancelOrderScreen(props: {
                 });
               }}
             >
-              {T.confirm}
+              {releasing ? R.confirm : T.confirm}
             </button>
           </div>
         </>
       }
     >
       {props.header}
-      <p className="pos-hint">{T.hint}</p>
-      <ReasonPicker
-        reasons={CANCEL_REASONS}
-        chosen={code}
-        onChoose={setCode}
-        note={note}
-        onNote={setNote}
-      />
+      <p className="pos-hint">{releasing ? R.hint : T.hint}</p>
+      {releasing ? null : (
+        <ReasonPicker
+          reasons={CANCEL_REASONS}
+          chosen={code}
+          onChoose={setCode}
+          note={note}
+          onNote={setNote}
+        />
+      )}
     </ScreenFrame>
   );
 }

@@ -51,6 +51,15 @@ export const VI_CLOSE_SHIFT = {
   openNext: "Mở ca mới",
   failed: "Không ghi được lệnh đóng ca trên máy. Thử lại; nếu vẫn lỗi, báo cho quản lý.",
   slipDay: "Ngày",
+  /** The head of a closing slip printed before the server answered. */
+  provisionalTitle: "PHIẾU ĐÓNG CA (TẠM — chưa đối chiếu máy chủ)",
+  provisionalNotice:
+    "Máy chưa nhận được số của máy chủ (mất mạng hoặc máy chủ chậm) nên phiếu này tính theo số trên máy. Khi máy chủ nhận ca, bấm “In bản chính thức”.",
+  printOfficial: "In bản chính thức",
+  officialWaiting: "Đang chờ máy chủ nhận ca…",
+  officialDone: "Đã in bản chính thức theo số của máy chủ.",
+  serverRefused:
+    "Máy chủ chưa nhận việc đóng ca này nên ca vẫn mở. Đếm lại tiền rồi đóng ca; nếu máy hỏi, nhờ quản lý duyệt.",
 } as const;
 
 export const VI_SESSION = {

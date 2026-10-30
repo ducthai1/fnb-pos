@@ -70,6 +70,12 @@ export interface EnqueuedCommand extends StoreWrite {
  * transaction: on Tauri/Capacitor each call crosses the IPC bridge, and a transaction left
  * open across calls could interleave with another call or land on another connection.
  */
+/** An accepted command with the shift copy version its cash reaches. */
+export interface AcceptedShiftCommand {
+  readonly command: SyncCommandEnvelope;
+  readonly shiftVersion: number;
+}
+
 export interface LocalStore {
   /** Ties the database to one till on first use; a database of another till is refused. */
   bindDevice(deviceId: string): Promise<void>;
@@ -82,6 +88,12 @@ export interface LocalStore {
   /** The oldest commands still waiting, in deviceSeq order. */
   pendingCommands(limit: number): Promise<SyncCommandEnvelope[]>;
   pendingCount(): Promise<number>;
+  /**
+   * The latest accepted commands whose answer named the version of the shift copy their cash
+   * reaches, newest first: what the till keeps in a shift's expected cash until its copy of
+   * the shift has caught up.
+   */
+  acceptedShiftCommands(limit: number): Promise<AcceptedShiftCommand[]>;
   /**
    * Settles answered commands and keeps the server rows they carry; retries stay pending.
    * Settled commands stay in the journal, stamped `settledAt` (an ISO instant), until pruned.

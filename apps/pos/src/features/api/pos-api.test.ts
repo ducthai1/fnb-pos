@@ -104,7 +104,8 @@ describe("loading the till's bootstrap", () => {
     // Money left the parse as the domain's amounts, ready for pricing.
     expect(result.ok && result.value.menu.products[0]?.basePrice).toBe(35_000n);
     expect(server.asked[0]).toMatchObject({
-      url: "/api/pos/bootstrap",
+      // It asks for the call numbering: an older server ignores the query.
+      url: "/api/pos/bootstrap?call-numbering=1",
       method: "GET",
       headers: { authorization: `Device ${CREDENTIAL.deviceToken}` },
     });

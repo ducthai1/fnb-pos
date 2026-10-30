@@ -5,6 +5,9 @@ import { cartView } from "../../../src/features/order/cart-view";
 import { OpenShiftScreen } from "../../../src/screens/open-shift/open-shift-screen";
 import { ModifierPickerScreen } from "../../../src/screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../../../src/screens/sale/sale-screen";
+import { UnpaidOrdersStrip } from "../../../src/screens/sale/unpaid-orders-strip";
+import type { StoredOrder } from "../../../src/features/order/stored-order";
+import { vnd } from "@fnb/domain";
 import { SellingModeSwitch } from "../../../src/screens/till/selling-mode-switch";
 import { TillBarNav } from "../../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../../src/screens/till/till-header";
@@ -88,6 +91,36 @@ export const SALE_SCREENS = {
       view={cartView(menu, LONG_ORDER, profile, Date.now())}
       adjust={adjust}
       saveFailed={false}
+      onPick={() => {}}
+      onQuantity={() => {}}
+      onRemove={() => {}}
+      onServiceType={() => {}}
+      onCheckout={() => {}}
+    />
+  ),
+  "unpaid-orders-strip": () => (
+    <SaleScreen
+      header={sellingHeader}
+      menu={menu}
+      now={Date.now()}
+      order={HOSTILE_ORDER}
+      view={cartView(menu, HOSTILE_ORDER, profile, Date.now())}
+      saveFailed={false}
+      notices={
+        <UnpaidOrdersStrip
+          orders={[
+            // The worst case: a huge number, a nine-digit amount and many items.
+            {
+              order: { orderId: "a", deviceOrderNo: 987_654 } as StoredOrder,
+              items: 9_999,
+              amountDue: vnd(987_654_321),
+            },
+            { order: { orderId: "b", deviceOrderNo: 7 } as StoredOrder, items: 1, amountDue: vnd(1) },
+          ]}
+          onReopen={() => {}}
+          onCancel={() => {}}
+        />
+      }
       onPick={() => {}}
       onQuantity={() => {}}
       onRemove={() => {}}

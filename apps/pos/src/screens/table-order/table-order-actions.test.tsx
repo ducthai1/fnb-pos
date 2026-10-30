@@ -5,7 +5,7 @@ import { TableOrderActions, type TableOrderActionsProps } from "./table-order-ac
 
 const K = text.sale.keys;
 
-type State = Pick<TableOrderActionsProps, "owedUnits" | "billable" | "saved" | "blocked">;
+type State = Pick<TableOrderActionsProps, "owedUnits" | "billable" | "saved" | "blocked" | "empty">;
 
 function actions(state: Partial<State>) {
   const on = {
@@ -13,9 +13,18 @@ function actions(state: Partial<State>) {
     onPreBill: vi.fn(),
     onPay: vi.fn(),
     onTransfer: vi.fn(),
+    onRelease: vi.fn(),
     onBack: vi.fn(),
   };
-  render(<TableOrderActions owedUnits={2} billable saved blocked={false} {...state} {...on} />);
+  render(<TableOrderActions
+      owedUnits={2}
+      billable
+      saved
+      blocked={false}
+      empty={false}
+      {...state}
+      {...on}
+    />);
   return on;
 }
 const press = (key: string) => fireEvent.keyDown(window, { key });

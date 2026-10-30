@@ -17,6 +17,8 @@ export interface SaleScreenProps extends Omit<CartPanelProps, "order" | "view"> 
   order: CounterOrder;
   view: CartView;
   saveFailed: boolean;
+  /** Orders left unpaid, or anything else to tell the cashier before selling on. */
+  notices?: ReactNode;
   onPick(product: PosProduct): void;
 }
 
@@ -28,6 +30,7 @@ export function SaleScreen({
   order,
   view,
   saveFailed,
+  notices,
   onPick,
   ...cart
 }: SaleScreenProps) {
@@ -35,6 +38,7 @@ export function SaleScreen({
     <ScreenFrame title={vi.sales.title} wide titleHidden>
       {header}
       {saveFailed ? <Alert message={vi.sale.saveFailed} /> : null}
+      {notices}
       <div className="pos-sale">
         <div className="pos-sale__menu">
           <MenuPanel

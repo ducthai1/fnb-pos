@@ -1,5 +1,6 @@
 import type { SyncCommandEnvelope } from "@fnb/contracts";
 import type {
+  AcceptedShiftCommand,
   EntityRef,
   EntityView,
   LocalCommand,
@@ -46,6 +47,8 @@ const JOURNAL_PRUNE_EVERY_MS = 60 * 60 * 1000;
 
 /** More than a till holds even after days offline; the outbox has no other bound. */
 const ALL_PENDING = 1_000_000;
+/** Enough of the latest accepted commands to cover a shift's payments not yet in its copy. */
+const RECENT_SHIFT_CASH = 500;
 
 export type ChangeListener = (changed: readonly EntityRef[]) => void;
 
@@ -60,6 +63,11 @@ export interface SyncClient {
   pendingCount(): Promise<number>;
   /** Every command still waiting for the server's answer, in deviceSeq order. */
   pendingCommands(): Promise<SyncCommandEnvelope[]>;
+  /**
+   * Accepted commands (newest first) whose answer named the version of the shift copy their
+   * cash reaches, so a till can count that cash until its copy of the shift is as new.
+   */
+  acceptedShiftCommands(): Promise<AcceptedShiftCommand[]>;
   /** After the server was restored from a backup: what the till still has to send again. */
   restoreState(): Promise<RestoreState>;
   /** How far the server's clock is ahead of the till's, in ms, as last measured; or null. */
@@ -150,6 +158,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     rejectedCommands: () => store.rejectedCommands(),
     pendingCount: () => store.pendingCount(),
     pendingCommands: () => store.pendingCommands(ALL_PENDING),
+    acceptedShiftCommands: () => store.acceptedShiftCommands(RECENT_SHIFT_CASH),
     restoreState: () => store.restoreState(),
     clockOffset: () => store.clockOffset(),
     onChange(listener) {

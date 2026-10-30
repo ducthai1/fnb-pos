@@ -22,6 +22,14 @@ export type PrintOutcome =
   | { readonly status: "preview_only" };
 
 /**
+ * Whether a kitchen slip counts as handed over: a printer took it, or no printer exists to
+ * take it and the slip was shown on screen (the web build). Only a printer that answered
+ * with a failure leaves the items unsent, so they print again and show in the failed slips.
+ */
+export const kitchenSlipHandedOver = (outcome: PrintOutcome): boolean =>
+  outcome.status !== "failed";
+
+/**
  * The till's printers. The native shells (Windows, Android) send the bytes to the printer
  * and say whether it took them; the web build has no printer and only shows the preview.
  */

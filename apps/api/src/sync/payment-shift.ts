@@ -55,11 +55,14 @@ export async function announceShiftCash(
   const { client, device, command } = context;
   const shift = await readShift(client, paid.shiftId, false);
   if (shift === null) return;
+  const snapshot = await shiftSnapshotOf(client, shift);
   await appendChange(client, device.tenantId, {
     branchId: shift.branchId,
     entity: "shift",
     entityId: shift.id,
-    snapshot: await shiftSnapshotOf(client, shift),
+    snapshot,
     commandId: command.commandId,
   });
+  // The till holds this cash in its expected figure until its copy reaches this version.
+  context.answer.shiftVersion = snapshot.version;
 }

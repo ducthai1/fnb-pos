@@ -90,7 +90,7 @@ async function handlerOnly(client: pg.PoolClient, till: Till, sent: SyncCommandE
   const sender = await senderOf(pool, s, till);
   const reading = readCommandTime(sent.createdAt, sender.receivedAt, sender.branch);
   if (!reading.ok) throw new Error("the till's clock is ahead of the server's");
-  const context = { ...sender, client, command: sent, time: reading.time };
+  const context = { ...sender, client, command: sent, time: reading.time, answer: {} };
   return SYNC_COMMANDS.get(sent.type)!.apply(context, sent.payload);
 }
 

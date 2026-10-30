@@ -38,6 +38,18 @@ export const posStaffMemberCopySchema = posStaffMemberSchema
   .strict();
 
 /**
+ * The place of a till among its branch's tills for calling numbers: its index (1 to 9, the
+ * hundreds digit) when it has one, and how many tills of the branch have one. Calls carry
+ * the index from two tills on; one till keeps the plain numbers 1 to 99.
+ */
+export const posCallNumberingSchema = z
+  .object({
+    deviceIndex: z.number().int().min(1).max(9).nullable(),
+    tillsInBranch: z.number().int().min(1),
+  })
+  .strict();
+
+/**
  * Everything a till needs to start selling, read as of one moment: who and where it is,
  * its settings, who may sign in on it (the PIN screen lists them before anyone has signed
  * in), and its brand's whole menu as the domain prices it. Every copy is versioned by
@@ -79,6 +91,12 @@ export const posBootstrapSchema = z
     openOrders: z.array(entitySnapshotSchema).optional(),
     /** The branch's floor plan, kept current by the floor_area and floor_table feed. */
     floor: posFloorPlanSchema.optional(),
+    /**
+     * How this till numbers the drinks it calls out, sent only to a till that asks for it
+     * (the `call-numbering` query): a till of an older release parses this object strictly
+     * and would refuse an answer that names a field it does not know.
+     */
+    callNumbering: posCallNumberingSchema.optional(),
   })
   .strict();
 

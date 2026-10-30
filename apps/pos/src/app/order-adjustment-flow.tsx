@@ -14,7 +14,9 @@ export type { AdjustOutcome } from "./adjust-flow-parts";
 export type AdjustStep =
   | { readonly kind: "void"; readonly lineId: string }
   | { readonly kind: "discount"; readonly scope: DiscountScope }
-  | { readonly kind: "cancel" };
+  | { readonly kind: "cancel" }
+  /** The table's order has nothing on it: close it so the table is free again. */
+  | { readonly kind: "release" };
 
 /** The cart's adjustment buttons, each opening its step. */
 export const adjustmentsFor = (open: (step: AdjustStep) => void): OrderAdjustments => ({
@@ -62,5 +64,5 @@ export function OrderAdjustmentFlow(props: OrderAdjustmentFlowProps) {
   const context: AdjustContext = { ...props, settled };
   if (step.kind === "void") return <VoidLineFlow {...context} lineId={step.lineId} />;
   if (step.kind === "discount") return <DiscountFlow {...context} scope={step.scope} />;
-  return <CancelOrderFlow {...context} />;
+  return <CancelOrderFlow {...context} release={step.kind === "release"} />;
 }

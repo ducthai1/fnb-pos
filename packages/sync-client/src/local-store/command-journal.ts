@@ -12,6 +12,9 @@ import { type SqliteDriver, inTransaction } from "./sqlite-driver";
 export function ensureJournalColumns(driver: SqliteDriver): void {
   const columns = driver.all("PRAGMA table_info(outbox)").map((row) => String(row.name));
   if (!columns.includes("settled_at")) driver.exec("ALTER TABLE outbox ADD COLUMN settled_at TEXT");
+  if (!columns.includes("shift_version")) {
+    driver.exec("ALTER TABLE outbox ADD COLUMN shift_version INTEGER");
+  }
 }
 
 export interface JournalPruning {

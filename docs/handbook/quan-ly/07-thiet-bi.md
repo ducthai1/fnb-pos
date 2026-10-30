@@ -7,6 +7,7 @@ decisions:
   - D-026
   - D-065
   - D-066
+  - D-082
 tests:
   - apps/backoffice/src/components/ui/confirm-panel.test.tsx
   - apps/backoffice/src/components/devices/devices-screen.test.tsx
@@ -16,6 +17,8 @@ tests:
   - apps/api/test/integration/backoffice/branch-device-and-staff-lists.test.ts
   - e2e/backoffice/pair-a-device.spec.ts
   - e2e/pos/pair-and-pin-login.spec.ts
+  - apps/api/test/integration/devices/tills-get-their-own-call-index.test.ts
+  - packages/sync-client/test/scenarios/two-tills-of-a-branch-call-different-numbers.test.ts
 ---
 
 # Thiết bị — ghép và thu hồi máy quầy
@@ -49,6 +52,8 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 3. Lọc **Đang dùng / Đã thu hồi**, tìm theo tên máy.
 
 ## Luật và giới hạn
+
+- **Số thứ tự máy trong chi nhánh (1–9)**: mỗi máy được cấp lúc ghép, số nhỏ nhất còn trống; chi nhánh có từ hai máy thì số gọi món của máy bắt đầu bằng số này (máy 2 gọi 201, 202…) để hai máy không gọi trùng. **Thu hồi** máy thì số trả lại, máy ghép sau lấy số đó. Trang Thiết bị chưa hiện số này; máy ghép từ trước được cấp khi nó tải lại dữ liệu khởi động.
 
 - Mã ghép **dùng một lần**, sống **10 phút**. Hết hạn thì trang báo "Mã đã hết hạn. Tạo mã mới nếu cần."; mã hết hạn được máy chủ tự xóa (job dọn dẹp mỗi giờ).
 - Mỗi máy ghép với **một chi nhánh**. Muốn đổi chi nhánh: thu hồi rồi ghép lại ở chi nhánh kia.

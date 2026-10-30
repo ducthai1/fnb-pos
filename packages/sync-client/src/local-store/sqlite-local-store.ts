@@ -10,6 +10,7 @@ import {
   LOCAL_SCHEMA_SQL,
   READ_ENTITY_IDS_SQL,
   READ_META_SQL,
+  READ_ACCEPTED_SHIFT_CASH_SQL,
   READ_PENDING_SQL,
   READ_REJECTED_SQL,
   UPSERT_OPTIMISTIC_SQL,
@@ -100,6 +101,12 @@ export function createSqliteLocalStore(driver: SqliteDriver): LocalStore {
     },
 
     pendingCommands: async (limit) => driver.all(READ_PENDING_SQL, [limit]).map(envelopeOf),
+
+    acceptedShiftCommands: async (limit) =>
+      driver.all(READ_ACCEPTED_SHIFT_CASH_SQL, [limit]).map((row) => ({
+        command: envelopeOf(row),
+        shiftVersion: Number(row.shift_version),
+      })),
 
     pendingCount: async () => Number(driver.all(COUNT_PENDING_SQL)[0]?.n ?? 0),
 

@@ -3,6 +3,7 @@ export {
   type PosBootstrapWire,
   STAFF_MEMBER_ENTITY,
   posBootstrapSchema,
+  posCallNumberingSchema,
   posStaffMemberCopySchema,
   posStaffMemberSchema,
 } from "./bootstrap-schema";

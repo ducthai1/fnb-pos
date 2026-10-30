@@ -1,5 +1,6 @@
 import { formatVnd, vnd } from "@fnb/domain";
 import type { ReactElement } from "react";
+import type { StoredOrder } from "../../src/features/order/stored-order";
 import { cartView } from "../../src/features/order/cart-view";
 import { REFUND_METHODS } from "../../src/features/refund/refund-command";
 import { planRefund, refundableLines } from "../../src/features/refund/refund-plan";
@@ -14,6 +15,7 @@ import { DiscountScreen } from "../../src/screens/order-adjust/discount-screen";
 import { VoidLineScreen } from "../../src/screens/order-adjust/void-line-screen";
 import { RefundScreen } from "../../src/screens/refund/refund-screen";
 import { SaleScreen } from "../../src/screens/sale/sale-screen";
+import { UnpaidOrdersStrip } from "../../src/screens/sale/unpaid-orders-strip";
 import { CashMoveScreen } from "../../src/screens/shift/cash-move-screen";
 import { CloseShiftScreen } from "../../src/screens/shift/close-shift-screen";
 import { RoundSlipsScreen } from "../../src/screens/table-order/round-slips-screen";
@@ -24,6 +26,9 @@ import { tillBar, tillHeader } from "./pretty-selling-screens";
 
 // Voids, discounts, the drawer, closing the shift, the day's orders and refunds at the
 // sample café, for the handbook's pictures.
+
+/** Only the number and id of an unpaid order are drawn on the strip. */
+const STORED_UNPAID = { orderId: "unpaid-1", deviceOrderNo: 12 } as never as StoredOrder;
 
 const never = () => new Promise<never>(() => {});
 const nothing = () => {};
@@ -106,6 +111,32 @@ export const OPERATIONS_SCREENS = {
       commandLines={ADJUSTED.commandLines}
       adjust={adjust}
       saveFailed={false}
+      onPick={nothing}
+      onQuantity={nothing}
+      onRemove={nothing}
+      onServiceType={nothing}
+      onCheckout={nothing}
+    />
+  ),
+  "unpaid-orders-strip": () => (
+    <SaleScreen
+      header={tillHeader("counter")}
+      menu={menu}
+      now={now}
+      order={ORDER}
+      view={cartView(menu, ORDER, PROFILE, now)}
+      adjust={adjust}
+      saveFailed={false}
+      notices={
+        <UnpaidOrdersStrip
+          orders={[
+            { order: { ...STORED_UNPAID, deviceOrderNo: 12 }, items: 2, amountDue: vnd(58_000) },
+            { order: { ...STORED_UNPAID, orderId: "unpaid-2", deviceOrderNo: 14 }, items: 1, amountDue: vnd(45_000) },
+          ]}
+          onReopen={nothing}
+          onCancel={nothing}
+        />
+      }
       onPick={nothing}
       onQuantity={nothing}
       onRemove={nothing}

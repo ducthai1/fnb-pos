@@ -17,6 +17,8 @@ import type { PrinterPort } from "../features/printing/printer-port";
 import { closeToleranceOf } from "../features/shift/close-tolerance";
 import { shiftCloseSlip } from "../features/shift/shift-close-slip";
 import { closeShiftCommand } from "../features/shift/shift-commands";
+import { assessmentOfClosedShift, awaitServerClose } from "../features/shift/server-closed-shift";
+import type { StoredShift } from "../features/shift/stored-shift";
 import { useCloseRefused } from "../features/shift/use-close-refused";
 import { useShiftLedger } from "../features/shift/use-shift-ledger";
 import { vi } from "../messages/vi";
@@ -30,7 +32,19 @@ const T = vi.closeShift;
 export interface ShiftClosing {
   readonly slips: readonly PrintedSlip[] | null;
   readonly said: string;
+  /**
+   * Set when the slip was printed from the till's own numbers because the server did not
+   * answer in time: once it does, the closed shift prints again as the official slip.
+   */
+  readonly provisional?: {
+    readonly shiftId: string;
+    readonly commandId: string;
+    print(shift: StoredShift): Promise<readonly PrintedSlip[]>;
+  };
 }
+
+/** How long a close waits for the server before the slip is printed from the till's numbers. */
+export const SERVER_CLOSE_WAIT_MS = 10_000;
 
 export interface CloseShiftFlowProps {
   client: SyncClient;
@@ -38,6 +52,8 @@ export interface CloseShiftFlowProps {
   menu: TillMenu;
   header: ReactNode;
   printer: PrinterPort;
+  /** How long the close waits for the server's answer; SERVER_CLOSE_WAIT_MS unless set. */
+  closeWaitMs?: number;
   shiftId: string;
   cashierName: string;
   onBack(): void;
@@ -105,10 +121,19 @@ export function CloseShiftFlow(props: CloseShiftFlowProps) {
             approvalId,
             at,
           );
-          props.onClose(async () => {
-            await client.enqueue(command);
-            const staffName = props.cashierName;
-            const job = shiftCloseSlip({ menu, shift, assessment, staffName, at });
+          const printSlip = async (
+            closed: StoredShift,
+            forAssessment: typeof assessment,
+            provisional: boolean,
+          ) => {
+            const job = shiftCloseSlip({
+              menu,
+              shift: closed,
+              assessment: forAssessment,
+              staffName: props.cashierName,
+              at: Date.now(),
+              provisional,
+            });
             const printed = await printOne(props.printer, job);
             if (printed.status !== "preview_only") {
               const report = jobReportedCommand(
@@ -121,9 +146,34 @@ export function CloseShiftFlow(props: CloseShiftFlowProps) {
               );
               await client.enqueue(report);
             }
+            return [{ job, outcome: printed }] satisfies PrintedSlip[];
+          };
+          props.onClose(async () => {
+            await client.enqueue(command);
+            // The server's figures settle the slip: a payment another till took into this
+            // drawer a moment ago is in them, and not always in the till's own.
+            const answered = await awaitServerClose(
+              client,
+              shift.id,
+              command.commandId,
+              props.closeWaitMs ?? SERVER_CLOSE_WAIT_MS,
+            );
+            if (answered.kind === "closed") {
+              const official = assessmentOfClosedShift(answered.shift);
+              return {
+                slips: await printSlip(answered.shift, official, false),
+                said: T.done(formatVnd(official.difference)),
+              };
+            }
+            if (answered.kind === "refused") return { slips: [], said: T.serverRefused };
             return {
-              slips: [{ job, outcome: printed }],
-              said: T.done(formatVnd(assessment.difference)),
+              slips: await printSlip(shift, assessment, true),
+              said: `${T.done(formatVnd(assessment.difference))} ${T.provisionalNotice}`,
+              provisional: {
+                shiftId: shift.id,
+                commandId: command.commandId,
+                print: (closed) => printSlip(closed, assessmentOfClosedShift(closed), false),
+              },
             };
           });
           return null;

@@ -19,7 +19,7 @@ import type { SyncCommandEnvelope, SyncCommandResult } from "./sync-wire-types";
 export const MINIMUM_SUPPORTED_DOMAIN_VERSION = "0.1.0";
 
 type Outcome =
-  | { status: "accepted"; subject: CommandSubject }
+  | { status: "accepted"; subject: CommandSubject; shiftVersion?: number }
   | { status: "rejected"; code: string; subject: CommandSubject | null }
   | { status: "retry"; code: string };
 
@@ -67,6 +67,9 @@ export async function applySyncCommand(
     status: outcome.status,
     ...(outcome.status === "rejected" ? { code: outcome.code } : {}),
     ...(snapshot === null ? {} : { snapshot }),
+    ...(outcome.status === "accepted" && outcome.shiftVersion !== undefined
+      ? { shiftVersion: outcome.shiftVersion }
+      : {}),
   };
   const { tenantId, deviceId } = device;
   await recordOutcome(client, { tenantId, deviceId, staffId: sender.staffId }, command, result);
@@ -88,7 +91,7 @@ export async function applySyncCommand(
  * halfway through leaves none of its writes behind while the rejection itself (and the
  * audit of a clock the server had to correct) is still stored in this transaction.
  */
-async function outcomeOf(base: Omit<SyncCommandContext, "time">): Promise<Outcome> {
+async function outcomeOf(base: Omit<SyncCommandContext, "time" | "answer">): Promise<Outcome> {
   const { client, command } = base;
   // A refund names its new order refundOrderId; every other order command names orderId.
   // A QR intent's commands name the intent, which is what the till files the answer under.
@@ -114,12 +117,17 @@ async function outcomeOf(base: Omit<SyncCommandContext, "time">): Promise<Outcom
   const reading = readCommandTime(command.createdAt, base.receivedAt, base.branch);
   if (!reading.ok) return { status: "retry", code: reading.code };
   if (reading.time.clampedByMs !== 0) await auditClampedClock(base, reading.time);
-  const context: SyncCommandContext = { ...base, time: reading.time };
+  const answer: SyncCommandContext["answer"] = {};
+  const context: SyncCommandContext = { ...base, time: reading.time, answer };
   await client.query("SAVEPOINT sync_command");
   try {
     const subject = await dispatch(context);
     await client.query("RELEASE SAVEPOINT sync_command");
-    return { status: "accepted", subject };
+    return {
+      status: "accepted",
+      subject,
+      ...(answer.shiftVersion === undefined ? {} : { shiftVersion: answer.shiftVersion }),
+    };
   } catch (error) {
     const code =
       error instanceof CommandRejection ? error.code : isDomainError(error) ? error.code : null;

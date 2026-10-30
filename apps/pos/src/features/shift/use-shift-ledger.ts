@@ -1,21 +1,40 @@
 import type { ShiftCashEvent, ShiftCashLedger } from "@fnb/domain";
-import type { SyncClient } from "@fnb/sync-client";
+import type { AcceptedShiftCommand, SyncClient } from "@fnb/sync-client";
 import { useEffect, useMemo, useState } from "react";
-import { tillShiftLedger, waitingShiftCash } from "./shift-cash";
+import { heldShiftCash, tillShiftLedger, waitingShiftCash } from "./shift-cash";
 import type { StoredShift } from "./stored-shift";
 import { useStoredShift } from "./use-stored-shift";
 
-type Client = Pick<SyncClient, "snapshot" | "pendingCommands" | "onChange">;
+type Client = Pick<
+  SyncClient,
+  "snapshot" | "pendingCommands" | "acceptedShiftCommands" | "onChange"
+>;
 
-/** The till's cash still waiting for the server under `shiftId`, read again on every write. */
-function useWaitingShiftCash(client: Client, shiftId: string): readonly ShiftCashEvent[] | null {
-  const [waiting, setWaiting] = useState<readonly ShiftCashEvent[] | null>(null);
+/**
+ * The till's cash the shift's copy does not hold yet, read again on every write: what still
+ * waits for the server's answer, and what the server took but its copy of the shift has not
+ * caught up with (see heldShiftCash). Null until first read.
+ */
+function useCashOutsideTheCopy(
+  client: Client,
+  shiftId: string,
+): {
+  readonly waiting: readonly ShiftCashEvent[];
+  readonly accepted: readonly AcceptedShiftCommand[];
+} | null {
+  const [state, setState] = useState<{
+    waiting: readonly ShiftCashEvent[];
+    accepted: readonly AcceptedShiftCommand[];
+  } | null>(null);
   useEffect(() => {
     let live = true;
     const read = () =>
-      client.pendingCommands().then((pending) => {
-        if (live) setWaiting(waitingShiftCash(pending, shiftId));
-      }, console.error);
+      Promise.all([client.pendingCommands(), client.acceptedShiftCommands()]).then(
+        ([pending, accepted]) => {
+          if (live) setState({ waiting: waitingShiftCash(pending, shiftId), accepted });
+        },
+        console.error,
+      );
     // An answered command changes its own row, never the shift: listen to every write.
     const unsubscribe = client.onChange(() => void read());
     void read();
@@ -24,7 +43,7 @@ function useWaitingShiftCash(client: Client, shiftId: string): readonly ShiftCas
       unsubscribe();
     };
   }, [client, shiftId]);
-  return waiting;
+  return state;
 }
 
 /** The till's open shift and the cash book it is counted against, kept current. */
@@ -33,9 +52,10 @@ export function useShiftLedger(
   shiftId: string,
 ): { readonly shift: StoredShift; readonly ledger: ShiftCashLedger } | null {
   const shift = useStoredShift(client, shiftId);
-  const waiting = useWaitingShiftCash(client, shiftId);
+  const outside = useCashOutsideTheCopy(client, shiftId);
   return useMemo(() => {
-    if (shift === null || waiting === null) return null;
-    return { shift, ledger: tillShiftLedger(shift, waiting) };
-  }, [shift, waiting]);
+    if (shift === null || outside === null) return null;
+    const held = heldShiftCash(outside.accepted, shift);
+    return { shift, ledger: tillShiftLedger(shift, [...outside.waiting, ...held]) };
+  }, [shift, outside]);
 }

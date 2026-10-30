@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { DEVICE_ERROR_CODES } from "../../devices/device-error-codes";
+import { claimCallIndex } from "../../devices/device-call-index";
 import { newDeviceToken } from "../../devices/device-token";
 import { newPairingCode, normalizePairingCode } from "../../devices/pairing-code";
 import { hashToken } from "../../security/opaque-token";
@@ -111,6 +112,7 @@ export function registerPairingRoutes(app: FastifyInstance, context: ApiContext)
             row.created_by_app_user_id,
           ],
         );
+        await claimCallIndex(client, deviceId, row.branch_id);
         await client.query(
           "INSERT INTO device_credential (id, tenant_id, device_id, token_hash, created_at, " +
             "updated_at, created_by) VALUES ($1, $2, $3, $4, $5, $5, $6)",

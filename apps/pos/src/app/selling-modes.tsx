@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { ApiResult } from "../features/api/api-result";
 import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
-import { orderNumbers } from "../features/order/device-order-number";
+import { CallNumberingContext, orderNumbers } from "../features/order/device-order-number";
 import { MenuMemoryProvider, useNewMenuMemory } from "../features/menu/menu-memory";
 import { BestSellersContext, useBestSellers } from "../features/menu/use-best-sellers";
 import { openingFromStored } from "../features/order/order-opening";
@@ -22,6 +22,8 @@ export interface SellingModesProps extends Omit<CounterSaleProps, "session" | "m
   tillStart?: Pick<BootstrapSnapshot, "floor" | "openOrders">;
   /** Called after each sync pass; returns the unsubscribe. */
   onSyncPass(listener: () => void): () => void;
+  /** How long closing the shift waits for the server; the flow's own unless a test shortens it. */
+  closeWaitMs?: number;
   /** Records the shift's close outside these screens, which end with the shift. */
   onCloseShift(run: () => Promise<ShiftClosing>): void;
 }
@@ -40,7 +42,9 @@ export function SellingModes(props: SellingModesProps) {
   return (
     <MenuMemoryProvider value={memory}>
       <BestSellersContext value={best}>
-        <SellingScreen {...props} />
+        <CallNumberingContext value={props.menu.callNumbering}>
+          <SellingScreen {...props} />
+        </CallNumberingContext>
       </BestSellersContext>
     </MenuMemoryProvider>
   );

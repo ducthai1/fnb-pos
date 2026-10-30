@@ -108,6 +108,13 @@ describe("a shift's figures on the tills of its branch", () => {
     const move = { cashMoveId: newId(), kind: "out", amount: 100_000, reason: "Trả tiền đá" };
     await drawer.client.enqueue(shiftCommand("shift.cash_move", shiftId, move, {}));
     await drawer.syncUntilIdle();
+    // The server's answer named the shift version the move reaches: the till keeps it, and
+    // its copy of the shift is already that new.
+    const kept = (await drawer.client.acceptedShiftCommands()).find(
+      (entry) => entry.command.type === "shift.cash_move",
+    );
+    const copy = (await drawer.client.snapshot("shift", shiftId))?.snapshot as { version: number };
+    expect(kept?.shiftVersion).toBe(copy.version);
     expect((await shiftShownOn(drawer, shiftId))?.figures).toMatchObject({
       cashOut: 100_000,
       expectedCash: 100_000,

@@ -3,6 +3,7 @@ import type { LocalCommand } from "@fnb/sync-client";
 import { describe, expect, it } from "vitest";
 import { PLACE, SALE_MENU, SOLD, paidSale } from "../../test-support/paid-sale-fixture";
 import { MENU } from "../../test-support/till-fixtures";
+import { slipHead } from "./sale-order";
 import { printSaleSlips } from "./print-sale-slips";
 import { type PrinterPort, previewOnlyPrinter, simulatedPrinterThatPrints } from "./printer-port";
 
@@ -20,6 +21,16 @@ async function print(printer: PrinterPort) {
   });
   return { slips, recorded };
 }
+
+describe("the call number on a slip", () => {
+  it("carries the till's index on a branch with two tills, and not on a branch with one", () => {
+    const sale = paidSale();
+    const two = { ...SALE_MENU, callNumbering: { deviceIndex: 2, tillsInBranch: 2 } };
+    expect(slipHead(two, sale, 0).callNumber).toBe(String(200 + (sale.order.deviceOrderNo % 100)));
+    const one = { ...SALE_MENU, callNumbering: { deviceIndex: 1, tillsInBranch: 1 } };
+    expect(slipHead(one, sale, 0).callNumber).toBe(String(((sale.order.deviceOrderNo - 1) % 100) + 1));
+  });
+});
 
 describe("printing a paid counter sale", () => {
   it("shows the bar ticket, the cup labels and the bill, and records nothing for a preview", async () => {

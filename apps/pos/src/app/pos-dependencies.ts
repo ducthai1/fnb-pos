@@ -27,6 +27,8 @@ export interface PosDependencies {
   readonly syncBackoff?: BackoffPolicy;
   /** The till's printers: the native shell's, or the web build's preview-only stand-in. */
   readonly printer: PrinterPort;
+  /** How long closing a shift waits for the server before printing from the till's numbers. */
+  readonly closeWaitMs?: number;
   reload(): void;
   /** Where the till's own faults go; unset in tests that do not look at them. */
   readonly clientErrors?: ClientErrorReporter;

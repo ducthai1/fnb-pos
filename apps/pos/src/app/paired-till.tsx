@@ -180,6 +180,7 @@ export function PairedTill(props: {
         staff={signedIn.staff}
         status={status}
         printer={deps.printer}
+        {...(deps.closeWaitMs === undefined ? {} : { closeWaitMs: deps.closeWaitMs })}
         loadFloor={loadFloor}
         onOpenNeedsAttention={() => {
           void till?.client.rejectedCommands().then(setRejected);

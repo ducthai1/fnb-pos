@@ -11,8 +11,14 @@ import { type ChosenReason, reasonOnWire } from "./reason-codes";
  * such an order (food was made), which is what a void with its cancel ticket is for.
  */
 export function kitchenStillHasItems(settled: AdjustableOrder): boolean {
+  const cancelLines = new Set(
+    settled.priced.lines.filter((line) => line.reversesLineId !== null).map((line) => line.id),
+  );
+  // A cancel line's own ticket is the kitchen being told to stop, not food it still has.
   return settled.sent.some(
-    (line) => line.sentQuantity > reversedQuantityOf(settled.priced.lines, line.lineId),
+    (line) =>
+      !cancelLines.has(line.lineId) &&
+      line.sentQuantity > reversedQuantityOf(settled.priced.lines, line.lineId),
   );
 }
 

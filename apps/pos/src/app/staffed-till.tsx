@@ -16,8 +16,8 @@ import type { TillSyncStatus } from "../features/sync/till-sync-status";
 import { vi } from "../messages/vi";
 import { OpenShiftScreen } from "../screens/open-shift/open-shift-screen";
 import { ScreenFrame } from "../screens/shared/screen-frame";
-import { RoundSlipsScreen } from "../screens/table-order/round-slips-screen";
 import { TillHeader } from "../screens/till/till-header";
+import { ClosedShiftSlips } from "./closed-shift-slips";
 import type { ShiftClosing } from "./close-shift-flow";
 import { SellingModes } from "./selling-modes";
 import type { RunningTill } from "./use-background-sync";
@@ -30,6 +30,7 @@ export interface StaffedTillProps {
   staff: BootstrapStaff;
   status: TillSyncStatus;
   printer: PrinterPort;
+  closeWaitMs?: number;
   onOpenNeedsAttention(): void;
   onSwitchStaff(): void;
   onSignOut(): void;
@@ -61,13 +62,12 @@ export function StaffedTill(props: StaffedTillProps) {
   );
   if (closing !== null) {
     return (
-      <RoundSlipsScreen
+      <ClosedShiftSlips
+        client={client}
         header={header}
-        title={vi.closeShift.doneTitle}
-        slips={closing.slips}
-        notice={closing.said === "" ? undefined : closing.said}
-        backLabel={vi.closeShift.openNext}
-        onBack={() => setClosing(null)}
+        closing={closing}
+        onChange={setClosing}
+        onNext={() => setClosing(null)}
       />
     );
   }
@@ -102,6 +102,7 @@ export function StaffedTill(props: StaffedTillProps) {
       shiftId={shift.shift.id}
       cashierName={staff.displayName}
       printer={props.printer}
+      {...(props.closeWaitMs === undefined ? {} : { closeWaitMs: props.closeWaitMs })}
       onCloseShift={(run) => {
         setClosing({ slips: null, said: "" });
         run().then(setClosing, (error: unknown) => {

@@ -8,6 +8,7 @@ import type {
   PosStation,
 } from "@fnb/contracts";
 import { type PriceListItem, measureUnitOf } from "@fnb/domain";
+import type { CallNumbering } from "../order/device-order-number";
 import type { BootstrapSnapshot } from "../bootstrap/bootstrap-source";
 
 /** The copy each menu entity of the change feed carries, in its parsed (domain) form. */
@@ -38,6 +39,8 @@ export const removedKey = (entity: string, entityId: string) => `${entity}:${ent
 /** The menu as the till sells from it right now. */
 export interface TillMenu {
   readonly branch: BootstrapSnapshot["branch"];
+  /** How this till numbers the calls of its drinks; null from a server that does not say. */
+  readonly callNumbering: CallNumbering | null;
   readonly shopName: string;
   readonly categories: readonly PosCategory[];
   /** What the counter can sell, by name; see sellableOnCounter. */
@@ -110,6 +113,7 @@ export function buildTillMenu(
   const ownConfig = copies.device_config.get(bootstrap.config.id);
   return {
     branch: bootstrap.branch,
+    callNumbering: bootstrap.callNumbering ?? null,
     shopName: bootstrap.brand.name,
     categories,
     products: products.filter(sellableOnCounter).sort(byName),

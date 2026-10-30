@@ -2,7 +2,7 @@ import type { SyncCommandEnvelope } from "@fnb/contracts";
 import { expectedCash, vnd } from "@fnb/domain";
 import { describe, expect, it } from "vitest";
 import { closeToleranceOf } from "./close-tolerance";
-import { cashMoveActionFor, tillShiftLedger, waitingShiftCash } from "./shift-cash";
+import { cashMoveActionFor, heldShiftCash, tillShiftLedger, waitingShiftCash } from "./shift-cash";
 import { readStoredShift } from "./stored-shift";
 
 const TILL = "0199f000-0000-7000-8000-00000000d001";
@@ -82,5 +82,44 @@ describe("the shift's cash book as the till counts against it", () => {
     expect(closeToleranceOf({})).toBe(vnd(0));
     expect(closeToleranceOf({ shift_close_difference_tolerance: "-1" })).toBe(vnd(0));
     expect(closeToleranceOf({ shift_close_difference_tolerance: 5000 })).toBe(vnd(0));
+  });
+});
+
+describe("cash the server took that the shift's copy has not caught up with", () => {
+  const accepted = (type: string, payload: Record<string, unknown>, shiftVersion: number) => ({
+    command: command(type, payload),
+    shiftVersion,
+  });
+  const sale = accepted("order.pay", { shiftId: SHIFT, payments: [cash(40_000)] }, 6);
+  const refund = accepted("order.refund", { shiftId: SHIFT, payouts: [cash(-9_000)] }, 7);
+
+  it("counts a payment whose version the copy has not reached, and drops it once it has", () => {
+    // The copy is at version 4: both answers named a later one.
+    expect(heldShiftCash([sale, refund], shift)).toEqual([
+      { kind: "cash_sale", amount: vnd(40_000) },
+      { kind: "cash_refund", amount: vnd(9_000) },
+    ]);
+    const caughtUp = { id: SHIFT, version: 6 };
+    expect(heldShiftCash([sale, refund], caughtUp)).toEqual([
+      { kind: "cash_refund", amount: vnd(9_000) },
+    ]);
+    expect(heldShiftCash([sale, refund], { id: SHIFT, version: 7 })).toEqual([]);
+  });
+
+  it("keeps the expected cash from dropping between the answer and the shift's next copy", () => {
+    const held = heldShiftCash([sale], shift);
+    // 570.000 on the server's figures so far, plus the 40.000 the server took since.
+    expect(expectedCash(tillShiftLedger(shift, held))).toBe(vnd(610_000));
+    expect(expectedCash(tillShiftLedger(shift, []))).toBe(vnd(570_000));
+  });
+
+  it("leaves out another shift's payments and non-cash tenders", () => {
+    const other = accepted("order.pay", { shiftId: OTHER_SHIFT, payments: [cash(10_000)] }, 9);
+    const card = accepted(
+      "order.pay",
+      { shiftId: SHIFT, payments: [{ method: "card", amount: 5_000 }] },
+      9,
+    );
+    expect(heldShiftCash([other, card], shift)).toEqual([]);
   });
 });

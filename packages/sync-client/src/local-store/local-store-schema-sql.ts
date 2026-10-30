@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS outbox (
   entity_id TEXT NOT NULL,
   envelope TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
-  result_code TEXT
+  result_code TEXT,
+  -- The shift copy version an accepted answer said the command's cash reaches (see shift cash).
+  shift_version INTEGER
 );
 CREATE INDEX IF NOT EXISTS outbox_by_status ON outbox (status, device_seq);
 CREATE INDEX IF NOT EXISTS outbox_by_entity ON outbox (entity, entity_id, status);
@@ -52,13 +54,16 @@ export const INSERT_OUTBOX_SQL =
 export const FIND_OUTBOX_SQL = "SELECT device_seq FROM outbox WHERE command_id = ?";
 export const READ_PENDING_SQL =
   "SELECT device_seq, envelope FROM outbox WHERE status = 'pending' ORDER BY device_seq LIMIT ?";
+export const READ_ACCEPTED_SHIFT_CASH_SQL =
+  "SELECT device_seq, envelope, shift_version FROM outbox WHERE status = 'accepted' AND " +
+  "shift_version IS NOT NULL ORDER BY device_seq DESC LIMIT ?";
 export const COUNT_PENDING_SQL = "SELECT count(*) AS n FROM outbox WHERE status = 'pending'";
 export const COUNT_PENDING_FOR_ENTITY_SQL =
   "SELECT count(*) AS n FROM outbox WHERE entity = ? AND entity_id = ? AND status = 'pending'";
 export const READ_OUTBOX_ROW_SQL =
   "SELECT device_seq, entity, entity_id, envelope, status FROM outbox WHERE command_id = ?";
 export const SETTLE_OUTBOX_SQL =
-  "UPDATE outbox SET status = ?, result_code = ?, settled_at = ? " +
+  "UPDATE outbox SET status = ?, result_code = ?, settled_at = ?, shift_version = ? " +
   "WHERE command_id = ? AND status = 'pending'";
 export const INSERT_REJECTED_SQL =
   "INSERT INTO rejected_command (command_id, device_seq, entity, entity_id, code, envelope, " +

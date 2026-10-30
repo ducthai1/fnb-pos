@@ -1,6 +1,7 @@
 import { type CashMovePayload, cashMovePayloadSchema } from "@fnb/contracts";
 import { vnd } from "@fnb/domain";
 import { assertAcceptsCashMoves, cashMoveAction } from "@fnb/domain/shift";
+import { shiftSnapshotOf } from "./shift-snapshot";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
 import { readShiftCashBook, readUnclosedShiftOfDevice } from "./stored-shift";
 import { requirePermission } from "./staff-permission-check";
@@ -43,6 +44,7 @@ async function moveCash(context: SyncCommandContext, payload: CashMovePayload) {
     ],
   );
   if (inserted.rowCount !== 1) throw new CommandRejection(C.cashMoveIdTaken);
+  context.answer.shiftVersion = (await shiftSnapshotOf(client, shift)).version;
   return shift.id;
 }
 

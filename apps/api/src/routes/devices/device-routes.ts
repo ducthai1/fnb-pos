@@ -2,6 +2,7 @@ import { withTenant } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type { ApiContext } from "../../api-context";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
+import { releaseCallIndex } from "../../devices/device-call-index";
 import { deviceAuth } from "../../devices/device-auth-hook";
 import { DEVICE_ERROR_CODES } from "../../devices/device-error-codes";
 import { uuidJsonSchema } from "../../http/uuid-schema";
@@ -36,6 +37,7 @@ export function registerDeviceRoutes(app: FastifyInstance, context: ApiContext):
             "WHERE device_id = $1 AND revoked_at IS NULL",
           [request.params.id, now],
         );
+        await releaseCallIndex(client, request.params.id);
         return true;
       });
       if (!found) return reply.code(404).send({ code: DEVICE_ERROR_CODES.deviceNotFound });

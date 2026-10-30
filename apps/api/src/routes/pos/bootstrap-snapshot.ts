@@ -1,6 +1,7 @@
 import type { PosBootstrapWire } from "@fnb/contracts";
 import type pg from "pg";
 import { readDeviceConfigSnapshot } from "../../configuration/device-config-snapshot";
+import { readCallNumbering } from "../../devices/device-call-index";
 import type { DeviceAuth } from "../../devices/device-auth-hook";
 import { readBranchFloor } from "../../floor/announce-floor-to-tills";
 import { feedVersionOf, readBranchCursor } from "../../sync/change-feed";
@@ -29,6 +30,8 @@ export async function readPosBootstrap(
   client: pg.PoolClient,
   device: DeviceAuth,
   now: Date,
+  /** A till of a release that reads the call numbering asked for it. */
+  options: { readonly callNumbering?: boolean } = {},
 ): Promise<PosBootstrapWire> {
   const cursor = await readBranchCursor(client, device.branchId);
   const version = feedVersionOf(cursor);
@@ -63,6 +66,9 @@ export async function readPosBootstrap(
     ),
     openOrders: await readOpenOrders(client, device.branchId),
     floor: await readBranchFloor(client, device.branchId),
+    ...(options.callNumbering === true
+      ? { callNumbering: await readCallNumbering(client, device.deviceId, device.branchId) }
+      : {}),
   };
 }
 

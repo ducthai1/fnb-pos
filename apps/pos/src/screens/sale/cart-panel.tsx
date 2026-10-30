@@ -3,7 +3,7 @@ import { BadgePercent, Ban, ShoppingBag, ShoppingCart } from "lucide-react";
 import { lineHeld } from "../../features/order/cart-change-guard";
 import type { CounterOrder } from "../../features/order/counter-order";
 import type { CartView } from "../../features/order/cart-view";
-import { callNumberOf } from "../../features/order/device-order-number";
+import { useCallNumber } from "../../features/order/device-order-number";
 import type { KeptLines } from "../../features/order/price-counter-order";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
@@ -40,6 +40,7 @@ const NONE: KeptLines = new Map();
 
 /** The order as a tree (options indented under their item), with the domain's totals. */
 export function CartPanel({ order, view, kept = NONE, commandLines = [], ...on }: CartPanelProps) {
+  const callNumberOf = useCallNumber();
   const priced = view.kind === "priced" ? view.priced : null;
   const payable = priced !== null && order.lines.length > 0;
   useTillKey(S.keys.pay, on.onCheckout, payable);

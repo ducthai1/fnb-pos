@@ -1,4 +1,4 @@
-import { type VoidRecord, reversedQuantityOf } from "@fnb/domain";
+import { type VoidRecord, formatGrams, quantity, reversedQuantityOf, subtractQuantity } from "@fnb/domain";
 import {
   type Approval,
   planVoid,
@@ -29,10 +29,18 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
   const reversed = reversedQuantityOf(lines, lineId);
   const sent = settled.sent.find((line) => line.lineId === lineId)?.sentQuantity ?? 0n;
   const name = nameOn(settled, lineId);
+  // An item sold by weight is cancelled as the whole weighing, never part of it.
+  const grams = settled.order.lines.find((line) => line.lineId === lineId)?.grams;
+  const left = item === undefined ? quantity(0) : subtractQuantity(item.quantity, reversed);
 
   const confirm = (count: number, reason: ChosenReason) =>
     attempt(async () => {
-      const request = { lineId, units: count, reason, staffId: authority.staffId };
+      const request = {
+        lineId,
+        quantity: grams === undefined ? quantity(count) : left,
+        reason,
+        staffId: authority.staffId,
+      };
       const plan = planVoid(settled, request);
       const raised = plan.raisedOrderDiscountRate;
       if (
@@ -43,7 +51,10 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
       }
       let approval: Approval | null = null;
       if (plan.record.fromSent > 0n && voidNeedsApproval(props.menu)) {
-        const said = vi.approval.actions.voidAfterSent(units(plan.record.fromSent), name);
+        const said =
+          grams === undefined
+            ? vi.approval.actions.voidAfterSent(units(plan.record.fromSent), name)
+            : vi.approval.actions.voidWeighedAfterSent(formatGrams(grams), name);
         // The approval covers these units of this line of this order only.
         const action = {
           key: "void_after_sent",
@@ -70,8 +81,9 @@ export function VoidLineFlow(props: AdjustContext & { lineId: string }) {
     <VoidLineScreen
       header={props.header}
       itemName={name}
-      remaining={item === undefined ? 0 : units(item.quantity - reversed)}
-      sentUnits={units(sent - reversed)}
+      {...(grams === undefined ? {} : { weighedGrams: grams })}
+      remaining={grams === undefined ? units(left) : left > 0n ? 1 : 0}
+      sentUnits={grams === undefined ? units(sent - reversed) : sent > reversed ? 1 : 0}
       onBack={() => props.onDone({ kind: "back" })}
       onConfirm={confirm}
     />

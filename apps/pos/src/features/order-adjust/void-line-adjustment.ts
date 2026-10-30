@@ -2,6 +2,7 @@ import { voidLinePayloadSchema } from "@fnb/contracts";
 import {
   type BasisPoints,
   QUANTITY_SCALE,
+  type Quantity,
   type VoidRecord,
   discountRateOfOrder,
   quantity,
@@ -17,8 +18,11 @@ import { type ChosenReason, reasonOnWire } from "./reason-codes";
 
 export interface VoidRequest {
   readonly lineId: string;
-  /** Whole units of the item, as the cart counts them. */
-  readonly units: number;
+  /**
+   * What to cancel, in the domain's thousandths: whole units for a counted item, the whole
+   * weighing (what is left of it) for an item sold by weight, which is never part of one.
+   */
+  readonly quantity: Quantity;
   readonly reason: ChosenReason;
   readonly staffId: string;
 }
@@ -33,7 +37,7 @@ function run(settled: AdjustableOrder, request: VoidRequest, approval: Approval 
   const sent = settled.sent.find((line) => line.lineId === request.lineId)?.sentQuantity;
   return voidLine(draftOrderOf(settled), {
     lineId: request.lineId,
-    quantity: quantity(request.units),
+    quantity: request.quantity,
     reasonCode: request.reason.code,
     staffId: request.staffId,
     approvedByStaffId: approval?.approverStaffId ?? null,
@@ -88,7 +92,7 @@ export function voidAdjustment(
   const payload = {
     orderId: settled.order.orderId,
     lineId: request.lineId,
-    quantity: quantityToDecimalString(quantity(request.units)),
+    quantity: quantityToDecimalString(request.quantity),
     ...reasonOnWire(request.reason),
     ...(approval === null ? {} : { approvalId: approval.approvalId }),
   };

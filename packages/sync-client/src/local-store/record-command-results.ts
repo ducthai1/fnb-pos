@@ -48,8 +48,9 @@ export function recordCommandResults(
       // No row in an answer means none was sent, not that the row is gone.
       if (result.snapshot !== undefined) keepServerSnapshot(driver, ref, result.snapshot);
       const code = result.status === "rejected" ? result.code : null;
-      if (driver.run(SETTLE_OUTBOX_SQL, [result.status, code, settledAt, result.commandId]) === 0)
-        continue;
+      const shiftVersion = result.status === "accepted" ? (result.shiftVersion ?? null) : null;
+      const settled = [result.status, code, settledAt, shiftVersion, result.commandId];
+      if (driver.run(SETTLE_OUTBOX_SQL, settled) === 0) continue;
       if (result.status === "rejected") {
         driver.run(INSERT_REJECTED_SQL, [
           result.commandId,

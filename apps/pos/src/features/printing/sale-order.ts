@@ -49,7 +49,7 @@ export interface SlipHead {
 export function slipHead(menu: TillMenu, sale: Pick<SlipOrder, "order">, at: number): SlipHead {
   return {
     orderNumber: String(sale.order.deviceOrderNo),
-    callNumber: callNumberOf(sale.order.deviceOrderNo),
+    callNumber: callNumberOf(sale.order.deviceOrderNo, menu.callNumbering),
     tableName: sale.order.table?.name ?? sale.order.tableTag,
     printedAt: localClockParts(at, menu.branch.utcOffsetMinutes),
   };
