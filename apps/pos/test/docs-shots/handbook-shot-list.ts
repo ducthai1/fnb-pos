@@ -61,6 +61,8 @@ const TILL = [
   "approval-sheet",
   "sale-adjusted",
   "void-line",
+  "change-options-picker",
+  "change-options-failed",
   "discount",
   "cancel-order",
   "cash-move",

@@ -1,4 +1,4 @@
-import { BadgePercent, CircleMinus, Ellipsis, Trash2 } from "lucide-react";
+import { BadgePercent, CircleMinus, Ellipsis, Replace, Trash2 } from "lucide-react";
 import type { RefObject } from "react";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
@@ -9,6 +9,12 @@ const T = vi.adjust.tools;
 export interface LineAdjustments {
   onVoid(lineId: string): void;
   onDiscount(lineId: string): void;
+  /**
+   * Cancels a sent item and orders it again with other options, in one go; offered only on
+   * the lines `canChangeOptions` allows.
+   */
+  onChangeOptions?: ((lineId: string) => void) | undefined;
+  canChangeOptions?: ((lineId: string) => boolean) | undefined;
 }
 
 /** The "…" of a line: opens the line's own actions under it, closed by it or by Esc. */
@@ -61,6 +67,17 @@ export function LineTools(props: {
       )}
       {adjust === undefined ? null : (
         <>
+          {adjust.onChangeOptions !== undefined && adjust.canChangeOptions?.(lineId) === true ? (
+            <button
+              type="button"
+              className="pos-button pos-button--quiet pos-button--sm"
+              aria-label={T.changeOptions(name)}
+              onClick={() => adjust.onChangeOptions?.(lineId)}
+            >
+              <Icon of={Replace} />
+              {T.changeOptionsShort}
+            </button>
+          ) : null}
           <button
             type="button"
             className="pos-button pos-button--quiet pos-button--sm"

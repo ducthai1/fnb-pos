@@ -12,6 +12,7 @@ import { ApprovalSheet } from "../../src/screens/approval/approval-sheet";
 import { LeaveQrWhileOfflineSheet } from "../../src/screens/payment/leave-qr-while-offline-sheet";
 import { OrderHistoryScreen } from "../../src/screens/history/order-history-screen";
 import { CancelOrderScreen } from "../../src/screens/order-adjust/cancel-order-screen";
+import { ChangeOptionsScreen } from "../../src/screens/order-adjust/change-options-screen";
 import { DiscountScreen } from "../../src/screens/order-adjust/discount-screen";
 import { VoidLineScreen } from "../../src/screens/order-adjust/void-line-screen";
 import { RefundScreen } from "../../src/screens/refund/refund-screen";
@@ -149,6 +150,16 @@ export const OPERATIONS_SCREENS = {
   ),
   "void-line": () => (
     <VoidLineScreen header={header} itemName="Cà phê muối" remaining={1} sentUnits={1} onConfirm={never} onBack={nothing} />
+  ),
+  "change-options-failed": () => (
+    <ChangeOptionsScreen
+      header={header}
+      itemName="Trà sữa trân châu"
+      failure={vi.adjust.void.orderDiscountWouldRise}
+      closing={false}
+      onRetry={nothing}
+      onBack={nothing}
+    />
   ),
   discount: () => (
     <DiscountScreen

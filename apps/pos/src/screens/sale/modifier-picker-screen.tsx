@@ -34,6 +34,11 @@ export interface ModifierPickerScreenProps {
   now: number;
   onAdd(line: CartLine): void;
   onCancel(): void;
+  /**
+   * Changing the options of a line already on the order: the picker opens on that line's
+   * choices and its button says the old item is cancelled and ordered again.
+   */
+  replacing?: CartLine | undefined;
 }
 
 /** The picker a tapped product opens: a combo's slots, or an item's size and options. */
@@ -53,15 +58,18 @@ function ItemOptionsPicker({
   now,
   onAdd,
   onCancel,
+  replacing,
 }: ModifierPickerScreenProps) {
   // Back plays the step's leaving movement before the flow closes it.
   const { leaving, leave } = useLeaveThen(onCancel, "--t-exit");
   // Adding the line sinks the step away the same way, then the flow puts the line on the order.
   const { closing, finish } = useFinishThen<CartLine>(onAdd);
-  const [variantId, setVariantId] = useState<string | null>(product.variants[0]?.id ?? null);
-  const [choices, setChoices] = useState<Choices>([]);
-  const [quantity, setQuantity] = useState(1);
-  const [note, setNote] = useState("");
+  const [variantId, setVariantId] = useState<string | null>(
+    replacing === undefined ? (product.variants[0]?.id ?? null) : replacing.variantId,
+  );
+  const [choices, setChoices] = useState<Choices>(replacing?.modifiers ?? []);
+  const [quantity, setQuantity] = useState(replacing?.quantity ?? 1);
+  const [note, setNote] = useState(replacing?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const draft: CartLine = {
     lineId: "preview",
@@ -109,7 +117,7 @@ function ItemOptionsPicker({
     <ScreenFrame
       enter="sheet"
       leaving={leaving || closing}
-      title={product.name}
+      title={replacing === undefined ? product.name : vi.adjust.change.pickerTitle(product.name)}
       dock={
         <>
           <Alert message={error} />
@@ -127,15 +135,20 @@ function ItemOptionsPicker({
             >
               {entry !== null
                 ? P.next[entry]
-                : total === null
-                  ? P.addNoPrice
-                  : P.add(formatVnd(total))}
+                : replacing !== undefined
+                  ? total === null
+                    ? vi.adjust.change.confirmNoPrice
+                    : vi.adjust.change.confirm(formatVnd(total))
+                  : total === null
+                    ? P.addNoPrice
+                    : P.add(formatVnd(total))}
             </button>
           </div>
         </>
       }
     >
       {header}
+      {replacing === undefined ? null : <p className="pos-hint">{vi.adjust.change.pickerHint}</p>}
       <PickerProductHead menu={menu} product={product} now={now} />
       {product.variants.length > 0 ? (
         <fieldset className="pos-group pos-choice-group">

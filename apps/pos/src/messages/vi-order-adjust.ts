@@ -34,6 +34,8 @@ export const VI_ORDER_ADJUST = {
     discount: (name: string) => `Giảm giá món ${name}`,
     lineMenu: (name: string) => `Thao tác món ${name}`,
     voidShort: "Hủy món",
+    changeOptions: (name: string) => `Đổi tùy chọn món ${name}`,
+    changeOptionsShort: "Đổi tùy chọn",
     discountShort: "Giảm giá",
     orderDiscount: "Giảm giá đơn",
     cancelOrder: "Hủy đơn",
@@ -59,6 +61,20 @@ export const VI_ORDER_ADJUST = {
     cancelTicketTitle: "Phiếu hủy món",
     cancelTicketOffline:
       "Phiếu hủy đã in nhưng máy chưa báo được máy chủ: khi có mạng, lần gửi bếp sau có thể in lại phiếu hủy này.",
+  },
+  change: {
+    pickerTitle: (name: string) => `Đổi tùy chọn · ${name}`,
+    pickerHint:
+      "Món cũ sẽ bị hủy (in phiếu hủy cho trạm) rồi gọi lại với lựa chọn mới. Chọn xong bấm nút dưới.",
+    confirm: (amount: string) => `Hủy món cũ, gọi lại · ${amount}`,
+    confirmNoPrice: "Hủy món cũ, gọi lại",
+    title: "Đổi tùy chọn",
+    working: "Đang hủy món cũ…",
+    workingHint: "Món đã gửi bếp: nếu cần, quản lý sẽ duyệt trước khi hủy.",
+    failedTitle: "Chưa đổi được",
+    unchanged: "Đơn giữ nguyên như cũ, món cũ vẫn còn.",
+    retry: "Thử lại",
+    slipsTitle: "Phiếu đổi tùy chọn",
   },
   discount: {
     titleLine: (name: string) => `Giảm giá món ${name}`,

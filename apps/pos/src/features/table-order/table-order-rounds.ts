@@ -100,10 +100,15 @@ export async function report(
  * is recorded as sent and locks its items; a jammed one stays owed and prints again on the
  * next send. Null: nothing saved yet.
  */
-export async function sendRoundToKitchen(input: RoundInput): Promise<PrintedSlip[] | null> {
+export async function sendRoundToKitchen(
+  input: RoundInput,
+  /** Narrows the round to these ticket lines (what the cashier just asked for), not all that is owed. */
+  among: (line: KitchenTicketLine) => boolean = () => true,
+): Promise<PrintedSlip[] | null> {
   const { session, place } = input;
   if ((await session.settled()) === null) return null;
-  const only = await knownToServer(input);
+  const known = await knownToServer(input);
+  const only = (line: KitchenTicketLine) => known(line) && among(line);
   const settled = await session.settled();
   if (settled === null) return null;
   const tickets = kitchenSlips(input.menu, settled, input.now(), only);
