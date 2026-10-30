@@ -23,7 +23,16 @@ export async function pairDevice(
   const issued = await issuePairingCode(app, cookie, branchId);
   if (issued.statusCode !== 201) throw new Error(`issuing answered ${issued.statusCode}`);
   const paired = await pair(app, issued.json().code, deviceName);
-  if (paired.statusCode !== 201) throw new Error(`pairing answered ${paired.statusCode}`);
+  if (paired.statusCode !== 201) {
+    // A refusal here once showed up only in a whole-suite run and never alone; what the server
+    // said and what it had issued (without the code) is what tells a code that expired or went
+    // missing from a request that was refused for another reason.
+    const issuedWithoutCode = { ...(issued.json() as Record<string, unknown>), code: undefined };
+    throw new Error(
+      `pairing answered ${paired.statusCode}: ${paired.body}; it had issued ` +
+        `${JSON.stringify(issuedWithoutCode)}; the real time is ${new Date().toISOString()}`,
+    );
+  }
   return paired.json();
 }
 

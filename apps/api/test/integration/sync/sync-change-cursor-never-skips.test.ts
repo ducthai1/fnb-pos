@@ -21,6 +21,7 @@ import {
   senderOf,
   untilSettledOrWaitingOnLock,
 } from "../support/sync-feed-probes";
+import { provisionScratchDatabase } from "../support/provisioned-scratch-database";
 import { type SyncShop, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
@@ -77,27 +78,32 @@ describe("a till pulling while another till's command is still committing", () =
 });
 
 describe("paging through the feed", () => {
+  // The sequence behind change_seq is shared by every test file running at once. Moving it to
+  // the edge of a digit boundary there left no margin against their draws, and a retry had
+  // to draw ten times as many numbers (millions, each a call), which timed out on a loaded
+  // machine. A database of its own has a sequence nobody else draws from.
   it("follows change_seq as a number once it gains a digit", async () => {
-    let sent: string[] = [];
-    let seqs: string[] = [];
-    // Other files draw numbers at the same moment and can push every draft past the
-    // boundary; a wide margin absorbs a few of their draws, and a retry the rest.
-    for (
-      let attempt = 0;
-      attempt < 5 && new Set(seqs.map((seq) => seq.length)).size < 2;
-      attempt++
-    ) {
-      const start = (await pullAll(app, s.tillA)).cursor;
-      await moveChangeSeqBelowADigitBoundary(pool, 10);
-      const drafts = Array.from({ length: 20 }, () => saveDraft(s.tillA, [line(s.menu.coffee.id)]));
-      await push(app, s.tillA, drafts);
-      sent = drafts.map(orderIdOf);
-      const pages = await pullAll(app, s.tillA, start, 2);
-      seqs = pages.changes.map((change) => change.changeSeq);
-      expect(orderIds(pages.changes)).toEqual(sent);
+    const scratch = await provisionScratchDatabase(info);
+    const ownPool = new pg.Pool({ connectionString: scratch.appUrl });
+    const ownApp = buildApp({ pool: ownPool, clock: tillsClock() });
+    try {
+      const own = await syncShop(ownApp, ownPool);
+      const start = (await pullAll(ownApp, own.tillA)).cursor;
+      await moveChangeSeqBelowADigitBoundary(ownPool, 10);
+      const drafts = Array.from({ length: 20 }, () =>
+        saveDraft(own.tillA, [line(own.menu.coffee.id)]),
+      );
+      await push(ownApp, own.tillA, drafts);
+      const pages = await pullAll(ownApp, own.tillA, start, 2);
+      const seqs = pages.changes.map((change) => change.changeSeq);
+      expect(orderIds(pages.changes)).toEqual(drafts.map(orderIdOf));
+      expect(new Set(seqs.map((seq) => seq.length)).size).toBe(2);
+      expect(seqs.map(Number)).toEqual([...seqs.map(Number)].sort((x, y) => x - y));
+    } finally {
+      await ownApp.close();
+      await ownPool.end();
+      await scratch.drop();
     }
-    expect(new Set(seqs.map((seq) => seq.length)).size).toBe(2);
-    expect(seqs.map(Number)).toEqual([...seqs.map(Number)].sort((x, y) => x - y));
   });
 
   it("answers an empty page with the cursor it was sent", async () => {
