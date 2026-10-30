@@ -14,11 +14,17 @@ export interface ApiProcess {
 /**
  * The API's real entrypoint as its own process, with only the environment given (and PATH):
  * nothing of the test runner's environment leaks into the configuration under test.
+ *
+ * The sign-in cleanup job is off unless a test turns it on. It runs on the real clock, and
+ * the shared test database is full of pairing codes and staff sessions written on test
+ * clocks days in the past: a round of it purged a code another test file had just issued,
+ * and that file's pairing then answered 401. The job's own test turns it on, on a database
+ * of its own.
  */
 export function spawnApi(env: Record<string, string>): ApiProcess {
   const child = spawn(process.execPath, ["--import", "tsx", "src/server/main.ts"], {
     cwd: API_DIRECTORY,
-    env: { PATH: process.env.PATH ?? "", ...env },
+    env: { PATH: process.env.PATH ?? "", FNB_CLEANUP_ENABLED: "false", ...env },
     stdio: ["ignore", "pipe", "pipe"],
   });
   const output = { stdout: "", stderr: "" };

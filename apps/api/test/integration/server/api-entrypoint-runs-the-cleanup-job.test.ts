@@ -68,6 +68,7 @@ async function runApi(extra: Record<string, string>): Promise<ApiProcess> {
   const api = spawnApi({
     FNB_ENV: "development",
     FNB_DATABASE_URL: database.appUrl,
+    FNB_CLEANUP_ENABLED: "true",
     PORT: "0",
     ...extra,
   });
