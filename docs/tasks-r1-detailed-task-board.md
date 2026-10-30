@@ -599,7 +599,7 @@
 
 > Nhãn `[đợt 4]` … `[đợt 7]` từ 2026-10-29 trở đi theo kế hoạch tới R1 (Bàn giao 2026-10-28 12:05 và 2026-10-29 17:30: 4 vận hành · 5 vẽ lại màn máy quầy + ô chọn · 6 D-097, D-096, D-083, D-095, D-082, "Cần xử lý" · 7 quán giả lập). Ngoài các đợt còn `[sau R1]` (không chặn quán thí điểm), `[thấp]`, `[R2]`, `[khi làm luồng đó]`. Các dòng 2026-10-20 … 10-28 đã rà lại 2026-10-29 và xếp theo nhãn ở mục con cuối; dòng mới thì gắn nhãn ngay lúc ghi. Việc chờ server / máy thật / tài khoản nằm ở [release-r1-waiting-on-real-things-checklist.md](release-r1-waiting-on-real-things-checklist.md), không ở đây.
 
-- 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k): **Làm một phần (lượt 7a, D-148–D-150):** tầng nhanh không trình duyệt xong (`pnpm sim:day`, 2 seed ngày ngắn trong `test:sync`, 5 sự cố, 7 nhóm bất biến cuối ngày, trang `docs/handbook/van-hanh/07`). **Chưa làm** (lượt 7b): Chrome chạy giao diện máy quầy thật (3–4 máy), duyệt quản lý thay vì đăng nhập quản lý, combo / món cân / giá nhập tay / phí phục vụ trong ngày giả lập.
+- 2026-10-29 · **[đợt 7]** **Quán giả lập** (`scripts` hoặc gói test riêng, ~1 agent 300–400k): **Làm một phần (lượt 7a, D-148–D-150):** tầng nhanh không trình duyệt xong (`pnpm sim:day`, 2 seed ngày ngắn trong `test:sync`, 5 sự cố, 7 nhóm bất biến cuối ngày, trang `docs/handbook/van-hanh/07`). **Chưa làm:** duyệt quản lý thay vì đăng nhập quản lý, combo / món cân / giá nhập tay / phí phục vụ trong ngày giả lập (lượt 7c). Chrome chạy giao diện máy quầy thật (3–4 máy) chuyển **[sau R1]** (2026-10-30): e2e `e2e/pos` đã chạy giao diện thật trên Chrome cho các luồng chính, tầng nhanh của quán giả lập kiểm phần hội tụ nhiều máy; không chặn quán thí điểm.
   - **Máy ảo:** nhiều máy quầy ảo chạy đúng `@fnb/sync-client` với API thật trên Postgres nhúng (2 quầy, 1 máy order bàn, 1 máy pha chế).
   - **Kịch bản một ngày:** mở ca → sáng vắng → trưa cao điểm → chiều thưa → đóng ca → chốt ngày, xen chuyển bàn, hủy món, hoàn tiền, QR báo có trễ.
   - **Bơm sự cố:** mất mạng một máy 20′, lệch giờ, server khởi động lại giữa giờ, hai máy cùng sửa một bàn, cập nhật app giữa ca.
@@ -700,7 +700,7 @@
 **[sau R1] — không chặn quán thí điểm**
 
 - 2026-10-28 · Chụp **đơn vị cân** (kg / 100 g) vào dòng đơn (`sales_order_line.measure_unit` + snapshot). Hiện đổi đơn vị khi còn đơn mở, hoặc in lại bill cũ, thì in sai đơn vị.
-- 2026-10-30 · **[đợt 7]** Mã hàng (`product.code`, D-139) chưa vào bootstrap / feed của máy quầy: thêm khi máy quầy cần (tìm món theo mã, in mã trên phiếu), lọc theo máy xin để máy bản cũ không hỏng vì trường lạ.
+- 2026-10-30 · **[khi làm luồng đó]** (đổi từ `[đợt 7]` ngày 2026-10-30: chưa có màn nào ở máy quầy cần mã) Mã hàng (`product.code`, D-139) chưa vào bootstrap / feed của máy quầy: thêm khi máy quầy cần (tìm món theo mã, in mã trên phiếu), lọc theo máy xin để máy bản cũ không hỏng vì trường lạ.
 - 2026-10-30 · **[đợt 7]** "Đổi tùy chọn" một thao tác cho món đã gửi bếp **chưa làm ở lượt 7b** (hết ngân sách; hướng: nút trong menu dòng của món đã gửi mở bộ chọn tùy chọn cùng món, bấm Thêm thì chạy `VoidLineFlow` cho cả dòng với duyệt, rồi thêm dòng mới; hai phiếu hủy + gọi mới; phải thêm pha `picking` có `replacing` ở `table-order-phase.ts`).
 - 2026-10-30 · **[đợt 7]** e2e combo (`e2e/backoffice` tạo combo → `e2e/pos` bán combo ra phiếu bar + bếp) **chưa làm ở lượt 7b**; hiện không có e2e nào chạm combo.
 - 2026-10-30 · **[đợt 7]** Mã hàng vào máy quầy (mốc 10 của 7b) **chưa làm** (xem dòng mã hàng ở trên).
