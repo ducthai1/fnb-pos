@@ -48,6 +48,9 @@ export class ShopBooks {
   readonly seats = new Map<string, string>();
   voidCount = 0;
   commandsIssued = 0;
+  /** Managers' approvals given to the cashiers' tills, and the refused payments set aside with one. */
+  approvalsGiven = 0;
+  dismissed = 0;
 
   constructor(readonly earlier: EarlierDays = { commands: 0, refused: 0 }) {}
   /** Commands the script means the server to refuse: the only ones "needs attention" may hold. */

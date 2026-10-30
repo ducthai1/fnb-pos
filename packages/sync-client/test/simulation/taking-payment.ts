@@ -4,6 +4,8 @@ import { newId } from "@fnb/db";
 import { contentCodeFromRandom } from "@fnb/domain/payment";
 import { amountDueOf } from "../support/order-amount-due";
 import { pay } from "../support/order-commands";
+import { tapPayTwice } from "./double-payment";
+import { sendApproved } from "./approvals";
 import type { DayContext } from "./day-context";
 import { payByQr, refundInCash, showQr, takeQrDown } from "./sim-commands";
 import type { BookedOrder } from "./shop-books";
@@ -30,6 +32,10 @@ async function takeCash(ctx: DayContext, device: SimDevice, order: BookedOrder):
   if (view === null) throw new Error(`${device.name} shows no order ${order.id} to take cash for`);
   const amount = amountDueOf(view);
   await ctx.send(device, pay(view, amount));
+  // A cashier who may not close a bill alone sometimes taps twice; the cash is taken once.
+  if (!device.staff.manager && device.role === "counter" && ctx.random.chance(0.06)) {
+    await tapPayTwice(ctx, device, order, view, amount);
+  }
   device.drawer += amount;
   order.amountDue = amount;
   order.method = "cash";
@@ -113,13 +119,19 @@ export async function refundSale(
   ctx: DayContext,
   device: SimDevice,
   order: BookedOrder,
-): Promise<void> {
+): Promise<boolean> {
   const sale = await ctx.shown(device, order.id);
   if (sale === null || order.amountDue === null)
     throw new Error(`nothing to refund for ${order.id}`);
   const { refundOrderId, command } = refundInCash(sale, order.amountDue, ctx.nextOrderNo(device));
-  await ctx.send(device, command);
+  const given = await sendApproved(ctx, device, command, {
+    key: "refund",
+    refundAmount: String(order.amountDue),
+    subject: { orderId: order.id },
+  });
+  if (!given) return false;
   device.drawer -= order.amountDue;
   order.refunded = true;
   ctx.books.refunds.push({ refundOrderId, saleOrderId: order.id, amount: order.amountDue });
+  return true;
 }

@@ -1,5 +1,6 @@
 import { newId } from "@fnb/db";
 import { type PickedItem, saveDraft } from "../support/order-commands";
+import { sendApproved } from "./approvals";
 import type { DayContext } from "./day-context";
 import { cancelOrder, percentOffOrder } from "./sim-commands";
 import type { BookedOrder } from "./shop-books";
@@ -63,7 +64,12 @@ async function discountThenCharge(
 ): Promise<boolean> {
   const view = await ctx.shown(device, order.id);
   if (view === null) return false;
-  await ctx.send(device, percentOffOrder(view, 1_000));
+  const given = await sendApproved(ctx, device, percentOffOrder(view, 1_000), {
+    key: "order_discount",
+    discountRate: 1_000,
+    subject: { orderId: order.id },
+  });
+  if (!given) return false;
   order.discounted = true;
   ctx.after(1, `charge ${order.id}`, () => chargeWhenSynced(ctx, device, order, plan));
   return true;
@@ -85,6 +91,5 @@ async function refundWhenPaid(
   const view = await device.till.client.snapshot("order", order.id);
   // The sale must have reached the server, or there is no sale to take back yet.
   if (view?.source !== "server" || view.snapshot.status !== "paid") return false;
-  await refundSale(ctx, device, order);
-  return true;
+  return refundSale(ctx, device, order);
 }
