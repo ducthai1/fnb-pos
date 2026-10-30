@@ -68,7 +68,7 @@ describe("the sample shop seed", () => {
       sold_out: 1,
       areas: 2,
       tables: 12,
-      settings: 4,
+      settings: 6,
       webhooks: 1,
     });
     await seedSampleShop(app, pool, logins);

@@ -1,11 +1,14 @@
 import type { BackofficeCall } from "./backoffice-caller";
 
 /**
- * What the sample branch runs with: table service on, prices that include VAT, a made-up
- * bank account for the QR, and invoices through the fake provider (they exist nowhere).
+ * What the sample branch runs with: table service on, kitchen slips split by station and cup
+ * labels as the café template sets them, prices that include VAT, a made-up bank account for
+ * the QR, and invoices through the fake provider (they exist nowhere).
  */
 export const SAMPLE_BRANCH_SETTINGS: Readonly<Record<string, unknown>> = {
   tables: true,
+  kitchen_routing: true,
+  cup_labels: true,
   charge_profile: { pricesIncludeTax: true, serviceCharge: null },
   payment_account: { bankBin: "970436", accountNumber: "1234567890", accountName: "CA PHE MAU" },
   einvoice_profile: {

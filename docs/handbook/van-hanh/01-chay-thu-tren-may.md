@@ -17,7 +17,7 @@ tests:
 
 ## Dùng để làm gì
 
-Dựng **toàn bộ hệ thống** (cơ sở dữ liệu, máy chủ API, máy quầy POS, trang quản lý) trên một máy tính, với **quán mẫu "Cà phê Mẫu"** có sẵn thực đơn có ảnh (15 món lẻ và một combo **Combo đôi**: một trà sữa trân châu size M hoặc L cộng 10.000, một trà trái cây, giá 69.000 ₫), sơ đồ bàn, nhân viên, tài khoản nhận tiền giả và hóa đơn điện tử giả — để chủ quán bấm thử, hoặc để kiểm một thay đổi trước khi đưa lên server.
+Dựng **toàn bộ hệ thống** (cơ sở dữ liệu, máy chủ API, máy quầy POS, trang quản lý) trên một máy tính, với **quán mẫu "Cà phê Mẫu"** có sẵn thực đơn có ảnh (15 món lẻ và một combo **Combo đôi**: một trà sữa trân châu size M hoặc L cộng 10.000, một trà trái cây, giá 69.000 ₫), sơ đồ bàn, nhân viên, công tắc chia phiếu theo trạm và in tem ly đã bật (như mẫu quán cà phê), tài khoản nhận tiền giả và hóa đơn điện tử giả — để chủ quán bấm thử, hoặc để kiểm một thay đổi trước khi đưa lên server.
 
 Đây **không phải** cách chạy cho quán thật (xem [Đặt lên server](02-dat-len-server.md)).
 
