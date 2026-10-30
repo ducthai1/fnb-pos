@@ -28,7 +28,9 @@ async function cancelOrder(context: SyncCommandContext, payload: CancelOrderPayl
   const stored = await orderOfBranch(context, payload.orderId);
   const cancelled = transitionOrder(stored.order, "cancelled");
   const { lines } = stored.order;
+  // A cancel line's own ticket is the kitchen being told to stop, not food it still has.
   const stillAtTheKitchen = lines.some((line) => {
+    if (line.reversesLineId !== null) return false;
     const sent = stored.sentQuantityByLineId.get(line.id) ?? 0n;
     return sent > reversedQuantityOf(lines, line.id);
   });

@@ -60,6 +60,8 @@ export interface SyncClient {
   snapshot(entity: string, entityId: string): Promise<EntityView | null>;
   snapshots(entity: string): Promise<EntityView[]>;
   rejectedCommands(): Promise<RejectedCommand[]>;
+  /** Takes a refusal off the "needs attention" list for good; true when it was there. */
+  resolveRejected(commandId: string): Promise<boolean>;
   pendingCount(): Promise<number>;
   /** Every command still waiting for the server's answer, in deviceSeq order. */
   pendingCommands(): Promise<SyncCommandEnvelope[]>;
@@ -156,6 +158,7 @@ export function createSyncClient(options: SyncClientOptions): SyncClient {
     snapshot: (entity, entityId) => store.snapshot(entity, entityId),
     snapshots: (entity) => store.snapshots(entity),
     rejectedCommands: () => store.rejectedCommands(),
+    resolveRejected: (commandId) => store.resolveRejected(commandId),
     pendingCount: () => store.pendingCount(),
     pendingCommands: () => store.pendingCommands(ALL_PENDING),
     acceptedShiftCommands: () => store.acceptedShiftCommands(RECENT_SHIFT_CASH),

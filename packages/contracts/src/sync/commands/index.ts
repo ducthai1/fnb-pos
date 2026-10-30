@@ -2,6 +2,11 @@ export {
   type ApplyDiscountPayload,
   applyDiscountPayloadSchema,
 } from "./apply-discount-payload-schema";
+export {
+  DISMISSAL_NOTE_REQUIRED_TYPES,
+  type DismissRejectionPayload,
+  dismissRejectionPayloadSchema,
+} from "./dismiss-rejection-payload-schema";
 export { type CancelOrderPayload, cancelOrderPayloadSchema } from "./cancel-order-payload-schema";
 export {
   OTHER_REASON_CODE,

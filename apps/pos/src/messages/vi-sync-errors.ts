@@ -77,6 +77,7 @@ const VI_COMMAND_NAMES: Readonly<Record<string, string>> = {
   "print.job_reported": "Báo kết quả in",
   "order.mark_pre_bill_printed": "In tạm tính",
   "table.transfer": "Chuyển bàn",
+  "sync.rejection_dismissed": "Ghi nhận bỏ qua một lệnh",
 };
 
 /** A command's name for a person; a command this POS has no name for shows as it is. */

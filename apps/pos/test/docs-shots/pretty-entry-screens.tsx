@@ -36,6 +36,8 @@ const refused = (index: number, type: string, code: string): RejectedCommand => 
   },
 });
 const settledQr = refused(2, "order.pay", "SYNC_ORDER_HAS_SETTLED_QR");
+const stale = refused(1, "order.save_draft", "SYNC_ORDER_VERSION_STALE");
+const wantsApproval = refused(3, "order.cancel", "SYNC_APPROVAL_REQUIRED");
 
 export const ENTRY_SCREENS = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={nothing} />,
@@ -48,9 +50,15 @@ export const ENTRY_SCREENS = {
   ),
   "needs-attention": () => (
     <NeedsAttentionScreen
-      rejected={[refused(1, "order.save_draft", "SYNC_TABLE_OCCUPIED"), settledQr]}
+      rejected={[stale, wantsApproval, settledQr]}
       closable={new Set([settledQr.entityId])}
       onCloseWithSettledQr={nothing}
+      redoable={new Set([stale.command.commandId])}
+      openable={new Set([stale.entityId, wantsApproval.entityId])}
+      notes={new Map([[stale.command.commandId, vi.needsAttention.notes.notDraft]])}
+      onRedo={nothing}
+      onOpenOrder={nothing}
+      onDismiss={nothing}
       onBack={nothing}
     />
   ),
