@@ -24,6 +24,7 @@ const member = {
   branchIds: [id(2)],
   lockedOutUntil: null,
   failedSignIns: 0,
+  version: 1,
 };
 
 describe("the backoffice lists", () => {
@@ -38,6 +39,9 @@ describe("the backoffice lists", () => {
     expect(outcomeOf(staffListSchema, { staff: [locked] }).ok).toBe(true);
     const unsaid = { ...member, failedSignIns: undefined };
     expect(outcomeOf(staffListSchema, { staff: [unsaid] }).ok).toBe(false);
+    // A member's version is what a rename names, so a list without it is not one.
+    const unversioned = { ...member, version: undefined };
+    expect(outcomeOf(staffListSchema, { staff: [unversioned] }).ok).toBe(false);
   });
 
   it("refuse a field the contract does not name, such as a secret", () => {
