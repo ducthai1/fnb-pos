@@ -90,7 +90,8 @@
   padding-left: var(--sp-3);
 }
 
-.pos-chips[data-multi="true"] .pos-chip > .pos-icon {
+/* The tick box is the chip's own icon; the minus of the "one fewer" button beside it stays a minus. */
+.pos-chips[data-multi="true"] .pos-chip:not(.pos-chip--fewer) > .pos-icon {
   box-sizing: border-box;
   display: block;
   flex: none;
@@ -102,7 +103,7 @@
   color: transparent;
 }
 
-.pos-chips[data-multi="true"] .pos-chip[aria-pressed="true"] > .pos-icon {
+.pos-chips[data-multi="true"] .pos-chip:not(.pos-chip--fewer)[aria-pressed="true"] > .pos-icon {
   border-color: var(--c-brand);
   background: var(--c-brand);
   color: var(--c-on-brand);
