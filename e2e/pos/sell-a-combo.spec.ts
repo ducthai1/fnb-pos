@@ -7,25 +7,19 @@ import type { Browser } from "playwright-core";
 import { afterAll, beforeAll, expect, inject, it } from "vitest";
 import { backoffice, putProduct } from "./support/backoffice-calls";
 import { onceTheServerHasIt } from "./support/once-the-server-has-it";
-import {
-  itemsOfOrder,
-  refusalsOfTill,
-  tableOrdersOfTill,
-  ticketsOfOrder,
-} from "./support/table-records";
-import { tableServiceShop } from "./support/table-service-shop";
-import { dataOf, expectNoOverflow } from "./support/till-in-browser";
+import { printsOfOrder, salesOfTill } from "./support/server-records";
+import { refusalsOfTill } from "./support/table-records";
+import { dataOf, expectNoOverflow, openShift, pairedTillWithCashier } from "./support/till-in-browser";
 
 const stack = inject("posStack");
 const pool = new pg.Pool({ connectionString: stack.databaseUrl, max: 2 });
-const shop = tableServiceShop(stack);
-const T = text.tables;
 const DRINK = "Trà vải combo";
 const CAKE = "Bánh bông lan combo";
 const COMBO = "Combo chiều combo";
 const routingSetting = `/settings/branch/${stack.branchId}/kitchen_routing`;
 const money = (amount: number) => formatVnd(vnd(amount));
 const ids = {
+  bar: newId(),
   kitchen: newId(),
   drink: newId(),
   cake: newId(),
@@ -37,10 +31,16 @@ let browser: Browser | undefined;
 
 beforeAll(async () => {
   browser = await launchSystemChrome();
-  await shop.setUp();
   // Tickets split by station: without it every item goes on the one shared slip.
   await backoffice(stack, "PUT", routingSetting, { value: true }, 200);
-  // The drink is made at the bar of the table-service shop, the cake in a kitchen of its own.
+  // The drink is made at a bar, the cake in a kitchen of its own.
+  await backoffice(
+    stack,
+    "PUT",
+    `/catalog/stations/${ids.bar}`,
+    { version: null, branchId: stack.branchId, name: "Bar combo" },
+    201,
+  );
   await backoffice(
     stack,
     "PUT",
@@ -52,7 +52,7 @@ beforeAll(async () => {
   await putProduct(
     stack,
     ids.drink,
-    { ...made, kind: "prepared_drink", name: DRINK, basePrice: 30_000, stationId: shop.ids.bar },
+    { ...made, kind: "prepared_drink", name: DRINK, basePrice: 30_000, stationId: ids.bar },
     null,
   );
   await putProduct(
@@ -94,24 +94,24 @@ beforeAll(async () => {
 }, 90_000);
 
 afterAll(async () => {
-  // The stack is shared: the drafts at the tables, the combo and what it holds are put away.
-  await shop.close(pool).catch(console.error);
+  // The stack is shared: the combo and what it holds are put away.
   await backoffice(stack, "DELETE", routingSetting, {}, 200).catch(console.error);
   for (const id of [ids.combo, ids.drink, ids.cake]) {
     await backoffice(stack, "POST", `/catalog/products/${id}/archive`, {}, 200).catch(console.error);
   }
-  await backoffice(stack, "DELETE", `/catalog/stations/${ids.kitchen}?version=1`, {}, 200).catch(
-    console.error,
-  );
+  for (const id of [ids.kitchen, ids.bar]) {
+    await backoffice(stack, "DELETE", `/catalog/stations/${id}?version=1`, {}, 200).catch(
+      console.error,
+    );
+  }
   await browser?.close();
   await pool.end();
 });
 
-it("sells a combo at a table: the bar gets the drink, the kitchen the cake, each on its own ticket", async () => {
-  const till = await shop.tillOnTheFloor(browser!, "Thu ngân bán combo");
+it("sells a combo at the counter: the bar gets the drink, the kitchen the cake, each on its own ticket", async () => {
+  const till = await pairedTillWithCashier(browser!, stack, "Thu ngân bán combo");
   const { page } = till;
-  await shop.tile(page, 0).click();
-  await page.getByRole("heading", { name: T.order.title("E1") }).waitFor();
+  await openShift(page, []);
 
   await page.getByRole("button", { name: new RegExp(`^${COMBO}`) }).click();
   // The picker lists each place of the combo with what it offers; the cake costs 5.000 more.
@@ -121,47 +121,43 @@ it("sells a combo at a table: the bar gets the drink, the kitchen the cake, each
   await page.getByRole("button", { name: /^Thêm vào đơn/ }).click();
   await expect.poll(() => dataOf(page, "amount-due")).toBe("50000");
 
-  await page.getByRole("button", { name: /^Gửi bếp/ }).click();
-  await page.getByRole("heading", { name: T.slips.kitchenTitle }).waitFor();
-  await page.locator("[data-print-status='printed']").first().waitFor();
-  await page.locator("[data-print-status='printed']").nth(1).waitFor();
-  const slips = await page.locator("[data-slip-kind='kitchen'] pre").allTextContents();
-  // One ticket per station, each with only its own part of the combo.
-  expect(slips).toHaveLength(2);
-  const bar = slips.find((slip) => slip.includes(DRINK));
-  const kitchen = slips.find((slip) => slip.includes(CAKE));
-  expect(bar).toBeDefined();
-  expect(kitchen).toBeDefined();
-  expect(bar).not.toContain(CAKE);
-  expect(kitchen).not.toContain(DRINK);
-  await page.getByRole("button", { name: T.slips.backToOrder }).click();
-
-  // The server holds one combo of 50.000, sent to the stations once.
-  const orderOfTill = async () => (await tableOrdersOfTill(pool, stack.tenantId, till.deviceId))[0];
-  await onceTheServerHasIt(async () => {
-    const found = await orderOfTill();
-    return found === undefined ? 0 : (await ticketsOfOrder(pool, stack.tenantId, found.id)).length;
-  }).toBe(1);
-  const order = await orderOfTill();
-  if (order === undefined) throw new Error("the server holds no order of the till");
-  expect(order.tableName).toBe("E1");
-  expect(await itemsOfOrder(pool, stack.tenantId, order.id)).toEqual({ [ids.combo]: "1.000" });
-  // A combo made at two stations is recorded once, by the last ticket, as the one combo.
-  expect(await ticketsOfOrder(pool, stack.tenantId, order.id)).toEqual([
-    [{ productId: ids.combo, quantity: "1.000" }],
-  ]);
-  expect(await refusalsOfTill(pool, stack.tenantId, till.deviceId)).toEqual([]);
-
-  await page.getByRole("button", { name: T.order.pay, exact: true }).click();
+  await page.getByRole("button", { name: text.sale.checkout }).click();
   await page.getByRole("heading", { name: text.checkout.payment.title }).waitFor();
   await page
     .getByRole("button", { name: text.checkout.payment.quickCash(money(50_000)) })
     .click();
   await page.getByRole("button", { name: text.checkout.payment.finish }).click();
-  await expect
-    .poll(async () => (await tableOrdersOfTill(pool, stack.tenantId, till.deviceId))[0]?.paid, {
-      timeout: 30_000,
-    })
-    .toBe(50_000n);
+  await page.getByRole("heading", { name: text.checkout.done.title }).waitFor();
+  // The bill and one ticket for each station: every slip printed.
+  const slips = page.locator("[data-print-status]");
+  await expect.poll(() => slips.count()).toBe(3);
+  expect(
+    await slips.evaluateAll((all) => all.map((slip) => slip.getAttribute("data-print-status"))),
+  ).toEqual(["printed", "printed", "printed"]);
+  const tickets = await page.locator("[data-slip-kind='kitchen'] pre").allTextContents();
+  expect(tickets).toHaveLength(2);
+  const bar = tickets.find((slip) => slip.includes(DRINK));
+  const kitchen = tickets.find((slip) => slip.includes(CAKE));
+  expect(bar).toBeDefined();
+  expect(kitchen).toBeDefined();
+  expect(bar).not.toContain(CAKE);
+  expect(kitchen).not.toContain(DRINK);
+  await page.getByText(text.sync.allSynced).waitFor({ timeout: 60_000 });
+
+  await onceTheServerHasIt(async () =>
+    (await salesOfTill(pool, stack.tenantId, till.deviceId)).map((order) => order.status),
+  ).toEqual(["paid"]);
+  const [sale] = await salesOfTill(pool, stack.tenantId, till.deviceId);
+  expect(sale).toMatchObject({ status: "paid", payments: 1, paid: 50_000n });
+  // A combo made at two stations is recorded once, as one ticket, with both kitchen jobs logged.
+  const prints = await printsOfOrder(pool, stack.tenantId, sale!.id);
+  expect(prints.tickets).toBe(1);
+  expect(prints.jobs).toEqual([
+    { kind: "bill", status: "printed" },
+    { kind: "kitchen", status: "printed" },
+    { kind: "kitchen", status: "printed" },
+  ]);
+  expect(await refusalsOfTill(pool, stack.tenantId, till.deviceId)).toEqual([]);
+  expect(till.problems).toEqual([]);
   await till.close();
 }, 120_000);
