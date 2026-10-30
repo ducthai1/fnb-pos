@@ -18,6 +18,7 @@ decisions:
   - D-115
   - D-097
   - D-131
+  - D-082
 tests:
   - apps/pos/src/features/printing/print-sale-slips.test.ts
   - packages/printing/src/layout/lay-out-document.test.ts
@@ -95,6 +96,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
   - **Máy có máy in bếp**: khi máy in nhận phiếu. Máy in kẹt giấy hoặc báo lỗi thì món **vẫn "Chưa gửi bếp"**, phiếu vào danh sách "Phiếu in lỗi" và lần gửi sau in lại.
   - **Máy không có máy in bếp** (bản trong trình duyệt, phiếu chỉ xem trên màn): phiếu hiện ra là món **thành "Đã gửi bếp"**, giống luật của phiếu tạm tính. Người xem phiếu trên màn coi như đã báo bếp, nên món bị khóa: muốn bớt phải **Hủy món** (xin quản lý duyệt, ra **phiếu hủy**), muốn hủy cả đơn thì phải hủy các món đã gửi trước rồi xin quyền hủy đơn.
   - Đơn quầy trả tiền xong: phiếu bếp hiện cùng màn đã thanh toán, đơn đã đóng nên việc đánh dấu không đổi gì thêm.
+- **Số gọi** trên phiếu bếp, tem ly, hóa đơn theo luật số gọi ở [03-ban-tai-quay.md](03-ban-tai-quay.md): một máy 1–99, từ hai máy bán trở lên có số thứ tự máy ở hàng trăm (201, 202…).
 - **Phiếu tạm tính**: in hoặc chỉ xem trên màn đều tính là khách đã được đưa phiếu (bàn sang "Đã in tạm tính"); máy in kẹt thì không tính.
 - **Tem dán ly**: một tem cho **mỗi ly** (ghi "1/4", "2/4"…), chỉ cho món được đánh dấu "in tem ly" ở trang quản lý — kể cả **ly nằm trong combo** (tem ghi tên đồ uống, tùy chọn của nó và ghi chú của combo) — và **chỉ cho đơn quầy**. Tem chỉ ghi tùy chọn, không ghi giảm giá của món. Đơn bàn: lúc thanh toán máy bỏ tem (vì coi như đã có lúc gửi bếp), nhưng lúc gửi bếp hiện cũng chưa làm tem — nên đơn bàn **không có tem ly** nào.
 - Khổ giấy đang dùng để dựng phiếu: bill **80 mm**, tem ly **40 × 30 mm**. Khi in thật, chữ được in **không dấu** cho tới khi cài được bảng mã tiếng Việt của từng máy in (bảng mã sai thì mọi chữ có dấu thành ký tự lạ).

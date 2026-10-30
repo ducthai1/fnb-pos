@@ -37,6 +37,29 @@ describe("the till's order numbers", () => {
 
 describe("the call number", () => {
   it("runs 1 to 100 and starts over, so two orders a hundred apart share one", () => {
-    expect([1, 2, 99, 100, 101, 250].map(callNumberOf)).toEqual(["1", "2", "99", "100", "1", "50"]);
+    expect([1, 2, 99, 100, 101, 250].map((n) => callNumberOf(n))).toEqual(["1", "2", "99", "100", "1", "50"]);
+  });
+
+  it("keeps the plain numbers on a branch with one till, whatever its index", () => {
+    const alone = { deviceIndex: 1, tillsInBranch: 1 };
+    expect([1, 99, 100, 101].map((n) => callNumberOf(n, alone))).toEqual(["1", "99", "100", "1"]);
+  });
+
+  it("puts the till's index in the hundreds from two tills on, so two tills never call the same number", () => {
+    const first = { deviceIndex: 1, tillsInBranch: 2 };
+    const second = { deviceIndex: 2, tillsInBranch: 2 };
+    expect([1, 2, 99, 101].map((n) => callNumberOf(n, first))).toEqual(["101", "102", "199", "101"]);
+    expect([1, 2, 99, 101].map((n) => callNumberOf(n, second))).toEqual(["201", "202", "299", "201"]);
+    const called = new Set<string>();
+    for (let n = 1; n <= 99; n += 1) {
+      called.add(callNumberOf(n, first));
+      called.add(callNumberOf(n, second));
+    }
+    expect(called.size).toBe(198);
+  });
+
+  it("keeps the plain numbers on a till that holds no index (more than nine tills)", () => {
+    const crowded = { deviceIndex: null, tillsInBranch: 12 };
+    expect([1, 100, 101].map((n) => callNumberOf(n, crowded))).toEqual(["1", "100", "1"]);
   });
 });

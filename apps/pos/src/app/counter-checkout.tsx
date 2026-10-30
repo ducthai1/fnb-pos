@@ -2,7 +2,7 @@ import { walletsOfSettings } from "@fnb/contracts";
 import type { SyncClient } from "@fnb/sync-client";
 import { type ReactNode, useLayoutEffect, useState } from "react";
 import type { TillMenu } from "../features/menu/till-menu";
-import { callNumberOf } from "../features/order/device-order-number";
+import { useCallNumber } from "../features/order/device-order-number";
 import type { CounterOrder } from "../features/order/counter-order";
 import type { PricedCounterOrder } from "../features/order/price-counter-order";
 import type { TillPlace } from "../features/order/till-command";
@@ -60,6 +60,7 @@ interface PaidOrder {
  */
 export function CounterCheckout(props: CounterCheckoutProps) {
   const { client, place, menu, header, session, order, priced } = props;
+  const callNumberOf = useCallNumber();
   const [step, setStep] = useState<Step>("paying");
   const [paid, setPaid] = useState<PaidOrder | null>(null);
   const [reprinting, setReprinting] = useState(false);

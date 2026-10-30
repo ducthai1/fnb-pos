@@ -3,7 +3,7 @@ import { CircleCheck, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 import type { PaidSale } from "../../features/printing/paid-sale";
 import type { PrintedSlip } from "../../features/printing/print-sale-slips";
-import { callNumberOf } from "../../features/order/device-order-number";
+import { useCallNumber } from "../../features/order/device-order-number";
 import { vi } from "../../messages/vi";
 import { Icon } from "../shared/icon";
 import { ScreenFrame } from "../shared/screen-frame";
@@ -27,6 +27,7 @@ export interface SaleDoneScreenProps {
 export function SaleDoneScreen(props: SaleDoneScreenProps) {
   const { header, sale, slips, onNextOrder } = props;
   const { order, priced, change } = sale;
+  const callNumberOf = useCallNumber();
   return (
     <ScreenFrame
       title={T.title}

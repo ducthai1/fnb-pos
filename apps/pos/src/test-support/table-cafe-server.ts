@@ -32,7 +32,7 @@ export function tableCafeServer(
   settings: Record<string, unknown> = {},
   staff: { id: string; displayName: string; active: boolean }[] = [LAN],
   /** More of the bootstrap: the floor plan, the drafts open at the tables. */
-  start: Pick<PosBootstrapWire, "floor" | "openOrders" | "menu"> = {},
+  start: Pick<PosBootstrapWire, "floor" | "openOrders"> & Partial<Pick<PosBootstrapWire, "menu">> = {},
 ) {
   const { config } = tillBootstrapWire();
   const flags = { ...config.flags, tables: tablesOn };

@@ -11,13 +11,19 @@ import {
   setLineQuantity,
   setServiceType,
 } from "../features/order/counter-order";
+import { openingFromStored } from "../features/order/order-opening";
+import {
+  type UnpaidCounterOrder,
+  useUnpaidCounterOrders,
+} from "../features/order/unpaid-counter-orders";
 import type { PricedCounterOrder } from "../features/order/price-counter-order";
-import type { TillPlace } from "../features/order/till-command";
-import type { CounterOrderSession } from "../features/order/use-counter-order";
+import { businessDateAt, type TillPlace } from "../features/order/till-command";
+import type { CounterSession } from "../features/order/use-counter-order";
 import type { PrinterPort } from "../features/printing/printer-port";
 import { vi } from "../messages/vi";
 import { ModifierPickerScreen } from "../screens/sale/modifier-picker-screen";
 import { SaleScreen } from "../screens/sale/sale-screen";
+import { UnpaidOrdersStrip } from "../screens/sale/unpaid-orders-strip";
 import { ScreenFrame } from "../screens/shared/screen-frame";
 import { UnderLayer } from "../screens/shared/under-layer";
 import { TillBarNav } from "../screens/till/till-bar-nav";
@@ -36,7 +42,7 @@ export interface CounterSaleProps {
   cashierName: string;
   printer: PrinterPort;
   /** The counter's order, kept by the parent so switching to the floor and back keeps it. */
-  session: CounterOrderSession;
+  session: CounterSession;
   /** Counter or floor, shown on the selling screen only (not mid-checkout). */
   modeSwitch?: ReactNode;
 }
@@ -54,6 +60,14 @@ export function CounterSale(props: CounterSaleProps) {
   const [phase, setPhase] = useState<Phase>({ kind: "selling" });
   const [wholeScreen, setWholeScreen] = useState(false);
   const { order, chargeProfile } = session;
+  // What a reload left unpaid is never reopened on its own: the cashier chooses.
+  const unpaid = useUnpaidCounterOrders(
+    props.client,
+    props.place.deviceId,
+    businessDateAt(props.place, now),
+    order?.orderId ?? null,
+  );
+  const reopen = (left: UnpaidCounterOrder) => session.reopen(openingFromStored(menu, left.order));
   /** A chosen line goes on the order, or waits in the drawer for its price or weight. */
   const take = (chosen: ChosenLine) => {
     if (chosen.kind === "enter") return setPhase({ kind: "entering", pending: chosen.pending });
@@ -121,6 +135,17 @@ export function CounterSale(props: CounterSaleProps) {
           commandLines={session.commandLines}
           adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
           saveFailed={session.saveFailed}
+          notices={
+            <UnpaidOrdersStrip
+              orders={unpaid}
+              onReopen={reopen}
+              onCancel={(left) => {
+                // Cancelling goes through the cancel screen of the order, with its rules.
+                reopen(left);
+                setPhase({ kind: "adjusting", step: { kind: "cancel" } });
+              }}
+            />
+          }
           onPick={(product) => {
             const chosen = tapped(product);
             if (chosen === "pick") setPhase({ kind: "picking", product });

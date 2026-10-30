@@ -41,6 +41,7 @@ const TILL = [
   "bootstrap-failed",
   "open-shift",
   "sale",
+  "unpaid-orders-strip",
   "theme-menu",
   "modifier-picker",
   "line-entry-weight",

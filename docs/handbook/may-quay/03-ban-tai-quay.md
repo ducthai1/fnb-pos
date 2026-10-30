@@ -7,6 +7,7 @@ screens:
   - sale
   - sale-photos
   - sale-long-cart
+  - unpaid-orders-strip
   - modifier-picker
   - modifier-picker-photo
   - combo-picker
@@ -31,6 +32,7 @@ decisions:
   - D-114
   - D-115
   - D-132
+  - D-082
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
@@ -69,6 +71,9 @@ tests:
   - e2e/pos/counter-sale-cash.spec.ts
   - e2e/pos/product-photo-on-the-till.spec.ts
   - apps/pos/src/app/table-void-weighed-after-sent.test.tsx
+  - apps/pos/src/app/counter-orders-left-unpaid-after-reload.test.tsx
+  - apps/pos/src/app/counter-call-number-with-two-tills.test.tsx
+  - apps/pos/src/features/order/device-order-number.test.ts
 ---
 
 # Bán tại quầy
@@ -179,6 +184,19 @@ Máy **nhớ** giao diện đã chọn: tắt mở lại, đăng xuất, đổi 
 
 Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà phê Mẫu" ở máy 1280 px); tên dài quá thì cắt bằng "…", thanh không bao giờ tràn khỏi màn.
 
+### Đơn chưa thanh toán sau khi tải lại trang
+
+Tải lại trang (hoặc mở máy lại) khi đơn quầy chưa trả tiền: máy **không tự mở lại đơn cũ**, quầy bắt đầu một đơn mới. Đơn cũ có món, của chính máy này, trong ngày kinh doanh hôm nay hiện thành một **dải ở đầu màn bán**, mỗi đơn một dòng:
+
+> **Đơn số 3 chưa thanh toán** — 2 món · 58.000 ₫ — **Mở lại** · **Hủy đơn**
+
+(Ảnh: `unpaid-orders-strip`.)
+
+- **Mở lại**: đơn cũ về quầy với đủ món và tùy chọn; đơn mới đang trống (chưa lưu) bị thay. Nếu đơn mới đã có món thì nó thành một dòng của dải để mở sau, không mất.
+- **Hủy đơn**: mở màn **Hủy đơn** của đơn đó, chọn lý do rồi xác nhận, đúng luật hủy đơn ở [06](06-huy-giam-hoan-va-duyet.md) (đơn đã in tạm tính hoặc đã gửi bếp cần quản lý duyệt). Hủy xong dòng biến mất.
+- Dải tự biến mất khi không còn đơn nào. Đơn của ngày kinh doanh khác, đơn đã trả, đơn của bàn (có sơ đồ bàn riêng) không hiện ở đây.
+- Đơn chưa trả để lại trên máy **chặn chốt ngày** nên phải mở lại và thanh toán, hoặc hủy.
+
 ## Luật và giới hạn
 
 - Giá trên máy **đã gồm VAT** hay **cộng VAT** tùy cài đặt chi nhánh; dưới tổng có dòng **Đã gồm VAT** hoặc **VAT**, và **Phí dịch vụ** nếu chi nhánh có thu. Máy chủ **tính lại** tổng tiền của mọi đơn, không tin số máy gửi lên.
@@ -191,7 +209,12 @@ Tên quán trên thanh trên cùng hiện đủ khi tên ngắn (ví dụ "Cà p
 - **Đơn dài** (nhiều món): cột đơn tự cuộn, phần tổng tiền, **Giảm giá đơn**, **Hủy đơn** và **Thanh toán** luôn đứng yên ở dưới.
 - Số lượng một dòng: tối đa **999**. Ghi chú: tối đa **500 ký tự**. Số bàn ghi tay: tối đa **20 ký tự**.
 - Nhóm tùy chọn có giới hạn theo size (ví dụ size L được thêm nhiều topping hơn) thì máy áp đúng theo size đang chọn.
-- **Số đơn** đếm riêng trên từng máy (1, 2, 3…). **Số gọi** để gọi khách lấy món là số đơn quay vòng từ **1 đến 100** (đơn 101 có số gọi 1).
+- **Số đơn** đếm riêng trên từng máy (1, 2, 3…).
+- **Số gọi** để gọi khách lấy món:
+  - Chi nhánh có **một máy bán**: số đơn quay vòng từ **1 đến 100** (đơn 101 có số gọi 1).
+  - Chi nhánh có **từ hai máy bán**: số gọi = **số thứ tự của máy (1–9) × 100 + hai chữ số cuối của số đơn**. Máy thứ 1 gọi 101, 102… 199; máy thứ 2 gọi 201, 202… nên hai máy không bao giờ gọi trùng. Số thứ tự cấp lúc ghép máy (số nhỏ nhất còn trống trong chi nhánh); máy ghép từ trước được cấp ở lần tải lại sau khi cập nhật, không phải ghép lại; **thu hồi** máy thì số thứ tự trả lại cho chi nhánh. Chi nhánh có hơn 9 máy: máy thứ 10 trở đi giữ số gọi 1–99.
+  - Số gọi in trên phiếu bếp, tem ly, hóa đơn và hiện ở góc đơn, màn "Đã thanh toán" như nhau.
+  - Máy chạy bản cũ (chưa biết số thứ tự) vẫn gọi 1–99 cho tới khi cập nhật.
 - **Thực đơn nhớ chỗ đang bán**: danh mục đang chọn giữ nguyên suốt phiên (qua thanh toán, sang bàn, mở công cụ); quay lại cùng một đơn thì giữ cả chữ đang tìm và chỗ đang cuộn; sang đơn mới (khách sau) thì xóa ô tìm và cuộn về đầu, vẫn giữ danh mục.
 - Món đã gửi bếp, đã giảm giá hoặc đã hủy một phần thì **không bớt / xóa** bằng nút −: phải dùng **Hủy món**.
 - Đơn đang có **giảm giá toàn đơn** thì các món đang có trên đơn bị khóa sửa/xóa; gỡ giảm giá đơn trước.
@@ -234,6 +257,6 @@ Bán tại quầy **không cần mạng** (cả combo): thực đơn, giá, ản
 - **Cân điện tử** nối với máy: chưa có; ngăn nhập cân đã chừa nút **Đọc cân** (chỉ hiện khi máy có cân), hiện thu ngân gõ số gam cân hiện.
 - **Hủy món bán theo cân đã gửi bếp** (bàn): hủy được **cả lần cân** (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)), không hủy một phần; trước khi gửi bếp thì **Xóa món** bình thường.
 - In lại hóa đơn cũ của món theo cân đọc đơn vị **hiện tại** của món; đổi đơn vị (kg ↔ 100 g) khi còn đơn đang mở hoặc cần in lại thì phiếu ghi sai đơn vị.
-- Giữ đơn (treo đơn để bán khách khác rồi quay lại) ở chế độ tại quầy — hiện mỗi máy giữ **một** đơn quầy đang bán; đơn chưa thanh toán mở lại được từ **Lịch sử đơn** (xem [08](08-lich-su-don.md)).
+- Giữ đơn (treo đơn để bán khách khác rồi quay lại) ở chế độ tại quầy — hiện mỗi máy giữ **một** đơn quầy đang bán; đơn chưa thanh toán mở lại được từ **Lịch sử đơn** (xem [08](08-lich-su-don.md)) hoặc từ dải **Đơn chưa thanh toán** (mục dưới).
 - Kênh giao hàng, khuyến mãi, voucher, tích điểm khách hàng.
 - Tem dán ly và phiếu pha chế in ra giấy (hiện là bản xem trước — xem [10-phieu-in.md](10-phieu-in.md)).

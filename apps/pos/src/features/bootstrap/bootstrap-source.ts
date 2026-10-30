@@ -39,7 +39,7 @@ export function httpBootstrapSource(
   const base = baseUrl.replace(/\/+$/, "");
   return {
     async load(credential) {
-      const answer = await requestJson(fetchImpl, `${base}/pos/bootstrap`, {
+      const answer = await requestJson(fetchImpl, `${base}/pos/bootstrap?call-numbering=1`, {
         method: "GET",
         headers: deviceAuthorization(credential),
       });

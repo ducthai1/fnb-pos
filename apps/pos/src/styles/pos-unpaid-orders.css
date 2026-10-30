@@ -1,0 +1,66 @@
+/* Orders left unpaid on the counter: a strip over the menu, a row per order. Colours, sizes
+   and motion are the till's tokens; it drops in like the other notices and eases out through
+   [data-leaving] (usePresence keeps the element for --t-exit). */
+.pos-unpaid {
+  margin: 0;
+  padding: var(--sp-2);
+  border: 1px solid var(--c-amber-line);
+  border-radius: var(--r-md);
+  background: var(--c-amber-soft);
+  animation: pos-drop var(--t-enter) var(--ease-out) backwards;
+  transition:
+    opacity var(--t-exit) var(--ease-in),
+    transform var(--t-exit) var(--ease-in);
+}
+
+.pos-unpaid[data-leaving] {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.pos-unpaid__list {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-unpaid__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.pos-unpaid__mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+}
+
+.pos-unpaid__what {
+  display: grid;
+  flex: 1 1 14rem;
+  gap: 2px;
+  min-width: 0;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-unpaid__actions {
+  display: flex;
+  flex: none;
+  gap: var(--sp-2);
+  margin-inline-start: auto;
+}

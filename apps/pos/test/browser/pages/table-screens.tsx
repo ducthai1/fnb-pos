@@ -117,10 +117,12 @@ export const TABLE_SCREENS = {
           billable
           saved
           blocked={false}
+          empty={false}
           onSend={() => {}}
           onPreBill={() => {}}
           onPay={() => {}}
           onTransfer={() => {}}
+          onRelease={() => {}}
           onBack={() => {}}
         />
       }

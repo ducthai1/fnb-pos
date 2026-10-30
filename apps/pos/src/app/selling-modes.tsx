@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { ApiResult } from "../features/api/api-result";
 import type { BootstrapSnapshot } from "../features/bootstrap/bootstrap-source";
 import type { FloorOccupancy } from "../features/floor/floor-occupancy";
-import { orderNumbers } from "../features/order/device-order-number";
+import { CallNumberingContext, orderNumbers } from "../features/order/device-order-number";
 import { MenuMemoryProvider, useNewMenuMemory } from "../features/menu/menu-memory";
 import { BestSellersContext, useBestSellers } from "../features/menu/use-best-sellers";
 import { openingFromStored } from "../features/order/order-opening";
@@ -40,7 +40,9 @@ export function SellingModes(props: SellingModesProps) {
   return (
     <MenuMemoryProvider value={memory}>
       <BestSellersContext value={best}>
-        <SellingScreen {...props} />
+        <CallNumberingContext value={props.menu.callNumbering}>
+          <SellingScreen {...props} />
+        </CallNumberingContext>
       </BestSellersContext>
     </MenuMemoryProvider>
   );

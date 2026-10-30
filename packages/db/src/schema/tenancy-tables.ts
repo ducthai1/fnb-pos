@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { tenantRowColumns } from "./tenant-row-columns";
 
 /** The tenant root: an organization's tenant_id is its own id. */
@@ -49,6 +49,8 @@ export const device = pgTable("device", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
   name: text("name").notNull(),
+  /** The till's place among the branch's tills (1 to 9) for calling numbers; null once revoked. */
+  callIndex: smallint("call_index"),
 });
 
 export const appUser = pgTable("app_user", {

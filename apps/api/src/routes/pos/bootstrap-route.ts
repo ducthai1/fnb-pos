@@ -12,28 +12,39 @@ import { readPosBootstrap } from "./bootstrap-snapshot";
  * lists the staff from this answer. It shows the till its own tenant, brand and branch.
  */
 export function registerPosBootstrapRoute(app: FastifyInstance, context: ApiContext): void {
-  app.get("/pos/bootstrap", { onRequest: context.requireDevice }, async (request, reply) => {
-    const device = deviceAuth(request);
-    // A barrier, in a transaction of its own: wait until every feed write in flight has
-    // committed. A write that began before this till was paired fanned out to the tills it
-    // knew of; once it has committed, the reads below see its result, so missing from its
-    // fan-out costs this till nothing. Holding the lock for the whole read instead would
-    // stop every till of the tenant for as long as a menu takes to read.
-    await withTenant(context.pool, device.tenantId, (client) =>
-      lockTenantChangeFeed(client, device.tenantId),
-    );
-    const now = context.clock.now();
-    const { body, generation } = await withTenant(
-      context.pool,
-      device.tenantId,
-      async (client) => ({
-        generation: await readServerGeneration(client),
-        body: await readPosBootstrap(client, device, now),
-      }),
-    );
-    return reply
-      .header(SERVER_GENERATION_HEADER, generation)
-      .header(SERVER_TIME_HEADER, String(context.clock.now().getTime()))
-      .send(body);
-  });
+  app.get<{ Querystring: { "call-numbering"?: string } }>(
+    "/pos/bootstrap",
+    {
+      onRequest: context.requireDevice,
+      schema: {
+        querystring: { type: "object", properties: { "call-numbering": { type: "string" } } },
+      },
+    },
+    async (request, reply) => {
+      const device = deviceAuth(request);
+      // A barrier, in a transaction of its own: wait until every feed write in flight has
+      // committed. A write that began before this till was paired fanned out to the tills it
+      // knew of; once it has committed, the reads below see its result, so missing from its
+      // fan-out costs this till nothing. Holding the lock for the whole read instead would
+      // stop every till of the tenant for as long as a menu takes to read.
+      await withTenant(context.pool, device.tenantId, (client) =>
+        lockTenantChangeFeed(client, device.tenantId),
+      );
+      const now = context.clock.now();
+      const { body, generation } = await withTenant(
+        context.pool,
+        device.tenantId,
+        async (client) => ({
+          generation: await readServerGeneration(client),
+          body: await readPosBootstrap(client, device, now, {
+            callNumbering: request.query["call-numbering"] === "1",
+          }),
+        }),
+      );
+      return reply
+        .header(SERVER_GENERATION_HEADER, generation)
+        .header(SERVER_TIME_HEADER, String(context.clock.now().getTime()))
+        .send(body);
+    },
+  );
 }

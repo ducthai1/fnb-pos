@@ -25,6 +25,7 @@ import "./pos-screens.css";
 import "./pos-gate.css";
 import "./pos-category-tones.css";
 import "./pos-sale.css";
+import "./pos-unpaid-orders.css";
 import "./pos-product-tiles.css";
 import "./pos-product-photos.css";
 import "./pos-category-rail.css";
