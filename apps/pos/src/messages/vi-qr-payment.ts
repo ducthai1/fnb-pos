@@ -31,7 +31,13 @@ export const VI_QR_PAYMENT = {
   },
   leaveWhileOffline: {
     title: "Máy chưa biết khách đã chuyển khoản chưa",
-    hint: "Máy đang mất kết nối với máy chủ, nên ngân hàng có thể đã báo tiền về mà máy chưa nhận được. Kiểm tra app ngân hàng của quán (hoặc hỏi khách đã bấm chuyển chưa) trước khi lấy tiền mặt. Khách đã chuyển mà vẫn thu tiền mặt thì khách trả hai lần và quán phải hoàn một khoản.",
+    hint: "Máy đang mất kết nối với máy chủ, nên ngân hàng có thể đã báo tiền về mà máy chưa nhận được. Xem app ngân hàng của quán trước khi lấy tiền mặt.",
+    checksLabel: "Trước khi thu cách khác",
+    checks: [
+      "Mở app ngân hàng của quán, tìm khoản đúng số tiền của đơn.",
+      "Hỏi khách đã bấm chuyển chưa, nhờ khách cho xem màn hình chuyển khoản.",
+    ],
+    risk: "Khách đã chuyển mà vẫn thu tiền mặt thì khách trả hai lần và quán phải hoàn một khoản.",
     stay: "Quay lại, chờ khách chuyển",
     go: "Khách chưa chuyển, thu cách khác",
   },

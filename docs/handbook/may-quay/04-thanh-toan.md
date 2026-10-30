@@ -98,7 +98,10 @@ Mọi nhân viên đã đăng nhập. Không cần quyền riêng để thu ti�
    ![Mã QR đang chờ khách chuyển](../images/may-quay/qr-payment.webp)
 
 2. Đưa mã cho khách quét. **Không cần bấm gì**: khi ngân hàng báo tiền về đúng số, máy tự chuyển sang "Đã nhận đủ tiền chuyển khoản. Đang hoàn tất đơn…" rồi sang màn **Đã thanh toán**.
-3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần. **Máy đang mất kết nối với máy chủ** (ô trạng thái ghi mất mạng hoặc máy chủ lỗi) thì máy chưa biết khách đã chuyển chưa, nên hiện hộp **Máy chưa biết khách đã chuyển khoản chưa**: kiểm tra app ngân hàng của quán (hoặc hỏi khách đã bấm chuyển chưa). Khách đã chuyển mà vẫn thu tiền mặt là khách trả hai lần. Bấm **Quay lại, chờ khách chuyển** để giữ mã, hoặc **Khách chưa chuyển, thu cách khác** để gỡ mã. Hộp này cũng hiện khi chọn lại thẻ Tiền mặt hay đóng ngăn thanh toán lúc mã còn chờ; không hiện khi mã đã hết hạn có tiền muộn, đã nhận thiếu / thừa, hay khi máy đang thông.
+3. Khách đổi ý trả tiền mặt: bấm **Thu cách khác** (hoặc **Hủy QR**) — máy gỡ mã QR trên máy chủ để một lần chuyển muộn không bị tính hai lần. **Máy đang mất kết nối với máy chủ** (ô trạng thái ghi mất mạng hoặc máy chủ lỗi) thì máy chưa biết khách đã chuyển chưa, nên hiện màn **Máy chưa biết khách đã chuyển khoản chưa** với hai việc cần làm trước khi thu cách khác: mở app ngân hàng của quán tìm khoản đúng số tiền của đơn, và hỏi khách đã bấm chuyển chưa (nhờ khách cho xem màn hình chuyển khoản). Khách đã chuyển mà vẫn thu tiền mặt là khách trả hai lần. Bấm **Quay lại, chờ khách chuyển** để giữ mã, hoặc **Khách chưa chuyển, thu cách khác** để gỡ mã. Màn này cũng hiện khi chọn lại thẻ Tiền mặt hay đóng ngăn thanh toán lúc mã còn chờ; không hiện khi mã đã hết hạn có tiền muộn, đã nhận thiếu / thừa, hay khi máy đang thông.
+
+   ![Máy chưa biết khách đã chuyển khoản chưa](../images/may-quay/qr-leave-offline.webp)
+
 4. Mã hết hạn mà khách chưa chuyển: bấm **Tạo QR mới**.
 5. Khách **chuyển thiếu** (ví dụ 45.000 ₫ cho đơn 50.000 ₫): máy báo "Khách chuyển thiếu 5.000 ₫." và có hai nút:
    - **Thu nốt 5.000 ₫ tiền mặt**: máy chuyển sang thẻ tiền mặt, dòng **Chuyển khoản 45.000 ₫** đã nằm sẵn (không bỏ được — đó là tiền ngân hàng đã báo về), **Còn lại** 5.000 ₫. Nhận tiền mặt như thường rồi **Hoàn tất thanh toán**.
