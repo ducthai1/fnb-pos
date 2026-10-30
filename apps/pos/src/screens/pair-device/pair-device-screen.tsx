@@ -20,9 +20,16 @@ export interface PairDeviceScreenProps {
   onPaired(credential: DeviceCredential): Promise<void>;
   /** A code that came in a pairing link: filled in and sent once, as if typed. */
   linkedCode?: string | null;
+  /** Why the till is asking again, when it is not the first time (it was taken out of the shop). */
+  notice?: string | null;
 }
 
-export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDeviceScreenProps) {
+export function PairDeviceScreen({
+  pair,
+  onPaired,
+  linkedCode = null,
+  notice = null,
+}: PairDeviceScreenProps) {
   const [code, setCode] = useState(linkedCode ?? "");
   const [deviceName, setDeviceName] = useState<string>(vi.pairing.deviceNameDefault);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +73,7 @@ export function PairDeviceScreen({ pair, onPaired, linkedCode = null }: PairDevi
       stageMark={<GateMark of={MonitorSmartphone} />}
     >
       <form className="pos-form pos-gate__body" onSubmit={submit} noValidate>
+        <Alert message={notice} tone="info" />
         <p className="pos-gate__lead">{vi.pairing.hint}</p>
         <label className="pos-field">
           <span className="pos-field__label">{vi.pairing.codeLabel}</span>

@@ -36,6 +36,8 @@ export interface FakeApiState {
     pair: { code: string; deviceName: string }[];
     signIn: { staffId: string; pin: string; deviceToken: string }[];
     approvals: (ApprovalRequest & { staffToken: string })[];
+    /** The staff tokens the till asked the server to end (signing out). */
+    signOut: string[];
   };
 }
 
@@ -47,7 +49,7 @@ export const fakeApiState = (): FakeApiState => ({
   notPermittedApprovers: new Set(),
   expiredTokens: new Set(),
   approvals: [],
-  calls: { pair: [], signIn: [], approvals: [] },
+  calls: { pair: [], signIn: [], approvals: [], signOut: [] },
 });
 
 const tokenOf = (staffId: string) => `staff-${staffId}`;
@@ -81,6 +83,11 @@ export function fakePosApi(state: FakeApiState): PosApi {
       if (!state.online) return unreachable();
       if (state.expiredTokens.has(staffToken)) return refusal(401, "API_STAFF_SESSION_INVALID");
       return { ok: true, value: state.grants.get(staffOfToken(staffToken)) ?? [] };
+    },
+    async endStaffSession(_credential, staffToken) {
+      state.calls.signOut.push(staffToken);
+      if (!state.online) return unreachable();
+      return { ok: true, value: !state.expiredTokens.has(staffToken) };
     },
     async requestApproval(_credential, staffToken, request) {
       state.calls.approvals.push({ ...request, staffToken });

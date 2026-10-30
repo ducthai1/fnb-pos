@@ -10,6 +10,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { DEVICE_UNAUTHENTICATED_CODE } from "@fnb/contracts";
 import { failureMessage } from "../features/api/failure-message";
 import type { StaffSession } from "../features/api/pos-api";
 import {
@@ -32,8 +33,10 @@ import { ServerRestoreNotice } from "../screens/sales-home/server-restore-notice
 import { TillClockNotice } from "../screens/sales-home/till-clock-notice";
 import { StaffLoginScreen } from "../screens/staff-login/staff-login-screen";
 import type { DeviceCredential } from "../shell-bridge/device-credential-store";
+import { endStaffSessionAtServer } from "./end-staff-session-at-server";
 import { NeedsAttentionFlow } from "./needs-attention-flow";
 import type { PosDependencies } from "./pos-dependencies";
+import { RevokedTill } from "./revoked-till";
 import { StaffedTill } from "./staffed-till";
 import { newTillStaffSessions, signInto } from "./till-staff-sessions";
 import { useAppUpdate } from "./use-app-update";
@@ -56,6 +59,8 @@ export function PairedTill(props: {
   deps: PosDependencies;
   store: LocalStore;
   credential: DeviceCredential;
+  /** The till was revoked and the cashier chose to pair it again: its data and pairing are gone. */
+  onUnpaired(): void;
 }) {
   const { deps, credential } = props;
   const [snapshot, setSnapshot] = useState<BootstrapSnapshot | null>(null);
@@ -67,6 +72,8 @@ export function PairedTill(props: {
   /** An order the cashier left the needs-attention list to open; read once by the till. */
   const [focusOrderId, setFocusOrderId] = useState<string | null>(null);
   const [forcedUpdating, setForcedUpdating] = useState(false);
+  /** The server answered the shop-data call 401 for the till's own credential. */
+  const [revokedAtBootstrap, setRevokedAtBootstrap] = useState(false);
   const sessions = useRef(newTillStaffSessions());
   const signOutRef = useRef<(notice: string | null) => void>(() => {});
   const till = useBackgroundSync(deps, props.store, credential, sessions, (token) => {
@@ -112,7 +119,9 @@ export function PairedTill(props: {
     setBootstrapError(null);
     const result = await deps.bootstrap.load(credential);
     if (result.ok) setSnapshot(result.value);
-    else setBootstrapError(failureMessage(result));
+    else if (result.status === 401 && result.code === DEVICE_UNAUTHENTICATED_CODE) {
+      setRevokedAtBootstrap(true);
+    } else setBootstrapError(failureMessage(result));
   }, [deps, credential]);
   useEffect(() => {
     void loadBootstrap();
@@ -141,6 +150,11 @@ export function PairedTill(props: {
     };
   }, [signedIn, snapshot, staff, deps, credential, signOut]);
 
+  // The server no longer knows this till: whatever else is on screen, nothing it holds can
+  // be sent. The staff session's own 401 (another code) never gets here.
+  if (revokedAtBootstrap || status.connection === "revoked") {
+    return <RevokedTill store={props.store} credentials={deps.credentials} onUnpaired={props.onUnpaired} />;
+  }
   // The server serves no build this old: nothing the till does would reach it, so the one
   // thing to do is update. What the till recorded stays in its database through the reload.
   if (status.connection === "update_required") {
@@ -211,7 +225,19 @@ export function PairedTill(props: {
           void till?.client.rejectedCommands().then(setRejected);
         }}
         onSwitchStaff={() => signOut(null)}
-        onSignOut={() => signOut(vi.session.signedOut(signedIn.staff.displayName))}
+        onSignOut={() => {
+          const held = sessions.current;
+          const session = held.current;
+          signOut(vi.session.signedOut(signedIn.staff.displayName));
+          if (session === null) return;
+          void endStaffSessionAtServer({
+            api: deps.api,
+            credential,
+            client: till?.client ?? null,
+            sessions: held,
+            session,
+          });
+        }}
       />
     </TillPermissionsProvider>,
   );

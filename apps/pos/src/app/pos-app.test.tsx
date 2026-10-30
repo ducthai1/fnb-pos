@@ -133,7 +133,7 @@ describe("a till that cannot sell from this tab", () => {
 describe("loading the shop's data", () => {
   it("shows why the shop's data did not load and loads it again on retry", async () => {
     const server = serverWithLan();
-    server.state.bootstrapFailure = refusal(401, "API_DEVICE_UNAUTHENTICATED");
+    server.state.bootstrapFailure = refusal(400, "API_INVALID_REQUEST");
     render(
       <PosApp
         deps={fakeDependencies(server, { credentials: memoryCredentials(CREDENTIAL).store })}
@@ -141,7 +141,7 @@ describe("loading the shop's data", () => {
     );
     expect(await screen.findByRole("alert")).toHaveProperty(
       "textContent",
-      text.errors.API_DEVICE_UNAUTHENTICATED,
+      text.errors.API_INVALID_REQUEST,
     );
     expect(screen.queryByRole("button", { name: LAN.displayName })).toBeNull();
 

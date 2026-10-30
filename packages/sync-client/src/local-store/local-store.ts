@@ -139,5 +139,12 @@ export interface LocalStore {
    * command again by the kept offset, none after `notAfter` (see till-clock-offset.ts).
    */
   retimePending(fromDeviceSeq: number, notAfter: string): Promise<number>;
+  /**
+   * Forgets everything: the bound device, the feed's cursor, the copies, the outbox and the
+   * refused list, and starts the command numbers again from 1. For a till whose credential
+   * was revoked and which is paired anew: its old database is another device's, and its
+   * waiting commands can never be taken by the server.
+   */
+  wipe(): Promise<void>;
   close(): Promise<void>;
 }

@@ -29,6 +29,7 @@ export {
   serverGenerationSchema,
   syncDeviceStateSchema,
 } from "./server-generation-schema";
+export { DEVICE_UNAUTHENTICATED_CODE } from "./device-credential-refusal";
 export {
   POS_BUILD_HEADER,
   POS_RELEASE_TOO_OLD_CODE,

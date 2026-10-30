@@ -8,6 +8,8 @@ decisions:
   - D-065
   - D-066
   - D-082
+  - D-143
+  - D-144
 tests:
   - apps/backoffice/src/components/ui/confirm-panel.test.tsx
   - apps/backoffice/src/components/devices/devices-screen.test.tsx
@@ -17,6 +19,8 @@ tests:
   - apps/api/test/integration/backoffice/branch-device-and-staff-lists.test.ts
   - e2e/backoffice/pair-a-device.spec.ts
   - e2e/pos/pair-and-pin-login.spec.ts
+  - apps/pos/src/app/till-revoked-by-the-server.test.tsx
+  - apps/api/test/integration/auth/staff-session-ends-when-the-till-signs-out.test.ts
   - apps/api/test/integration/devices/tills-get-their-own-call-index.test.ts
   - packages/sync-client/test/scenarios/two-tills-of-a-branch-call-different-numbers.test.ts
 ---
@@ -48,7 +52,7 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 ### Thu hồi một máy
 
 1. Ở dòng của máy, bấm **Thu hồi**. Trang hiện khung hỏi lại **Thu hồi máy "…"?** ngay trên danh sách: bấm nút đỏ **Thu hồi máy** để làm, **Hủy** để thôi.
-2. Máy bị đăng xuất và **không bán được nữa** cho tới khi ghép lại bằng mã mới. Dòng chuyển sang "Đã thu hồi lúc …".
+2. Máy **không bán được nữa** cho tới khi ghép lại bằng mã mới: ở lần đồng bộ kế tiếp máy hiện màn "Máy này đã bị gỡ khỏi cửa hàng", liệt kê các thao tác chưa gửi (nếu có) và chỉ xóa dữ liệu khi người đứng máy xác nhận rồi ghép lại (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md)). Dòng chuyển sang "Đã thu hồi lúc …".
 3. Lọc **Đang dùng / Đã thu hồi**, tìm theo tên máy.
 
 ## Luật và giới hạn
@@ -59,7 +63,7 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 - Mỗi máy ghép với **một chi nhánh**. Muốn đổi chi nhánh: thu hồi rồi ghép lại ở chi nhánh kia.
 - Máy đã thu hồi bị máy chủ từ chối ở mọi lần gọi kế tiếp (đồng bộ, đăng nhập PIN).
 - Một địa chỉ mạng chỉ được thử ghép **10 lần mỗi phút** (chống dò mã).
-- Thu hồi không xóa đơn của máy: đơn đã đồng bộ vẫn nằm trong báo cáo. Đơn **chưa** đồng bộ trên máy bị thu hồi thì không gửi lên được nữa — đồng bộ hết trước khi thu hồi máy còn dùng được.
+- Thu hồi không xóa đơn của máy: đơn đã đồng bộ vẫn nằm trong báo cáo. Đơn **chưa** đồng bộ trên máy bị thu hồi thì không gửi lên được nữa — đồng bộ hết trước khi thu hồi máy còn dùng được. Máy **không tự xóa** chúng: màn trên máy nêu số thao tác còn lại và người đứng máy phải xác nhận mới xóa; nếu có, hãy hỏi họ trước khi bấm.
 
 ## Khi có lỗi
 

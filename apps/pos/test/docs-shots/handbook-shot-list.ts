@@ -74,6 +74,7 @@ const TILL = [
   "update-banner",
   "update-banner-folded",
   "update-required",
+  "till-revoked",
 ];
 const PHONE = ["sale", "modifier-picker", "payment"];
 

@@ -117,6 +117,40 @@
   color: var(--c-danger);
 }
 
+.pos-gate__note p {
+  margin: var(--sp-2) 0 0;
+}
+
+/* What the till still holds, one line per kind of command, the count on the right. */
+.pos-gate__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.pos-gate__list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  font-size: var(--fs-md);
+  overflow-wrap: anywhere;
+}
+
+.pos-gate__list strong {
+  flex: none;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
 .pos-gate__fine-print {
   margin: 0;
   color: var(--c-text-2);

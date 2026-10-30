@@ -11,7 +11,7 @@ import { type PosDependencies, blockReasonOf } from "./pos-dependencies";
 type Phase =
   | { readonly kind: "opening" }
   | { readonly kind: "blocked"; readonly reason: BlockReason }
-  | { readonly kind: "pairing"; readonly store: LocalStore }
+  | { readonly kind: "pairing"; readonly store: LocalStore; readonly notice?: string }
   | { readonly kind: "paired"; readonly store: LocalStore; readonly credential: DeviceCredential };
 
 /** The POS: the till's database first (one tab only), then pairing, then the paired till. */
@@ -50,6 +50,7 @@ export function PosApp({ deps }: { deps: PosDependencies }) {
         <PairDeviceScreen
           pair={(input) => deps.api.pairDevice(input)}
           linkedCode={deps.linkedPairingCode ?? null}
+          notice={phase.notice ?? null}
           onPaired={async (credential) => {
             await deps.credentials.save(credential);
             setPhase({ kind: "paired", store: phase.store, credential });
@@ -57,6 +58,15 @@ export function PosApp({ deps }: { deps: PosDependencies }) {
         />
       );
     case "paired":
-      return <PairedTill deps={deps} store={phase.store} credential={phase.credential} />;
+      return (
+        <PairedTill
+          deps={deps}
+          store={phase.store}
+          credential={phase.credential}
+          onUnpaired={() =>
+            setPhase({ kind: "pairing", store: phase.store, notice: vi.pairing.revokedNotice })
+          }
+        />
+      );
   }
 }

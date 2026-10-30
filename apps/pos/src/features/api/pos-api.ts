@@ -64,6 +64,8 @@ export interface PosApi {
     input: { staffId: string; pin: string },
   ): Promise<ApiResult<StaffSession>>;
   staffGrants(credential: DeviceCredential, staffToken: string): Promise<ApiResult<Grant[]>>;
+  /** Ends the staff session on the server; `true` when it was live, `false` when it was over already. */
+  endStaffSession(credential: DeviceCredential, staffToken: string): Promise<ApiResult<boolean>>;
   /** The approval's id, to name in the command it allows. */
   requestApproval(
     credential: DeviceCredential,
@@ -121,6 +123,16 @@ export function httpPosApi(baseUrl: string, fetchImpl: FetchLike = (u, i) => fet
         headers: { ...deviceAuthorization(credential), [STAFF_SESSION_HEADER]: staffToken },
       });
       return resultOf(answer, parseStaffGrants);
+    },
+    async endStaffSession(credential, staffToken) {
+      const answer = await requestJson(fetchImpl, `${base}/pos/staff-sessions/current`, {
+        method: "DELETE",
+        headers: { ...deviceAuthorization(credential), [STAFF_SESSION_HEADER]: staffToken },
+      });
+      return resultOf(answer, (body) => {
+        const ended = (body as { ended?: unknown } | null)?.ended;
+        return typeof ended === "boolean" ? ended : null;
+      });
     },
     async requestApproval(credential, staffToken, request) {
       const answer = await requestJson(fetchImpl, `${base}/pos/approvals`, {

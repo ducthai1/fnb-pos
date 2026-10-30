@@ -7,6 +7,7 @@ import { BootstrapScreen } from "../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../src/screens/pair-device/pair-device-screen";
 import { UpdateRequiredScreen } from "../../src/screens/update/update-required-screen";
+import { TillRevokedScreen } from "../../src/screens/pair-device/till-revoked-screen";
 import { PinEntry } from "../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../src/screens/staff-login/staff-picker";
 import { SHOP } from "./pretty-menu";
@@ -47,6 +48,18 @@ export const ENTRY_SCREENS = {
   // A till that sold through a long outage before it learned the server moved on.
   "update-required": () => (
     <UpdateRequiredScreen pendingCommands={128} updating={false} onUpdate={nothing} />
+  ),
+  // A till revoked after a long outage: unsent commands of every kind, one name far too long.
+  "till-revoked": () => (
+    <TillRevokedScreen
+      waiting={[
+        { name: "Thanh toán đơn", count: 41 },
+        { name: "Lưu đơn", count: 63 },
+        { name: "Hủy một món đã gửi bếp, kèm lý do và ghi chú rất dài của quản lý", count: 3 },
+      ]}
+      needsAttention={2}
+      onPairAgain={never}
+    />
   ),
   "bootstrap-failed": () => <BootstrapScreen error={vi.errors.network} onRetry={nothing} />,
   "staff-picker": () => <StaffPicker branchName={SHOP.branch} staff={staff} onChoose={nothing} />,

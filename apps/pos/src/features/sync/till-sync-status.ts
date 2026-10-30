@@ -1,4 +1,8 @@
-import { POS_RELEASE_TOO_OLD_CODE, POS_RELEASE_TOO_OLD_STATUS } from "@fnb/contracts";
+import {
+  DEVICE_UNAUTHENTICATED_CODE,
+  POS_RELEASE_TOO_OLD_CODE,
+  POS_RELEASE_TOO_OLD_STATUS,
+} from "@fnb/contracts";
 import type { RestoreState, SyncReport } from "@fnb/sync-client";
 
 /**
@@ -13,7 +17,9 @@ export type TillConnection =
   /** The server refuses writes from the page's address (403 API_ORIGIN_NOT_ALLOWED). */
   | "origin_refused"
   /** The server serves no build as old as this one (426): the till must update before it syncs. */
-  | "update_required";
+  | "update_required"
+  /** The server answered 401 for the till's own credential: the till was revoked. */
+  | "revoked";
 
 export interface TillSyncStatus {
   readonly connection: TillConnection;
@@ -48,7 +54,8 @@ export const INITIAL_SYNC_STATUS: TillSyncStatus = {
 };
 
 /**
- * No answer at all is offline; a server that serves no build as old as this one says the till
+ * No answer at all is offline; a 401 for the till's own credential (not the staff session's,
+ * which has a code of its own) says the till was revoked; a server that serves no build as old as this one says the till
  * must update; a push refused for the page's address says so (nothing the
  * till records gets through until someone fixes the server's settings); any other error
  * means the server is in trouble.
@@ -57,6 +64,7 @@ export function connectionAfter(report: SyncReport): TillConnection {
   if (report.failure === null) return "online";
   if (report.failure.kind === "network") return "offline";
   const { stage, status, code } = report.failure;
+  if (status === 401 && code === DEVICE_UNAUTHENTICATED_CODE) return "revoked";
   if (status === POS_RELEASE_TOO_OLD_STATUS && code === POS_RELEASE_TOO_OLD_CODE) {
     return "update_required";
   }
