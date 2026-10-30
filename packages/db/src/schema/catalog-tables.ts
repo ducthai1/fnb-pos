@@ -10,6 +10,8 @@ export const station = pgTable("station", {
   ...tenantRowColumns(),
   branchId: uuid("branch_id").notNull(),
   name: text("name").notNull(),
+  /** Out of use: not listed, not offered to products, not sent to tills; tickets keep pointing at it. */
+  archivedAt: at("archived_at"),
 });
 
 export const category = pgTable("category", {

@@ -29,6 +29,8 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_STAFF_ALREADY_INACTIVE: "Nhân viên này đã bị khóa rồi. Tải lại danh sách.",
   API_STAFF_ALREADY_ACTIVE: "Nhân viên này đang làm, không cần mở lại. Tải lại danh sách.",
   API_STAFF_PIN_NOT_LOCKED: "PIN của nhân viên này không bị khóa, không có gì để mở. Tải lại danh sách.",
+  API_CATALOG_STATION_ARCHIVED:
+    "Trạm này đã lưu trữ nên không gán cho món đang bán được. Chọn trạm khác, hoặc dùng lại trạm ở trang Trạm pha chế/bếp.",
   API_STAFF_VERSION_CONFLICT:
     "Có người đã sửa nhân viên này trước bạn. Danh sách đã được tải lại; xem lại rồi bấm lưu lần nữa nếu vẫn cần.",
   API_ROLE_ARCHIVED: "Vai trò này đã lưu trữ, không gán cho ai được nữa. Chọn vai trò khác.",

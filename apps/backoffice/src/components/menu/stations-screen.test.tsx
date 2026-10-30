@@ -9,10 +9,10 @@ import { StationsScreen } from "./stations-screen";
 
 const T = vi.stations;
 const BRANCH = BRANCHES[0]?.id ?? "";
-const station = (id: string, name: string, version = 1): Station => ({ id, branchId: BRANCH, name, version });
+const station = (id: string, name: string, version = 1): Station => ({ id, branchId: BRANCH, name, version, archivedAt: null });
 
 /** The station routes over a list in memory: a write moves the version on, a stale one is a 409. */
-function stationServer(start: Station[]) {
+function stationServer(start: Station[], printed: ReadonlySet<string> = new Set()) {
   let list = [...start];
   const putStation = mock.fn(async (id: string, body: { version: number | null; branchId: string; name: string }) => {
     const stored = list.find((each) => each.id === id);
@@ -24,14 +24,25 @@ function stationServer(start: Station[]) {
   const deleteStation = mock.fn(async (id: string, version: number) => {
     const stored = list.find((each) => each.id === id);
     if (stored !== undefined && stored.version !== version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+    // A station that printed tickets is kept out of use instead of removed.
+    if (printed.has(id)) {
+      list = list.map((each) => (each.id === id ? { ...each, version: each.version + 1, archivedAt: "2026-10-30T03:00:00.000Z" } : each));
+      return ok("archived" as const);
+    }
     list = list.filter((each) => each.id !== id);
+    return ok("deleted" as const);
+  });
+  const resumeStation = mock.fn(async (id: string, version: number) => {
+    const stored = list.find((each) => each.id === id);
+    if (stored !== undefined && stored.version !== version) return refused(409, "API_CATALOG_VERSION_CONFLICT");
+    list = list.map((each) => (each.id === id ? { ...each, version: each.version + 1, archivedAt: null } : each));
     return ok(true as const);
   });
   /** Someone else renames the station: the next read shows it one version on. */
   const editedByAnother = (id: string) => {
     list = list.map((each) => (each.id === id ? { ...each, name: `${each.name} (đã sửa)`, version: each.version + 1 } : each));
   };
-  return { api: { listStations: mock.fn(async () => ok([...list])), putStation, deleteStation }, putStation, deleteStation, editedByAnother };
+  return { api: { listStations: mock.fn(async () => ok([...list])), putStation, deleteStation, resumeStation }, putStation, deleteStation, resumeStation, editedByAnother };
 }
 
 describe("the stations page", () => {
@@ -95,6 +106,26 @@ describe("the stations page", () => {
     fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
     await screen.findByText(T.deleted("Bar (đã sửa)"));
     expect(server.deleteStation).toHaveBeenLastCalledWith("s1", 2);
+  });
+
+  it("archives a station that printed tickets: says so, moves it to the archived list, and offers to use it again", async () => {
+    const server = stationServer([station("s1", "Bar"), station("s2", "Bếp cũ")], new Set(["s2"]));
+    await renderSignedIn(<StationsScreen />, server.api);
+    fireEvent.click(await screen.findByRole("button", { name: T.deleteLabel("Bếp cũ") }));
+    await screen.findByText(T.deleteTitle("Bếp cũ"));
+    fireEvent.click(screen.getByRole("button", { name: vi.common.remove }));
+    await screen.findByText(T.archivedDone("Bếp cũ"));
+    // Out of the working list, into the archived one, which is a section of its own.
+    const archived = await screen.findByRole("list", { name: T.archivedTitle(1) });
+    expect(within(archived).getByText("Bếp cũ")).toBeTruthy();
+    expect(within(screen.getByRole("list", { name: T.title })).queryByText("Bếp cũ")).toBeNull();
+    expect(screen.queryByRole("button", { name: T.deleteLabel("Bếp cũ") })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: T.resumeLabel("Bếp cũ") }));
+    await screen.findByText(T.resumed("Bếp cũ"));
+    expect(server.resumeStation).toHaveBeenCalledWith("s2", 2);
+    expect(screen.queryByRole("list", { name: T.archivedTitle(1) })).toBeNull();
+    expect(within(screen.getByRole("list", { name: T.title })).getByText("Bếp cũ")).toBeTruthy();
   });
 
   it("explains why a station still in use stays, and keeps it listed", async () => {

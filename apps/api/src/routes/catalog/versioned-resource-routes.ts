@@ -15,6 +15,7 @@ import {
 import { putVersionedRow } from "../../catalog/catalog-row-writes";
 import { lockTenantChangeFeed } from "../../sync/change-feed";
 import { catalogGates, catalogHandler, writeContextOf } from "./catalog-route-handler";
+import { type RemovableResource, removeVersionedRow } from "./versioned-resource-removal";
 
 /** A flat catalog row owned by a brand or a branch: categories and stations. */
 export interface VersionedResource<Input extends { version: number | null }> {
@@ -32,6 +33,8 @@ export interface VersionedResource<Input extends { version: number | null }> {
   show(row: Record<string, unknown>): Record<string, unknown>;
   /** Tells the tills that sell from the owner, in the writer's transaction. */
   recordChange(client: pg.PoolClient, tenantId: string, ownerId: string, id: string): Promise<void>;
+  /** Present on a row that is archived instead of refused when history points at it. */
+  archivable?: NonNullable<RemovableResource["archivable"]>;
 }
 
 /**
@@ -104,23 +107,11 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
       const { id } = parseOrReject(catalogIdParamsSchema, request.params);
       const { version } = parseOrReject(expectedVersionQuerySchema, request.query);
       const tenantId = backofficeAuth(request).tenantId;
-      const deleted = await withTenant(context.pool, tenantId, async (client) => {
+      const removed = await withTenant(context.pool, tenantId, async (client) => {
         await lockTenantChangeFeed(client, tenantId);
-        // Locked and compared first: removing a row someone else just edited is refused.
-        const stored = await client.query<{ version: number }>(
-          `SELECT version FROM ${resource.table} WHERE id = $1 FOR UPDATE`,
-          [id],
-        );
-        if (stored.rows[0] !== undefined && stored.rows[0].version !== version) {
-          throw new CatalogRequestError(409, CATALOG_API_ERROR_CODES.versionConflict);
-        }
-        const gone = await client.query<{ owner: string }>(
-          `DELETE FROM ${resource.table} WHERE id = $1 RETURNING ${resource.owner.column} AS owner`,
-          [id],
-        );
-        const owner = gone.rows[0]?.owner;
-        if (owner !== undefined) await resource.recordChange(client, tenantId, owner, id);
-        return gone;
+        const done = await removeVersionedRow(client, resource, id, version, context.clock.now());
+        if (done !== null) await resource.recordChange(client, tenantId, done.owner, id);
+        return done;
       }).catch((error: unknown) => {
         // Still named by a product or price list item: those must move first.
         if (isForeignKeyViolation(error)) {
@@ -128,7 +119,11 @@ export function registerVersionedResourceRoutes<Input extends { version: number 
         }
         throw error;
       });
-      if (deleted.rowCount === 0) throw new CatalogRequestError(404, resource.notFoundCode);
+      if (removed === null) throw new CatalogRequestError(404, resource.notFoundCode);
+      // A row that can be archived answers what became of it, as the floor plan's do.
+      if (resource.archivable !== undefined) {
+        return reply.send({ id, outcome: removed.outcome, version: removed.version });
+      }
       return reply.code(204).send();
     }),
   );

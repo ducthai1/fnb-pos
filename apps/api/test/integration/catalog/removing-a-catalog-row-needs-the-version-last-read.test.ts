@@ -33,6 +33,7 @@ const KINDS = [
   {
     name: "category",
     path: "/catalog/categories",
+    removed: 204,
     put: (id: string, version: number | null, name: string) =>
       shop.call("PUT", `/catalog/categories/${id}`, {
         version,
@@ -48,6 +49,7 @@ const KINDS = [
   {
     name: "station",
     path: "/catalog/stations",
+    removed: 200,
     put: (id: string, version: number | null, name: string) =>
       shop.call("PUT", `/catalog/stations/${id}`, { version, branchId: shop.branchId, name }),
     exists: async (id: string) =>
@@ -58,6 +60,7 @@ const KINDS = [
   {
     name: "price list",
     path: "/catalog/price-lists",
+    removed: 204,
     put: (id: string, version: number | null, name: string) =>
       shop.call("PUT", `/catalog/price-lists/${id}`, { version, brandId: shop.brandId, name, items: [] }),
     exists: async (id: string) =>
@@ -79,7 +82,7 @@ describe.each(KINDS)("removing a $name", (kind) => {
     });
     expect(await kind.exists(id)).toBe(true);
 
-    expect((await answer("DELETE", `${kind.path}/${id}?version=2`)).status).toBe(204);
+    expect((await answer("DELETE", `${kind.path}/${id}?version=2`)).status).toBe(kind.removed);
     expect(await kind.exists(id)).toBe(false);
   });
 

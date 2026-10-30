@@ -14,6 +14,7 @@ import {
 import type { CheckedProductDocument } from "./product-document-to-domain";
 import { writeProductCombo } from "./write-product-combo";
 import { writeProductModifierGroups } from "./write-product-modifier-groups";
+import { refuseArchivedStation } from "./refuse-archived-station";
 
 /**
  * Saves a whole product in the caller's transaction: header, variants, modifier groups
@@ -37,6 +38,7 @@ export async function writeProductDocument(
   const groupIds = product.modifierGroups.map((group) => group.id);
   const sharing = (await productsSharingGroups(client, groupIds)).filter((id) => id !== product.id);
   const before = await productCopies(client, sharing);
+  await refuseArchivedStation(client, product.id, input.stationId);
   const code = await codeToStore(client, input.brandId, product.id, input.code);
   const saved = await refusingTakenCode(() =>
     putVersionedRow(client, context, {

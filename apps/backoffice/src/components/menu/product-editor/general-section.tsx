@@ -89,7 +89,10 @@ export function GeneralSection({
           value={draft.stationId ?? ""}
           choices={[
             { value: "", label: T.noStation },
-            ...stations.map((s) => ({ value: s.id, label: s.name })),
+            // A retired product keeps the station it had, shown as it is; no other archived one is offered.
+            ...stations
+              .filter((s) => s.archivedAt === null || s.id === draft.stationId)
+              .map((s) => ({ value: s.id, label: s.archivedAt === null ? s.name : T.stationArchived(s.name) })),
           ]}
           onChange={(stationId) => set({ stationId: stationId === "" ? null : stationId })}
         />

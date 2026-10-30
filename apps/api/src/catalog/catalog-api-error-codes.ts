@@ -14,6 +14,8 @@ export const CATALOG_API_ERROR_CODES = {
   idConflict: "API_CATALOG_ID_CONFLICT",
   parentChangeNotAllowed: "API_CATALOG_PARENT_CHANGE_NOT_ALLOWED",
   inUse: "API_CATALOG_IN_USE",
+  /** A product is given, or put back on the menu with, a station that is out of use. */
+  stationArchived: "API_CATALOG_STATION_ARCHIVED",
   /** A combo slot offers another combo: a combo is not made of combos. */
   comboOptionIsCombo: "API_CATALOG_COMBO_OPTION_IS_COMBO",
   /** A combo slot offers a product that is off the menu. */

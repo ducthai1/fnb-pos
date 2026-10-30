@@ -26,7 +26,7 @@ export async function readShopSetup(
   const scope = await readScopeConfig(client, "branch", branchId);
   if (scope === null) return null;
   const categories = await client.query<{ name: string }>("SELECT name FROM category WHERE brand_id = $1", [scope.brandId]);
-  const stations = await client.query<{ name: string }>("SELECT name FROM station WHERE branch_id = $1", [branchId]);
+  const stations = await client.query<{ name: string }>("SELECT name FROM station WHERE branch_id = $1 AND archived_at IS NULL", [branchId]);
   const flagsSetByShop: Partial<Record<FeatureFlagKey, boolean>> = {};
   for (const key of FEATURE_FLAG_KEYS) {
     const value = scope.layers.branch?.[key] ?? scope.layers.brand[key];

@@ -100,6 +100,7 @@ export const VI_MENU = {
     taxRate: "Thuế VAT (%)",
     station: "Trạm pha chế/bếp (chi nhánh đang xem)",
     noStation: "Không gửi trạm nào",
+    stationArchived: (name: string) => `${name} (đã lưu trữ)`,
     printCupLabel: "In tem dán ly",
     trackStock: "Theo dõi tồn kho",
     earnsPoints: "Tích điểm",

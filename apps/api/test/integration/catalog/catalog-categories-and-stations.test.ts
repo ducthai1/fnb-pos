@@ -148,8 +148,8 @@ describe("stations", () => {
     expect(listed).toEqual({
       status: 200,
       body: [
-        { id: shop.stationId, branchId: shop.branchId, name: "Bar", version: 1 },
-        { id: kitchen, branchId: shop.branchId, name: "Bếp nóng", version: 2 },
+        { id: shop.stationId, branchId: shop.branchId, name: "Bar", version: 1, archivedAt: null },
+        { id: kitchen, branchId: shop.branchId, name: "Bếp nóng", version: 2, archivedAt: null },
       ],
     });
   });
@@ -207,7 +207,7 @@ describe("stations", () => {
       });
     await expectStatus(shop.call("PUT", url, { version: null, branchId: shop.branchId, name: "Pha chế" }), 201);
     await expectStatus(shop.call("PUT", url, { version: 1, branchId: shop.branchId, name: "Pha chế 2" }), 200);
-    await expectStatus(shop.call("DELETE", `${url}?version=2`), 204);
+    await expectStatus(shop.call("DELETE", `${url}?version=2`), 200);
     expect(await changes()).toBe(3);
   });
 });
