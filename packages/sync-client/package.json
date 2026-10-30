@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
     "test:unit": "vitest run",
     "test:sync": "vitest run --config vitest.scenarios.config.ts",
+    "sim:day": "node test/simulation/sim-day.mjs",
     "test:browser": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {

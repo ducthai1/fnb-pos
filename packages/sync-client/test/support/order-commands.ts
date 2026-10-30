@@ -29,6 +29,7 @@ export interface OrderView {
   status: string;
   serviceType: string;
   channelKey: string | null;
+  tableId?: string | null;
   version: number;
   chargeProfile: { pricesIncludeTax: boolean; serviceCharge: unknown };
   lines: LineSnapshot[];
@@ -46,6 +47,8 @@ export interface PickedItem {
   modifiers: { groupId: string; optionId: string; quantity: number; shownPrice: number }[];
   quantity: string;
   shownUnitPrice: number;
+  /** What the cashier typed for the kitchen; free text, so any characters. */
+  note?: string | null;
 }
 
 export const pick = (
@@ -98,6 +101,7 @@ function linesShown(items: readonly PickedItem[]): LineSnapshot[] {
       variantId: item.variantId,
       unitPrice: item.shownUnitPrice,
       quantity: item.quantity,
+      note: item.note ?? null,
     }),
     ...item.modifiers.map((m) =>
       line({
@@ -111,7 +115,7 @@ function linesShown(items: readonly PickedItem[]): LineSnapshot[] {
   ]);
 }
 
-const envelope = (type: string, payload: Record<string, unknown>) => ({
+export const envelope = (type: string, payload: Record<string, unknown>) => ({
   commandId: newId(),
   type,
   payload,
@@ -122,21 +126,32 @@ const envelope = (type: string, payload: Record<string, unknown>) => ({
 
 /** order.save_draft: the whole draft as picked, shown at once at the till's own prices. */
 export function saveDraft(
-  order: { id: string; deviceOrderNo: number; base: OrderView | null },
+  order: {
+    id: string;
+    deviceOrderNo: number;
+    base: OrderView | null;
+    /** Seated at a table, or a counter order (the default); a table implies dine-in. */
+    tableId?: string;
+    /** The version the draft was edited from; the server refuses it when the order moved on. */
+    expectedVersion?: number;
+  },
   items: readonly PickedItem[],
   overrides: Partial<LocalCommand> = {},
 ): LocalCommand {
+  const serviceType = order.tableId === undefined ? "takeaway" : "dine_in";
   const payload = {
     orderId: order.id,
     deviceOrderNo: order.deviceOrderNo,
-    serviceType: "takeaway",
+    serviceType,
     channelKey: null,
-    lines: items.map(({ lineId, productId, variantId, modifiers, quantity }) => ({
+    ...(order.tableId === undefined ? {} : { tableId: order.tableId }),
+    ...(order.expectedVersion === undefined ? {} : { expectedVersion: order.expectedVersion }),
+    lines: items.map(({ lineId, productId, variantId, modifiers, quantity, note }) => ({
       lineId,
       productId,
       variantId,
       quantity,
-      note: null,
+      note: note ?? null,
       modifiers: modifiers.map(({ groupId, optionId, quantity: count }) => ({
         groupId,
         optionId,
@@ -148,8 +163,9 @@ export function saveDraft(
     id: order.id,
     deviceOrderNo: order.deviceOrderNo,
     status: "draft",
-    serviceType: "takeaway",
+    serviceType,
     channelKey: null,
+    ...(order.tableId === undefined ? {} : { tableId: order.tableId }),
     chargeProfile: order.base?.chargeProfile ?? { pricesIncludeTax: true, serviceCharge: null },
     payments: [],
     version: (order.base?.version ?? 0) + 1,

@@ -12,6 +12,7 @@
     "test:unit": "turbo run test:unit",
     "test:api": "turbo run test:api",
     "test:sync": "turbo run test:sync",
+    "sim:day": "pnpm --filter @fnb/sync-client sim:day",
     "test:browser": "turbo run test:browser",
     "test:ops": "pnpm --filter @fnb/scripts exec vitest run --config vitest.ops.config.ts",
     "e2e": "turbo run test:browser",
