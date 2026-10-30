@@ -10,7 +10,7 @@
     "./test-support/system-chrome": "./test/browser/support/system-chrome.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json && tsc --noEmit -p tsconfig.simulation.json",
     "test:unit": "vitest run",
     "test:sync": "vitest run --config vitest.scenarios.config.ts",
     "sim:day": "node test/simulation/sim-day.mjs",

@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM"],
     "types": ["node"]
   },
   "include": [
@@ -11,5 +10,10 @@
     "vitest.scenarios.config.ts",
     "vitest.browser.config.ts"
   ],
-  "exclude": ["src/browser", "test/browser/pages"]
+  "exclude": [
+    "src/browser",
+    "test/browser/pages",
+    "test/simulation",
+    "test/scenarios/simulated-shop-day.test.ts"
+  ]
 }

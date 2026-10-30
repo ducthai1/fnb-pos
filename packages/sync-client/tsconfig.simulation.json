@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
+  },
+  "include": [
+    "test/simulation",
+    "test/scenarios/simulated-shop-day.test.ts",
+    "test/global-setup-start-postgres.ts"
+  ]
+}
