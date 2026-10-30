@@ -24,7 +24,11 @@ import {
 import { useOpenableOrders } from "../features/sync/use-openable-orders";
 import { vi } from "../messages/vi";
 import { commandNameOf } from "../messages/vi-sync-errors";
-import { DismissRejectionScreen } from "../screens/needs-attention/dismiss-rejection-screen";
+import {
+  type DismissResult,
+  DismissRejectionScreen,
+  refusedWith,
+} from "../screens/needs-attention/dismiss-rejection-screen";
 import { NeedsAttentionScreen } from "../screens/needs-attention/needs-attention-screen";
 import { OpenShiftScreen } from "../screens/open-shift/open-shift-screen";
 import { approvalOf } from "./adjust-flow-parts";
@@ -101,8 +105,8 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
       })
       .finally(() => setBusy((before) => new Set([...before].filter((one) => one !== id))));
   };
-  const dismiss = async (entry: RejectedCommand, reason: ChosenReason): Promise<string | null> => {
-    if (client === null || place === null) return vi.needsAttention.notes.failed;
+  const dismiss = async (entry: RejectedCommand, reason: ChosenReason): Promise<DismissResult> => {
+    if (client === null || place === null) return refusedWith(vi.needsAttention.notes.failed);
     try {
       const order = await orderOfRefused(client, entry);
       let approvalId: string | null = null;
@@ -113,20 +117,20 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
           order.number,
         );
         const outcome = await gate.require(closeUnpaidTable(order.id), said);
-        if (outcome.kind === "denied") return vi.approval.denied;
+        if (outcome.kind === "denied") return refusedWith(vi.approval.denied);
         const approval = approvalOf(outcome);
-        if (approval === undefined) return null;
+        // Nobody approved: nothing is recorded, and the form stays as it was.
+        if (approval === undefined) return { kind: "nothing" };
         approvalId = approval?.approvalId ?? null;
       }
       const extra = { orderId: order?.id ?? null, approvalId };
       await client.enqueue(dismissRejectionCommand(place, entry, reason, Date.now(), extra));
       await settle(entry);
-      setDismissing(null);
       onSent();
-      return null;
+      return { kind: "done" };
     } catch (error) {
       console.error(error);
-      return vi.needsAttention.notes.failed;
+      return refusedWith(vi.needsAttention.notes.failed);
     }
   };
   const settledQr = useSettledQrClosing(client, place, rejected);
@@ -170,6 +174,7 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
         reasons={dismissalReasonsOf(dismissing)}
         needsWords={dismissalNeedsWords(dismissing)}
         onConfirm={(reason) => dismiss(dismissing, reason)}
+        onDone={() => setDismissing(null)}
         onBack={() => setDismissing(null)}
       />
     );
