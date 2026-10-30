@@ -114,3 +114,22 @@ export async function refusalsOfTill(pool: pg.Pool, tenantId: string, deviceId: 
     return rows.map((row) => ({ type: row.type, code: row.code }));
   });
 }
+
+/**
+ * Cancels the drafts still open at `tableIds`, which a spec's guests leave behind: the stack is
+ * shared, and a draft left open holds up the close of the branch's day for the specs after it.
+ * Written straight to the database, since no till of this spec is left to cancel them.
+ */
+export async function abandonDraftsAt(
+  pool: pg.Pool,
+  tenantId: string,
+  tableIds: readonly string[],
+) {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rowCount } = await client.query(
+      "UPDATE sales_order SET status = 'cancelled' WHERE status = 'draft' AND table_id = ANY($1::uuid[])",
+      [tableIds],
+    );
+    return rowCount ?? 0;
+  });
+}
