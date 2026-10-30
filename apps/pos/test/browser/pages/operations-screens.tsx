@@ -4,6 +4,7 @@ import { cartView } from "../../../src/features/order/cart-view";
 import { vi } from "../../../src/messages/vi";
 import { ApprovalSheet } from "../../../src/screens/approval/approval-sheet";
 import { CancelOrderScreen } from "../../../src/screens/order-adjust/cancel-order-screen";
+import { ChangeOptionsScreen } from "../../../src/screens/order-adjust/change-options-screen";
 import { DiscountScreen } from "../../../src/screens/order-adjust/discount-screen";
 import { VoidLineScreen } from "../../../src/screens/order-adjust/void-line-screen";
 import { SaleScreen } from "../../../src/screens/sale/sale-screen";
@@ -93,6 +94,16 @@ export const OPERATIONS_SCREENS = {
       remaining={999}
       sentUnits={999}
       onConfirm={never}
+      onBack={() => {}}
+    />
+  ),
+  "change-options-failed": () => (
+    <ChangeOptionsScreen
+      header={header}
+      itemName={HOSTILE_MENU_NAMES.product}
+      failure={`${vi.adjust.void.orderDiscountWouldRise} ${HOSTILE_MENU_NAMES.note}`}
+      closing={false}
+      onRetry={() => {}}
       onBack={() => {}}
     />
   ),

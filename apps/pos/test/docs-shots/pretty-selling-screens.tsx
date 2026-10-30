@@ -254,6 +254,17 @@ export const SELLING_SCREENS = {
       onCancel={nothing}
     />
   ),
+  "change-options-picker": () => (
+    <ModifierPickerScreen
+      header={tillBar()}
+      menu={menu}
+      product={posProductSchema.parse(milkTea)}
+      now={now}
+      replacing={ORDER.lines[0]}
+      onAdd={nothing}
+      onCancel={nothing}
+    />
+  ),
   payment: () =>
     overTheSale(
       <PaymentDrawer

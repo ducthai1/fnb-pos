@@ -6,6 +6,7 @@ decisions:
   - D-148
   - D-149
   - D-150
+  - D-159
 tests:
   - packages/sync-client/test/scenarios/simulated-shop-day.test.ts
 ---
@@ -20,11 +21,13 @@ Quán giả lập có 4 máy ảo của một chi nhánh, chạy **đúng `@fnb/
 
 | Máy | Làm gì |
 |---|---|
-| `counter-1`, `counter-2` | Hai máy quầy: bán mang đi, thu tiền mặt hoặc QR, giảm giá, hủy đơn, hoàn tiền, rút tiền ra khỏi két, đếm két và đóng ca. |
-| `handheld` | Máy order bàn: mở bàn, thêm món, gửi pha chế, hủy món đã gửi, chuyển bàn, in tạm tính rồi giao bàn cho quầy thu. |
+| `counter-1`, `counter-2` | Hai máy quầy (`counter-1` đứng bằng **quản lý**, `counter-2` bằng **thu ngân** thường): bán mang đi, thu tiền mặt hoặc QR, giảm giá, hủy đơn, hoàn tiền, rút tiền ra khỏi két, đếm két và đóng ca. |
+| `handheld` | Máy order bàn, đứng bằng **thu ngân** thường: mở bàn, thêm món, gửi pha chế, hủy món đã gửi, chuyển bàn, in tạm tính rồi giao bàn cho quầy thu. |
 | `bar` | Máy pha chế. **Hệ thống chưa có loại máy riêng cho trạm** (trạm là danh mục, phiếu pha chế nằm trong lệnh của máy order), nên đây là một máy quầy chỉ nhận dữ liệu; nó vẫn phải khớp máy chủ cuối ngày. |
 
 Cả ngày chạy trên **đồng hồ ảo** (máy chủ và các máy dùng chung một đồng hồ, mỗi máy có thể lệch giờ): ngày ngắn mất vài giây, ngày đầy đủ (07:00 đến 22:00) chừng 20 giây.
+
+Lệnh lưu bàn bị máy chủ từ chối vì máy khác sửa bàn trước được **làm lại bằng đúng hàm của máy quầy** (không chép logic), kể cả phiếu bar đã in và được ghi lại sau đó; nên người order bàn không phải chờ máy chủ nhận món rồi mới gửi pha chế như trước.
 
 ## Ai dùng, cần quyền gì
 
@@ -89,5 +92,5 @@ Hai lỗi gặp khi dựng nằm ở "Việc phát sinh" của bảng task, kèm
 ## Chưa làm / sắp có
 
 - Chưa có Chrome chạy giao diện máy quầy thật (tầng sau của quán giả lập).
-- Chưa có duyệt của quản lý: cả bốn máy đăng nhập bằng một **quản lý** (được giảm giá, hoàn tiền, hủy món đã gửi không cần người thứ hai). Luồng duyệt có test riêng.
-- Không có combo, món cân, món giá nhập tay, phí phục vụ, thuế khác 8%.
+- Máy thu ngân (`counter-2`, `handheld`) xin quản lý duyệt qua đúng route của máy quầy cho giảm giá cả đơn, hoàn tiền, hủy món đã gửi bar, hủy đơn đã gửi bếp; mất mạng thì chờ có mạng rồi làm lại. Lỗi bấm thanh toán hai lần: lệnh trả tiền thứ hai bị máy chủ từ chối, thu ngân bỏ qua ở "Cần xử lý" bằng duyệt của quản lý (cả hai kiểm cuối ngày, số lần ghi trong dòng tóm tắt `approvals`, `dismissed`). **Chưa có** duyệt cho giá nhập tay và thu chi két / đóng ca có chênh.
+- Không có combo, món cân, món giá nhập tay, phí phục vụ, thuế khác 8% (đã ghi Backlog; menu quán giả lập đã có sẵn một combo, chỉ chưa có bán).

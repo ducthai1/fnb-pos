@@ -13,7 +13,7 @@ import { TillBarNav } from "../../../src/screens/till/till-bar-nav";
 import { TillHeader } from "../../../src/screens/till/till-header";
 import { TillTools } from "../../../src/screens/till/till-tools";
 import { HOSTILE_COMBO } from "../../../src/test-support/combo-menu";
-import { HOSTILE_PRODUCT, hostileTillMenu } from "../../../src/test-support/hostile-menu";
+import { HOSTILE_MENU_NAMES, HOSTILE_PRODUCT, hostileTillMenu } from "../../../src/test-support/hostile-menu";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
 import { HOSTILE_ORDER } from "../../../src/test-support/hostile-order";
 import { tid } from "../../../src/test-support/till-fixtures";
@@ -134,6 +134,24 @@ export const SALE_SCREENS = {
       menu={menu}
       product={posProductSchema.parse(HOSTILE_PRODUCT)}
       now={Date.now()}
+      onAdd={() => {}}
+      onCancel={() => {}}
+    />
+  ),
+  "change-options-picker": () => (
+    <ModifierPickerScreen
+      header={header}
+      menu={menu}
+      product={posProductSchema.parse(HOSTILE_PRODUCT)}
+      now={Date.now()}
+      replacing={{
+        lineId: tid(0x9f01),
+        productId: HOSTILE_PRODUCT.id,
+        variantId: HOSTILE_PRODUCT.variants[1]?.id ?? null,
+        modifiers: [],
+        quantity: 999,
+        note: HOSTILE_MENU_NAMES.note,
+      }}
       onAdd={() => {}}
       onCancel={() => {}}
     />

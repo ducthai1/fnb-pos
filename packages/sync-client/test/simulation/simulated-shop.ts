@@ -10,7 +10,9 @@ import { ScenarioServer } from "../support/scenario-server";
 import { ScenarioTill } from "../support/scenario-till";
 import { WorldClock } from "./world-clock";
 
+/** The manager's PIN; the cashiers have another, so a mix-up between them is caught. */
 const PIN = "4826";
+const CASHIER_PIN = "5937";
 
 export type DeviceRole = "counter" | "handheld" | "bar";
 
@@ -32,6 +34,8 @@ export interface SimDevice {
   /** The last running number the till gave an order. */
   lastOrderNo: number;
   shiftId: string | null;
+  /** Who stands at the till: a manager, or a cashier whose big actions a manager has to approve. */
+  readonly staff: { readonly id: string; readonly pin: string; readonly manager: boolean };
   /** What the cashier counts in the drawer, by the shop's own book. */
   drawer: number;
 }
@@ -83,7 +87,12 @@ export function openTill(shop: SimulatedShop, device: SimDevice): ScenarioTill {
 
 /** The cashier types their PIN again: at the start of a day, or when the till says the session ended. */
 export async function signIn(shop: SimulatedShop, device: SimDevice): Promise<void> {
-  const session = await startShift(shop.server.api, device.record.deviceToken, shop.managerId, PIN);
+  const session = await startShift(
+    shop.server.api,
+    device.record.deviceToken,
+    device.staff.id,
+    device.staff.pin,
+  );
   if (session.status !== 201)
     throw new Error(`${device.name}: signing in answered ${session.status}`);
   device.record.staffToken = session.body.staffSessionToken;
@@ -95,8 +104,10 @@ export async function signInAll(shop: SimulatedShop): Promise<void> {
 
 /**
  * A branch with two counters, a handheld for the tables and a bar till, on the real API.
- * Every one is signed in as a manager, who can discount, refund and void without a second
- * person's approval (approvals have their own tests); the server's clock is the world's.
+ * The first counter and the bar till are signed in as a manager, who can discount, refund and
+ * void alone; the second counter and the handheld as a cashier, whose discounts, refunds,
+ * cancelling of what the bar has and closing of a bill nobody paid go through a manager's
+ * approval, as at the till. The server's clock is the world's.
  */
 export async function openShop(seed: number, dir: string): Promise<SimulatedShop> {
   const world = new WorldClock(FIRST_DAY_START);
@@ -108,14 +119,15 @@ export async function openShop(seed: number, dir: string): Promise<SimulatedShop
   const api = server.api;
   const managerId = await hire(api, shop.shop, PIN, shop.shop.roleIds.manager);
   const settings = { scopeKind: "branch", scopeId: shop.shop.branchId } as const;
-  // A manager takes back a drink the bar already has without asking another manager.
+  // Taking back a drink the bar already has needs a manager unless the person is one.
   await saveSetting(
     server.pool,
     shop.shop.tenantId,
     settings,
     "void_after_sent_needs_approval",
-    false,
+    true,
   );
+  const cashierId = await hire(api, shop.shop, CASHIER_PIN, shop.shop.roleIds.cashier);
   const floor = await areaWithTables(api, shop.shop.managerCookie, shop.shop.branchId, [
     "B01",
     "B02",
@@ -143,11 +155,13 @@ export async function openShop(seed: number, dir: string): Promise<SimulatedShop
     "Máy order bàn",
   );
   const third = await pairDevice(api, shop.shop.managerCookie, shop.shop.branchId, "Máy pha chế");
-  const record = (deviceId: string, deviceToken: string): Till => ({
+  const manager = { id: managerId, pin: PIN, manager: true };
+  const cashier = { id: cashierId, pin: CASHIER_PIN, manager: false };
+  const record = (deviceId: string, deviceToken: string, staffId: string): Till => ({
     deviceId,
     deviceToken,
     staffToken: "",
-    staffId: managerId,
+    staffId,
     nextSeq: 1,
     nextOrderNo: 1,
   });
@@ -157,6 +171,7 @@ export async function openShop(seed: number, dir: string): Promise<SimulatedShop
     till: Till,
     index: number,
     batchSize: number,
+    staff: SimDevice["staff"],
   ): SimDevice => {
     const device: SimDevice = {
       name,
@@ -170,15 +185,37 @@ export async function openShop(seed: number, dir: string): Promise<SimulatedShop
       posBuild: FIRST_POS_BUILD,
       lastOrderNo: 0,
       shiftId: null,
+      staff,
       drawer: 0,
     };
     return device;
   };
   const devices = [
-    make("counter-1", "counter", record(shop.tillA.deviceId, shop.tillA.deviceToken), 1, 5),
-    make("counter-2", "counter", record(shop.tillB.deviceId, shop.tillB.deviceToken), 2, 20),
-    make("handheld", "handheld", record(second.deviceId, second.deviceToken), 3, 10),
-    make("bar", "bar", record(third.deviceId, third.deviceToken), 4, 50),
+    make(
+      "counter-1",
+      "counter",
+      record(shop.tillA.deviceId, shop.tillA.deviceToken, managerId),
+      1,
+      5,
+      manager,
+    ),
+    make(
+      "counter-2",
+      "counter",
+      record(shop.tillB.deviceId, shop.tillB.deviceToken, cashierId),
+      2,
+      20,
+      cashier,
+    ),
+    make(
+      "handheld",
+      "handheld",
+      record(second.deviceId, second.deviceToken, cashierId),
+      3,
+      10,
+      cashier,
+    ),
+    make("bar", "bar", record(third.deviceId, third.deviceToken, managerId), 4, 50, manager),
   ];
   const opened: SimulatedShop = {
     server,

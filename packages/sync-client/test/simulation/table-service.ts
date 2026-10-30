@@ -1,5 +1,6 @@
 import { newId } from "@fnb/db";
 import { type OrderView, type PickedItem, pick, saveDraft } from "../support/order-commands";
+import { sendApproved } from "./approvals";
 import type { DayContext } from "./day-context";
 import {
   cancelOrder,
@@ -143,7 +144,12 @@ async function doStep(
   if (step === "send") return sendToBar(ctx, device, order, view);
   if (step === "discount") {
     if (order.discounted) return true;
-    await ctx.send(device, percentOffOrder(view, 1_000));
+    const given = await sendApproved(ctx, device, percentOffOrder(view, 1_000), {
+      key: "order_discount",
+      discountRate: 1_000,
+      subject: { orderId: order.id },
+    });
+    if (!given) return false;
     order.discounted = true;
     return true;
   }
@@ -161,9 +167,6 @@ async function doStep(
 }
 
 async function sendToBar(ctx: DayContext, device: SimDevice, order: BookedOrder, view: OrderView) {
-  // The waiter rings the bar once the server has the drinks: a drink another till's save made the
-  // server refuse would otherwise be made without ever being recorded as sent.
-  if (device.till.network.online && (await device.till.client.pendingCount()) > 0) return false;
   const shown = new Set(view.lines.map((line) => line.id));
   const owed = [...order.items]
     .filter(([lineId, item]) => shown.has(lineId) && order.sent.get(lineId) !== item.quantity)
@@ -172,6 +175,13 @@ async function sendToBar(ctx: DayContext, device: SimDevice, order: BookedOrder,
   await ctx.send(device, sentToBar(view, ctx.shop.stationId, owed));
   for (const line of owed) order.sent.set(line.lineId, line.quantity);
   return true;
+}
+
+/** Of `units` taken off a line, those the bar had: the rest were still unsent and come off first. */
+function takenFromTheBar(order: BookedOrder, lineId: string, units: number): number {
+  const ordered = Number(order.items.get(lineId)?.quantity ?? 0);
+  const sent = Number(order.sent.get(lineId) ?? 0);
+  return Math.max(0, Math.min(units, sent) - Math.max(0, ordered - sent));
 }
 
 /** A guest changes their mind about a drink the bar already has: one unit comes off. */
@@ -185,8 +195,16 @@ async function voidAfterSent(
   if (order.items.size < 2 || candidates.length === 0 || order.sent.size !== order.items.size)
     return true;
   const lineId = ctx.random.pick(candidates);
+  // The till refuses a void that would push a discount past what the cashier may give alone
+  // ("take the discount off, cancel, give it again"): the cashier leaves the drink be.
+  if (order.discounted && !device.staff.manager) return true;
   if (!view.lines.some((line) => line.id === lineId)) return false;
-  await ctx.send(device, voidUnits(view, lineId, "1"));
+  const given = await sendApproved(ctx, device, voidUnits(view, lineId, "1"), {
+    key: "void_after_sent",
+    voidedQuantity: String(takenFromTheBar(order, lineId, 1)),
+    subject: { orderId: order.id, lineId },
+  });
+  if (!given) return false;
   ctx.books.voidCount += 1;
   order.frozen = true;
   const item = order.items.get(lineId)!;
@@ -220,15 +238,32 @@ async function cancelTable(
   if (view === null) return false;
   // What the bar has already is taken off first: an order with drinks standing cannot be
   // closed, and a whole-bill discount cannot outlast the goods it was given on.
+  // A cashier needs a manager for the voids and the close: with none to ask, they wait.
+  if (!device.staff.manager && !device.till.network.online) return false;
+  // The till's own view of a discount only shows once the server has taken it: the cashier
+  // waits for that rather than take off a discount they cannot see yet.
+  const seen = view.lines.some((line) => line.lineType === "discount");
+  if (order.discounted && !seen) return false;
   if (order.discounted) {
     await ctx.send(device, removeOrderDiscount(view));
     order.discounted = false;
   }
   for (const [lineId, quantity] of order.sent) {
-    await ctx.send(device, voidUnits(view, lineId, quantity));
+    const asked = await sendApproved(ctx, device, voidUnits(view, lineId, quantity), {
+      key: "void_after_sent",
+      voidedQuantity: String(takenFromTheBar(order, lineId, Number(quantity))),
+      subject: { orderId: order.id, lineId },
+    });
+    if (!asked)
+      throw new Error(`${device.name} lost its manager halfway through cancelling ${order.id}`);
     ctx.books.voidCount += 1;
   }
-  await ctx.send(device, cancelOrder(view, "customer_left"));
+  // The bar had the order (or the guest was shown the bill): closing it is a manager's call.
+  const closed = await sendApproved(ctx, device, cancelOrder(view, "customer_left"), {
+    key: "close_unpaid_table",
+    subject: { orderId: order.id },
+  });
+  if (!closed) throw new Error(`${device.name} lost its manager before closing ${order.id}`);
   ctx.books.settle(order, "cancelled");
   return true;
 }

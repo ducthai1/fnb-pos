@@ -1,5 +1,6 @@
 import type { DiscountScope } from "@fnb/domain";
 import { useEffect, useState } from "react";
+import type { CartLine } from "../features/order/counter-order";
 import type { AdjustableOrder } from "../features/order/order-session-types";
 import { vi } from "../messages/vi";
 import type { OrderAdjustments } from "../screens/sale/cart-panel";
@@ -12,14 +13,19 @@ import { VoidLineFlow } from "./void-line-flow";
 export type { AdjustOutcome } from "./adjust-flow-parts";
 
 export type AdjustStep =
-  | { readonly kind: "void"; readonly lineId: string }
+  | { readonly kind: "void"; readonly lineId: string; readonly replacement?: CartLine }
   | { readonly kind: "discount"; readonly scope: DiscountScope }
   | { readonly kind: "cancel" }
   /** The table's order has nothing on it: close it so the table is free again. */
   | { readonly kind: "release" };
 
 /** The cart's adjustment buttons, each opening its step. */
-export const adjustmentsFor = (open: (step: AdjustStep) => void): OrderAdjustments => ({
+export const adjustmentsFor = (
+  open: (step: AdjustStep) => void,
+  /** Where a table offers "change options" on the lines it allows it for. */
+  change: Pick<OrderAdjustments, "onChangeOptions" | "canChangeOptions"> = {},
+): OrderAdjustments => ({
+  ...change,
   onVoid: (lineId) => open({ kind: "void", lineId }),
   onDiscount: (lineId) => open({ kind: "discount", scope: { kind: "line", lineId } }),
   onDiscountOrder: () => open({ kind: "discount", scope: { kind: "order" } }),
@@ -62,7 +68,13 @@ export function OrderAdjustmentFlow(props: OrderAdjustmentFlowProps) {
     );
   }
   const context: AdjustContext = { ...props, settled };
-  if (step.kind === "void") return <VoidLineFlow {...context} lineId={step.lineId} />;
+  if (step.kind === "void") return (
+      <VoidLineFlow
+        {...context}
+        lineId={step.lineId}
+        {...(step.replacement === undefined ? {} : { replacement: step.replacement })}
+      />
+    );
   if (step.kind === "discount") return <DiscountFlow {...context} scope={step.scope} />;
   return <CancelOrderFlow {...context} release={step.kind === "release"} />;
 }

@@ -1,3 +1,4 @@
+import type { VoidRecord } from "@fnb/domain";
 import { useState } from "react";
 import type { FloorArea } from "../features/floor/floor-occupancy";
 import type { FloorTableView } from "../features/floor/floor-tables-view";
@@ -10,6 +11,7 @@ import {
   setLineQuantity,
 } from "../features/order/counter-order";
 import type { PrintedSlip } from "../features/printing/print-sale-slips";
+import { optionsChangeOf } from "../features/table-order/change-options";
 import type { TableOrderOpening } from "../features/table-order/table-order-opening";
 import {
   moveGuests,
@@ -59,6 +61,8 @@ export function TableOrdering(props: TableOrderingProps) {
   const table = order.table ?? { id: "", name: "" };
   const rounds = { ...props, session, now: Date.now };
   const back = () => setPhase({ kind: "order" });
+  const sentIds = new Set(sent.map((line) => line.lineId));
+  const changeOf = (lineId: string) => optionsChangeOf(menu, order, lines, sentIds, lineId);
   /** A chosen line goes on the order, or waits in the drawer for its price or weight. */
   const take = (chosen: ChosenLine) => {
     if (chosen.kind === "enter") return setPhase({ kind: "entering", pending: chosen.pending });
@@ -83,6 +87,19 @@ export function TableOrdering(props: TableOrderingProps) {
     });
     setPhase({ ...done, kind: "slips", title, slips: done.slips ?? [] });
   }
+  /** The cancel ticket of the old item and the call ticket of the new one, each to its station. */
+  async function changeSlips(newLineId: string, record: VoidRecord | null) {
+    const cancel =
+      record === null || record.fromSent === 0n
+        ? { slips: [] as readonly PrintedSlip[] }
+        : await cancelTicketsScreen({ ...rounds, record });
+    const call = await sendRoundToKitchen(
+      rounds,
+      (line) => line.kind === "new" && line.lineId === newLineId,
+    );
+    const notice = "notice" in cancel ? cancel.notice : undefined;
+    return { slips: [...cancel.slips, ...(call ?? [])], ...(notice === undefined ? {} : { notice }) };
+  }
   const sendRound = async () => ({ slips: await sendRoundToKitchen(rounds) });
   const preBill = async () => {
     const slip = await printPreBill(rounds);
@@ -99,7 +116,17 @@ export function TableOrdering(props: TableOrderingProps) {
           product={phase.product}
           now={now}
           onCancel={back}
-          onAdd={(line) => take(chosenLine(phase.product, line))}
+          replacing={phase.replacing}
+          onAdd={(line) => {
+            const replacing = phase.replacing;
+            if (replacing === undefined) return take(chosenLine(phase.product, line));
+            // The old item is cancelled first (a manager may have to approve it); the new
+            // line goes on the order only once that is recorded.
+            setPhase({
+              kind: "adjusting",
+              step: { kind: "void", lineId: replacing.lineId, replacement: line },
+            });
+          }}
         />
       );
     case "slips":
@@ -111,6 +138,15 @@ export function TableOrdering(props: TableOrderingProps) {
           step={phase.step}
           header={header}
           onDone={(outcome) => {
+            const replacement = phase.step.kind === "void" ? phase.step.replacement : undefined;
+            if (replacement !== undefined) {
+              if (outcome.kind !== "voided" && outcome.kind !== "adjusted") return back();
+              session.update((draft) => addCartLine(draft, replacement));
+              const record = outcome.kind === "voided" ? outcome.record : null;
+              return void showSlips(vi.adjust.change.slipsTitle, () =>
+                changeSlips(replacement.lineId, record),
+              );
+            }
             if (outcome.kind === "cancelled") {
               return onLeave(
                 phase.step.kind === "release"
@@ -157,8 +193,16 @@ export function TableOrdering(props: TableOrderingProps) {
           view={view}
           kept={kept}
           commandLines={commandLines}
-          sentIds={new Set(sent.map((line) => line.lineId))}
-          adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }))}
+          sentIds={sentIds}
+          adjust={adjustmentsFor((step) => setPhase({ kind: "adjusting", step }), {
+            canChangeOptions: (lineId) => changeOf(lineId) !== null,
+            onChangeOptions: (lineId) => {
+              const change = changeOf(lineId);
+              if (change !== null) {
+                setPhase({ kind: "picking", product: change.product, replacing: change.line });
+              }
+            },
+          })}
           owed={owed.lineIds}
           saveFailed={session.saveFailed}
           notices={

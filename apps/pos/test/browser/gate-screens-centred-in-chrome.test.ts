@@ -11,7 +11,7 @@ afterAll(async () => {
   await browser?.close();
 });
 
-const GATES: readonly ScreenName[] = ["pairing", "staff-picker", "staff-picker-crowd", "pin-entry", "crash", "blocked"];
+const GATES: readonly ScreenName[] = ["pairing", "staff-picker", "staff-picker-crowd", "pin-entry", "crash", "blocked", "change-options-failed"];
 // A till held sideways at its usual sizes, and held upright.
 const SIZES = [
   { width: 1024, height: 768 },

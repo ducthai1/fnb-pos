@@ -8,6 +8,8 @@ screens:
   - approval-sheet
   - sale-adjusted
   - void-line
+  - change-options-picker
+  - change-options-failed
   - discount
   - cancel-order
   - refund
@@ -28,6 +30,7 @@ decisions:
   - D-108
   - D-109
   - D-111
+  - D-158
   - D-097
   - D-131
   - D-132
@@ -37,6 +40,8 @@ tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
   - apps/pos/src/app/table-void-after-sent.test.tsx
+  - apps/pos/src/app/table-change-options-after-sent.test.tsx
+  - apps/pos/src/screens/order-adjust/change-options-screen.test.tsx
   - apps/pos/src/app/table-cancel-needs-a-manager.test.tsx
   - apps/pos/src/app/refund-from-history.test.tsx
   - apps/pos/src/app/table-refusals.test.tsx
@@ -127,6 +132,23 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 3. Bấm **Hủy 1 món**. Phần **chưa gửi bếp** được hủy trước; phần đã gửi bếp cần duyệt (nếu chi nhánh bật) và in **phiếu hủy** cho trạm đã làm món đó.
 4. Trên đơn, món bị hủy hiện thêm dòng "Đã hủy 1 (đã gửi bếp)".
 5. **Máy chưa có máy in bếp** (bản trong trình duyệt): món vẫn thành "Đã gửi bếp" ngay khi phiếu bếp hiện trên màn, nên hủy món bếp đã nhận **luôn phải xin duyệt và ra phiếu hủy** như trên.
+
+### Đổi tùy chọn món đã gửi bếp (một thao tác)
+
+Khách đổi size, topping, mức đường hay ghi chú của món bếp / bar đã nhận: không phải hủy rồi gọi lại bằng tay.
+
+1. Bấm **⋯** của món đã gửi bếp → **Đổi tùy chọn**. Máy mở bộ chọn của đúng món đó, **điền sẵn** size, tùy chọn, số lượng còn trên đơn và ghi chú cũ.
+
+   ![Đổi tùy chọn: bộ chọn điền sẵn lựa chọn cũ](../images/may-quay/change-options-picker.webp)
+
+2. Sửa lại rồi bấm **Hủy món cũ, gọi lại · giá mới**. Máy hủy cả dòng cũ với lý do **Khách đổi ý**: chi nhánh bắt quản lý duyệt hủy món đã gửi bếp thì máy hiện màn **Cần quản lý duyệt** như ở mục trên, quản lý chọn tên và nhập PIN.
+3. Hủy xong, máy thêm dòng mới với lựa chọn mới và in **hai phiếu**: **phiếu hủy** món cũ cho trạm đã làm nó, **phiếu gọi** món mới cho trạm của món. Chỉ món mới được gửi; món khác chưa gửi trên đơn vẫn chờ nút **Gửi bếp**.
+4. Bấm **Quay lại** ở bộ chọn, hoặc **Không làm nữa** ở màn duyệt: đơn giữ nguyên, món cũ vẫn còn, không có phiếu nào.
+5. Máy chưa hủy được món cũ (ví dụ phần giảm giá toàn đơn sẽ vượt mức bạn được tự giảm): hiện thẻ **Chưa đổi được** ghi lý do và "Đơn giữ nguyên như cũ"; bấm **Thử lại** hoặc **Quay lại đơn**.
+
+   ![Chưa đổi được](../images/may-quay/change-options-failed.webp)
+
+Nút **Đổi tùy chọn** chỉ hiện ở món thường **đã gửi bếp**. Món chưa gửi thì sửa bằng cách xóa rồi chọn lại; **combo, món bán theo cân và món nhập giá tay** không có nút này (bộ chọn không chứa phần chọn món trong combo, cân nặng hay giá phải nhập): với các món đó vẫn **Hủy món** rồi gọi lại.
 
 **Món bán theo cân đã gửi bếp:** màn **Hủy món** không có ô **Số lượng hủy** (một lần cân là một món, không hủy một phần). Màn ghi "Còn lần cân 351 g trên đơn · Lần cân 351 g đã gửi bếp", nút ghi **Hủy lần cân 351 g**; xin duyệt ghi "Hủy lần cân 351 g Cà phê hạt Robusta đã gửi bếp", phiếu hủy ghi "HỦY 351 g x …", dòng trên đơn ghi "Đã hủy lần cân 351 g (đã gửi bếp)". Muốn cân lại thì hủy lần cân rồi chọn món để cân lần mới.
 

@@ -171,6 +171,8 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
     );
   facts.commands = accepted + refused;
   facts.refused = refused;
+  facts.approvals = books.approvalsGiven;
+  facts.dismissed = books.dismissed;
 
   // 4. Every till shows what the server holds.
   const feed = await feedChanges(shop.server, shop.shop.tillA);
