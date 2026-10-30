@@ -30,6 +30,7 @@ decisions:
   - D-113
   - D-114
   - D-115
+  - D-132
 tests:
   - apps/pos/src/app/counter-sale.test.tsx
   - apps/pos/src/features/menu/best-sellers.test.ts
@@ -67,6 +68,7 @@ tests:
   - apps/api/test/integration/sync/sync-save-draft-refuses-sold-out-products.test.ts
   - e2e/pos/counter-sale-cash.spec.ts
   - e2e/pos/product-photo-on-the-till.spec.ts
+  - apps/pos/src/app/table-void-weighed-after-sent.test.tsx
 ---
 
 # Bán tại quầy
@@ -230,7 +232,7 @@ Bán tại quầy **không cần mạng** (cả combo): thực đơn, giá, ản
 
 - Combo: chưa có **món mặc định** chọn sẵn khi phần còn nhiều lựa chọn; chưa **hủy riêng một món** trong combo (hủy nguyên combo); chưa sửa món trong combo ngay trên dòng (xóa rồi chọn lại).
 - **Cân điện tử** nối với máy: chưa có; ngăn nhập cân đã chừa nút **Đọc cân** (chỉ hiện khi máy có cân), hiện thu ngân gõ số gam cân hiện.
-- **Hủy món bán theo cân đã gửi bếp** (bàn): màn **Hủy món** đếm theo số món nguyên nên chưa hủy được một lần cân đã gửi bếp; trước khi gửi bếp thì **Xóa món** bình thường.
+- **Hủy món bán theo cân đã gửi bếp** (bàn): hủy được **cả lần cân** (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)), không hủy một phần; trước khi gửi bếp thì **Xóa món** bình thường.
 - In lại hóa đơn cũ của món theo cân đọc đơn vị **hiện tại** của món; đổi đơn vị (kg ↔ 100 g) khi còn đơn đang mở hoặc cần in lại thì phiếu ghi sai đơn vị.
 - Giữ đơn (treo đơn để bán khách khác rồi quay lại) ở chế độ tại quầy — hiện mỗi máy giữ **một** đơn quầy đang bán; đơn chưa thanh toán mở lại được từ **Lịch sử đơn** (xem [08](08-lich-su-don.md)).
 - Kênh giao hàng, khuyến mãi, voucher, tích điểm khách hàng.

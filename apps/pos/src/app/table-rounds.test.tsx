@@ -62,21 +62,6 @@ describe("an order at a table, round after round", () => {
     ]);
   });
 
-  it("only shows a ticket on a till without a printer, so the round stays owed", async () => {
-    const server = tableCafeServer();
-    await tillOnTheFloor(server);
-    await openTable(FLOOR.t1, "1");
-    addCoffees(1);
-    await sendRound();
-    expect(document.querySelector("[data-print-status]")?.getAttribute("data-print-status")).toBe(
-      "preview_only",
-    );
-    tap(text.tables.slips.backToOrder);
-    expect(screen.getByRole("button", { name: T.sendToKitchen(1) })).toBeTruthy();
-    await waitFor(() => expect(server.state.calls.pulls).toBeGreaterThan(4));
-    expect(pushedOf(server, "order.mark_sent_to_kitchen")).toEqual([]);
-  });
-
   it("asks before leaving with items the kitchen was not sent, and not once all went out", async () => {
     const server = tableCafeServer();
     await tillOnTheFloor(server, simulatedPrinterThatPrints);

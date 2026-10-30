@@ -111,8 +111,13 @@ export function TableOrdering(props: TableOrderingProps) {
           step={phase.step}
           header={header}
           onDone={(outcome) => {
-            if (outcome.kind === "cancelled")
-              return onLeave(vi.adjust.cancel.done(order.deviceOrderNo));
+            if (outcome.kind === "cancelled") {
+              return onLeave(
+                phase.step.kind === "release"
+                  ? vi.adjust.release.done(table.name)
+                  : vi.adjust.cancel.done(order.deviceOrderNo),
+              );
+            }
             if (outcome.kind !== "voided" || outcome.record.fromSent === 0n) return back();
             const record = outcome.record;
             void showSlips(vi.adjust.void.cancelTicketTitle, () =>
@@ -183,6 +188,7 @@ export function TableOrdering(props: TableOrderingProps) {
               owedUnits={owed.units}
               billable={view.kind === "priced" && order.lines.length > 0}
               saved={session.recorded().version > 0}
+              empty={order.lines.length === 0}
               blocked={blocked}
               onSend={() => void showSlips(vi.tables.slips.kitchenTitle, sendRound)}
               onPreBill={() => void showSlips(vi.tables.slips.preBillTitle, preBill)}
@@ -192,6 +198,7 @@ export function TableOrdering(props: TableOrderingProps) {
                 });
               }}
               onTransfer={() => setPhase({ kind: "transfer" })}
+              onRelease={() => setPhase({ kind: "adjusting", step: { kind: "release" } })}
               onBack={() => {
                 if (owed.units > 0 && !blocked) setPhase({ kind: "leaving" });
                 else onLeave(null);

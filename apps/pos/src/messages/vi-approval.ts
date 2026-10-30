@@ -30,6 +30,8 @@ export const VI_APPROVAL = {
     /** When earlier discounts already take something off: what the manager really agrees to. */
     discountInAll: (rate: string) => `tổng giảm sau lần này: ${rate}`,
     voidAfterSent: (units: number, item: string) => `Hủy ${units} ${item} đã gửi bếp`,
+    voidWeighedAfterSent: (grams: string, item: string) =>
+      `Hủy lần cân ${grams} ${item} đã gửi bếp`,
     refund: (amount: string, orderNo: number) => `Hoàn ${amount} cho đơn số ${orderNo}`,
     cashIn: (amount: string) => `Thu ${amount} vào két`,
     cashOut: (amount: string) => `Chi ${amount} khỏi két`,

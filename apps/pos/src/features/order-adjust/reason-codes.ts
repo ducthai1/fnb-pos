@@ -15,6 +15,9 @@ export const VOID_REASONS = [
 
 export const CANCEL_REASONS = ["customer_left", "duplicate_order", "test_order", "other"] as const;
 
+/** Why an order with nothing left on it is closed to free its table: never picked from a list. */
+export const TABLE_EMPTIED_REASON = "table_emptied";
+
 export const REFUND_REASONS = [
   "customer_returned",
   "made_wrong",
@@ -24,7 +27,10 @@ export const REFUND_REASONS = [
 ] as const;
 
 export type ReasonCode =
-  (typeof VOID_REASONS)[number] | (typeof CANCEL_REASONS)[number] | (typeof REFUND_REASONS)[number];
+  | (typeof VOID_REASONS)[number]
+  | (typeof CANCEL_REASONS)[number]
+  | (typeof REFUND_REASONS)[number]
+  | typeof TABLE_EMPTIED_REASON;
 
 /** A reason as a command carries it: its key, and the note "other" needs. */
 export interface ChosenReason {

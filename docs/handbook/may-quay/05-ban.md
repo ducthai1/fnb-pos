@@ -19,6 +19,10 @@ decisions:
   - D-074
   - D-076
   - D-109
+  - D-097
+  - D-131
+  - D-133
+  - D-134
 tests:
   - apps/pos/src/app/table-floor.test.tsx
   - apps/pos/src/app/table-floor-from-bootstrap.test.tsx
@@ -37,6 +41,8 @@ tests:
   - apps/api/test/integration/tables/transfer-to-empty-table.test.ts
   - apps/api/test/integration/tables/table-status-follows-the-pre-bill.test.ts
   - e2e/pos/table-service.spec.ts
+  - apps/pos/src/app/table-kitchen-lock-without-a-printer.test.tsx
+  - apps/api/src/sync/draft-line-locks-options.test.ts
 ---
 
 # Bán theo bàn
@@ -108,7 +114,9 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 
 - **Mỗi bàn chỉ có một đơn đang mở** (máy chủ chặn). Hai máy cùng mở một bàn trống cùng lúc: máy nào lưu trước giữ bàn, máy sau được báo để mở lại đơn đang có rồi gọi thêm vào đó.
 - **Hai máy cùng thêm món vào một bàn**: máy lưu sau tự gộp lại một lần trên bản mới nhất, **giữ món của cả hai máy** (ưu tiên không mất món; một món vừa xóa có thể hiện lại, xóa lại là được). Gộp xong vẫn lệch thì máy dừng lưu và báo.
-- Món **đã gửi bếp** chỉ còn đọc: không sửa, không bớt bằng nút −; gọi thêm thì thành dòng mới; muốn bớt thì **Hủy món** (có phiếu hủy cho bếp).
+- Món **đã gửi bếp** chỉ còn đọc: không sửa, không bớt bằng nút −; gọi thêm thì thành dòng mới; muốn bớt thì **Hủy món** (có phiếu hủy cho bếp). Máy chưa có máy in bếp (bản trong trình duyệt) cũng vậy: phiếu bếp hiện trên màn là món đã gửi bếp. Máy in bếp kẹt giấy thì món chưa gửi, bấm **Gửi bếp** lại.
+- **Đổi tùy chọn (topping, size, ghi chú) của món đã gửi bếp:** máy và máy chủ đều không cho sửa tại chỗ, vì phiếu bếp đã in tùy chọn cũ. Cách làm: **Hủy món** (xin duyệt, ra phiếu hủy) rồi gọi lại món với tùy chọn mới, phiếu bếp mới in đủ món mới.
+- **Trả bàn:** đơn đã lưu mà xóa hết món thì có nút **Trả bàn** để đóng đơn trống và trả bàn về "trống" (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)).
 - **Chuyển bàn chỉ sang bàn trống.** Bàn đang có khách thì máy từ chối (chưa gộp được hai bàn).
 - **Duyệt chuyển bàn gắn với đơn đó**, dùng một lần: quản lý duyệt chuyển đơn của bàn T02 thì lần duyệt không dùng được để chuyển đơn khác, kể cả trong 10 phút (máy chủ từ chối). Máy quầy bản cũ xin duyệt mà không nêu đơn thì máy chủ không nhận.
 - Tạm tính **in hay chỉ xem trên màn đều tính là đã đưa khách xem** (bàn chuyển sang "Đã in tạm tính"); máy in kẹt giấy thì **không** tính.

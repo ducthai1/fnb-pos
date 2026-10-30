@@ -28,6 +28,10 @@ decisions:
   - D-108
   - D-109
   - D-111
+  - D-097
+  - D-131
+  - D-132
+  - D-133
 tests:
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -58,6 +62,8 @@ tests:
   - apps/api/test/integration/sync/sync-refund-gives-back-what-the-sale-took.test.ts
   - apps/api/test/integration/shift/cash-refund-is-paid-out-of-the-shift-drawer.test.ts
   - e2e/pos/void-discount-refund-with-approval.spec.ts
+  - apps/pos/src/app/table-kitchen-lock-without-a-printer.test.tsx
+  - apps/pos/src/app/table-void-weighed-after-sent.test.tsx
 ---
 
 # Hủy món, giảm giá, hủy đơn, hoàn tiền và duyệt tại chỗ
@@ -119,6 +125,9 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
 2. Chọn **Số lượng hủy** và **Lý do**: *Khách đổi ý · Nhập nhầm món · Pha/làm sai món · Hết nguyên liệu · Lý do khác*. Chọn **Lý do khác** thì máy mở ô **Ghi chú lý do**: ghi vài chữ chuyện gì đã xảy ra (1–120 ký tự) — chưa ghi thì nút hủy chưa bấm được.
 3. Bấm **Hủy 1 món**. Phần **chưa gửi bếp** được hủy trước; phần đã gửi bếp cần duyệt (nếu chi nhánh bật) và in **phiếu hủy** cho trạm đã làm món đó.
 4. Trên đơn, món bị hủy hiện thêm dòng "Đã hủy 1 (đã gửi bếp)".
+5. **Máy chưa có máy in bếp** (bản trong trình duyệt): món vẫn thành "Đã gửi bếp" ngay khi phiếu bếp hiện trên màn, nên hủy món bếp đã nhận **luôn phải xin duyệt và ra phiếu hủy** như trên.
+
+**Món bán theo cân đã gửi bếp:** màn **Hủy món** không có ô **Số lượng hủy** (một lần cân là một món, không hủy một phần). Màn ghi "Còn lần cân 351 g trên đơn · Lần cân 351 g đã gửi bếp", nút ghi **Hủy lần cân 351 g**; xin duyệt ghi "Hủy lần cân 351 g Cà phê hạt Robusta đã gửi bếp", phiếu hủy ghi "HỦY 351 g x …", dòng trên đơn ghi "Đã hủy lần cân 351 g (đã gửi bếp)". Muốn cân lại thì hủy lần cân rồi chọn món để cân lần mới.
 
 ### Giảm giá món hoặc giảm giá đơn
 
@@ -137,7 +146,8 @@ Nút **−** bên cạnh món, hoặc **⋯** → **Xóa món**. Không cần l�
    ![Hủy đơn](../images/may-quay/cancel-order.webp)
 
 2. Chọn **Lý do**: *Khách không mua nữa · Đơn bị trùng · Đơn thử · Lý do khác* (**Lý do khác** cần **Ghi chú lý do**, như khi hủy món). Bấm **Hủy đơn này**.
-3. Đơn chưa từng in tạm tính, chưa từng gửi bếp: thu ngân tự hủy. Đơn **đã in tạm tính** hoặc **đã gửi bếp**: cần duyệt (chặn kiểu "in tạm tính → thu tiền khách → hủy đơn").
+3. Đơn chưa từng in tạm tính, chưa từng gửi bếp: thu ngân tự hủy. Đơn **đã in tạm tính** hoặc **đã gửi bếp**: cần duyệt (chặn kiểu "in tạm tính → thu tiền khách → hủy đơn"). Đơn còn món đã gửi bếp chưa hủy thì máy từ chối: hủy từng món đó (có phiếu hủy) trước; hủy hết rồi mới hủy được đơn (vẫn cần duyệt vì bếp đã nhận món).
+4. **Bàn không còn món nào:** đơn bàn đã lưu rồi bị xóa hết món vẫn giữ bàn "có khách". Màn bàn hiện nút **Trả bàn** (chỉ khi đơn trống): bấm **Trả bàn** ở màn xác nhận là đóng đơn trống (lý do "Bàn không còn món nào", không phải chọn lý do), bàn trống lại và máy báo "Đã trả bàn 1.". Đơn đã in tạm tính hoặc đã từng gửi bếp thì vẫn phải có quản lý duyệt như hủy đơn.
 
 ### Hoàn tiền đơn đã trả
 

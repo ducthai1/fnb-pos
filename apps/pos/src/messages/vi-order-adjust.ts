@@ -14,6 +14,7 @@ export const VI_REASONS: Readonly<Record<ReasonCode, string>> = {
   customer_returned: "Khách trả lại món",
   quality_issue: "Món không đạt",
   overcharged: "Tính tiền nhầm",
+  table_emptied: "Bàn không còn món nào",
   other: "Lý do khác",
 };
 
@@ -38,6 +39,7 @@ export const VI_ORDER_ADJUST = {
   cart: {
     lineDiscount: "Giảm giá món",
     voided: (units: number) => `Đã hủy ${units} (đã gửi bếp)`,
+    voidedWeighing: (grams: string) => `Đã hủy lần cân ${grams} (đã gửi bếp)`,
     orderDiscount: "Giảm giá",
   },
   void: {
@@ -46,6 +48,9 @@ export const VI_ORDER_ADJUST = {
     sent: (units: number) => `${units} đã gửi bếp`,
     units: "Số lượng hủy",
     confirm: (units: number) => `Hủy ${units} món`,
+    leftWeighed: (grams: string) => `Còn lần cân ${grams} trên đơn`,
+    sentWeighed: (grams: string) => `Lần cân ${grams} đã gửi bếp`,
+    confirmWeighed: (grams: string) => `Hủy lần cân ${grams}`,
     afterSentNote: "Hủy món đã gửi bếp sẽ in phiếu hủy cho trạm làm món đó.",
     orderDiscountWouldRise:
       "Hủy món làm phần giảm giá toàn đơn lớn hơn mức bạn được tự giảm. Gỡ giảm giá đơn trước, hủy món, rồi giảm lại.",
@@ -72,6 +77,12 @@ export const VI_ORDER_ADJUST = {
     hint: "Đơn hủy không thu tiền và không in gì thêm. Món đã gửi bếp phải hủy món (có phiếu hủy) trước.",
     confirm: "Hủy đơn này",
     done: (orderNo: number) => `Đã hủy đơn số ${orderNo}.`,
+  },
+  release: {
+    title: (table: string) => `Trả bàn ${table}`,
+    hint: "Đơn của bàn này không còn món nào. Trả bàn là đóng đơn trống để bàn hiện trống cho khách sau; không thu tiền và không in gì.",
+    confirm: "Trả bàn",
+    done: (table: string) => `Đã trả bàn ${table}.`,
   },
 } as const;
 

@@ -1,6 +1,7 @@
 import {
   type OrderLine,
   QUANTITY_SCALE,
+  formatGrams,
   formatVnd,
   negateQuantity,
   negateVnd,
@@ -67,7 +68,11 @@ export function CartLineDetails(props: {
       )}
       {cancels.map((cancel) => (
         <p key={cancel.id} className="pos-cart-line__sub">
-          <span>{C.voided(Number(negateQuantity(cancel.quantity) / QUANTITY_SCALE))}</span>
+          <span>
+            {line.grams === undefined
+              ? C.voided(Number(negateQuantity(cancel.quantity) / QUANTITY_SCALE))
+              : C.voidedWeighing(formatGrams(line.grams))}
+          </span>
           <span>{priceOf(cancel.id)}</span>
         </p>
       ))}

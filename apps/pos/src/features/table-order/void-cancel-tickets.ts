@@ -4,6 +4,7 @@ import { serverCopyOf } from "../order/server-copy";
 import { kitchenSlips, recordablePart } from "../printing/kitchen-slips";
 import { markSentCommand, withSent } from "../printing/print-commands";
 import { type PrintedSlip, printOne } from "../printing/print-sale-slips";
+import { kitchenSlipHandedOver } from "../printing/printer-port";
 import { type RoundInput, report } from "./table-order-rounds";
 
 /** How long the till waits for the server's own cancel line before printing its own. */
@@ -43,8 +44,8 @@ export async function printVoidCancelTickets(
   for (const ticket of kitchenSlips(input.menu, settled, input.now(), only)) {
     const slip = { job: ticket.job, outcome: await printOne(input.printer, ticket.job) };
     slips.push(slip);
-    if (slip.outcome.status !== "printed") unprinted.add(ticket.job.jobId);
-    const part = slip.outcome.status === "printed" ? recordablePart(ticket, unprinted) : null;
+    if (!kitchenSlipHandedOver(slip.outcome)) unprinted.add(ticket.job.jobId);
+    const part = kitchenSlipHandedOver(slip.outcome) ? recordablePart(ticket, unprinted) : null;
     if (part !== null && stored !== null) {
       sent = withSent(sent, part.sent);
       const recorded = { ...settled, state: { ...settled.state, version } };

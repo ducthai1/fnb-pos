@@ -3,6 +3,7 @@ import { ROLE_TEMPLATES } from "@fnb/domain";
 import { fakeServer } from "./fake-pos-server";
 import { LAN } from "./signed-in-till";
 import { MINH, staffAsCashierAndManager } from "./approval-cafe";
+import { tableCafeServer } from "./table-cafe-server";
 import { MENU, tid, tillBootstrap, tillBootstrapWire } from "./till-fixtures";
 
 export const TYPED_MENU = {
@@ -79,4 +80,14 @@ export function typedAndWeighedCafeWithWaiter() {
   const server = typedAndWeighedCafe();
   server.state.grants.set(LAN.id, [...ROLE_TEMPLATES.waiter.grants]);
   return server;
+}
+
+/** The café with its floor, a manager to approve, and coffee beans sold by weight. */
+export function weighedCafeWithTables() {
+  const { menu } = tillBootstrapWire();
+  return staffAsCashierAndManager(
+    tableCafeServer(true, {}, [LAN, MINH], {
+      menu: { ...menu, products: [...menu.products, BEANS] },
+    }),
+  );
 }

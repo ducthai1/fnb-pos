@@ -1,3 +1,4 @@
+import { formatGrams } from "@fnb/domain";
 import { type ReactNode, useState } from "react";
 import {
   type ChosenReason,
@@ -16,6 +17,8 @@ const T = vi.adjust.void;
 export interface VoidLineScreenProps {
   header: ReactNode;
   itemName: string;
+  /** Grams of the weighing when the item is sold by weight: cancelled whole, no count. */
+  weighedGrams?: number;
   /** Units still on the order (not cancelled yet). */
   remaining: number;
   /** Units of those the kitchen has. */
@@ -33,6 +36,7 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
   const [code, setCode] = useState<ReasonCode | null>(null);
   const [note, setNote] = useState("");
   const reason = chosenReason(code, note);
+  const weighed = props.weighedGrams;
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -63,7 +67,7 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
               disabled={busy || reason === null || props.remaining < 1}
               onClick={() => void confirm()}
             >
-              {T.confirm(units)}
+              {weighed === undefined ? T.confirm(units) : T.confirmWeighed(formatGrams(weighed))}
             </button>
           </div>
         </>
@@ -72,21 +76,29 @@ export function VoidLineScreen(props: VoidLineScreenProps) {
       {props.header}
       <section className="pos-card pos-approval" aria-label={T.title}>
         <p className="pos-approval__what pos-wrap">{props.itemName}</p>
-        <p className="pos-hint">{T.left(props.remaining)}</p>
+        <p className="pos-hint">
+          {weighed === undefined ? T.left(props.remaining) : T.leftWeighed(formatGrams(weighed))}
+        </p>
         {props.sentUnits > 0 ? (
           <>
-            <p className="pos-hint">{T.sent(props.sentUnits)}</p>
+            <p className="pos-hint">
+              {weighed === undefined
+                ? T.sent(props.sentUnits)
+                : T.sentWeighed(formatGrams(weighed))}
+            </p>
             <p className="pos-hint">{T.afterSentNote}</p>
           </>
         ) : null}
       </section>
-      <QuantityStepper
-        label={T.units}
-        name={props.itemName}
-        value={units}
-        max={Math.max(1, props.remaining)}
-        onChange={setUnits}
-      />
+      {weighed === undefined ? (
+        <QuantityStepper
+          label={T.units}
+          name={props.itemName}
+          value={units}
+          max={Math.max(1, props.remaining)}
+          onChange={setUnits}
+        />
+      ) : null}
       <ReasonPicker
         reasons={VOID_REASONS}
         chosen={code}

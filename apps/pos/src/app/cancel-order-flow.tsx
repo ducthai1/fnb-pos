@@ -11,11 +11,11 @@ import { CancelOrderScreen } from "../screens/order-adjust/cancel-order-screen";
 import { type AdjustContext, approvalOf, attempt } from "./adjust-flow-parts";
 
 /**
- * Cancelling the draft: refused while the kitchen still has units of it or the bank paid a
+ * Cancelling the draft (or, with `release`, closing a table's order that has nothing on it): refused while the kitchen still has units of it or the bank paid a
  * QR of it; once guests were shown a bill or the kitchen was sent part of it, closing it
  * unpaid needs close_unpaid_table, approved on the spot when the cashier lacks it.
  */
-export function CancelOrderFlow(props: AdjustContext) {
+export function CancelOrderFlow(props: AdjustContext & { release?: boolean }) {
   const { settled, session } = props;
   const gate = useApprovalGate();
   if (gate.sheet !== null) return gate.sheet;
@@ -24,6 +24,7 @@ export function CancelOrderFlow(props: AdjustContext) {
     <CancelOrderScreen
       header={props.header}
       orderNo={settled.order.deviceOrderNo}
+      {...(props.release === true ? { release: settled.order.table?.name ?? "" } : {})}
       onBack={() => props.onDone({ kind: "back" })}
       onConfirm={(reason) =>
         attempt(async () => {

@@ -1,6 +1,7 @@
 import {
   ArrowRightLeft,
   ChefHat,
+  DoorOpen,
   LayoutGrid,
   type LucideIcon,
   ReceiptText,
@@ -20,12 +21,15 @@ export interface TableOrderActionsProps {
   billable: boolean;
   /** The order is seated on the server's side (saved at least once): it can be moved. */
   saved: boolean;
+  /** Nothing is left on the order (everything was removed): the table can be given back. */
+  empty: boolean;
   /** The server refused one of the order's commands: only going back is offered. */
   blocked: boolean;
   onSend(): void;
   onPreBill(): void;
   onPay(): void;
   onTransfer(): void;
+  onRelease(): void;
   onBack(): void;
 }
 
@@ -84,6 +88,9 @@ export function TableOrderActions(props: TableOrderActionsProps) {
         "pos-table-actions__move",
         ArrowRightLeft,
       )}
+      {props.saved && props.empty && !blocked
+        ? button(T.release, props.onRelease, false, "pos-table-actions__release", DoorOpen)
+        : null}
       <button
         type="button"
         className="pos-button pos-button--quiet pos-table-actions__back"

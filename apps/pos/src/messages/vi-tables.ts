@@ -48,6 +48,7 @@ export const VI_TABLES = {
     preBill: "In tạm tính",
     pay: "Thanh toán",
     transfer: "Chuyển bàn",
+    release: "Trả bàn",
     backToFloor: "Về sơ đồ bàn",
     changedAfterPreBill:
       "Đơn đã đổi sau khi in tạm tính: phiếu tạm tính khách đang cầm không còn đúng. In tạm tính lại trước khi thu tiền.",
