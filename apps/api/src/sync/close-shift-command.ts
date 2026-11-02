@@ -3,7 +3,7 @@ import { acceptCloseDifference, assessClosingCount, transitionShift } from "@fnb
 import { readCloseDifferenceTolerance } from "./close-difference-tolerance";
 import { confirmedCount, insertShiftCount } from "./shift-counts";
 import { SHIFT_SYNC_ERROR_CODES as C } from "./shift-sync-error-codes";
-import { readShiftCashBook, readUnclosedShiftOfDevice } from "./stored-shift";
+import { closedOnBehalfLast, readShiftCashBook, readUnclosedShiftOfDevice } from "./stored-shift";
 import { requirePermission } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
@@ -21,7 +21,10 @@ import { CommandRejection } from "./sync-error-codes";
 async function closeShift(context: SyncCommandContext, payload: CloseShiftPayload) {
   const { client, device, staffId } = context;
   const shift = await readUnclosedShiftOfDevice(client, device.deviceId, true);
-  if (shift === null) throw new CommandRejection(C.noOpenShift);
+  if (shift === null) {
+    const late = await closedOnBehalfLast(client, device.deviceId);
+    throw new CommandRejection(late ? C.closedOnBehalf : C.noOpenShift);
+  }
   // The till counted before sending, so the shift passes through closing in one step.
   const status = transitionShift(transitionShift(shift.status, "closing"), "closed");
   const count = confirmedCount(payload.counted, payload.denominations);

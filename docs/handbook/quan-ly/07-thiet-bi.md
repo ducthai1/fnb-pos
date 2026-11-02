@@ -11,6 +11,7 @@ decisions:
   - D-143
   - D-144
   - D-160
+  - D-165
 tests:
   - apps/backoffice/src/components/ui/confirm-panel.test.tsx
   - apps/backoffice/src/components/devices/devices-screen.test.tsx
@@ -19,6 +20,7 @@ tests:
   - apps/api/test/integration/devices/revoked-device-is-rejected.test.ts
   - apps/api/test/integration/devices/revoked-till-sends-the-rest-under-a-grant.test.ts
   - apps/api/test/integration/backoffice/branch-device-and-staff-lists.test.ts
+  - apps/api/test/integration/shift/manager-closes-a-revoked-tills-shift.test.ts
   - e2e/backoffice/pair-a-device.spec.ts
   - e2e/pos/pair-and-pin-login.spec.ts
   - apps/pos/src/app/till-revoked-by-the-server.test.tsx
@@ -53,7 +55,7 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 
 ### Thu hồi một máy
 
-1. Ở dòng của máy, bấm **Thu hồi**. Trang hiện khung hỏi lại **Thu hồi máy "…"?** ngay trên danh sách: bấm nút đỏ **Thu hồi máy** để làm, **Hủy** để thôi.
+1. Ở dòng của máy, bấm **Thu hồi**. Trang hiện khung hỏi lại **Thu hồi máy "…"?** ngay trên danh sách: bấm nút đỏ **Thu hồi máy** để làm, **Hủy** để thôi. Máy **còn ca đang mở** thì khung cảnh báo thêm: "Máy còn ca đang mở (mở lúc …). Thu hồi rồi thì máy không tự đóng ca được nữa và chưa chốt được ngày. Nếu kịp, cho thu ngân đếm két và đóng ca trên máy trước. Nếu phải thu hồi ngay: sau đó bấm Cho gửi nốt để máy gửi các thao tác còn giữ, rồi vào Chốt ngày → Đóng ca hộ." Vẫn chỉ một lần bấm xác nhận (máy bị mất cắp phải thu hồi được ngay).
 2. Máy **không bán được nữa** cho tới khi ghép lại bằng mã mới: ở lần đồng bộ kế tiếp máy hiện màn "Máy này đã bị gỡ khỏi cửa hàng", liệt kê các thao tác chưa gửi (nếu có) và chỉ xóa dữ liệu khi người đứng máy xác nhận rồi ghép lại (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md)). Dòng chuyển sang "Đã thu hồi lúc …".
 3. Lọc **Đang dùng / Đã thu hồi**, tìm theo tên máy.
 
@@ -68,6 +70,7 @@ Máy bị thu hồi lúc còn thao tác chưa gửi (thường là mất mạng 
 2. Đọc mã cho người đứng máy: trên máy bấm **Gửi nốt N thao tác bằng mã quản lý**, gõ mã, bấm gửi (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md#khi-máy-bị-thu-hồi)).
 3. Máy báo số thao tác máy chủ đã nhận. Thao tác máy chủ **không nhận** hiện ngay trên máy (tên, lý do, số tiền nếu có): ghi lại rồi làm lại trên máy khác.
 4. Bấm **Đóng** để cất thẻ mã. Máy **vẫn bị thu hồi**; muốn dùng lại thì ghép bằng mã ghép mới.
+5. Ca của máy còn mở thì đóng hộ ở [Chốt ngày](11-chot-ngay.md) (**Đóng ca hộ**) **sau** khi máy gửi nốt xong.
 
 ## Luật và giới hạn
 

@@ -6,6 +6,7 @@ import { afterAll, beforeAll, expect, inject, it } from "vitest";
 import type { PageProblem } from "../support/page-problems";
 import { choose } from "./support/price-list-in-browser";
 import {
+  asOwner,
   expectNoOverflow,
   openSection,
   signedInBackoffice,
@@ -102,5 +103,36 @@ it("refuses to close a day while a till's shift is open, listing that shift", as
 
   await expectNoOverflow(page, "day close refused");
   expect(unexpectedProblems(problems).filter((problem) => !provoked(problem))).toEqual([]);
+  await close();
+});
+
+it("closes a revoked till's shift on its behalf at phone width, against the server's figure", async () => {
+  // As long as a till name gets (80), with no space to wrap at.
+  const name = "QuầyThuNgânTầngHaiCạnhCửaSổNhìnRaHồGươmBuổiTối".repeat(3).slice(0, 80);
+  const till = await pairedTillWithCashier(stack, name);
+  const shiftId = newId();
+  await pushAccepted(stack, till, [openShift(shiftId)]);
+  expect((await asOwner(stack, "POST", `/devices/${till.deviceId}/revoke`)).status).toBe(204);
+
+  const { page, problems, close } = await signedInBackoffice(browser!, stack, { width: 360, height: 900 });
+  await openSection(page, text.shell.nav.dayClose);
+  const [year, month, day] = todayAtTheBranch().split("-");
+  await page.getByLabel(D.dateLabel, { exact: true }).fill(`${day}/${month}/${year}`);
+  const card = page.locator(`[data-shift="${shiftId}"]`);
+  await card.getByText(D.revokedBadge).waitFor();
+  await expectNoOverflow(page, "revoked till's open shift");
+
+  await card.getByRole("button", { name: D.closeOnBehalfLabel(name) }).click();
+  const panel = page.getByRole("alertdialog", { name: D.closeOnBehalfTitle(name) });
+  await panel.getByLabel(D.countedLabel).fill("499.999");
+  await expect.poll(() => panel.locator("[data-difference]").getAttribute("data-difference")).toBe("short");
+  await expectNoOverflow(page, "closing a revoked till's shift");
+  const path = `/shifts/${shiftId}/close-on-behalf`;
+  expect(await postStatus(page, path, () => panel.getByRole("button", { name: D.closeOnBehalf }).click())).toBe(200);
+  const closedList = page.locator('[data-day-list="closed-on-behalf"]');
+  await closedList.locator(`[data-shift="${shiftId}"]`).waitFor();
+  expect(await page.locator(`[data-day-list="open-shifts"] [data-shift="${shiftId}"]`).count()).toBe(0);
+  await expectNoOverflow(page, "shift closed on behalf");
+  expect(unexpectedProblems(problems)).toEqual([]);
   await close();
 });

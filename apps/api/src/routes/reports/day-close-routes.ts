@@ -6,6 +6,7 @@ import { AUTH_ERROR_CODES } from "../../auth/auth-error-codes";
 import { backofficeAuth } from "../../auth/backoffice-session-hook";
 import { closeBusinessDay } from "../../day-close/close-business-day";
 import { DAY_CLOSE_ERROR_CODES as CODES } from "../../day-close/day-close-error-codes";
+import { readDayShifts } from "../../day-close/day-shifts";
 import { readDayStatus } from "../../day-close/day-status";
 import type { EInvoiceProvider } from "../../einvoice/einvoice-provider";
 import { submitBatchesNow } from "../../einvoice/einvoice-worker";
@@ -61,9 +62,10 @@ export function registerDayCloseRoutes(
       // The day's data goes out now, so the manager sees whether it went through; what
       // fails stays queued for the worker.
       await submitBatchesNow({ pool, clock, providers }, tenantId, outcome.batchIds);
-      const status = await withTenant(pool, tenantId, (client) =>
-        readDayStatus(client, branchId, body.data.businessDate),
-      );
+      const status = await withTenant(pool, tenantId, async (client) => ({
+        ...(await readDayStatus(client, branchId, body.data.businessDate)),
+        ...(await readDayShifts(client, branchId, body.data.businessDate)),
+      }));
       return reply.code(201).send({ dayClose: outcome.dayClose, ...status });
     },
   );
@@ -99,7 +101,11 @@ export function registerDayCloseRoutes(
                 closedAt: row.closed_at.toISOString(),
                 summary: row.summary,
               };
-        return { dayClose, ...(await readDayStatus(client, branchId, businessDate)) };
+        return {
+          dayClose,
+          ...(await readDayStatus(client, branchId, businessDate)),
+          ...(await readDayShifts(client, branchId, businessDate)),
+        };
       });
       if (answer === null) return reply.code(404).send({ code: CODES.branchNotFound });
       return answer;

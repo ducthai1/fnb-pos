@@ -37,6 +37,13 @@ export const VI_API_ERRORS_OPERATIONS: Readonly<Record<string, string>> = {
   API_DAY_CLOSE_INVOICES_UNISSUED:
     "Còn hóa đơn điện tử đang chờ phát hành. Đợi phát hành xong (danh sách dưới đây) rồi chốt lại.",
   API_DAY_CLOSE_DAY_NOT_STARTED: "Ngày kinh doanh này chưa bắt đầu ở chi nhánh, chưa chốt được.",
+  API_SHIFT_NOT_FOUND: "Không tìm thấy ca này. Tải lại trang.",
+  API_SHIFT_ALREADY_CLOSED:
+    "Ca này đã được đóng (trên máy, hoặc bởi một quản lý khác). Tải lại để xem số đã đóng.",
+  API_SHIFT_DEVICE_NOT_REVOKED:
+    "Máy của ca này vẫn đang dùng: thu ngân đếm két và đóng ca trên máy. Chỉ ca của máy đã thu hồi mới đóng hộ được.",
+  API_SHIFT_VERSION_CONFLICT:
+    "Máy vừa gửi thêm tiền vào ca này nên két dự kiến đã đổi. Xem lại số mới rồi đóng lại.",
   API_REPORT_INVALID_RANGE: "Khoảng thời gian không hợp lệ: giờ bắt đầu phải trước giờ kết thúc.",
   API_FLOOR_BRANCH_NOT_FOUND: "Không tìm thấy chi nhánh này. Tải lại trang.",
   API_FLOOR_AREA_NOT_FOUND: "Không tìm thấy khu vực này. Tải lại danh sách.",

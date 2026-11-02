@@ -267,13 +267,25 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
   // 5. The cash in each drawer is what the system says it should be.
   const shiftTruth = newest("shift") as Map<
     string,
-    { status: string; close: { expectedCash: number; difference: number } | null }
+    {
+      status: string;
+      close: { expectedCash: number; difference: number; closedByAppUserId?: string | null } | null;
+      cashRecordedAfterClose: number;
+    }
   >;
   for (const booked of books.shifts) {
     const shift = shiftTruth.get(booked.shiftId);
     if (shift?.status !== "closed" || shift.close === null)
       say(`${booked.device}: the shift is not closed on the server`);
-    else if (shift.close.expectedCash !== booked.counted || shift.close.difference !== 0) {
+    else if (shift.close.closedByAppUserId != null) {
+      // Closed by a manager for a revoked till: what was counted is the server's figure plus
+      // the difference, and the difference is exactly the cash the till sent after the close.
+      const { expectedCash, difference } = shift.close;
+      if (expectedCash + difference !== booked.counted || difference !== shift.cashRecordedAfterClose)
+        say(
+          `${booked.device}: closed on its behalf at ${booked.counted}, expected ${expectedCash}, difference ${difference}, cash after the close ${shift.cashRecordedAfterClose}`,
+        );
+    } else if (shift.close.expectedCash !== booked.counted || shift.close.difference !== 0) {
       say(
         `${booked.device}: the cashier counted ${booked.counted}, the system expected ${shift.close.expectedCash} (difference ${shift.close.difference})`,
       );
@@ -356,8 +368,25 @@ async function checkRevokedTill(
   ];
   if (expectedStops !== null && !book.stops.some((stop) => stop.startsWith(expectedStops)))
     say(`${where}: the flush never stopped as planned (${book.stops.join(", ")})`);
+  const onBehalf = (
+    await query<{ n: number }>(
+      "SELECT count(*)::int AS n FROM audit_log WHERE action = 'shift.closed_on_behalf' AND entity_id = $1",
+      [book.shiftId],
+    )
+  )[0]?.n;
+  if (book.shiftEnd === "cashier_closed") {
+    if (onBehalf !== 0) say(`${where}: a shift its cashier closed was closed on its behalf too`);
+  } else {
+    if (book.closedOnBehalf === null || onBehalf !== 1)
+      say(`${where}: the shift was not closed on its behalf once (${onBehalf} audited)`);
+    // The till's own close, sent after the manager's, is refused and listed, never applied.
+    if (book.tillCloseId !== null && !book.held.refused.some((item) => item.id === book.tillCloseId))
+      say(`${where}: the till's own close after the manager's is not listed as refused`);
+  }
   return {
-    revokedTill: `${book.variant}: ${book.payments.length} payments, ${book.held.refused.length} listed, ${book.grants} codes, stops [${book.stops.join("; ")}]`,
+    revokedTill: `${book.variant}, ${book.shiftEnd}: ${book.payments.length} payments, ${book.held.refused.length} listed, ${book.grants} codes, stops [${book.stops.join("; ")}]${
+      book.closedOnBehalf === null ? "" : `, closed on behalf at ${book.closedOnBehalf.counted} (difference ${book.closedOnBehalf.difference})`
+    }`,
   };
 }
 

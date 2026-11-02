@@ -70,7 +70,14 @@ export function DayCloseScreen() {
                     </p>
                   </div>
                 </div>
-                <DayStatusLists status={status} />
+                <DayStatusLists
+                  status={status}
+                  onShiftClosed={(message) => {
+                    setDone(message);
+                    refresh();
+                  }}
+                  onStale={refresh}
+                />
                 {status.dayClose === null && (
                   <CloseDayPanel
                     key={`${branchId}:${date}`}

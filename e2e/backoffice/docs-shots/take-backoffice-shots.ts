@@ -6,7 +6,7 @@ import { vi as text } from "@fnb/backoffice/messages/vi";
 import { THEME_KEY } from "@fnb/backoffice/theme/theme-choice";
 import { launchSystemChrome } from "@fnb/sync-client/test-support/system-chrome";
 import type { Browser, BrowserContext, Page } from "playwright-core";
-import { sellSampleDay } from "./sample-sales";
+import { revokeTillWithShiftOpen, sellSampleDay } from "./sample-sales";
 import { type SampleShopStack, startSampleShopStack } from "./sample-shop-stack";
 import { expectLightPage, saveWebpShot } from "./save-webp-shot";
 
@@ -114,6 +114,14 @@ function sampleRevokedTill(stack: SampleShopStack): Promise<void> {
  * A station the sample café stopped using: one that a retired product still names, so removing
  * it archives it instead of deleting it. Made once per stack for the stations picture.
  */
+/** A till revoked with its shift open, made once per stack for the close-on-behalf picture. */
+const strandedShifts = new Map<string, Promise<void>>();
+function sampleStrandedShift(stack: SampleShopStack): Promise<void> {
+  const made = strandedShifts.get(stack.apiOrigin) ?? revokeTillWithShiftOpen(stack, "Quầy sân sau");
+  strandedShifts.set(stack.apiOrigin, made);
+  return made;
+}
+
 const archivedStations = new Map<string, Promise<void>>();
 function sampleArchivedStation(stack: SampleShopStack): Promise<void> {
   const made =
@@ -226,6 +234,15 @@ const SHOTS: readonly Shot[] = [
     },
   },
   { name: "chot-ngay", path: () => "/day-close" },
+  {
+    name: "chot-ngay-dong-ca-ho",
+    path: async (stack) => (await sampleStrandedShift(stack), "/day-close"),
+    act: async (page) => {
+      await click(text.dayClose.closeOnBehalfLabel("Quầy sân sau"))(page);
+      await page.getByLabel(text.dayClose.countedLabel).fill("298.500");
+      await page.waitForTimeout(400);
+    },
+  },
   { name: "khop-chuyen-khoan", path: () => "/payments" },
   { name: "phieu-in-loi", path: () => "/reports/print-failures" },
 ];

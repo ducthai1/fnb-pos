@@ -17,7 +17,10 @@ export interface ShiftCashFiguresSnapshot {
 
 /** The settled close, as it was at the moment of closing; it never changes afterwards. */
 export interface ShiftCloseSnapshot {
-  readonly closedByStaffId: string;
+  /** The cashier who counted it on the till; null when a manager closed it for a revoked till. */
+  readonly closedByStaffId: string | null;
+  /** The manager who closed it from the backoffice, for a till revoked with it open. */
+  readonly closedByAppUserId: string | null;
   readonly countedCash: number;
   readonly expectedCash: number;
   readonly difference: number;

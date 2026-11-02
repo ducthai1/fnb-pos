@@ -12,3 +12,15 @@ export const DAY_CLOSE_ERROR_CODES = {
   /** The day has not begun yet at the branch: closing it would close sales not yet made. */
   dayNotStarted: "API_DAY_CLOSE_DAY_NOT_STARTED",
 } as const;
+
+/** Codes of closing a revoked till's shift from the backoffice. */
+export const SHIFT_ON_BEHALF_ERROR_CODES = {
+  /** No shift of this tenant has that id. */
+  shiftNotFound: "API_SHIFT_NOT_FOUND",
+  /** Closed already, by its till or by another manager; a close is never redone. */
+  alreadyClosed: "API_SHIFT_ALREADY_CLOSED",
+  /** Its till is still paired: the cashier counts and closes it there. */
+  deviceNotRevoked: "API_SHIFT_DEVICE_NOT_REVOKED",
+  /** Cash reached the shift since the manager read it: the figure counted against is old. */
+  versionConflict: "API_SHIFT_VERSION_CONFLICT",
+} as const;

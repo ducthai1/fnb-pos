@@ -70,6 +70,9 @@ export const dayStatus = (change: Partial<DayStatus> = {}): DayStatus => ({
   unissuedInvoices: [],
   failedInvoices: [],
   unsentInvoices: [],
+  openShifts: [],
+  closedOnBehalf: [],
+  cashAfterShiftClose: [],
   ...change,
 });
 

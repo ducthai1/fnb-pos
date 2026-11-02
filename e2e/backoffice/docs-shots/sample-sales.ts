@@ -164,3 +164,38 @@ export async function sellSampleDay(stack: SampleShopStack): Promise<void> {
   if (refused.length > 0)
     throw new Error(`the sample sales were refused: ${JSON.stringify(refused)}`);
 }
+
+/**
+ * A second till of the café, revoked while its shift was still open (its cashier never got to
+ * count it): the day close page then offers to close that shift on the till's behalf.
+ */
+export async function revokeTillWithShiftOpen(stack: SampleShopStack, deviceName: string): Promise<void> {
+  const owner = { cookie: stack.ownerCookie };
+  const { code } = await call(stack, "POST", "/devices/pairing-codes", owner, { branchId: stack.shop.branchId });
+  const paired = await call(stack, "POST", "/devices/pair", {}, { code, deviceName });
+  const device = { authorization: `Device ${String(paired.deviceToken)}` };
+  const { staff } = (await call(stack, "GET", "/staff", owner)) as unknown as {
+    staff: { id: string; displayName: string }[];
+  };
+  const cashier = stack.shop.staff.find((member) => member.roleName === "Thu ngân");
+  const staffId = staff.find((member) => member.displayName === cashier?.displayName)?.id ?? "";
+  const session = await call(stack, "POST", "/pos/staff-sessions", device, { staffId, pin: cashier?.pin });
+  const till = { ...device, "x-staff-session": String(session.staffSessionToken) };
+  const today = businessDate(Date.now(), { utcOffsetMinutes: 420, dayStartMinute: 240 });
+  const opened = await call(stack, "POST", "/sync/commands", till, {
+    commands: [
+      {
+        commandId: newId(),
+        deviceSeq: 1,
+        type: "shift.open",
+        payload: { shiftId: newId(), openingCash: 300_000, denominations: [{ denomination: 100_000, pieces: 3 }] },
+        businessDate: today,
+        domainVersion: DOMAIN_VERSION,
+        createdAt: new Date().toISOString(),
+      },
+    ],
+  });
+  if ((opened.results as { status: string }[])[0]?.status !== "accepted")
+    throw new Error(`the sample shift was refused: ${JSON.stringify(opened.results)}`);
+  await call(stack, "POST", `/devices/${String(paired.deviceId)}/revoke`, owner);
+}

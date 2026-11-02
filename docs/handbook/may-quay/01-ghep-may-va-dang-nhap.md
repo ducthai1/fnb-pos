@@ -24,6 +24,7 @@ decisions:
   - D-143
   - D-144
   - D-160
+  - D-165
 tests:
   - apps/pos/src/screens/pair-device/pair-device-screen.test.tsx
   - apps/pos/src/screens/staff-login/staff-login-screen.test.tsx
@@ -110,6 +111,7 @@ Nếu chủ quán **thu hồi** máy ở trang quản lý, máy biết ngay ở 
     ![Gửi nốt xong: số thao tác máy chủ đã nhận và danh sách không nhận](../images/may-quay/till-revoked-flushed.webp)
 
   - Mất mạng giữa chừng: phần đã gửi vẫn ở máy chủ, phần còn lại vẫn ở máy; có mạng lại thì bấm gửi lại **với cùng mã**. Thao tác nào máy chủ đã nhận thì không bị ghi hai lần.
+  - Ca của máy còn mở thì quản lý **đóng ca hộ** ở trang quản lý (Chốt ngày) sau khi máy gửi nốt. Lệnh **đóng ca** hay **thu chi két** của máy tới sau khi quản lý đã đóng hộ thì máy chủ không nhận, lý do "Quản lý đã đóng ca này hộ máy trên trang quản lý (máy đã bị thu hồi), nên số đếm hoặc khoản thu chi két này không được ghi. Báo quản lý để đối chiếu với số đã đếm."; tiền **thanh toán** của ca đó vẫn được nhận (ghi cạnh ca đã đóng).
   - Máy **vẫn bị gỡ** sau khi gửi nốt: không bán được, không đồng bộ được.
 - Bấm **Ghép lại máy** khi còn thao tác chưa gửi hoặc còn thao tác máy chủ không nhận thì chỉ mở bước xác nhận (nút đỏ **Xóa N thao tác và ghép lại máy**, N gồm cả hai loại, kèm nút **Chưa xóa, giữ nguyên**). Chưa bấm nút đỏ thì mọi thứ vẫn nằm trên máy.
 - Ghép lại xong là máy **mới** (số máy, số gọi món, số thứ tự lệnh bắt đầu lại), dùng mã ghép mới ở mục Thiết bị.

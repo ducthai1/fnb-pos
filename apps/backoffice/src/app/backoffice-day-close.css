@@ -69,3 +69,118 @@
   color: var(--c-text);
   font-weight: var(--fw-medium);
 }
+
+/* Open shifts of the day: one card each, the till's name first; a revoked till's card
+   carries the close a manager makes on its behalf. */
+.bo-day-shifts {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bo-day-shift {
+  display: grid;
+  gap: var(--sp-3);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+}
+
+.bo-day-shift[data-revoked="true"] {
+  border-color: var(--c-amber);
+  background: var(--c-amber-soft);
+}
+
+.bo-day-shift__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bo-day-shift__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface-3);
+  color: var(--c-text-2);
+}
+
+.bo-day-shift[data-revoked="true"] .bo-day-shift__icon {
+  background: var(--c-surface);
+  color: var(--c-amber);
+}
+
+.bo-day-shift__text {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.bo-day-shift__text p {
+  margin: 0;
+}
+
+.bo-day-shift__name {
+  font-weight: var(--fw-semibold);
+}
+
+.bo-day-shift__revoked > p {
+  margin: 0;
+}
+
+.bo-day-shift__action {
+  justify-self: start;
+}
+
+.bo-day-shift__late {
+  display: block;
+  margin-top: var(--sp-1);
+  color: var(--c-amber);
+  font-weight: var(--fw-medium);
+}
+
+.bo-on-behalf__expected,
+.bo-on-behalf__difference {
+  margin: 0;
+  font-weight: var(--fw-semibold);
+}
+
+.bo-on-behalf__difference[data-difference="none"] {
+  color: var(--c-success);
+}
+
+.bo-on-behalf__difference[data-difference="short"],
+.bo-on-behalf__difference[data-difference="over"] {
+  color: var(--c-amber);
+}
+
+/* The warning in a revoke's confirmation when the till still has a shift open. */
+.bo-revoke-shift {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-amber-soft);
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
+.bo-revoke-shift > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-amber);
+}
+
+.bo-revoke-shift > span {
+  min-width: 0;
+}

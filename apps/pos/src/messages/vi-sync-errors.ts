@@ -47,6 +47,8 @@ export const VI_SYNC_ERRORS = {
     "Mã QR đã đổi trạng thái (đã được trả, đã hết hạn hoặc đã gỡ) nên không làm được thao tác này.",
   SYNC_ORDER_NOT_FOUND: "Máy chủ không tìm thấy đơn này ở chi nhánh của máy.",
   SYNC_NO_OPEN_SHIFT: "Máy chưa mở ca nên không ghi được thao tác này.",
+  SYNC_SHIFT_CLOSED_ON_BEHALF:
+    "Quản lý đã đóng ca này hộ máy trên trang quản lý (máy đã bị thu hồi), nên số đếm hoặc khoản thu chi két này không được ghi. Báo quản lý để đối chiếu với số đã đếm.",
   SYNC_PAYMENT_NEEDS_SHIFT: "Máy chưa mở ca nên không ghi được thanh toán. Mở ca rồi gửi lại.",
   SYNC_REFUND_NEEDS_SHIFT:
     "Máy chưa mở ca nên lần hoàn tiền không được ghi. Mở ca, rồi hoàn lại đơn này từ Lịch sử đơn để két khớp sổ.",
