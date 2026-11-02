@@ -9,6 +9,7 @@ screens:
   - table-slips
   - refund-and-close-slips
 decisions:
+  - D-162
   - D-161
   - D-138
   - D-042
@@ -23,6 +24,7 @@ decisions:
   - D-082
   - D-083
 tests:
+  - apps/pos/src/app/table-void-offline-prints-one-cancel-slip.test.tsx
   - apps/pos/src/features/order/weighed-line-keeps-its-unit.test.ts
   - apps/pos/src/features/printing/kitchen-routing-and-cup-label-switches.test.ts
   - apps/pos/src/features/printing/print-sale-slips.test.ts
@@ -118,7 +120,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 | Bản xem trước — máy này chưa nối máy in, phiếu chưa được in. | Bản web, không có máy in | Đọc phiếu trên màn |
 | In lỗi (…) — phiếu chưa ra giấy. | Máy in không nhận (hết giấy, kẹt, mất kết nối) | Kiểm tra máy in; gửi bếp lại / in lại |
 | Không có món nào cần gửi bếp. | Gửi bếp khi không còn món mới | — |
-| Phiếu hủy đã in nhưng máy chưa báo được máy chủ: khi có mạng, lần gửi bếp sau có thể in lại phiếu hủy này. | Hủy món khi mất mạng | Báo bếp bỏ qua phiếu hủy in trùng |
+| Phiếu hủy đã in. Máy chưa báo được máy chủ: khi có mạng máy tự báo, lần gửi bếp sau không in lại phiếu này. | Hủy món khi mất mạng | Không cần làm gì; giữ máy có mạng để máy báo lên |
 
 ### Bản xem trước phải đọc được hết
 

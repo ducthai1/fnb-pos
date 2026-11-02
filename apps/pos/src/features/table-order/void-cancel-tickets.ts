@@ -18,9 +18,10 @@ export interface CancelTickets {
 
 /**
  * The cancel ticket a void of units the kitchen has owes its station, printed at once. The
- * server makes the cancel line (and its id) itself, so the till waits a moment for its copy
- * and records the ticket under that id. Offline, the ticket prints from the till's copy so
- * the station stops making the item, and is recorded on a later round once the server knows.
+ * server makes the cancel line under the id the till gave it, so the ticket is recorded under
+ * that id at once, offline too: the record waits in the outbox behind the void and reaches
+ * the server after it. The till still waits a moment for the server's copy, to print from it
+ * when it is there.
  */
 export async function printVoidCancelTickets(
   input: RoundInput & { readonly record: VoidRecord; readonly waitMs?: number },
@@ -46,7 +47,7 @@ export async function printVoidCancelTickets(
     slips.push(slip);
     if (!kitchenSlipHandedOver(slip.outcome)) unprinted.add(ticket.job.jobId);
     const part = kitchenSlipHandedOver(slip.outcome) ? recordablePart(ticket, unprinted) : null;
-    if (part !== null && stored !== null) {
+    if (part !== null) {
       sent = withSent(sent, part.sent);
       const recorded = { ...settled, state: { ...settled.state, version } };
       await session.record(markSentCommand(place, recorded, part, sent, input.now()));
