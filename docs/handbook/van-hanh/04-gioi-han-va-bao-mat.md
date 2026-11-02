@@ -9,6 +9,7 @@ decisions:
   - D-065
   - D-066
   - D-166
+  - D-167
 tests:
   - apps/api/src/security/rate-limiter.test.ts
   - apps/api/src/security/attempt-lockout.test.ts
@@ -20,6 +21,8 @@ tests:
   - apps/api/test/integration/server/api-entrypoint-runs-the-cleanup-job.test.ts
   - apps/api/test/integration/ops/expired-pairing-codes-and-sessions-are-purged.test.ts
   - apps/api/test/integration/sync/change-log-compaction-keeps-the-newest-copy.test.ts
+  - apps/api/test/integration/ops/a-tenant-left-without-members-is-still-swept.test.ts
+  - apps/api/test/integration/infra/every-organization-is-swept-after-the-migration.test.ts
   - packages/sync-client/src/local-store/contract/server-copy-contract-cases.ts
 ---
 
@@ -80,7 +83,8 @@ Người vận hành đặt biến môi trường trong `/etc/fnb/fnb-api.env` (
 | Phiên đăng nhập hết hạn | giữ thêm 30 ngày rồi xóa | `FNB_SESSION_RETENTION_DAYS` |
 | Nén dòng thay đổi gửi máy quầy (`change_log`) | bản sao cũ hơn 30 ngày **mà đã có bản mới hơn của cùng dòng** thì xóa | `FNB_CHANGE_LOG_COMPACT_AFTER_DAYS` |
 
-- Job xóa theo từng cửa hàng bằng role của ứng dụng (RLS vẫn áp), không đụng các bảng chỉ-thêm (nhật ký, chứng từ).
+- Job xóa theo từng cửa hàng bằng role của ứng dụng (RLS vẫn áp), không đụng các bảng chỉ-thêm (nhật ký, chứng từ). Job quét **mọi cửa hàng**, kể cả cửa hàng không còn ai đăng nhập trang quản lý được (mọi thành viên đã bị gỡ): phiên nhân viên hết hạn của cửa hàng đó vẫn được dọn.
+- Gỡ hết thành viên của một cửa hàng chỉ khóa **trang quản lý** của cửa hàng đó; máy quầy vẫn bán bằng phiên nhân viên còn hạn (phiên hết hạn, nhân viên nghỉ, máy bị thu hồi thì bị từ chối ngay như mọi khi).
 - **Nén `change_log`**: mỗi dòng (bàn, món, đơn, ca… của một chi nhánh) luôn giữ **bản mới nhất**, kể cả bản "đã xóa"; chỉ bản cũ đã bị thay mới bị xóa. Máy quầy mất mạng lâu hơn 30 ngày khi có mạng lại vẫn nhận đủ bản mới nhất của mọi thứ đã đổi, không phải tải lại từ đầu. Xóa theo lô 500 dòng, mỗi lô một giao dịch ngắn, nên máy quầy vẫn kéo / gửi bình thường lúc job chạy; một lượt dọn tối đa 100.000 dòng mỗi cửa hàng, phần còn lại lượt sau làm tiếp. Ngoài job này không ai xóa được `change_log` (role ứng dụng không có quyền xóa; role chủ bị trigger chặn).
 - Nhiều tiến trình API cùng một database ⇒ chỉ bật job ở một tiến trình.
 
