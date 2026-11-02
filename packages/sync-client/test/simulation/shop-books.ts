@@ -51,6 +51,12 @@ export class ShopBooks {
   /** Managers' approvals given to the cashiers' tills, and the refused payments set aside with one. */
   approvalsGiven = 0;
   dismissed = 0;
+  /** Redos of a table save that the server refused as stale in turn. */
+  readonly refusedRedos = new Set<string>();
+  /** Refused cash moves a cashier set aside with a manager's approval of the shift. */
+  readonly shiftDismissals: string[] = [];
+  /** Dismissals of a refused cash move a cashier sent without a manager: the server refuses them. */
+  readonly unapprovedDismissals: string[] = [];
 
   constructor(readonly earlier: EarlierDays = { commands: 0, refused: 0 }) {}
   /** Commands the script means the server to refuse: the only ones "needs attention" may hold. */

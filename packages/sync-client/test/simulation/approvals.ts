@@ -8,7 +8,11 @@ export interface ApprovalAction {
   readonly discountRate?: number;
   readonly refundAmount?: string;
   readonly voidedQuantity?: string;
-  readonly subject: { readonly orderId: string; readonly lineId?: string };
+  readonly subject: {
+    readonly orderId?: string;
+    readonly lineId?: string;
+    readonly shiftId?: string;
+  };
 }
 
 /** A manager at the till types their PIN: the approval's id, or null when the till cannot reach the server. */

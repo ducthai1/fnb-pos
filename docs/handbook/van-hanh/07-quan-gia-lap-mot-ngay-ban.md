@@ -7,6 +7,7 @@ decisions:
   - D-149
   - D-150
   - D-159
+  - D-164
 tests:
   - packages/sync-client/test/scenarios/simulated-shop-day.test.ts
 ---
@@ -50,18 +51,19 @@ Khách và món sinh **ngẫu nhiên có seed**: tên món, số lượng (có c
 | Một máy **lệch giờ** (nhanh hoặc chậm tới 8 phút) cả ngày | từ đầu |
 | **Máy chủ khởi động lại** giữa giờ | ~55% |
 | **Cập nhật app giữa ca**: máy chủ đòi bản tối thiểu mới (426), lệnh nằm lại, từng máy tải lại bản mới rồi gửi tiếp | ~72% |
+| **Thu chi két quá hạn mức bị từ chối**: thu ngân `counter-2` rút 900.000 ₫ (quá 500.000 ₫ một ca) mà không xin duyệt như máy bản cũ → máy chủ từ chối, tiền chưa rời két; thu ngân thử **tự bỏ qua** (máy bản cũ cho bấm) → máy chủ từ chối tiếp; quản lý duyệt *Mở két không bán hàng* **cho đúng ca đó** → bỏ qua cả hai lệnh | ~30% |
 
-Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ. Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
+Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ; bản gộp bị từ chối nữa thì gộp lại tiếp, tối đa 3 lần (dòng kết quả in `refusedRedos`). Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
 
 ### Cuối ngày tự kiểm
 
 Mỗi mục là một lời khẳng định có câu báo rõ; **tất cả cái sai được gom lại**, không dừng ở cái đầu tiên:
 
 1. Không mất, không trùng, không thừa đơn: mọi đơn quán đã làm có trên máy chủ đúng một lần, và máy chủ không có đơn nào quán chưa làm.
-2. Mỗi đơn kết thúc đúng như quán kết thúc (trả / hủy), đúng ngày kinh doanh, có **đúng một khoản thu** khớp phương thức và số tiền, đủ món và số lượng (kể cả món đã hủy bớt); hoàn tiền trả đúng số.
+2. Mỗi đơn kết thúc đúng như quán kết thúc (trả / hủy), đúng ngày kinh doanh, có **đúng một khoản thu** khớp phương thức và số tiền, đủ món và số lượng (kể cả món đã hủy bớt); hoàn tiền trả đúng số. **Món thu ngân đã bấm mà không có trên bill** chỉ được phép khi lệnh lưu của nó **còn nằm ở "Cần xử lý"** của một máy hoặc **đã bị bỏ qua có lý do** (nhật ký `sync.rejection_dismissed`); số đó in ở `missedTheBill` và được trừ khỏi số món báo cáo phải khớp. Ngoài hai chỗ đó, món mất là lỗi.
 3. Mỗi lệnh đi **đúng một lần**: số lệnh quán phát ra = số lệnh máy chủ nhận; không lệnh nào kẹt trong hàng chờ của máy; "Cần xử lý" chỉ chứa lệnh kịch bản cố ý để bị từ chối.
 4. Mọi máy **hiển thị y hệt máy chủ** (từng đơn, từng ca; so sâu từng trường).
-5. **Két mỗi ca khớp**: số tiền thu ngân đếm theo sổ của quán (đầu ca + thu − hoàn − rút) bằng số hệ thống chờ đợi, chênh 0.
+5. **Két mỗi ca khớp**: số tiền thu ngân đếm theo sổ của quán (đầu ca + thu − hoàn − rút) bằng số hệ thống chờ đợi, chênh 0. Khoản thu chi két bị từ chối **không vào sổ két** (máy chủ không nhận lệnh nào của nó), chỉ được bỏ qua với **đúng một** dòng nhật ký gắn ca có tên người duyệt; lần thu ngân tự bỏ qua phải bị từ chối `SYNC_APPROVAL_…`.
 6. **Số gọi** không trùng giữa các máy cùng chi nhánh.
 7. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
 

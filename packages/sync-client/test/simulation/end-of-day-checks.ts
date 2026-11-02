@@ -94,6 +94,11 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
   facts.orders = books.orders.size;
   facts.refunds = books.refunds.length;
 
+  // Items a cashier rang up that the server never took may only be missing from a bill while
+  // a till still lists the refused save under "Cần xử lý", or once it was set aside with a reason.
+  const parked = await parkedItems(run, query);
+  const missed = new Map<string, number>();
+
   // 2. Each one ended as the shop ended it, with the money and the goods the shop took.
   const lines = await query<StoredLine>(
     "SELECT l.id, l.order_id, l.line_type, l.quantity::text AS quantity, l.reverses_line_id " +
@@ -119,6 +124,7 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
         order,
         lines.filter((line) => line.order_id === order.id),
         say,
+        { parked, missed },
       );
       if (violations.length > before)
         say(`  what the server did with order ${order.id}: ${await historyOf(order.id)}`);
@@ -173,6 +179,35 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
   facts.refused = refused;
   facts.approvals = books.approvalsGiven;
   facts.dismissed = books.dismissed;
+  // A refused cash move is set aside only with a manager's approval of that very shift.
+  for (const commandId of books.shiftDismissals) {
+    const trace = await query<{ entity_kind: string; approved: string | null }>(
+      "SELECT entity_kind, payload->>'approvedByStaffId' AS approved FROM audit_log " +
+        "WHERE action = 'sync.rejection_dismissed' AND payload->>'rejectedCommandId' = $1",
+      [commandId],
+    );
+    if (trace.length !== 1 || trace[0]?.entity_kind !== "shift" || trace[0]?.approved == null)
+      say(
+        `the refused cash move ${commandId} was set aside without a manager's approval of its shift`,
+      );
+    const moved = await query(
+      "SELECT 1 FROM applied_command WHERE command_id = $1 AND status = 'accepted'",
+      [commandId],
+    );
+    if (moved.length > 0) say(`the refused cash move ${commandId} reached the drawer's book`);
+  }
+  // A cashier alone may not set a refused cash move aside: the server refuses the attempt.
+  for (const commandId of books.unapprovedDismissals) {
+    const answer = await query<{ status: string; code: string | null }>(
+      "SELECT status, code FROM applied_command WHERE command_id = $1",
+      [commandId],
+    );
+    if (answer[0]?.status !== "rejected" || !answer[0].code?.startsWith("SYNC_APPROVAL_"))
+      say(
+        `a cashier set a refused cash move aside alone (${commandId}: ${answer[0]?.status ?? "never arrived"} ${answer[0]?.code ?? ""})`,
+      );
+  }
+  facts.cashMovesSetAside = books.shiftDismissals.length;
 
   // 4. Every till shows what the server holds.
   const feed = await feedChanges(shop.server, shop.shop.tillA);
@@ -227,15 +262,52 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
       say(`call ${call} is used by ${owner} and ${order.openedBy}`);
     calls.set(call, order.openedBy);
   }
-  Object.assign(facts, await checkDayReports(run, say));
+  facts.refusedRedos = books.refusedRedos.size;
+  facts.missedTheBill = [...missed.values()].reduce((total, units) => total + units, 0);
+  Object.assign(facts, await checkDayReports(run, say, missed));
   return { violations, facts };
 }
 
-/** The goods of a settled order: every unit the shop put on it, and no other. */
+/**
+ * The item lines of refused saves that are still accounted for: listed on a till's "Cần xử
+ * lý" (where the cashier reads which items missed the bill), or set aside from it with a
+ * reason the server audited. By line id, with where they are.
+ */
+async function parkedItems(
+  run: DayRun,
+  query: <Row extends object>(sql: string, values?: unknown[]) => Promise<Row[]>,
+): Promise<Map<string, string>> {
+  const parked = new Map<string, string>();
+  const linesOf = (payload: unknown) =>
+    ((payload as { lines?: { lineId: string }[] } | null)?.lines ?? []).map((line) => line.lineId);
+  for (const device of run.ctx.shop.devices) {
+    for (const entry of await device.till.client.rejectedCommands()) {
+      if (entry.command.type !== "order.save_draft") continue;
+      for (const lineId of linesOf(entry.command.payload))
+        parked.set(lineId, `listed under "Cần xử lý" on ${device.name}`);
+    }
+  }
+  const setAside = await query<{ lines: unknown; reason: string | null }>(
+    "SELECT c.payload AS lines, a.payload->>'reasonCode' AS reason FROM audit_log a " +
+      "JOIN applied_command c ON c.command_id::text = a.payload->>'rejectedCommandId' " +
+      "WHERE a.action = 'sync.rejection_dismissed' AND c.type = 'order.save_draft'",
+  );
+  for (const row of setAside) {
+    for (const lineId of linesOf(row.lines)) parked.set(lineId, `set aside (${row.reason})`);
+  }
+  return parked;
+}
+
+/**
+ * The goods of a settled order: every unit the shop put on it, and no other. Units a refused
+ * save still accounts for (`parked`) may be missing; they are counted in `missed`, as the
+ * guest was not charged for them.
+ */
 function checkGoods(
   order: BookedOrder,
   stored: StoredLine[],
   say: (message: string) => void,
+  accounted: { parked: ReadonlyMap<string, string>; missed: Map<string, number> },
 ): void {
   const reversed = new Map<string, number>();
   for (const line of stored) {
@@ -253,6 +325,11 @@ function checkGoods(
   }
   for (const [lineId, item] of order.items) {
     const has = net.get(lineId);
+    const short = Number(item.quantity) - (has ?? 0);
+    if (short > 0 && accounted.parked.has(lineId)) {
+      accounted.missed.set(lineId, short);
+      continue;
+    }
     if (has === undefined)
       say(`order ${order.id}: the line ${lineId} (${item.quantity} of ${item.productId}) is gone`);
     else if (has !== Number(item.quantity))
