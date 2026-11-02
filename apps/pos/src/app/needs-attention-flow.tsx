@@ -23,6 +23,7 @@ import {
   dismissalReasonsOf,
   shiftOfRefused,
 } from "../features/sync/rejection-routes";
+import { useMissedItemsNotes } from "../features/sync/use-missed-items-notes";
 import { useOpenableOrders } from "../features/sync/use-openable-orders";
 import { vi } from "../messages/vi";
 import { commandNameOf } from "../messages/vi-sync-errors";
@@ -77,6 +78,9 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
     [props.rejected, gone],
   );
   const openable = useOpenableOrders(client, rejected);
+  const missed = useMissedItemsNotes(client, menu, rejected);
+  // Items that missed a bill paid elsewhere are named whatever an action said back.
+  const said = useMemo(() => new Map([...notes, ...missed]), [notes, missed]);
   const redoable = useMemo(
     () => new Set(rejected.filter(canRedo).map((entry) => entry.command.commandId)),
     [rejected],
@@ -129,7 +133,10 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
       const shiftId = shiftOfRefused(entry);
       if (dismissalNeedsShiftApproval(entry)) {
         const said = vi.approval.actions.dismissRefusedShift(commandNameOf(entry.command.type));
-        const action = { key: "open_drawer", ...(shiftId === null ? {} : { subject: { shiftId } }) } as const;
+        const action = {
+          key: "open_drawer",
+          ...(shiftId === null ? {} : { subject: { shiftId } }),
+        } as const;
         const outcome = await gate.require(action, said);
         if (outcome.kind === "denied") return refusedWith(vi.approval.denied);
         const approval = approvalOf(outcome);
@@ -204,7 +211,7 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
       onCloseWithSettledQr={(orderId) => void close(orderId)}
       redoable={redoable}
       openable={openable}
-      notes={notes}
+      notes={said}
       busy={busy}
       onRedo={redo}
       onOpenOrder={props.onOpenOrder}

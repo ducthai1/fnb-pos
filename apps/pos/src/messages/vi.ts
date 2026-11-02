@@ -109,11 +109,13 @@ export const vi = {
     openForApproval: "Mở đơn, xin duyệt rồi gửi lại",
     dismiss: "Bỏ qua lệnh này…",
     working: "Đang làm…",
+    unknownItem: "món không còn trên thực đơn",
     notes: {
       nothingToAdd: "Máy chủ đã có đủ các món này, lệnh được gỡ khỏi danh sách.",
       notDraft:
         "Đơn đã được trả hoặc hủy ở máy khác nên không lưu thêm món được. Mở đơn mới cho các món cần, hoặc bỏ qua lệnh và ghi lý do.",
       noCopy: "Chưa nhận được bản mới của đơn từ máy chủ. Có mạng rồi thử lại.",
+      missedItems: (items: string) => `Món chưa vào đơn: ${items}.`,
       failed: "Chưa làm được. Thử lại, hoặc báo quản lý.",
     },
     dismissal: {
