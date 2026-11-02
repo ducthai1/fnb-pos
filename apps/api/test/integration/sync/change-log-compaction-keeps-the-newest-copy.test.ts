@@ -49,10 +49,17 @@ async function write(branchId: string, entityId: string, snapshot: Record<string
   });
 }
 
-/** The database's clock between two writes: copies written before it are "old". */
+const pause = () => new Promise((resolve) => setTimeout(resolve, 5));
+
+/**
+ * The database's clock between two writes: copies written before it are "old". The database
+ * keeps microseconds and a JS Date milliseconds, so the moment read is a pause away from the
+ * writes on both sides: a write in the same millisecond would land after the rounded moment.
+ */
 async function aMomentLater(): Promise<Date> {
+  await pause();
   const { rows } = await pool.query<{ at: Date }>("SELECT clock_timestamp() AS at");
-  await new Promise((resolve) => setTimeout(resolve, 5));
+  await pause();
   return rows[0]!.at;
 }
 
