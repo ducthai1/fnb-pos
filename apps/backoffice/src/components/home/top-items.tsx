@@ -1,4 +1,4 @@
-import { quantityText, vndText } from "../../lib/format/business-day";
+import { soldQuantityText, vndText } from "../../lib/format/business-day";
 import type { DayItem } from "../../lib/reports/day-figures";
 import { vi } from "../../messages/vi";
 
@@ -15,7 +15,9 @@ export function TopItems({ items }: { items: readonly DayItem[] }) {
             {index + 1}
           </span>
           <span className="bo-top-items__name bo-wrap">{item.name}</span>
-          <span className="bo-top-items__units">{T.units(quantityText(item.quantity))}</span>
+          <span className="bo-top-items__units">{item.measureUnit === undefined
+              ? T.units(soldQuantityText(item.quantity))
+              : soldQuantityText(item.quantity, item.measureUnit)}</span>
           <span className="bo-top-items__amount" data-amount={item.net}>
             {vndText(item.net)}
           </span>

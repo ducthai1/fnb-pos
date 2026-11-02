@@ -73,7 +73,14 @@ export class ItemTally {
 
   add(lines: readonly SoldLine[]): void {
     for (const { line, quantity: sold, amounts } of lines) {
-      const key = [line.lineType, line.productId, line.variantId, line.modifierOptionId].join("|");
+      // A weighed product sold per kg and later per 100 g is two rows: 0.35 and 3.5 are no sum.
+      const key = [
+        line.lineType,
+        line.productId,
+        line.variantId,
+        line.modifierOptionId,
+        line.measureUnit ?? "",
+      ].join("|");
       const sum = this.items.get(key) ?? {
         line,
         quantity: quantity(0),
@@ -101,6 +108,7 @@ export class ItemTally {
       modifierOptionId: sum.line.modifierOptionId,
       name: sum.line.nameSnapshot,
       quantity: quantityToDecimalString(sum.quantity),
+      ...(sum.line.measureUnit === undefined ? {} : { measureUnit: sum.line.measureUnit }),
       gross: moneyToWire(sum.gross),
       discount: moneyToWire(sum.discount),
       net: moneyToWire(sum.net),

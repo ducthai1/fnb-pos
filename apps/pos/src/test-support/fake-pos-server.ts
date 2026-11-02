@@ -92,6 +92,12 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     deviceRevoked: false,
     /** Pushes fail as if the network dropped, while signing in still answers. */
     pushesHeld: false,
+    /** What every flush is answered with instead, when a test scripts a refusal. */
+    flushRefusal: null as SyncTransportError | null,
+    /** Flush codes a manager issued for this revoked till; a final batch spends its code. */
+    flushCodes: new Set<string>(),
+    /** Every batch the revoked till sent under a code, and whether it said it was the last. */
+    flushes: [] as { code: string; final: boolean; commands: SyncCommandEnvelope[] }[],
     /** The staff credential each batch was pushed with, and the commands in it. */
     pushedWith: [] as { token: string | null; commands: SyncCommandEnvelope[] }[],
     calls: {
@@ -226,6 +232,18 @@ export function fakeDependencies(
         return server.transport.pullChanges(cursor, limit);
       },
       deviceState: () => server.transport.deviceState(),
+      // As the API: only a revoked till sends here, and only under a live code.
+      async flushUnderGrant(code, batch, final) {
+        const { state } = server;
+        if (!state.online || state.pushesHeld) throw new SyncTransportError("network", null, "offline");
+        state.flushes.push({ code, final, commands: [...batch] });
+        if (state.flushRefusal !== null) throw state.flushRefusal;
+        if (!state.flushCodes.has(code)) {
+          throw new SyncTransportError("http", 401, "answered 401", "API_DEVICE_FLUSH_GRANT_INVALID");
+        }
+        if (final) state.flushCodes.delete(code);
+        return server.transport.pushCommands(batch);
+      },
       async pushCommands(batch) {
         refuseWhenTheServerSays(server.state);
         const token = staffToken();

@@ -27,6 +27,7 @@ import { registerBranchListRoute } from "./routes/branches/branch-list-route";
 import { registerCatalogRoutes } from "./routes/catalog/register-catalog-routes";
 import { registerDeviceListRoute } from "./routes/devices/device-list-route";
 import { registerDeviceRoutes } from "./routes/devices/device-routes";
+import { registerFlushGrantRoutes } from "./routes/devices/flush-grant-routes";
 import { registerProductImageRoutes } from "./routes/media/product-image-routes";
 import { registerPairingRoutes } from "./routes/devices/pairing-routes";
 import { registerEInvoiceProfileRoutes } from "./routes/einvoice/einvoice-profile-routes";
@@ -184,6 +185,7 @@ export function buildApp(dependencies: AppDependencies): FastifyInstance {
   registerPairingRoutes(app, context);
   registerBranchListRoute(app, context);
   registerDeviceRoutes(app, context);
+  registerFlushGrantRoutes(app, context);
   registerDeviceListRoute(app, context);
   registerCreateStaffRoute(app, context);
   registerStaffListRoute(app, context);

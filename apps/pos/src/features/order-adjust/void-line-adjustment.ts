@@ -67,7 +67,8 @@ export function planVoid(settled: AdjustableOrder, request: VoidRequest): VoidPl
 }
 
 /**
- * order.void_line with the units and the reason; the server builds the cancel line itself.
+ * order.void_line with the units and the reason; the server builds the cancel line itself,
+ * under the id the till's copy gave it.
  * Units the kitchen never saw come off the item, which is then held as it is (the void
  * record points at it); the rest become a cancel line, here and on the server.
  */
@@ -95,6 +96,8 @@ export function voidAdjustment(
     quantity: quantityToDecimalString(request.quantity),
     ...reasonOnWire(request.reason),
     ...(approval === null ? {} : { approvalId: approval.approvalId }),
+    // The server's cancel line takes the id the till's own copy (and its ticket) has.
+    ...(record.reversalLineId === null ? {} : { reversalLineId: record.reversalLineId }),
   };
   const adjusted = adjustedWith(
     place,

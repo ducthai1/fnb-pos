@@ -14,8 +14,8 @@ export function dismissRejectionCommand(
   refused: RejectedCommand,
   reason: ChosenReason,
   at: number,
-  /** What the till worked out beyond the refused command itself: its order, a manager's approval. */
-  extra: { orderId?: string | null; approvalId?: string | null } = {},
+  /** What the till worked out beyond the refused command itself: its order or shift, an approval. */
+  extra: { orderId?: string | null; shiftId?: string | null; approvalId?: string | null } = {},
 ): LocalCommand {
   const orderId = extra.orderId ?? orderIdOfRejected(refused);
   const id = refused.command.commandId;
@@ -24,6 +24,7 @@ export function dismissRejectionCommand(
     rejectedType: refused.command.type,
     rejectedCode: refused.code,
     ...(orderId === null ? {} : { orderId }),
+    ...(extra.shiftId == null ? {} : { shiftId: extra.shiftId }),
     ...reasonOnWire(reason),
     ...(extra.approvalId == null ? {} : { approvalId: extra.approvalId }),
   };

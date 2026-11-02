@@ -18,8 +18,10 @@ import { type RedoOutcome, redoRefusedDraft } from "../features/sync/redo-refuse
 import {
   canRedo,
   dismissalNeedsApproval,
+  dismissalNeedsShiftApproval,
   dismissalNeedsWords,
   dismissalReasonsOf,
+  shiftOfRefused,
 } from "../features/sync/rejection-routes";
 import { useOpenableOrders } from "../features/sync/use-openable-orders";
 import { vi } from "../messages/vi";
@@ -123,7 +125,22 @@ export function NeedsAttentionFlow(props: NeedsAttentionFlowProps) {
         if (approval === undefined) return { kind: "nothing" };
         approvalId = approval?.approvalId ?? null;
       }
-      const extra = { orderId: order?.id ?? null, approvalId };
+      // Cash a drawer moved with nothing on the books is a manager's call for that shift.
+      const shiftId = shiftOfRefused(entry);
+      if (dismissalNeedsShiftApproval(entry)) {
+        const said = vi.approval.actions.dismissRefusedShift(commandNameOf(entry.command.type));
+        const action = { key: "open_drawer", ...(shiftId === null ? {} : { subject: { shiftId } }) } as const;
+        const outcome = await gate.require(action, said);
+        if (outcome.kind === "denied") return refusedWith(vi.approval.denied);
+        const approval = approvalOf(outcome);
+        if (approval === undefined) return { kind: "nothing" };
+        approvalId = approval?.approvalId ?? null;
+      }
+      const extra = {
+        orderId: order?.id ?? null,
+        shiftId: dismissalNeedsShiftApproval(entry) ? shiftId : null,
+        approvalId,
+      };
       await client.enqueue(dismissRejectionCommand(place, entry, reason, Date.now(), extra));
       await settle(entry);
       onSent();

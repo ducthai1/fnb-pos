@@ -1,6 +1,7 @@
 import {
   DISMISSAL_APPROVAL_TYPES,
   DISMISSAL_NOTE_REQUIRED_TYPES,
+  DISMISSAL_SHIFT_APPROVAL_TYPES,
   type DismissRejectionPayload,
   dismissRejectionPayloadSchema,
 } from "@fnb/contracts";
@@ -63,6 +64,27 @@ async function orderOfTheRecordedRefusal(
 }
 
 /**
+ * The shift a dismissed shift command is bound to: the one the till names, which must be a
+ * shift of this very till (a till cannot borrow an approval given for another till's drawer);
+ * none named, none bound, and then only a holder of the key may set it aside.
+ */
+async function shiftOfTheDismissal(
+  client: pg.PoolClient,
+  deviceId: string,
+  payload: DismissRejectionPayload,
+): Promise<string | undefined> {
+  if (payload.shiftId === undefined || !DISMISSAL_SHIFT_APPROVAL_TYPES.has(payload.rejectedType)) {
+    return undefined;
+  }
+  const { rows } = await client.query<{ device_id: string }>(
+    "SELECT device_id FROM shift WHERE id = $1",
+    [payload.shiftId],
+  );
+  if (rows[0]?.device_id !== deviceId) throw new CommandRejection(SYNC_ERROR_CODES.invalidPayload);
+  return payload.shiftId;
+}
+
+/**
  * sync.rejection_dismissed: a staff member set aside a command the server refused for good
  * and said why. Nothing of the refused command is applied; the audit trail keeps who gave it
  * up, what it was and the reason, so a payment or a kitchen ticket that was refused cannot
@@ -72,7 +94,9 @@ async function orderOfTheRecordedRefusal(
  * or food, so, like closing an unpaid table, it is the staff member's alone only with
  * close_unpaid_table and otherwise needs a manager's approval of exactly that order. One
  * that names no order has nothing to bind an approval to, so only a staff member who holds
- * close_unpaid_table can set it aside.
+ * close_unpaid_table can set it aside. A refused cash move or shift close is cash in or out
+ * of the drawer with nothing on the books: it needs open_drawer, or a manager's approval of
+ * that shift.
  */
 async function dismissRejection(context: SyncCommandContext, payload: DismissRejectionPayload) {
   const { client, staffId, device } = context;
@@ -81,6 +105,7 @@ async function dismissRejection(context: SyncCommandContext, payload: DismissRej
   if (DISMISSAL_NOTE_REQUIRED_TYPES.has(payload.rejectedType) && payload.reasonNote === undefined) {
     throw new CommandRejection(SYNC_ERROR_CODES.reasonNoteRequired);
   }
+  const shiftId = await shiftOfTheDismissal(client, device.deviceId, payload);
   const spent = DISMISSAL_APPROVAL_TYPES.has(payload.rejectedType)
     ? await requirePermission(
         context,
@@ -90,12 +115,23 @@ async function dismissRejection(context: SyncCommandContext, payload: DismissRej
         },
         payload.approvalId,
       )
-    : null;
+    : DISMISSAL_SHIFT_APPROVAL_TYPES.has(payload.rejectedType)
+      ? await requirePermission(
+          context,
+          { key: "open_drawer", ...(shiftId === undefined ? {} : { subject: { shiftId } }) },
+          payload.approvalId,
+        )
+      : null;
+  const entity =
+    orderId !== undefined
+      ? { entityKind: "sales_order", entityId: orderId }
+      : shiftId !== undefined
+        ? { entityKind: "shift", entityId: shiftId }
+        : { entityKind: "device", entityId: device.deviceId };
   await appendAudit(client, {
     actor: { kind: "staff", id: staffId },
     action: "sync.rejection_dismissed",
-    entityKind: orderId === undefined ? "device" : "sales_order",
-    entityId: orderId ?? device.deviceId,
+    ...entity,
     payload: {
       rejectedCommandId: payload.rejectedCommandId,
       rejectedType: payload.rejectedType,

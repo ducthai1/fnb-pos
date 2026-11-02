@@ -8,6 +8,7 @@ screens:
   - cash-move
   - close-shift
 decisions:
+  - D-163
   - D-129
   - D-013
   - D-036
@@ -18,6 +19,7 @@ decisions:
   - D-080
   - D-083
 tests:
+  - apps/api/test/integration/sync/dismissing-a-refused-command-is-audited.test.ts
   - apps/pos/src/app/cash-move-with-approval.test.tsx
   - apps/pos/src/screens/shift/shift-screens.test.tsx
   - apps/pos/src/app/close-shift-with-count.test.tsx
@@ -75,6 +77,8 @@ tests:
 6. Máy hiện **Đã đóng ca** — "Ca đã đóng, chênh lệch …" — và **phiếu chốt ca** (xem [10-phieu-in.md](10-phieu-in.md)). Bấm **Mở ca mới** để bắt đầu ca sau (xem [02-mo-ca.md](02-mo-ca.md)).
 
 ## Luật và giới hạn
+
+- Lệnh thu chi két hoặc đóng ca **bị máy chủ từ chối** (ở mục **Cần xử lý**) chỉ bỏ qua được khi có quyền *Mở két không bán hàng* (`open_drawer`) hoặc quản lý duyệt tại chỗ cho **đúng ca đó** — xem [Mất mạng và đồng bộ](09-mat-mang-va-dong-bo.md). Bỏ qua lệnh đóng ca không đóng ca: ca vẫn mở, đóng lại như thường.
 
 - **Tiền dự kiến = tiền đầu ca + thu tiền mặt − hoàn tiền mặt + thu vào két − chi khỏi két.** Chỉ tiền mặt; chuyển khoản QR không tính vào két.
 - Khoản tiền mặt máy chủ **vừa nhận** từ máy này (thanh toán, hoàn tiền) được **giữ trong tiền dự kiến** cho tới khi bản sao ca trên máy đã đạt số thứ tự mà máy chủ báo kèm câu trả lời ("số phiên bản ca"), nên tiền dự kiến không tụt rồi nhảy lên trong khoảnh khắc giữa lúc máy chủ nhận và lúc bản ca mới về.

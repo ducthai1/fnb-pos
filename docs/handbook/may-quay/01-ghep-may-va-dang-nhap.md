@@ -11,6 +11,7 @@ screens:
   - bootstrap-failed
   - staff-picker
   - pin-entry
+  - till-revoked-flushed
 decisions:
   - D-024
   - D-026
@@ -22,6 +23,7 @@ decisions:
   - D-101
   - D-143
   - D-144
+  - D-160
 tests:
   - apps/pos/src/screens/pair-device/pair-device-screen.test.tsx
   - apps/pos/src/screens/staff-login/staff-login-screen.test.tsx
@@ -30,6 +32,9 @@ tests:
   - apps/pos/src/app/staff-list-follows-the-feed.test.tsx
   - apps/pos/src/app/staff-hand-over-with-commands-waiting.test.tsx
   - apps/pos/src/app/till-revoked-by-the-server.test.tsx
+  - apps/pos/src/app/till-revoked-sends-the-rest.test.tsx
+  - packages/sync-client/src/sync/flush-outbox-under-grant.test.ts
+  - apps/api/test/integration/devices/revoked-till-sends-the-rest-under-a-grant.test.ts
   - apps/pos/src/app/till-sign-out-ends-the-session.test.tsx
   - apps/pos/src/features/sync/till-sync-status.test.ts
   - packages/sync-client/src/local-store/sqlite-local-store-contract.test.ts
@@ -95,7 +100,12 @@ Nếu chủ quán **thu hồi** máy ở trang quản lý, máy biết ngay ở 
 
 - Máy **không xóa gì một mình**. Màn liệt kê các thao tác **chưa gửi** (theo loại, kèm số lượng) và số lệnh còn ở mục **Cần xử lý**: máy chủ sẽ không nhận chúng từ máy đã thu hồi nữa.
 - Máy sạch (không còn gì chưa gửi): bấm **Ghép lại máy**, máy xóa thông tin ghép và dữ liệu bán hàng cũ rồi về màn **Ghép máy với cửa hàng**, có dòng giải thích "Máy vừa được gỡ khỏi cửa hàng…".
-- Máy còn thao tác chưa gửi: bấm **Ghép lại máy** chỉ mở bước xác nhận (nút đỏ **Xóa N thao tác và ghép lại máy**, kèm nút **Chưa xóa, giữ nguyên**). Chưa bấm nút đỏ thì mọi thứ vẫn nằm trên máy: báo quản lý và ghi lại các đơn đó trước.
+- Máy còn thao tác chưa gửi: **gửi nốt trước khi xóa**. Bấm **Gửi nốt N thao tác bằng mã quản lý**, nhờ quản lý mở trang quản lý → **Thiết bị**, bấm **Cho gửi nốt** ở dòng của máy này rồi đọc mã (8 ký tự) cho bạn; gõ mã (không phân biệt hoa thường, gạch ngang hay dấu cách) rồi bấm **Gửi nốt N thao tác**. Máy gửi một lần mọi thao tác còn giữ, kể cả tiền đã thu, và máy chủ kiểm từng thao tác như lúc đồng bộ thường; tên người làm là thu ngân đã làm ra thao tác đó.
+  - Gửi xong máy báo **Máy chủ đã nhận N thao tác.**
+  - Thao tác máy chủ **không nhận** (đơn vừa bị máy khác sửa, ca chưa mở…) hiện thành danh sách **Máy chủ không nhận M thao tác — báo quản lý ghi lại trước khi xóa**: từng dòng có tên thao tác, lý do, và số tiền nếu là thanh toán / hoàn tiền. Máy **không** tự làm lại các thao tác này (máy đã bị gỡ): quản lý ghi lại rồi làm lại trên máy khác.
+  - Mất mạng giữa chừng: phần đã gửi vẫn ở máy chủ, phần còn lại vẫn ở máy; có mạng lại thì bấm gửi lại **với cùng mã**. Thao tác nào máy chủ đã nhận thì không bị ghi hai lần.
+  - Máy **vẫn bị gỡ** sau khi gửi nốt: không bán được, không đồng bộ được.
+- Bấm **Ghép lại máy** khi còn thao tác chưa gửi hoặc còn thao tác máy chủ không nhận thì chỉ mở bước xác nhận (nút đỏ **Xóa N thao tác và ghép lại máy**, N gồm cả hai loại, kèm nút **Chưa xóa, giữ nguyên**). Chưa bấm nút đỏ thì mọi thứ vẫn nằm trên máy.
 - Ghép lại xong là máy **mới** (số máy, số gọi món, số thứ tự lệnh bắt đầu lại), dùng mã ghép mới ở mục Thiết bị.
 
 ### Đăng xuất
@@ -127,6 +137,12 @@ Nút **Đăng xuất** trên thanh trên cùng đưa máy về màn chọn nhân
 | Máy này đã bị gỡ khỏi cửa hàng | Máy đã bị thu hồi ở trang quản lý | Xem các thao tác chưa gửi (nếu có), báo chủ quán, rồi **Ghép lại máy** bằng mã mới |
 | Máy vừa được gỡ khỏi cửa hàng và đã xóa dữ liệu bán hàng cũ. Nhập mã ghép mới… | Vừa ghép lại sau khi bị thu hồi | Nhập mã ghép mới ở mục Thiết bị |
 | Không xóa được dữ liệu trên máy. Tải lại trang rồi thử lại. | Trình duyệt không xóa được dữ liệu máy | Tải lại trang, bấm lại |
+| Mã gồm 8 ký tự. Nhập đủ mã quản lý đọc. | Gõ thiếu ký tự của mã cho gửi nốt | Gõ đủ 8 ký tự |
+| Mã không đúng, đã hết hạn hoặc đã dùng. Xin quản lý tạo mã mới ở trang quản lý (mục Thiết bị). | Mã sai, quá 10 phút, đã dùng xong, hoặc là mã của máy khác | Quản lý bấm **Cho gửi nốt** lần nữa |
+| Không gửi được vì mất kết nối. Thao tác chưa gửi vẫn nằm trên máy: kiểm tra mạng rồi bấm gửi lại với cùng mã. | Mất mạng lúc gửi nốt | Có mạng lại thì bấm gửi lại, cùng mã |
+| Máy chủ không nhận từ phiên bản máy này nữa. Cập nhật máy rồi gửi lại. | Bản máy quá cũ so với máy chủ | Cập nhật rồi gửi lại |
+| Máy chủ báo máy này chưa bị gỡ. Tải lại trang để bán tiếp. | Máy chưa bị thu hồi (hoặc nhầm máy) | Tải lại trang |
+| Máy chủ chưa nhận hết. Thao tác còn lại vẫn nằm trên máy, thử gửi lại với cùng mã. | Lỗi khác lúc gửi nốt | Gửi lại; vẫn lỗi thì báo quản lý |
 | POS đang mở ở tab khác — Đóng tab kia (hoặc chuyển sang nó) rồi tải lại trang này. | Mở POS ở hai tab | Đóng bớt một tab, bấm **Tải lại** |
 | Trình duyệt này không giữ được đơn khi mất mạng — Hãy dùng Chrome hoặc Edge bản mới, hoặc ứng dụng POS cài trên máy. | Trình duyệt quá cũ hoặc không hỗ trợ | Đổi trình duyệt |
 | Không mở được dữ liệu bán hàng trên máy — Tải lại trang. Nếu vẫn lỗi, báo cho quản lý. | Dữ liệu trên máy không mở được | Tải lại; vẫn lỗi thì báo quản lý |
@@ -145,13 +161,13 @@ Nút **Đăng xuất** trên thanh trên cùng đưa máy về màn chọn nhân
 
 ## Mất mạng thì sao
 
-- **Ghép máy cần mạng.** Không có mạng thì không ghép được.
+- **Ghép máy cần mạng.** Không có mạng thì không ghép được. **Gửi nốt** thao tác của máy bị thu hồi cũng cần mạng.
 - **Đăng nhập bằng PIN cần mạng** (máy chủ kiểm PIN). Người **đã đăng nhập** thì vẫn bán tiếp bình thường khi mất mạng; vì vậy nên đăng nhập đầu ca khi mạng còn tốt.
 - Khi mất mạng mà đổi người đứng quầy, các lệnh đang chờ vẫn mang tên người đã làm ra chúng.
 
 ## Chưa làm / sắp có
 
 - Ứng dụng cài cho Windows, Android, iPad (giữ khóa máy trong kho khóa của hệ điều hành). Hiện chỉ có bản chạy trong trình duyệt; khóa của máy được giữ trong bộ nhớ trang.
-- Thao tác chưa gửi của máy bị thu hồi chưa chuyển sang máy khác được: máy chỉ liệt kê rồi xóa khi thu ngân chủ động xác nhận.
+- Máy bị thu hồi chưa tự làm lại thao tác máy chủ không nhận khi gửi nốt (ví dụ lưu đơn trên bản cũ của đơn): máy chỉ liệt kê để quản lý ghi lại.
 - Đăng nhập PIN khi mất mạng.
 - Chấm công (giờ vào/ra theo ca).

@@ -1,8 +1,8 @@
 "use client";
 
-import { TabletSmartphone, Unplug } from "lucide-react";
+import { SendHorizontal, TabletSmartphone, Unplug } from "lucide-react";
 import { useState } from "react";
-import type { Device } from "../../lib/api/devices-api";
+import type { Device, FlushGrant } from "../../lib/api/devices-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
 import { formatDateTime } from "../../lib/format/format-time";
 import { vi } from "../../messages/vi";
@@ -11,8 +11,9 @@ import { useSession } from "../shell/session-context";
 import { ConfirmPanel } from "../ui/confirm-panel";
 import { type DataColumn, DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
-import { SuccessNotice } from "../ui/error-notice";
+import { ErrorNotice, SuccessNotice } from "../ui/error-notice";
 import { Icon } from "../ui/icon";
+import { FlushGrantPanel } from "./flush-grant-panel";
 
 const T = vi.devices;
 
@@ -58,6 +59,23 @@ export function DevicesTable({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [granted, setGranted] = useState<{ device: Device; grant: FlushGrant } | null>(null);
+  const [granting, setGranting] = useState<string | null>(null);
+  const [grantError, setGrantError] = useState<string | null>(null);
+
+  // A revoked till may send what it still holds once, under a code for that till alone.
+  async function grantFlush(device: Device) {
+    setGranting(device.id);
+    setGrantError(null);
+    setDone(null);
+    const result = await api.createFlushGrant(device.id);
+    setGranting(null);
+    if (!result.ok) {
+      if (isSignedOut(result)) signedOut();
+      return setGrantError(failureMessage(result));
+    }
+    setGranted({ device, grant: result.value });
+  }
 
   async function revoke(device: Device) {
     setBusy(true);
@@ -76,6 +94,15 @@ export function DevicesTable({
   return (
     <div className="bo-stack">
       <SuccessNotice message={done} />
+      <ErrorNotice message={grantError} />
+      {granted !== null && (
+        <FlushGrantPanel
+          key={granted.grant.code}
+          deviceName={granted.device.name}
+          grant={granted.grant}
+          onClose={() => setGranted(null)}
+        />
+      )}
       {confirming !== null && (
         <ConfirmPanel
           title={T.revokeTitle(confirming.name)}
@@ -104,7 +131,20 @@ export function DevicesTable({
           { key: "revoked", label: T.filters.revoked, test: (device) => device.revokedAt !== null },
         ]}
         actions={(device) =>
-          device.revokedAt === null && (
+          device.revokedAt !== null ? (
+            <div>
+              <button
+                type="button"
+                className="bo-button bo-button--sm"
+                aria-label={T.flushGrantLabel(device.name)}
+                disabled={granting !== null}
+                onClick={() => void grantFlush(device)}
+              >
+                <Icon of={SendHorizontal} size={16} />
+                {granting === device.id ? T.flushGranting : T.flushGrant}
+              </button>
+            </div>
+          ) : (
             <div>
               <button
                 type="button"

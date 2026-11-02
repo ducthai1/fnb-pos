@@ -22,11 +22,30 @@ function readPairingCode(body: unknown): PairingCode | null {
     : { code, branchId, expiresAt };
 }
 
+/** A one-time code letting one revoked till send the commands it still holds, until expiresAt. */
+export interface FlushGrant {
+  readonly code: string;
+  readonly deviceId: string;
+  readonly expiresAt: string;
+}
+
+function readFlushGrant(body: unknown): FlushGrant | null {
+  if (!isRecord(body)) return null;
+  const code = textOf(body, "code");
+  const deviceId = textOf(body, "deviceId");
+  const expiresAt = textOf(body, "expiresAt");
+  return code === null || deviceId === null || expiresAt === null
+    ? null
+    : { code, deviceId, expiresAt };
+}
+
 export interface DevicesApi {
   /** `GET /devices?branchId=` → `{ devices: [{ id, name, branchId, pairedAt, revokedAt }] }`. */
   listDevices(branchId: string): Promise<ApiResult<Device[]>>;
   createPairingCode(branchId: string): Promise<ApiResult<PairingCode>>;
   revokeDevice(deviceId: string): Promise<ApiResult<true>>;
+  /** `POST /devices/:id/flush-grants`, for a revoked till only. */
+  createFlushGrant(deviceId: string): Promise<ApiResult<FlushGrant>>;
 }
 
 export function httpDevicesApi(base: string, fetchImpl: FetchLike): DevicesApi {
@@ -46,6 +65,10 @@ export function httpDevicesApi(base: string, fetchImpl: FetchLike): DevicesApi {
     async revokeDevice(deviceId) {
       const url = `${base}/devices/${encodeURIComponent(deviceId)}/revoke`;
       return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), noContent);
+    },
+    async createFlushGrant(deviceId) {
+      const url = `${base}/devices/${encodeURIComponent(deviceId)}/flush-grants`;
+      return resultOf(await requestJson(fetchImpl, url, { method: "POST" }), readFlushGrant);
     },
   };
 }

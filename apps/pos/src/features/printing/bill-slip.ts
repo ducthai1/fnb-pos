@@ -26,14 +26,14 @@ export interface BillLookup {
 
 /**
  * Each item with its options, every amount as the domain priced the line; a weighed item
- * with its grams and what its price is per, read from the menu's unit for it.
+ * with its grams and what its price is per, in the unit the line was priced per.
  */
 export function billLinesOf(menu: TillMenu, priced: PricedCounterOrder): BillLine[] {
   const grossOf = new Map(priced.totals.lines.map((line) => [line.lineId, line.gross]));
   return itemsOf(priced.lines).map((item) => ({
     name: item.nameSnapshot,
     quantity: item.quantity,
-    weighed: weighedOnSlip(menu, item.productId, item.quantity),
+    weighed: weighedOnSlip(menu, item.productId, item.quantity, item.measureUnit),
     unitPrice: item.unitPrice,
     amount: lineAmountOf(priced, item.id),
     children: treeUnder(priced.lines, item.id).map(({ line: child, depth }) => {

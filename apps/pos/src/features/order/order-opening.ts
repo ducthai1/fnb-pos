@@ -60,16 +60,17 @@ function modifierOf(menu: TillMenu, item: OrderLine, line: OrderLine): ModifierS
 
 /**
  * What the cashier typed for a stored item, as its cart line carries it: the price of an
- * open-price item, the grams of a weighed one (its quantity, in the product's unit). A weight
- * the product's unit cannot read back in whole grams (the unit changed since) is left out,
- * and the line then cannot be priced until it is weighed again.
+ * open-price item, the grams of a weighed one (its quantity, in the unit the line was priced
+ * per, or the product's for a line that does not say). A weight that unit cannot read back in
+ * whole grams is left out, and the line then cannot be priced until it is weighed again.
  */
 export function entryOfStored(
   menu: TillMenu,
-  item: Pick<OrderLine, "productId" | "quantity" | "unitPrice" | "priceSource">,
+  item: Pick<OrderLine, "productId" | "quantity" | "unitPrice" | "priceSource" | "measureUnit">,
 ): Pick<CartLine, "quantity" | "enteredPrice" | "grams"> {
   const product = item.productId === null ? undefined : menu.productsById.get(item.productId);
-  const per = product === undefined ? null : measureUnitOf(product);
+  // The grams are read in the unit the line was priced per; a server too old to say gives none.
+  const per = product === undefined ? null : (item.measureUnit ?? measureUnitOf(product));
   const typed = item.priceSource === "manual" ? { enteredPrice: item.unitPrice } : {};
   if (per === null) return { ...typed, quantity: Number(item.quantity / QUANTITY_SCALE) };
   try {

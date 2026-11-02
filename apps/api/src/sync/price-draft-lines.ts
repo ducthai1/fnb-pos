@@ -6,6 +6,7 @@ import {
   DomainError,
   PRICING_ERROR_CODES,
   QUANTITY_SCALE,
+  convertWeighedQuantity,
   findProductVariant,
   quantityToDecimalString,
   gramsOfWeighedQuantity,
@@ -111,10 +112,14 @@ function itemLine(
   priceSource: OrderLine["priceSource"],
 ): OrderLine {
   const variant = findProductVariant(product, intent.variantId);
-  const units = quantity(intent.quantity);
-  // Sold by weight, the quantity is the weight in the product's unit: whole grams, more than
-  // nothing, at most what one line may weigh. The amount is then the domain's price × weight.
+  // Sold by weight, the quantity is the weight: whole grams, more than nothing, at most what
+  // one line may weigh. The till counted it in its menu's unit, which may be older than this
+  // catalog's; the grams are what was weighed, so they are counted again in the product's
+  // unit now, the unit the price below is per. The line keeps that unit for every slip.
   const unit = measureUnitOf(product);
+  const typed = quantity(intent.quantity);
+  const units =
+    unit === null ? typed : convertWeighedQuantity(typed, intent.measureUnit ?? unit, unit);
   if (unit !== null) gramsOfWeighedQuantity(units, unit);
   // Sold by the piece, the quantity is a whole number: 1.5 of a drink is nothing a till sells.
   else if (units % QUANTITY_SCALE !== 0n) {
@@ -137,6 +142,7 @@ function itemLine(
     note: intent.note,
     priceSource,
     reversesLineId: null,
+    ...(unit === null ? {} : { measureUnit: unit }),
   };
 }
 

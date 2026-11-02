@@ -60,7 +60,7 @@ export const VI_ORDER_ADJUST = {
       "Hủy món làm phần giảm giá toàn đơn lớn hơn mức bạn được tự giảm. Gỡ giảm giá đơn trước, hủy món, rồi giảm lại.",
     cancelTicketTitle: "Phiếu hủy món",
     cancelTicketOffline:
-      "Phiếu hủy đã in nhưng máy chưa báo được máy chủ: khi có mạng, lần gửi bếp sau có thể in lại phiếu hủy này.",
+      "Phiếu hủy đã in. Máy chưa báo được máy chủ: khi có mạng máy tự báo, lần gửi bếp sau không in lại phiếu này.",
   },
   change: {
     pickerTitle: (name: string) => `Đổi tùy chọn · ${name}`,

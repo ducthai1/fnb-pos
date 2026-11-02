@@ -1,6 +1,6 @@
 import type { RejectedCommand } from "@fnb/sync-client";
 import type { ReactElement } from "react";
-import { vi } from "../../src/messages/vi";
+import { refusalSentence, vi } from "../../src/messages/vi";
 import { BlockedScreen } from "../../src/screens/blocked/blocked-screen";
 import { CrashScreen } from "../../src/screens/crash/crash-screen";
 import { BootstrapScreen } from "../../src/screens/bootstrap/bootstrap-screen";
@@ -41,6 +41,20 @@ const settledQr = refused(2, "order.pay", "SYNC_ORDER_HAS_SETTLED_QR");
 const stale = refused(1, "order.save_draft", "SYNC_ORDER_VERSION_STALE");
 const wantsApproval = refused(3, "order.cancel", "SYNC_APPROVAL_REQUIRED");
 
+// A till revoked after a long outage: unsent commands of every kind, one name far too long.
+const revokedAfterAnOutage = (
+  <TillRevokedScreen
+      waiting={[
+        { name: "Thanh toán đơn", count: 41 },
+        { name: "Lưu đơn", count: 63 },
+        { name: "Hủy một món đã gửi bếp, kèm lý do và ghi chú rất dài của quản lý", count: 3 },
+      ]}
+      refused={[]}
+      onFlush={never}
+      onPairAgain={never}
+    />
+);
+
 export const ENTRY_SCREENS = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={nothing} />,
   crash: () => <CrashScreen onReload={nothing} />,
@@ -50,14 +64,29 @@ export const ENTRY_SCREENS = {
     <UpdateRequiredScreen pendingCommands={128} updating={false} onUpdate={nothing} />
   ),
   // A till revoked after a long outage: unsent commands of every kind, one name far too long.
-  "till-revoked": () => (
+  "till-revoked": () => revokedAfterAnOutage,
+  // The same screen once the cashier chose to send the rest: the manager's code goes here.
+  "till-revoked-code": () => revokedAfterAnOutage,
+  // The same till after a manager's code: most went up, two the server refused for the manager.
+  "till-revoked-flushed": () => (
     <TillRevokedScreen
-      waiting={[
-        { name: "Thanh toán đơn", count: 41 },
-        { name: "Lưu đơn", count: 63 },
-        { name: "Hủy một món đã gửi bếp, kèm lý do và ghi chú rất dài của quản lý", count: 3 },
+      waiting={[{ name: "Hủy một món đã gửi bếp, kèm lý do và ghi chú rất dài của quản lý", count: 3 }]}
+      refused={[
+        {
+          id: "refused-pay",
+          name: "Thanh toán đơn",
+          sentence: vi.errors.SYNC_PAYMENT_NEEDS_SHIFT,
+          amount: "1.250.000 ₫",
+        },
+        {
+          id: "refused-draft",
+          name: "Lưu đơn",
+          sentence: refusalSentence("order.save_draft", "SYNC_ORDER_VERSION_STALE"),
+          amount: null,
+        },
       ]}
-      needsAttention={2}
+      sent={104}
+      onFlush={never}
       onPairAgain={never}
     />
   ),

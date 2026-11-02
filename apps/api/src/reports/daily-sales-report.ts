@@ -1,5 +1,6 @@
 import { type DailySalesReport, moneyToWire } from "@fnb/contracts";
 import {
+  type MeasureUnit,
   type Quantity,
   type Vnd,
   ZERO_VND,
@@ -125,6 +126,7 @@ export async function readDailySalesReport(
 interface VoidSum {
   productId: string | null;
   variantId: string | null;
+  measureUnit?: MeasureUnit;
   name: string;
   count: number;
   quantity: Quantity;
@@ -158,10 +160,11 @@ async function voidsOfTheDay(
     const units = quantity(row.quantity);
     const value = voidedUnitsValue(stored.order.lines, line.id, units);
     total = addVnd(total, value);
-    const key = `${line.productId}|${line.variantId}`;
+    const key = `${line.productId}|${line.variantId}|${line.measureUnit ?? ""}`;
     const sum = byItem.get(key) ?? {
       productId: line.productId,
       variantId: line.variantId,
+      ...(line.measureUnit === undefined ? {} : { measureUnit: line.measureUnit }),
       name: line.nameSnapshot,
       count: 0,
       quantity: quantity(0),

@@ -150,13 +150,17 @@ export function PairedTill(props: {
     };
   }, [signedIn, snapshot, staff, deps, credential, signOut]);
 
+  // A revoked till sends under a manager's flush grant, never a staff session's credential.
+  const flushTransport = useMemo(() => deps.transportFor(credential, () => null), [deps, credential]);
+
   // The server no longer knows this till: whatever else is on screen, nothing it holds can
-  // be sent. The staff session's own 401 (another code) never gets here.
+  // be sent but under a manager's flush grant. The staff session's own 401 never gets here.
   if (revokedAtBootstrap || status.connection === "revoked") {
     return (
       <RevokedTill
         store={props.store}
         credentials={deps.credentials}
+        transport={flushTransport}
         onUnpaired={props.onUnpaired}
       />
     );

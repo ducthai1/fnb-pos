@@ -103,6 +103,14 @@ const ROWS: Record<TenantTable, RowSpec> = {
     parent: { column: "device_id", table: "device" },
     values: () => ({ token_hash: randomSha256Hex() }),
   },
+  device_flush_grant: {
+    parent: { column: "device_id", table: "device" },
+    values: () => ({
+      code_hash: randomSha256Hex(),
+      created_by_app_user_id: anAppUser,
+      expires_at: new Date(),
+    }),
+  },
   device_pairing_code: {
     parent: { column: "branch_id", table: "branch" },
     values: () => ({

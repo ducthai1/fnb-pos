@@ -17,6 +17,7 @@ import { assertReasonExplained } from "./reason-note";
 import { grantsOfStaff } from "./staff-permission-check";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
+import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 
 /**
  * order.void_line: cancels units of a sold item on a draft, through the domain's voidLine
@@ -30,6 +31,20 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
   const { client, device, staffId } = context;
   assertReasonExplained(payload);
   const stored = await draftOfBranch(context, payload.orderId);
+  // The cancel line takes the id the till printed its ticket under; its copies, and every
+  // line of an older till's void, get ids of the server's own.
+  const named = payload.reversalLineId;
+  if (named !== undefined && (await lineIdTaken(client, named))) {
+    throw new CommandRejection(SYNC_ERROR_CODES.lineIdTaken);
+  }
+  const newLineId = () => {
+    let first = named;
+    return () => {
+      const id = first ?? newId();
+      first = undefined;
+      return id;
+    };
+  };
   const request = (approvedByStaffId: string | null, needsApprover: boolean): VoidLineRequest => ({
     lineId: payload.lineId,
     quantity: payload.quantity,
@@ -37,7 +52,7 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
     staffId,
     approvedByStaffId,
     sentQuantity: stored.sentQuantityByLineId.get(payload.lineId) ?? quantity(0),
-    newLineId: newId,
+    newLineId: newLineId(),
     requireApprovalAfterSent: needsApprover,
   });
   // The domain decides which units the kitchen has; only then is it known who must agree.
@@ -47,8 +62,8 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
     planned.fromSent > 0n &&
     settings.voidAfterSentNeedsApproval &&
     authorize({ key: "void_after_sent" }, await grantsOfStaff(client, staffId)) !== "allowed";
-  const named = approvalIdOf(context, payload.approvalId);
-  const approvalId = needsApprover ? named : undefined;
+  const namedApproval = approvalIdOf(context, payload.approvalId);
+  const approvalId = needsApprover ? namedApproval : undefined;
   // What the manager was shown: these units the kitchen has, of this line of this order.
   const approvedBy =
     approvalId === undefined
@@ -85,6 +100,12 @@ async function voidOrderLine(context: SyncCommandContext, payload: VoidLinePaylo
   );
   await touchOrder(client, order.id);
   return order.id;
+}
+
+/** A line of any order this tenant holds already has the id. */
+async function lineIdTaken(client: SyncCommandContext["client"], lineId: string) {
+  const { rowCount } = await client.query("SELECT 1 FROM sales_order_line WHERE id = $1", [lineId]);
+  return rowCount === 1;
 }
 
 export const voidLineCommand = defineSyncCommand(

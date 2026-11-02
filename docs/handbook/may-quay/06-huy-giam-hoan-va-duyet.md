@@ -14,6 +14,7 @@ screens:
   - cancel-order
   - refund
 decisions:
+  - D-162
   - D-115
   - D-028
   - D-029
@@ -36,6 +37,8 @@ decisions:
   - D-132
   - D-133
 tests:
+  - apps/api/test/integration/kitchen/cancel-line-takes-the-tills-id.test.ts
+  - apps/pos/src/app/table-void-offline-prints-one-cancel-slip.test.tsx
   - apps/api/test/integration/sync/cancel-after-voiding-sent-items-in-passes.test.ts
   - apps/pos/src/app/counter-void-and-cancel.test.tsx
   - apps/pos/src/app/counter-discount-with-approval.test.tsx
@@ -243,11 +246,11 @@ Nút **Đổi tùy chọn** chỉ hiện ở món thường **đã gửi bếp**
 
 - Thao tác **trong quyền của mình** (xóa món chưa gửi, giảm giá trong ngưỡng, hủy đơn chưa in/chưa gửi) làm được khi mất mạng; máy gửi lên khi có mạng.
 - **Xin duyệt cần mạng** (máy chủ kiểm PIN người duyệt). Mất mạng thì hoặc chờ, hoặc người có quyền tự đăng nhập trên máy làm thao tác đó (nếu họ đã đăng nhập từ trước khi mất mạng).
-- Hủy món đã gửi bếp khi mất mạng: phiếu hủy vẫn hiện/in từ bản trên máy; máy báo "Phiếu hủy đã in nhưng máy chưa báo được máy chủ…" và ghi lại khi có mạng.
+- Hủy món đã gửi bếp khi mất mạng: phiếu hủy vẫn hiện/in từ bản trên máy; máy báo "Phiếu hủy đã in. Máy chưa báo được máy chủ…". Khi có mạng máy tự báo, dòng hủy trên máy chủ mang **đúng mã dòng** máy đã in nên lần gửi bếp sau **không in lại** phiếu hủy đó (kể cả hủy hai lần lúc mất mạng, hay hủy lúc mất mạng rồi hủy tiếp khi có mạng: mỗi lần hủy đúng một phiếu).
 
 ## Chưa làm / sắp có
 
 - Chủ quán tự sửa danh sách lý do hủy/hoàn (hiện cố định, mỗi danh sách có "Lý do khác").
-- Đổi giá món tại quầy (`price_override`), tặng món (`comp_item`), mở két không bán (`open_drawer`), mở lại đơn đã trả (`reopen_paid_order`): đã có quyền trong vai trò nhưng máy quầy chưa có nút.
+- Đổi giá món tại quầy (`price_override`), tặng món (`comp_item`), mở két không bán (`open_drawer`), mở lại đơn đã trả (`reopen_paid_order`): đã có quyền trong vai trò nhưng máy quầy chưa có nút. Riêng `open_drawer` đang dùng cho việc **bỏ qua lệnh thu chi két / đóng ca bị từ chối** (xem [Mất mạng và đồng bộ](09-mat-mang-va-dong-bo.md)).
 - Hoàn tiền có nhập lại kho; hóa đơn điều chỉnh khi hoàn đơn đã xuất hóa đơn điện tử.
 - Phiếu hủy ra giấy (hiện là bản xem trước — xem [10-phieu-in.md](10-phieu-in.md)).

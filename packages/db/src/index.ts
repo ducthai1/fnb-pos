@@ -41,6 +41,7 @@ export {
 export {
   accessTables,
   deviceCredential,
+  deviceFlushGrant,
   devicePairingCode,
   membership,
 } from "./schema/access-tables";

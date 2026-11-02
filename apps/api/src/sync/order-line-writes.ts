@@ -55,6 +55,7 @@ const CONTENT = [
   "price_source",
   "reverses_line_id",
   "whole_parent_line",
+  "measure_unit",
 ] as const;
 
 function contentOf(line: OrderLine): unknown[] {
@@ -72,6 +73,7 @@ function contentOf(line: OrderLine): unknown[] {
     line.priceSource,
     line.reversesLineId,
     line.wholeParentLine === true,
+    line.measureUnit ?? null,
   ];
 }
 

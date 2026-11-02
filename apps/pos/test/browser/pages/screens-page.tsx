@@ -9,6 +9,7 @@ import { UpdateBanner } from "../../../src/screens/update/update-banner";
 import { BootstrapScreen } from "../../../src/screens/bootstrap/bootstrap-screen";
 import { NeedsAttentionScreen } from "../../../src/screens/needs-attention/needs-attention-screen";
 import { PairDeviceScreen } from "../../../src/screens/pair-device/pair-device-screen";
+import { TillRevokedScreen } from "../../../src/screens/pair-device/till-revoked-screen";
 import { PinEntry } from "../../../src/screens/staff-login/pin-entry";
 import { StaffPicker } from "../../../src/screens/staff-login/staff-picker";
 import { HOSTILE_NAMES } from "../../../src/test-support/hostile-names";
@@ -83,6 +84,24 @@ const SCREENS: Record<ScreenName, () => ReactElement> = {
   blocked: () => <BlockedScreen reason="another_tab" onReload={() => {}} />,
   crash: () => <CrashScreen onReload={() => {}} />,
   pairing: () => <PairDeviceScreen pair={never} onPaired={never} />,
+  // A revoked till after a manager's code: 999 still waiting, refusals with long sentences.
+  "till-revoked-flushed": () => (
+    <TillRevokedScreen
+      waiting={[
+        { name: HOSTILE_NAMES.emoji, count: 999 },
+        { name: "Thanh toán đơn", count: 999 },
+      ]}
+      refused={Array.from({ length: 12 }, (_, index) => ({
+        id: `refused-${index}`,
+        name: index % 2 === 0 ? "Thanh toán đơn" : HOSTILE_NAMES.staff,
+        sentence: `${vi.errors.SYNC_ORDER_HAS_SETTLED_QR} ${HOSTILE_NAMES.reason}`,
+        amount: index % 2 === 0 ? "999.999.999 ₫" : null,
+      }))}
+      sent={999}
+      onFlush={never}
+      onPairAgain={never}
+    />
+  ),
   "bootstrap-failed": () => (
     <BootstrapScreen
       error={`${vi.errors.unknown} ${HOSTILE_NAMES.unknownCode}`}

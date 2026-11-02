@@ -1,3 +1,4 @@
+import { MEASURE_UNITS } from "@fnb/domain";
 import { z } from "zod";
 import { channelKeySchema } from "../../catalog/catalog-schema-parts";
 import { tableTagSchema } from "../../floor/table-status-schema";
@@ -49,6 +50,13 @@ const lineIntentSchema = z.object({
    * Left out on any other product; the server refuses picks on a product that is no combo.
    */
   comboPicks: z.array(comboPickSchema).max(30).optional(),
+  /**
+   * The unit the till counted a weighed line's quantity in: its menu's, which may be older
+   * than the server's. The server reads the grams in this unit and counts them in its own,
+   * so a unit changed while the till was offline cannot turn 350 g into 35 g. Left out by
+   * tills that predate it, whose quantity is then read in the server's unit as before.
+   */
+  measureUnit: z.enum(MEASURE_UNITS).optional(),
 });
 
 /**

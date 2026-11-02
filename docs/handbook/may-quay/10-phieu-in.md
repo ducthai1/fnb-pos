@@ -9,6 +9,8 @@ screens:
   - table-slips
   - refund-and-close-slips
 decisions:
+  - D-162
+  - D-161
   - D-138
   - D-042
   - D-045
@@ -22,6 +24,8 @@ decisions:
   - D-082
   - D-083
 tests:
+  - apps/pos/src/app/table-void-offline-prints-one-cancel-slip.test.tsx
+  - apps/pos/src/features/order/weighed-line-keeps-its-unit.test.ts
   - apps/pos/src/features/printing/kitchen-routing-and-cup-label-switches.test.ts
   - apps/pos/src/features/printing/print-sale-slips.test.ts
   - apps/pos/test/browser/slips-read-whole-in-chrome.test.ts
@@ -107,7 +111,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 - Khổ giấy đang dùng để dựng phiếu: bill **80 mm**, tem ly **40 × 30 mm**. Khi in thật, chữ được in **không dấu** cho tới khi cài được bảng mã tiếng Việt của từng máy in (bảng mã sai thì mọi chữ có dấu thành ký tự lạ).
 - **Tên món dài tự xuống dòng; số tiền luôn nằm cùng dòng đầu của tên.** Tên hoặc ghi chú có dấu xuống dòng ở đầu (thường do dán từ Excel) không còn đẩy số tiền lên một dòng trống phía trên tên.
 - Thông tin người mua hóa đơn điện tử **không in** lên bill.
-- Món **bán theo cân** in **số gam** thay cho số lượng: bill ghi "351 g x 32.000 ₫/100 g" rồi số tiền (giấy 58 mm hẹp thì "351 g" cùng dòng số tiền, "x 32.000 ₫/100 g" xuống dòng dưới); phiếu pha chế ghi "351 g x Cà phê hạt Robusta". Món **giá nhập tay** in như món thường, với giá đã gõ: "2 x 180.000 ₫".
+- Món **bán theo cân** in **số gam** thay cho số lượng: bill ghi "351 g x 32.000 ₫/100 g" rồi số tiền (giấy 58 mm hẹp thì "351 g" cùng dòng số tiền, "x 32.000 ₫/100 g" xuống dòng dưới); phiếu pha chế ghi "351 g x Cà phê hạt Robusta". Số gam và "/kg" hay "/100 g" lấy từ **dòng đơn** (đơn vị lúc tính giá), không lấy từ thực đơn hiện tại: chủ quán đổi đơn vị sau đó thì in lại bill cũ, phiếu hủy, phiếu của món đã gửi vẫn đúng như lúc bán. Món **giá nhập tay** in như món thường, với giá đã gõ: "2 x 180.000 ₫".
 
 ## Khi có lỗi
 
@@ -116,7 +120,7 @@ Mỗi phiếu ghi một trong ba trạng thái: **Đang in…**, **Đã in**, ho
 | Bản xem trước — máy này chưa nối máy in, phiếu chưa được in. | Bản web, không có máy in | Đọc phiếu trên màn |
 | In lỗi (…) — phiếu chưa ra giấy. | Máy in không nhận (hết giấy, kẹt, mất kết nối) | Kiểm tra máy in; gửi bếp lại / in lại |
 | Không có món nào cần gửi bếp. | Gửi bếp khi không còn món mới | — |
-| Phiếu hủy đã in nhưng máy chưa báo được máy chủ: khi có mạng, lần gửi bếp sau có thể in lại phiếu hủy này. | Hủy món khi mất mạng | Báo bếp bỏ qua phiếu hủy in trùng |
+| Phiếu hủy đã in. Máy chưa báo được máy chủ: khi có mạng máy tự báo, lần gửi bếp sau không in lại phiếu này. | Hủy món khi mất mạng | Không cần làm gì; giữ máy có mạng để máy báo lên |
 
 ### Bản xem trước phải đọc được hết
 

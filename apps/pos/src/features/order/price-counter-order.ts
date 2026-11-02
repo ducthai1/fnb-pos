@@ -114,6 +114,7 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
   const unit = unitPriceOf(menu, product, line.variantId, at, line.enteredPrice);
   const variant = findProductVariant(product, line.variantId);
   const common = { variantId: null, reversesLineId: null, taxRate: product.taxRate } as const;
+  const per = measureUnitOf(product);
   return [
     {
       ...common,
@@ -128,6 +129,7 @@ export function pricedLines(menu: TillMenu, line: CartLine, at: number): OrderLi
       quantity: unitsOf(product, line),
       note: line.note,
       priceSource: unit.source,
+      ...(per === null ? {} : { measureUnit: per }),
     },
     ...optionLines(
       line.lineId,

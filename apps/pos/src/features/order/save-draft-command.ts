@@ -1,5 +1,5 @@
 import { type SaveDraftPayload, saveDraftPayloadSchema } from "@fnb/contracts";
-import { quantityToDecimalString } from "@fnb/domain";
+import { type MeasureUnit, quantityToDecimalString } from "@fnb/domain";
 import type { LocalCommand } from "@fnb/sync-client";
 import type { CartLine, CounterOrder } from "./counter-order";
 import { type TillOrderState, tillOrderSnapshot } from "./order-snapshot-for-till";
@@ -7,14 +7,21 @@ import type { PricedCounterOrder } from "./price-counter-order";
 import { type TillPlace, moneyToWire, tillCommand } from "./till-command";
 
 /**
- * The quantity a line is sent with: its units, or, sold by weight, its weight in the unit the
- * product's price is per, exactly as the till priced it (`priced` holds that item line).
+ * The quantity a line is sent with: its units, or, sold by weight, its weight in the unit its
+ * price is per, exactly as the till priced it (`priced` holds that item line), named beside
+ * it so a server whose unit changed meanwhile reads the same grams.
  */
-function quantitySent(line: CartLine, priced: PricedCounterOrder | undefined): string {
-  if (line.grams === undefined) return String(line.quantity);
+function quantitySent(
+  line: CartLine,
+  priced: PricedCounterOrder | undefined,
+): { quantity: string; measureUnit?: MeasureUnit } {
+  if (line.grams === undefined) return { quantity: String(line.quantity) };
   const item = priced?.lines.find((candidate) => candidate.id === line.lineId);
   if (item === undefined) throw new Error(`weighed line ${line.lineId} was not priced`);
-  return quantityToDecimalString(item.quantity);
+  const sent = quantityToDecimalString(item.quantity);
+  return item.measureUnit === undefined
+    ? { quantity: sent }
+    : { quantity: sent, measureUnit: item.measureUnit };
 }
 
 /**
@@ -52,7 +59,7 @@ export function draftPayload(order: CounterOrder, priced?: PricedCounterOrder): 
               })),
             })),
           }),
-      quantity: quantitySent(line, priced),
+      ...quantitySent(line, priced),
       note: line.note,
       ...(line.enteredPrice === undefined ? {} : { enteredPrice: moneyToWire(line.enteredPrice) }),
       ...(line.priceApprovalId === undefined ? {} : { priceApprovalId: line.priceApprovalId }),

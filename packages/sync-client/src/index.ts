@@ -48,3 +48,4 @@ export {
   SyncTransportError,
   type SyncTransportErrorKind,
 } from "./sync/sync-transport";
+export { type FlushOutcome, flushOutboxUnderGrant } from "./sync/flush-outbox-under-grant";

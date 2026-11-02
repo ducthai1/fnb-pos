@@ -188,3 +188,16 @@ input[type="radio"] {
   background: var(--c-surface-2);
   font-weight: var(--fw-medium);
 }
+
+/* The code a revoked till sends the rest under: the pairing card, named for its till. */
+.bo-flush-grant {
+  border: 1px solid var(--c-brand-line);
+  box-shadow: var(--shadow-panel);
+}
+
+.bo-flush-grant__title {
+  flex: 1 1 240px;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-lg);
+}

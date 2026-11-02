@@ -103,6 +103,16 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
       throw new SyncTransportError("network", null, String(error));
     }
   };
+  const checkedResults = (response: HttpResponse) => {
+    const results = (bodyOf(response) as { results?: unknown } | null)?.results;
+    if (!Array.isArray(results)) throw protocolError("no results in the answer");
+    const checked = results.map((result): SyncCommandResult => {
+      const parsed = syncCommandResultSchema.safeParse(result);
+      if (!parsed.success) throw protocolError("a result breaks the contract");
+      return parsed.data;
+    });
+    return { results: checked, ...serverTimeOf(response) };
+  };
   return {
     async pushCommands(commands) {
       const staff = options.staffSessionToken();
@@ -117,14 +127,20 @@ export function createHttpSyncTransport(options: HttpSyncTransportOptions): Sync
         },
         body: JSON.stringify({ commands }),
       });
-      const results = (bodyOf(response) as { results?: unknown } | null)?.results;
-      if (!Array.isArray(results)) throw protocolError("no results in the answer");
-      const checked = results.map((result): SyncCommandResult => {
-        const parsed = syncCommandResultSchema.safeParse(result);
-        if (!parsed.success) throw protocolError("a result breaks the contract");
-        return parsed.data;
+      return checkedResults(response);
+    },
+    async flushUnderGrant(code, commands, final) {
+      const response = await send({
+        method: "POST",
+        path: "/sync/revoked-flush",
+        headers: {
+          ...identity,
+          "content-type": "application/json",
+          [SYNC_FEATURES_HEADER]: SYNC_FEATURE_SHIFT_VERSION,
+        },
+        body: JSON.stringify({ code, commands, final }),
       });
-      return { results: checked, ...serverTimeOf(response) };
+      return checkedResults(response);
     },
     async pullChanges(cursor, limit) {
       const query = new URLSearchParams({ cursor, limit: String(limit) });

@@ -3,6 +3,7 @@ export const SCREEN_NAMES = [
   "blocked",
   "crash",
   "pairing",
+  "till-revoked-flushed",
   "bootstrap-failed",
   "staff-picker",
   "staff-picker-crowd",

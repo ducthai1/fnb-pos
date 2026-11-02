@@ -49,6 +49,13 @@ export function fakeOrderCommandAnswer(
   switch (command.type) {
     case "order.void_line": {
       const sent = stored.sent.find((line) => line.lineId === payload.lineId)?.sentQuantity;
+      // As the API: the cancel line takes the till's id when it names one, the rest new ids.
+      let named = typeof payload.reversalLineId === "string" ? payload.reversalLineId : undefined;
+      const lineId = () => {
+        const id = named ?? newId();
+        named = undefined;
+        return id;
+      };
       const { order: after } = voidLine(order, {
         lineId: String(payload.lineId),
         quantity: quantity(String(payload.quantity)),
@@ -56,7 +63,7 @@ export function fakeOrderCommandAnswer(
         staffId: "server",
         approvedByStaffId: payload.approvalId === undefined ? null : "approver",
         sentQuantity: sent ?? quantity(0),
-        newLineId: newId,
+        newLineId: lineId,
         requireApprovalAfterSent: false,
       });
       return save(after.lines);

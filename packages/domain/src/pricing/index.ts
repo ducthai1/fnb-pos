@@ -18,6 +18,7 @@ export { validatePriceListItem } from "./validate-price-list-item";
 export { validateProductConfig } from "./validate-product-config";
 export {
   GRAMS_PER_MEASURE_UNIT,
+  convertWeighedQuantity,
   MAX_WEIGHED_GRAMS,
   formatGrams,
   gramsOfWeighedQuantity,

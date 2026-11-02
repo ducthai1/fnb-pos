@@ -51,6 +51,7 @@ export function lineRowsOf(lines: readonly OrderLine[], sentState: readonly Sent
     priceSource: line.priceSource,
     reversesLineId: line.reversesLineId,
     wholeParentLine: line.wholeParentLine === true,
+    ...(line.measureUnit === undefined ? {} : { measureUnit: line.measureUnit }),
     sentQuantity: quantityToDecimalString(sent.get(line.id)?.sentQuantity ?? NOTHING_SENT),
     sentNote: sent.get(line.id)?.sentNote ?? null,
     restock: null,

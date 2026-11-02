@@ -4,6 +4,7 @@ audience: chu-quan
 screens:
   - /reports/daily-sales
 decisions:
+  - D-161
   - D-155
   - D-027
   - D-053
@@ -11,6 +12,7 @@ decisions:
   - D-064
   - D-151
 tests:
+  - apps/api/test/integration/sync/weighed-line-keeps-the-unit-it-was-priced-per.test.ts
   - apps/backoffice/src/components/reports/daily-sales-screen.test.tsx
   - apps/backoffice/src/components/ui/date-field.test.tsx
   - apps/backoffice/src/lib/format/calendar-days.test.ts
@@ -46,7 +48,7 @@ Cần quyền **Xem báo cáo** (vai trò mẫu: Chủ quán, Quản lý ca).
 5. **Tổng ngày**: bảng chỉ tiêu — Số đơn bán · Tiền hàng trước giảm giá · Giảm giá · Tiền hàng sau giảm giá · Phí dịch vụ · Doanh thu chưa VAT · Thuế VAT (tách theo từng mức VAT) · Khách đã trả · Số đơn hoàn · Tiền đã hoàn · VAT của phần hoàn · Số đơn hủy · Số món hủy · Giá trị món hủy · Số lần hoàn tiền QR cho khách · Tiền QR đã hoàn lại khách.
 6. **Theo phương thức thanh toán**: Tiền mặt, Chuyển khoản QR, Thẻ — cột Thu, Hoàn, Còn lại.
 7. **Theo giờ**: bảng giờ (ví dụ 07:00–07:59), số đơn, khách đã trả.
-8. **Theo món**: tìm món; lọc **Món** hoặc **Tùy chọn và phần combo**; cột Số lượng, Tiền hàng, Giảm, Sau giảm, VAT.
+8. **Theo món**: tìm món; lọc **Món** hoặc **Tùy chọn và phần combo**; cột Số lượng, Tiền hàng, Giảm, Sau giảm, VAT. Món **bán theo cân** ghi số lượng bằng **gam** ("1.250 g"); món đổi đơn vị trong ngày (kg ↔ 100 g) hiện **hai dòng**, mỗi dòng một đơn vị đã bán, không cộng lẫn.
 
 ## Luật và giới hạn
 

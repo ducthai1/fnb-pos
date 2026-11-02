@@ -93,7 +93,7 @@ describe("cancelling an item the kitchen already has", () => {
     expect(pushedOf(server, "order.void_line")[0]?.payload).not.toHaveProperty("approvalId");
   });
 
-  it("offline, prints the ticket from the till's copy and records it once the server knows", async () => {
+  it("offline, prints the ticket from the till's copy and records it under the line the server makes", async () => {
     const server = tablesWithManager({ void_after_sent_needs_approval: false });
     await coffeesAtTheBar(server);
     server.state.online = false;
@@ -103,18 +103,23 @@ describe("cancelling an item the kitchen already has", () => {
     ).toBeTruthy();
     expect(slipPreview("kitchen")[0]).toContain("HỦY");
     tap(text.tables.slips.backToOrder);
-    // Shown at once while the void waits; nothing recorded under the till's own id.
+    // Shown at once while the void waits; the ticket's record waits in the outbox behind it.
     expect(amountDue()).toBe("29000");
     expect(ticketLines(server)).toHaveLength(1);
     server.state.online = true;
     await waitFor(() => expect(pushedOf(server, "order.void_line")).toHaveLength(1), {
       timeout: 5_000,
     });
-    await waitFor(() => expect(serverCancelLine(server)).toBeDefined());
-    tap(/^Gửi bếp/);
     await waitFor(() => expect(ticketLines(server)).toHaveLength(2));
+    // The server made the cancel line under the till's id, so the record matches it.
     expect(ticketLines(server)[1]).toEqual([
       { lineId: serverCancelLine(server)?.id, kind: "cancel", quantity: "1", note: null },
     ]);
+    expect(pushedOf(server, "order.void_line")[0]?.payload.reversalLineId).toBe(
+      serverCancelLine(server)?.id,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: text.tables.order.nothingToSend })).toBeTruthy(),
+    );
   }, 20_000);
 });

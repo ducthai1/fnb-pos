@@ -45,4 +45,14 @@ export interface SyncTransport {
   pullChanges(cursor: string, limit: number): Promise<PulledChanges>;
   /** What the server holds of this till; asked once the till meets a new generation. */
   deviceState(): Promise<SyncDeviceState>;
+  /**
+   * A revoked till's outbox, one batch, under a manager's flush grant `code`; `final` on the
+   * batch that empties the outbox, which spends the grant. Absent from transports that
+   * cannot reach a server serving it.
+   */
+  flushUnderGrant?(
+    code: string,
+    commands: readonly SyncCommandEnvelope[],
+    final: boolean,
+  ): Promise<PushedCommands>;
 }
