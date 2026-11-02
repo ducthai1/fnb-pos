@@ -29,4 +29,21 @@ describe("the day's sales by item", () => {
     fireEvent.click(units);
     expect(names()).toEqual(["Trà sữa trân châu", `Trân châu đen (${T.lineTypes.modifier})`]);
   });
+
+  it("shows a weighed product's rows in grams, one per unit it was sold per", () => {
+    const report = dailySalesReport();
+    const weighed = (quantity: string, measureUnit: "kg" | "100g") => ({
+      ...report.items[0]!,
+      productId: `beans-${measureUnit}`,
+      name: "Cà phê hạt Cầu Đất",
+      quantity,
+      measureUnit,
+    });
+    render(
+      <DailyItemsTable report={{ ...report, items: [weighed("0.35", "kg"), weighed("12.5", "100g")] }} />,
+    );
+    const rows = within(screen.getByRole("table", { name: T.itemsTitle })).getAllByRole("row").slice(1);
+    const units = rows.map((row) => within(row).getAllByRole("cell")[1]?.textContent?.replace(/\u00a0/g, " "));
+    expect(units).toEqual(["350 g", "1.250 g"]);
+  });
 });

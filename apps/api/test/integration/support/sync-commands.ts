@@ -34,6 +34,8 @@ export interface LineIntent {
   note: string | null;
   /** Sent by some tills for display; the server must never read it. */
   unitPrice?: number;
+  /** The unit a weighed line's quantity is counted in, as a till's menu had it. */
+  measureUnit?: "kg" | "100g";
   /** The price the cashier typed, for a product sold at an open price. */
   enteredPrice?: number;
   /** A manager's approval of that typed price on this very line. */

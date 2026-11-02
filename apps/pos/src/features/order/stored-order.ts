@@ -99,6 +99,9 @@ function lineOf(row: Row): { line: OrderLine; sent: SentLineState | null } {
     priceSource: oneOf(row, "priceSource", SOURCES),
     reversesLineId: strOrNull(row, "reversesLineId"),
     ...(row.wholeParentLine === true ? { wholeParentLine: true } : {}),
+    ...(row.measureUnit === "kg" || row.measureUnit === "100g"
+      ? { measureUnit: row.measureUnit }
+      : {}),
   };
   const sentText = strOrNull(row, "sentQuantity");
   const sentQuantity = sentText === null ? null : quantity(sentText);

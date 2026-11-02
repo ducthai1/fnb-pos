@@ -83,6 +83,8 @@ export const salesOrderLine = pgTable("sales_order_line", {
   sentQuantity: quantity("sent_quantity").notNull().default("0"),
   sentNote: text("sent_note"),
   wholeParentLine: boolean("whole_parent_line").notNull().default(false),
+  /** A weighed item's unit as it was priced ("kg" | "100g"), see 0042; null otherwise. */
+  measureUnit: text("measure_unit"),
   restock: boolean("restock"),
 });
 

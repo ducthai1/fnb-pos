@@ -49,10 +49,15 @@ export function cartView(
     },
   };
   try {
+    const priced = priceCounterOrder(menu, order, chargeProfile, at, kept, commandLines);
     return {
       ...common,
+      // A line the kitchen has keeps the unit it was priced per, whatever the menu says now.
+      unitOf: (line: CartLine) =>
+        priced.lines.find((candidate) => candidate.id === line.lineId)?.measureUnit ??
+        common.unitOf(line),
       kind: "priced",
-      priced: priceCounterOrder(menu, order, chargeProfile, at, kept, commandLines),
+      priced,
     };
   } catch (error) {
     // The menu changed under the open order: a product gone, an option the shop removed.

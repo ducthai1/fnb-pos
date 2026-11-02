@@ -81,6 +81,8 @@ export interface OrderLineSnapshot {
   readonly reversesLineId: string | null;
   /** On a line discount: its quantity is for the item's whole line, not per unit. */
   readonly wholeParentLine: boolean;
+  /** On a weighed item: the unit its quantity is counted in and its price is per. */
+  readonly measureUnit?: "kg" | "100g";
   /** Units the kitchen has had, cancelled ones included, as a decimal string. */
   readonly sentQuantity: string;
   /** The note as the stations last saw it printed, so a till can tell a note changed since. */

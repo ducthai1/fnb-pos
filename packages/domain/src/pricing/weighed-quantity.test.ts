@@ -8,7 +8,9 @@ import type { OrderLine } from "../order";
 import { goodsLineAmounts } from "../totals/goods-line-amounts";
 import { PRICING_ERROR_CODES } from "./pricing-error-codes";
 import {
+  GRAMS_PER_MEASURE_UNIT,
   MAX_WEIGHED_GRAMS,
+  convertWeighedQuantity,
   formatGrams,
   gramsOfWeighedQuantity,
   measureUnitOf,
@@ -141,5 +143,34 @@ describe("measureUnitOf", () => {
     expect(measureUnitOf(fruit)).toBe("100g");
     expect(measureUnitOf({ ...fruit, measureUnit: null })).toBeNull();
     expect(measureUnitOf({ ...PEARL_MILK_TEA, measureUnit: "kg" })).toBeNull();
+  });
+});
+
+describe("convertWeighedQuantity: one weight counted in the other unit", () => {
+  it("turns 0.35 of a kilogram into 3.5 of 100 g and back, 3.51 of 100 g into 0.351 kg", () => {
+    expect(convertWeighedQuantity(quantity("0.35"), "kg", "100g")).toBe(quantity("3.5"));
+    expect(convertWeighedQuantity(quantity("3.5"), "100g", "kg")).toBe(quantity("0.35"));
+    expect(convertWeighedQuantity(quantity("3.51"), "100g", "kg")).toBe(quantity("0.351"));
+    expect(convertWeighedQuantity(quantity("0.001"), "kg", "100g")).toBe(quantity("0.01"));
+  });
+
+  it("keeps the grams, round trips exactly, and prices an equal per-gram price to the đồng", () => {
+    fc.assert(
+      fc.property(grams, unit, unit, fc.integer({ min: 1, max: 5_000 }), (g, from, to, perGram) => {
+        const weight = weighedQuantity(g, from);
+        const moved = convertWeighedQuantity(weight, from, to);
+        expect(gramsOfWeighedQuantity(moved, to)).toBe(g);
+        expect(convertWeighedQuantity(moved, to, from)).toBe(weight);
+        // The same đồng per gram, written per the unit: the line costs the same either way.
+        const priceIn = (u: MeasureUnit) => vnd(BigInt(perGram) * GRAMS_PER_MEASURE_UNIT[u]);
+        expect(weighedLineAmount(priceIn(to), moved)).toBe(weighedLineAmount(priceIn(from), weight));
+      }),
+    );
+  });
+
+  it("refuses a weight that is no whole gram in the unit it is said to be in", () => {
+    expect(errorOf(() => convertWeighedQuantity(quantity("0.005"), "100g", "kg")).code).toBe(
+      PRICING_ERROR_CODES.weightNotWholeGrams,
+    );
   });
 });

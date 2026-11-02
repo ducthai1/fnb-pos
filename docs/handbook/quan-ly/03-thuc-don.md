@@ -7,6 +7,7 @@ screens:
   - /menu/categories
   - /menu/availability
 decisions:
+  - D-161
   - D-145
   - D-095
   - D-139
@@ -19,6 +20,8 @@ decisions:
   - D-116
   - D-120
 tests:
+  - apps/api/test/integration/infra/weighed-lines-get-the-unit-they-were-sold-per.test.ts
+  - apps/api/test/integration/sync/weighed-line-keeps-the-unit-it-was-priced-per.test.ts
   - apps/api/test/integration/catalog/removing-a-catalog-row-needs-the-version-last-read.test.ts
   - apps/api/test/integration/catalog/catalog-product-codes.test.ts
   - apps/api/test/integration/infra/product-codes-are-given-to-existing-products.test.ts
@@ -145,7 +148,7 @@ Trang này dùng tiện trên điện thoại khi đang đứng quầy:
 - Hai người sửa cùng một món: người lưu sau bị từ chối với "Có người đã sửa món này trước bạn. Tải lại để xem bản mới nhất — thay đổi chưa lưu của bạn sẽ mất." Bấm **Tải lại món**.
 - **Combo**: giá cố định; phần combo có tối thiểu ≥ 0, tối đa ≥ 1, tối thiểu không lớn hơn tối đa; phần bắt buộc phải có ít nhất một món; một món (cùng size) chỉ có **một dòng** trong một phần; phụ thu không âm; món có size phải chọn size. Cùng một món có thể nằm ở hai phần khác nhau. Một món được chọn nhiều lần trong một phần (2 ly trà sữa ở phần "2 đồ uống") tính phụ thu mỗi lần.
 - Máy quầy bán món giá cố định, **giá nhập tay**, **bán theo cân** và **combo** (xem [Bán tại quầy](../may-quay/03-ban-tai-quay.md)). Món trong combo bị **ngừng bán** thì máy quầy không còn đưa món đó vào combo; phần bắt buộc không còn món nào thì combo không bán được tới khi sửa.
-- **Không nên đổi đơn vị** (kg ↔ 100 g) của món bán theo cân khi còn đơn đang mở có món đó: máy đọc lại cân nặng theo đơn vị mới.
+- **Đổi đơn vị** (kg ↔ 100 g) của món bán theo cân không làm sai đơn cũ: mỗi dòng đơn **giữ đơn vị lúc tính giá** (in lại bill hôm qua vẫn "350 g x 200.000 ₫/kg"). Đơn còn mở: món **đã gửi pha chế** giữ đơn vị và giá cũ; món chưa gửi được tính lại theo đơn vị và giá mới khi lưu. Máy quầy chưa kịp nhận thực đơn mới (mất mạng) vẫn bán đúng cân nặng: máy gửi kèm đơn vị của nó, máy chủ đổi số gam sang đơn vị mới rồi tính giá mới — giữ giá mỗi gam như cũ (200.000 ₫/kg → 20.000 ₫/100 g) thì khách trả đúng số tiền máy đã báo; đổi cả giá thì lần thu tiền của máy chưa cập nhật bị từ chối "Tổng tiền trên máy khác…" như mọi lần đổi giá.
 - Hết món đặt tay ở trang này không tự bật lại theo giờ.
 
 ## Khi có lỗi

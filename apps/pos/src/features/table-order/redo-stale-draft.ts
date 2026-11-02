@@ -30,7 +30,7 @@ export const isStaleDraft = (refused: Pick<RejectedCommand, "code" | "command">)
 
 /**
  * The items a refused draft asked for, as the cart lines that save them: a typed price with
- * the approval it carried, a weight read back into grams in the product's unit.
+ * the approval it carried, a weight read back into grams in the unit it was sent in.
  */
 function cartAsked(menu: TillMenu, refused: Refused): CartLine[] {
   const payload = saveDraftPayloadSchema.safeParse(refused.command.payload);
@@ -41,6 +41,7 @@ function cartAsked(menu: TillMenu, refused: Refused): CartLine[] {
       quantity: quantity(line.quantity),
       unitPrice: vnd(line.enteredPrice ?? 0),
       priceSource: line.enteredPrice === undefined ? "base" : "manual",
+      ...(line.measureUnit === undefined ? {} : { measureUnit: line.measureUnit }),
     } as const;
     return {
       lineId: line.lineId,

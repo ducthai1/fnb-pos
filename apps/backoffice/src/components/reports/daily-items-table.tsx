@@ -2,7 +2,7 @@
 
 import { ShoppingBag } from "lucide-react";
 import type { DailySalesReport } from "../../lib/api/reports-api";
-import { quantityText, vndText } from "../../lib/format/business-day";
+import { soldQuantityText, vndText } from "../../lib/format/business-day";
 import { vi } from "../../messages/vi";
 import { type DataColumn, DataTable } from "../ui/data-table";
 import { EmptyState } from "../ui/empty-state";
@@ -25,7 +25,7 @@ const money = (key: "gross" | "discount" | "net" | "tax", label: string): DataCo
 
 const COLUMNS: readonly DataColumn<Item>[] = [
   { key: "name", label: I.name, cell: itemName, sortValue: itemName, width: "32%" },
-  { key: "quantity", label: I.quantity, numeric: true, cell: (item) => quantityText(item.quantity), sortValue: (item) => Number(item.quantity) },
+  { key: "quantity", label: I.quantity, numeric: true, cell: (item) => soldQuantityText(item.quantity, item.measureUnit), sortValue: (item) => Number(item.quantity) },
   money("gross", I.gross),
   money("discount", I.discount),
   money("net", I.net),

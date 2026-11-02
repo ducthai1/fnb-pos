@@ -1,4 +1,13 @@
-import { businessDate, formatVnd, vnd } from "@fnb/domain";
+import {
+  GRAMS_PER_MEASURE_UNIT,
+  type MeasureUnit,
+  QUANTITY_SCALE,
+  businessDate,
+  formatGrams,
+  formatVnd,
+  quantity as quantityOf,
+  vnd,
+} from "@fnb/domain";
 
 /**
  * The clock a branch gets unless it is set otherwise: Vietnam (UTC+7), the business day
@@ -72,3 +81,14 @@ export const vndText = (amount: number): string => formatVnd(vnd(BigInt(amount))
 
 /** A decimal quantity from an answer ("1.5") as Vietnamese write it ("1,5"). */
 export const quantityText = (quantity: string): string => quantity.replace(".", ",");
+
+/**
+ * A report row's quantity: units as they are ("1,5"), or for a weighed product the grams it
+ * stands for in the unit the row was sold per ("1.250 g"), so a row sold per kg and one sold
+ * per 100 g read alike.
+ */
+export function soldQuantityText(quantity: string, measureUnit?: MeasureUnit): string {
+  if (measureUnit === undefined) return quantityText(quantity);
+  const grams = (quantityOf(quantity) * GRAMS_PER_MEASURE_UNIT[measureUnit]) / QUANTITY_SCALE;
+  return formatGrams(Number(grams));
+}

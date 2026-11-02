@@ -1,3 +1,4 @@
+import type { MeasureUnit } from "../catalog";
 import type { BasisPoints, Quantity, Vnd } from "../money";
 
 /**
@@ -49,6 +50,13 @@ export interface OrderLine {
    * and the receipt must show the amount the cashier gave. buildLineDiscount sets it.
    */
   readonly wholeParentLine?: boolean;
+  /**
+   * Set only on an item sold by weight (and the lines that copy it: a void's or a refund's
+   * negative item): the unit its quantity is counted in and its unitPrice is per, as when it
+   * was priced. A slip prints the grams and "/kg" from it, never from the product as it is
+   * now, so a unit changed while the order is open, or since, cannot misprint the line.
+   */
+  readonly measureUnit?: MeasureUnit;
 }
 
 export interface Order {

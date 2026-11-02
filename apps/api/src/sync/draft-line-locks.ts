@@ -1,4 +1,4 @@
-import { type OrderLine, type Quantity, subtreeOf } from "@fnb/domain";
+import { type OrderLine, type Quantity, convertWeighedQuantity, subtreeOf } from "@fnb/domain";
 import type pg from "pg";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
 
@@ -97,15 +97,30 @@ function keptTree(
   const storedChildren = subtreeOf(stored, was.id).filter(
     (line) => line.id !== was.id && line.lineType !== "discount",
   );
+  // A weighed item the kitchen has keeps the unit and price it went out with; a till whose
+  // menu has a newer unit (or the server's catalog, re-pricing it) counts the same grams in
+  // that unit, so the weight is compared, and kept, in the stored line's unit.
+  const units = keptUnits(was, item);
   const same =
     item.productId === was.productId &&
     item.variantId === was.variantId &&
     item.note === was.note &&
     (was.priceSource !== "manual" || item.unitPrice === was.unitPrice) &&
-    (exact ? item.quantity === was.quantity : item.quantity >= was.quantity) &&
+    units !== null &&
+    (exact ? units === was.quantity : units >= was.quantity) &&
     choicesOf(freshTree, item.id) === choicesOf(storedChildren, was.id);
-  if (!same) refuse();
-  return [{ ...was, quantity: item.quantity }, ...storedChildren];
+  if (!same || units === null) refuse();
+  return [{ ...was, quantity: units }, ...storedChildren];
+}
+
+/** The fresh item's quantity in the stored line's unit; null when it cannot be read there. */
+function keptUnits(was: OrderLine, item: OrderLine): Quantity | null {
+  if (was.measureUnit === undefined || item.measureUnit === undefined) return item.quantity;
+  try {
+    return convertWeighedQuantity(item.quantity, item.measureUnit, was.measureUnit);
+  } catch {
+    return null;
+  }
 }
 
 /** What hangs under a line, whatever the ids: a pick with the options under it, an option. */

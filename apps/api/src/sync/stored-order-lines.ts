@@ -1,4 +1,5 @@
 import {
+  type MeasureUnit,
   type OrderLine,
   type OrderLineType,
   type PriceSource,
@@ -35,6 +36,7 @@ interface LineRow {
   price_source: string;
   reverses_line_id: string | null;
   whole_parent_line: boolean;
+  measure_unit: string | null;
   sent_quantity: string;
   sent_note: string | null;
   restock: boolean | null;
@@ -77,5 +79,6 @@ function lineOf(row: LineRow): OrderLine {
     reversesLineId: row.reverses_line_id,
     // Only a line discount carries the flag, so other lines read exactly as the domain built them.
     ...(row.whole_parent_line ? { wholeParentLine: true } : {}),
+    ...(row.measure_unit === null ? {} : { measureUnit: row.measure_unit as MeasureUnit }),
   };
 }

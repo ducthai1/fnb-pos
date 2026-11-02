@@ -1,3 +1,4 @@
+import { MEASURE_UNITS } from "@fnb/domain";
 import { z } from "zod";
 import { businessDateSchema } from "../primitives/business-date-schema";
 import { wholeDongSchema as money } from "../primitives/money-schema";
@@ -71,6 +72,8 @@ export const dailySalesReportSchema = z
           modifierOptionId: id,
           name: z.string(),
           quantity: z.string(),
+          /** A weighed product's rows, one per unit it was sold per: the quantity's unit. */
+          measureUnit: z.enum(MEASURE_UNITS).optional(),
           gross: money,
           discount: money,
           net: money,
@@ -90,6 +93,7 @@ export const dailySalesReportSchema = z
               name: z.string(),
               count,
               quantity: z.string(),
+              measureUnit: z.enum(MEASURE_UNITS).optional(),
               value: money,
             })
             .strict(),

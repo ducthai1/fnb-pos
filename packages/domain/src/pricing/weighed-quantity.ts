@@ -57,6 +57,20 @@ export function gramsOfWeighedQuantity(weight: Quantity, unit: MeasureUnit): num
 }
 
 /**
+ * The same weight counted in another unit: 0.35 of a kg is 3.5 of 100 g. Exact both ways,
+ * since a whole gram is a whole number of thousandths of either unit. A weight that is no
+ * whole number of grams in `from` is refused as gramsOfWeighedQuantity refuses it.
+ */
+export function convertWeighedQuantity(
+  weight: Quantity,
+  from: MeasureUnit,
+  to: MeasureUnit,
+): Quantity {
+  if (from === to) return weight;
+  return weighedQuantity(gramsOfWeighedQuantity(weight, from), to);
+}
+
+/**
  * What a weighed line costs: its price per unit times its weight in units, rounded half-up
  * to the đồng, which is how goodsLineAmounts prices every line (so the drawer's preview and
  * the order's total never differ). 200.000 đ/kg × 0,353 kg = 70.600 đ.
