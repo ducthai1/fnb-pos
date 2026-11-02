@@ -1,3 +1,6 @@
+import type { Till } from "@fnb/api/test-support/sync-shop";
+import type { RevokedTillBook } from "./revoked-till";
+
 /** What the shop itself knows happened, kept apart from the system so the two can be compared. */
 export interface BookedOrder {
   readonly id: string;
@@ -51,6 +54,10 @@ export class ShopBooks {
   /** Managers' approvals given to the cashiers' tills, and the refused payments set aside with one. */
   approvalsGiven = 0;
   dismissed = 0;
+  /** Tills the backoffice revoked and that were paired again as new devices: their commands count. */
+  readonly retiredTills: Till[] = [];
+  /** The spare till revoked while it held sales, when that happened today. */
+  revokedTill: RevokedTillBook | null = null;
   /** Redos of a table save that the server refused as stale in turn. */
   readonly refusedRedos = new Set<string>();
   /** Refused cash moves a cashier set aside with a manager's approval of the shift. */

@@ -1,5 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
+import { DEVICE_UNAUTHENTICATED_CODE } from "@fnb/contracts";
 import { withTenant } from "@fnb/db";
+import { formatVnd, vnd } from "@fnb/domain";
 import { feedChanges, serverLedger } from "../support/server-truth";
 import { shownOrders } from "../support/scenario-till";
 import { checkDayReports } from "./day-report-checks";
@@ -168,6 +170,13 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
         `${device.name}: "needs attention" holds ${entry.command.type} (${entry.code}) nobody meant to refuse`,
       );
   }
+  // A till paired again leaves its old device's commands on the server: they count too.
+  for (const record of books.retiredTills) {
+    const ledger = await serverLedger(shop.server, shop.shop, record);
+    accepted += ledger.accepted;
+    refused += ledger.rejected;
+  }
+  Object.assign(facts, await checkRevokedTill(books, query, say));
   const meant = books.earlier.refused + books.meantToBeRefused.size;
   if (refused !== meant) say(`the server refused ${refused} commands, the script meant ${meant}`);
   const issued = books.earlier.commands + books.commandsIssued;
@@ -266,6 +275,70 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
   facts.missedTheBill = [...missed.values()].reduce((total, units) => total + units, 0);
   Object.assign(facts, await checkDayReports(run, say, missed));
   return { violations, facts };
+}
+
+/**
+ * The till revoked while it held cash: it saw itself revoked, its outbox went up whole under
+ * the manager's code, and every cash payment it took is on the server or listed on its
+ * revoked screen as not accepted, with its amount. The flush and the codes are audited.
+ */
+async function checkRevokedTill(
+  books: DayRun["books"],
+  query: <Row extends object>(sql: string, values?: unknown[]) => Promise<Row[]>,
+  say: (message: string) => void,
+): Promise<Record<string, unknown>> {
+  const book = books.revokedTill;
+  if (book === null) return {};
+  const where = `the revoked till (${book.variant})`;
+  if (book.sawRevoked !== DEVICE_UNAUTHENTICATED_CODE)
+    say(`${where} did not see itself revoked: ${book.sawRevoked}`);
+  if (book.held === null) {
+    say(`${where} never sent the rest: ${book.stops.join(", ")}`);
+    return {};
+  }
+  if (book.pendingAfterFlush !== 0) say(`${where} still held ${book.pendingAfterFlush} commands`);
+  for (const refused of book.held.refused) {
+    if (!books.meantToBeRefused.has(refused.id))
+      say(
+        `${where}: the server refused ${refused.name} (${refused.sentence}) nobody meant to refuse`,
+      );
+  }
+  const taken = new Set(
+    (
+      await query<{ command_id: string }>(
+        "SELECT command_id::text AS command_id FROM applied_command WHERE device_id = $1 AND status = 'accepted'",
+        [book.deviceId],
+      )
+    ).map((row) => row.command_id),
+  );
+  for (const payment of book.payments) {
+    const listed = book.held.refused.find((item) => item.id === payment.commandId);
+    const onServer = taken.has(payment.commandId);
+    if (!onServer && listed?.amount !== formatVnd(vnd(payment.amount)))
+      say(
+        `${where}: the cash payment ${payment.commandId} of ${payment.amount} is neither on the server nor listed with its amount`,
+      );
+    if (payment.duplicate === onServer)
+      say(
+        `${where}: the ${payment.duplicate ? "second" : "first"} tap of ${payment.orderId} went the wrong way`,
+      );
+  }
+  const audit = await query<{ action: string; n: number }>(
+    "SELECT action, count(*)::int AS n FROM audit_log WHERE entity_id = $1 GROUP BY action",
+    [book.deviceId],
+  );
+  const count = (action: string) => audit.find((row) => row.action === action)?.n ?? 0;
+  if (count("device.flush_grant_issued") !== book.grants)
+    say(`${where}: ${book.grants} codes given, ${count("device.flush_grant_issued")} audited`);
+  if (count("device.flushed_under_grant") === 0) say(`${where}: the flush is not audited`);
+  const expectedStops = { halfway: "network", expired: "http 401", tapped_twice: null }[
+    book.variant
+  ];
+  if (expectedStops !== null && !book.stops.some((stop) => stop.startsWith(expectedStops)))
+    say(`${where}: the flush never stopped as planned (${book.stops.join(", ")})`);
+  return {
+    revokedTill: `${book.variant}: ${book.payments.length} payments, ${book.held.refused.length} listed, ${book.grants} codes, stops [${book.stops.join("; ")}]`,
+  };
 }
 
 /**

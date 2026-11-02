@@ -7,6 +7,7 @@ decisions:
   - D-149
   - D-150
   - D-159
+  - D-160
   - D-164
 tests:
   - packages/sync-client/test/scenarios/simulated-shop-day.test.ts
@@ -51,6 +52,7 @@ Khách và món sinh **ngẫu nhiên có seed**: tên món, số lượng (có c
 | Một máy **lệch giờ** (nhanh hoặc chậm tới 8 phút) cả ngày | từ đầu |
 | **Máy chủ khởi động lại** giữa giờ | ~55% |
 | **Cập nhật app giữa ca**: máy chủ đòi bản tối thiểu mới (426), lệnh nằm lại, từng máy tải lại bản mới rồi gửi tiếp | ~72% |
+| **Máy quầy bị thu hồi khi còn giữ đơn chưa gửi**: máy quầy dự phòng `counter-3` được ghép, mở ca, mất mạng, bán tiền mặt; chủ quán thu hồi máy trên trang quản lý; thu ngân đếm két, đóng ca (vẫn mất mạng); có mạng lại máy thấy mình bị thu hồi; quản lý tạo **mã cho gửi nốt**; máy gửi nốt bằng đúng hàm của màn thu hồi (`flushOutboxUnderGrant`), rồi **ghép lại thành máy mới** (xóa dữ liệu như nút "Ghép lại máy"), mở ca mới và bán tiếp. Mỗi seed rơi vào một trong ba biến thể: **đứt giữa chừng** (52 đơn, lô 100 lệnh đầu lên, lô sau rớt mạng, gửi tiếp **cùng mã**); **mã hết hạn** (quản lý tới sau 11 phút, máy chủ trả 401, quản lý tạo mã mới); **bấm thanh toán hai lần** (lần hai bị từ chối, màn thu hồi ghi lệnh không được nhận **kèm số tiền**) | ~20% |
 | **Thu chi két quá hạn mức bị từ chối**: thu ngân `counter-2` rút 900.000 ₫ (quá 500.000 ₫ một ca) mà không xin duyệt như máy bản cũ → máy chủ từ chối, tiền chưa rời két; thu ngân thử **tự bỏ qua** (máy bản cũ cho bấm) → máy chủ từ chối tiếp; quản lý duyệt *Mở két không bán hàng* **cho đúng ca đó** → bỏ qua cả hai lệnh | ~30% |
 
 Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ; bản gộp bị từ chối nữa thì gộp lại tiếp, tối đa 3 lần (dòng kết quả in `refusedRedos`). Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
@@ -65,7 +67,8 @@ Mỗi mục là một lời khẳng định có câu báo rõ; **tất cả cái
 4. Mọi máy **hiển thị y hệt máy chủ** (từng đơn, từng ca; so sâu từng trường).
 5. **Két mỗi ca khớp**: số tiền thu ngân đếm theo sổ của quán (đầu ca + thu − hoàn − rút) bằng số hệ thống chờ đợi, chênh 0. Khoản thu chi két bị từ chối **không vào sổ két** (máy chủ không nhận lệnh nào của nó), chỉ được bỏ qua với **đúng một** dòng nhật ký gắn ca có tên người duyệt; lần thu ngân tự bỏ qua phải bị từ chối `SYNC_APPROVAL_…`.
 6. **Số gọi** không trùng giữa các máy cùng chi nhánh.
-7. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
+7. **Máy bị thu hồi**: máy thấy mình bị thu hồi (`API_DEVICE_UNAUTHENTICATED`), gửi nốt thì hàng chờ về 0; **mỗi khoản tiền mặt máy đã thu** hoặc có trên máy chủ, hoặc nằm trong danh sách "không được nhận" của màn thu hồi **đúng số tiền**; lần bấm hai lần đi đúng chiều (lần đầu nhận, lần hai từ chối); số mã quản lý tạo = số dòng nhật ký `device.flush_grant_issued`, có nhật ký `device.flushed_under_grant`; lần gửi dừng đúng như biến thể (rớt mạng / 401). Lệnh của máy cũ vẫn được đếm trong tổng lệnh của ngày.
+8. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
 
 ## Các bước
 

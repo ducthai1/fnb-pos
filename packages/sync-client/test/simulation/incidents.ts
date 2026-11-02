@@ -2,6 +2,7 @@ import type { DayContext } from "./day-context";
 import { addItems } from "./table-service";
 import { openTill } from "./simulated-shop";
 import { cashMovePastTheCap } from "./refused-cash-move";
+import { scheduleRevokedTill } from "./revoked-till";
 
 const MINUTE = 60_000;
 
@@ -42,6 +43,7 @@ const AT = {
   update: 0.72,
   sameTable: 0.38,
   cashPastCap: 0.3,
+  revokedTill: 0.2,
 } as const;
 
 /** Schedules the day's troubles; each is a task like the cashiers' own. */
@@ -97,6 +99,11 @@ export function scheduleIncidents(ctx: DayContext, choices: IncidentChoices): st
     cashMovePastTheCap(ctx, ctx.device("counter-2")),
   );
   happened.push("refused cash move set aside with a manager's approval");
+
+  // A spare till revoked while it holds cash sales, flushed under a manager's code, paired again.
+  ctx.books.revokedTill = scheduleRevokedTill(ctx, at(AT.revokedTill));
+  if (ctx.books.revokedTill !== null)
+    happened.push(`spare till revoked and flushed (${ctx.books.revokedTill.variant})`);
 
   if (choices.serverRestart) {
     task(at(AT.restart), "server restarts", async () => {
