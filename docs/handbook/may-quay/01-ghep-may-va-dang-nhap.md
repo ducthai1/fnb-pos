@@ -101,8 +101,14 @@ Nếu chủ quán **thu hồi** máy ở trang quản lý, máy biết ngay ở 
 - Máy **không xóa gì một mình**. Màn liệt kê các thao tác **chưa gửi** (theo loại, kèm số lượng) và số lệnh còn ở mục **Cần xử lý**: máy chủ sẽ không nhận chúng từ máy đã thu hồi nữa.
 - Máy sạch (không còn gì chưa gửi): bấm **Ghép lại máy**, máy xóa thông tin ghép và dữ liệu bán hàng cũ rồi về màn **Ghép máy với cửa hàng**, có dòng giải thích "Máy vừa được gỡ khỏi cửa hàng…".
 - Máy còn thao tác chưa gửi: **gửi nốt trước khi xóa**. Bấm **Gửi nốt N thao tác bằng mã quản lý**, nhờ quản lý mở trang quản lý → **Thiết bị**, bấm **Cho gửi nốt** ở dòng của máy này rồi đọc mã (8 ký tự) cho bạn; gõ mã (không phân biệt hoa thường, gạch ngang hay dấu cách) rồi bấm **Gửi nốt N thao tác**. Máy gửi một lần mọi thao tác còn giữ, kể cả tiền đã thu, và máy chủ kiểm từng thao tác như lúc đồng bộ thường; tên người làm là thu ngân đã làm ra thao tác đó.
+
+  ![Nhập mã cho gửi nốt trên máy đã thu hồi](../images/may-quay/till-revoked-code.webp)
+
   - Gửi xong máy báo **Máy chủ đã nhận N thao tác.**
   - Thao tác máy chủ **không nhận** (đơn vừa bị máy khác sửa, ca chưa mở…) hiện thành danh sách **Máy chủ không nhận M thao tác — báo quản lý ghi lại trước khi xóa**: từng dòng có tên thao tác, lý do, và số tiền nếu là thanh toán / hoàn tiền. Máy **không** tự làm lại các thao tác này (máy đã bị gỡ): quản lý ghi lại rồi làm lại trên máy khác.
+
+    ![Gửi nốt xong: số thao tác máy chủ đã nhận và danh sách không nhận](../images/may-quay/till-revoked-flushed.webp)
+
   - Mất mạng giữa chừng: phần đã gửi vẫn ở máy chủ, phần còn lại vẫn ở máy; có mạng lại thì bấm gửi lại **với cùng mã**. Thao tác nào máy chủ đã nhận thì không bị ghi hai lần.
   - Máy **vẫn bị gỡ** sau khi gửi nốt: không bán được, không đồng bộ được.
 - Bấm **Ghép lại máy** khi còn thao tác chưa gửi hoặc còn thao tác máy chủ không nhận thì chỉ mở bước xác nhận (nút đỏ **Xóa N thao tác và ghép lại máy**, N gồm cả hai loại, kèm nút **Chưa xóa, giữ nguyên**). Chưa bấm nút đỏ thì mọi thứ vẫn nằm trên máy.

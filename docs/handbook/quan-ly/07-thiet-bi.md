@@ -62,6 +62,9 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 Máy bị thu hồi lúc còn thao tác chưa gửi (thường là mất mạng một lúc rồi bị thu hồi) có thể còn giữ **tiền đã thu**. Đừng để thu ngân xóa: cho máy gửi nốt một lần.
 
 1. Ở dòng của máy **Đã thu hồi**, bấm **Cho gửi nốt**. Trang hiện thẻ **Mã cho máy "…" gửi nốt** với mã 8 ký tự và giờ hết hạn ("Chỉ dùng cho máy này, một lần, hết hạn lúc …").
+
+   ![Mã cho máy đã thu hồi gửi nốt](../images/quan-ly/thiet-bi-gui-not.webp)
+
 2. Đọc mã cho người đứng máy: trên máy bấm **Gửi nốt N thao tác bằng mã quản lý**, gõ mã, bấm gửi (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md#khi-máy-bị-thu-hồi)).
 3. Máy báo số thao tác máy chủ đã nhận. Thao tác máy chủ **không nhận** hiện ngay trên máy (tên, lý do, số tiền nếu có): ghi lại rồi làm lại trên máy khác.
 4. Bấm **Đóng** để cất thẻ mã. Máy **vẫn bị thu hồi**; muốn dùng lại thì ghép bằng mã ghép mới.
