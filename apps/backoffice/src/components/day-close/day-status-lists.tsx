@@ -5,6 +5,7 @@ import type { DayInvoice, DayOrder, DayQrRefund, DayStatus } from "../../lib/api
 import type { DayCloseBlockers } from "../../lib/day-close/day-close-refusal";
 import { vi } from "../../messages/vi";
 import { Icon } from "../ui/icon";
+import { DayCashAfterShiftClose, DayClosedOnBehalf, DayOpenShifts } from "./day-open-shifts";
 
 const T = vi.dayClose;
 
@@ -63,20 +64,38 @@ function DayChecklist({ status }: { status: DayStatus }) {
   );
 }
 
+const NO_ACTION = () => undefined;
+
 /** What still stops the day closing, and what needs a person even once it is closed. */
-export function DayStatusLists({ status }: { status: DayStatus }) {
+export function DayStatusLists({
+  status,
+  onShiftClosed = NO_ACTION,
+  onStale = NO_ACTION,
+}: {
+  status: DayStatus;
+  /** A revoked till's shift was closed from here; the message says what was settled. */
+  onShiftClosed?: (message: string) => void;
+  onStale?: () => void;
+}) {
   const blocking = status.openShiftIds.length + status.openDrafts.length + status.unissuedInvoices.length;
   return (
     <div className="bo-stack">
       {status.dayClose === null && <DayChecklist status={status} />}
       {status.dayClose === null && blocking === 0 && <p className="bo-muted">{T.nothingOpen}</p>}
-      <DayList list="open-shifts" title={T.openShiftsTitle} items={shifts(status.openShiftIds)} />
+      {status.openShifts.length > 0 ? (
+        <DayOpenShifts shifts={status.openShifts} onShiftClosed={onShiftClosed} onStale={onStale} />
+      ) : (
+        // An older API names the open shifts by id only.
+        <DayList list="open-shifts" title={T.openShiftsTitle} items={shifts(status.openShiftIds)} />
+      )}
       <DayList list="open-drafts" title={T.openDraftsTitle} items={orders(status.openDrafts)} />
       <DayList list="unissued-invoices" title={T.unissuedTitle} items={invoices(status.unissuedInvoices)} />
       <DayList list="failed-invoices" title={T.failedTitle} items={invoices(status.failedInvoices)} />
       <DayList list="unsent-invoices" title={T.unsentTitle} items={invoices(status.unsentInvoices)} />
       <DayList list="paid-after-close" title={T.paidAfterTitle} items={orders(status.paidAfterClose)} />
       <DayList list="qr-refunded-after-close" title={T.qrRefundedAfterTitle} items={qrRefunds(status.qrRefundedAfterClose)} />
+      <DayClosedOnBehalf shifts={status.closedOnBehalf} />
+      <DayCashAfterShiftClose shifts={status.cashAfterShiftClose} />
     </div>
   );
 }

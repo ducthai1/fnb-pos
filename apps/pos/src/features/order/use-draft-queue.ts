@@ -8,6 +8,7 @@ import type { OrderOpening } from "./order-opening";
 import type { AdjustableOrder, Adjusted, Recorded } from "./order-session-types";
 import { type PricedCounterOrder, priceCounterOrder } from "./price-counter-order";
 import { saveDraftCommand } from "./save-draft-command";
+import { sameCart } from "./same-cart";
 import { type TillPlace, businessDateAt } from "./till-command";
 import { useOrderLocks } from "./use-order-locks";
 
@@ -119,7 +120,7 @@ export function useDraftQueue(options: DraftQueueOptions) {
     const after = change(before);
     const held = locks.now.current;
     const allowed = cartChangeAllowed(before, after, held.kept, held.commandLines);
-    if (blocked() || after === before || !allowed) return;
+    if (blocked() || after === before || sameCart(before, after) || !allowed) return;
     current.current = after;
     dirty.current = true;
     setOrder(after);

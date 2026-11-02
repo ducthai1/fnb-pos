@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi as mock } from "vitest";
 import type { Device } from "../../lib/api/devices-api";
-import { formatClockTime } from "../../lib/format/format-time";
+import { formatClockTime, formatDateTime } from "../../lib/format/format-time";
 import { vi } from "../../messages/vi";
 import { BRANCHES, ok, refused } from "../../test-support/fake-backoffice-api";
 import { renderSignedIn } from "../../test-support/render-signed-in";
@@ -58,6 +58,27 @@ describe("the devices of a branch", () => {
     await renderSignedIn(<DevicesScreen />, { listDevices, createPairingCode });
     fireEvent.click(await screen.findByRole("button", { name: T.createCode }));
     await screen.findByText(T.codeExpired);
+  });
+
+  it("warns, before revoking, that the till still has a shift open and how it gets closed", async () => {
+    const openedAt = "2026-10-20T01:15:00.000Z";
+    devices = devices.map((device) => (device.id === "d1" ? { ...device, openShiftOpenedAt: openedAt } : device));
+    await renderSignedIn(<DevicesScreen />, { listDevices, revokeDevice });
+    fireEvent.click(await screen.findByRole("button", { name: T.revokeLabel("Quầy 1") }));
+    const dialog = screen.getByRole("alertdialog", { name: T.revokeTitle("Quầy 1") });
+    const warning = dialog.querySelector("[data-revoke-open-shift]");
+    expect(warning?.textContent).toBe(T.revokeOpenShift(formatDateTime(openedAt)));
+    // Still one confirming tap: a stolen till must be revocable at once.
+    fireEvent.click(within(dialog).getByRole("button", { name: T.revokeConfirm }));
+    await screen.findByText(T.revokedDone("Quầy 1"));
+    expect(revokeDevice).toHaveBeenCalledWith("d1");
+  });
+
+  it("does not warn for a till with no shift open, nor for an older API that does not say", async () => {
+    devices = devices.map((device) => (device.id === "d1" ? { ...device, openShiftOpenedAt: null } : device));
+    await renderSignedIn(<DevicesScreen />, { listDevices, revokeDevice });
+    fireEvent.click(await screen.findByRole("button", { name: T.revokeLabel("Quầy 1") }));
+    expect(screen.getByRole("alertdialog").querySelector("[data-revoke-open-shift]")).toBeNull();
   });
 
   it("revokes a till only after the second, confirming tap", async () => {

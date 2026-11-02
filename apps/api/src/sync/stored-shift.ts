@@ -15,6 +15,8 @@ export interface StoredShift {
   readonly openedByStaffId: string;
   readonly openingCash: Vnd;
   readonly closedByStaffId: string | null;
+  /** The manager who closed it from the backoffice for a revoked till, instead of a cashier. */
+  readonly closedByAppUserId: string | null;
   readonly countedCash: Vnd | null;
   readonly expectedCash: Vnd | null;
   readonly difference: Vnd | null;
@@ -32,6 +34,7 @@ interface ShiftRow {
   opened_by_staff_id: string;
   opening_cash: string;
   closed_by_staff_id: string | null;
+  closed_by_app_user_id: string | null;
   counted_cash: string | null;
   expected_cash: string | null;
   difference: string | null;
@@ -42,8 +45,8 @@ interface ShiftRow {
 // business_date as text, as for orders: a Date would shift the day off UTC+7.
 const SHIFT_COLUMNS =
   "id, branch_id, device_id, status, business_date::text AS business_date, version, " +
-  "opened_by_staff_id, opening_cash, closed_by_staff_id, counted_cash, expected_cash, " +
-  "difference, close_approval_id, open_orders_carried";
+  "opened_by_staff_id, opening_cash, closed_by_staff_id, closed_by_app_user_id, counted_cash, " +
+  "expected_cash, difference, close_approval_id, open_orders_carried";
 
 const money = (value: string | null): Vnd | null => (value === null ? null : vnd(BigInt(value)));
 
@@ -58,6 +61,7 @@ function shiftOf(row: ShiftRow): StoredShift {
     openedByStaffId: row.opened_by_staff_id,
     openingCash: vnd(BigInt(row.opening_cash)),
     closedByStaffId: row.closed_by_staff_id,
+    closedByAppUserId: row.closed_by_app_user_id,
     countedCash: money(row.counted_cash),
     expectedCash: money(row.expected_cash),
     difference: money(row.difference),
@@ -145,4 +149,18 @@ export async function readShiftCashBook(
     recordedAfterClose: late,
     entryCount: payments.rows.length + moves.rows.length,
   };
+}
+
+/**
+ * Why a till's shift command finds no shift of its own open: none was opened, or the last
+ * one was closed for it from the backoffice once the till had been revoked (its own close or
+ * cash move then arrives late, under a send-the-rest code, and must not settle it again).
+ */
+export async function closedOnBehalfLast(client: pg.ClientBase, deviceId: string): Promise<boolean> {
+  const { rows } = await client.query<{ on_behalf: boolean }>(
+    "SELECT closed_by_app_user_id IS NOT NULL AS on_behalf FROM shift " +
+      "WHERE device_id = $1 AND status = 'closed' ORDER BY closed_at DESC, id DESC LIMIT 1",
+    [deviceId],
+  );
+  return rows[0]?.on_behalf === true;
 }

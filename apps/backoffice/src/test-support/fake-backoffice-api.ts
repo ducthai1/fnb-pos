@@ -88,6 +88,7 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     getPrintFailures: unexpected("getPrintFailures"),
     getDayStatus: unexpected("getDayStatus"),
     closeDay: unexpected("closeDay"),
+    closeShiftOnBehalf: unexpected("closeShiftOnBehalf"),
     listUnmatched: unexpected("listUnmatched"),
     matchTransfer: unexpected("matchTransfer"),
     handBackQrMoney: unexpected("handBackQrMoney"),

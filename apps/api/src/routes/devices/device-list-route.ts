@@ -13,6 +13,7 @@ interface DeviceRow {
   created_at: Date;
   last_revoked_at: Date | null;
   live: boolean;
+  open_shift_at: Date | null;
 }
 
 // A till is revoked once none of its credentials can sign in; it shows the moment the last
@@ -22,12 +23,14 @@ const LIST_DEVICES =
   "(SELECT max(c.revoked_at) FROM device_credential c " +
   "WHERE c.tenant_id = d.tenant_id AND c.device_id = d.id) AS last_revoked_at, " +
   "EXISTS (SELECT 1 FROM device_credential c WHERE c.tenant_id = d.tenant_id " +
-  "AND c.device_id = d.id AND c.revoked_at IS NULL) AS live " +
+  "AND c.device_id = d.id AND c.revoked_at IS NULL) AS live, " +
+  "(SELECT s.created_at FROM shift s WHERE s.tenant_id = d.tenant_id AND s.device_id = d.id " +
+  "AND s.status <> 'closed') AS open_shift_at " +
   "FROM device d WHERE d.branch_id = $1 ORDER BY d.created_at, d.id";
 
 /**
  * The tills paired to one branch, revoked ones included so the list explains why a till
- * stopped working. Seeing them is part of managing them, so it takes manage_devices,
+ * stopped working, each with the shift still open on it (revoking it first warns of that). Seeing them is part of managing them, so it takes manage_devices,
  * checked before the query is read. A branch of another tenant is invisible under row
  * level security and answers 404 like one that never existed.
  */
@@ -52,6 +55,7 @@ export function registerDeviceListRoute(app: FastifyInstance, context: ApiContex
         pairedAt: row.created_at.toISOString(),
         revokedAt:
           row.live || row.last_revoked_at === null ? null : row.last_revoked_at.toISOString(),
+        openShiftOpenedAt: row.open_shift_at === null ? null : row.open_shift_at.toISOString(),
       }));
       return { devices };
     },

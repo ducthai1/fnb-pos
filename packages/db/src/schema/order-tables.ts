@@ -139,6 +139,8 @@ export const shift = pgTable("shift", {
   businessDate: date("business_date").notNull(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
   closedByStaffId: uuid("closed_by_staff_id"),
+  /** Set instead of closedByStaffId when a manager closed it for a revoked till; see 0043. */
+  closedByAppUserId: uuid("closed_by_app_user_id"),
   countedCash: money("counted_cash"),
   expectedCash: money("expected_cash"),
   difference: money("difference"),

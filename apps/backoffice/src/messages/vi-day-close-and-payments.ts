@@ -47,6 +47,32 @@ export const VI_DAY_CLOSE = {
   blockedTitle: "Chưa chốt được. Còn:",
   needsKey:
     "Vai trò của bạn xem được trạng thái ngày nhưng không chốt được: cần quyền duyệt chênh lệch két.",
+  tillName: (name: string | null) => name ?? "Máy không rõ tên",
+  openShiftMeta: (openedAt: string, expected: string) => `Mở lúc ${openedAt} · Két dự kiến ${expected}`,
+  revokedBadge: "Máy đã thu hồi",
+  revokedNote:
+    "Máy đã bị thu hồi nên không tự đóng ca này được nữa. Quản lý đếm két rồi đóng ca hộ để chốt được ngày.",
+  closeOnBehalf: "Đóng ca hộ",
+  closeOnBehalfLabel: (name: string) => `Đóng ca hộ máy “${name}”`,
+  closeOnBehalfTitle: (name: string) => `Đóng ca hộ máy “${name}”?`,
+  closeOnBehalfHint:
+    "Nếu máy còn thao tác chưa gửi (đơn, thanh toán lúc mất mạng), vào Thiết bị → Cho gửi nốt để máy gửi trước rồi mới đóng: két dự kiến chỉ gồm những gì máy chủ đã nhận. Đếm tiền trong két rồi nhập tổng. Đóng rồi không mở lại được.",
+  countedLabel: "Tiền đếm được trong két (đ)",
+  countedHint: "Nhập tổng, ví dụ 1.250.000. Có tiền lẻ, tiền rách cũng cộng vào.",
+  countedInvalid: "Nhập số tiền nguyên, không âm, ví dụ 1.250.000.",
+  expectedLine: (amount: string) => `Két dự kiến theo máy chủ: ${amount}`,
+  difference: (difference: number, amount: string) =>
+    difference === 0 ? "Khớp với két dự kiến." : difference > 0 ? `Thừa ${amount} so với két dự kiến.` : `Thiếu ${amount} so với két dự kiến.`,
+  closingOnBehalf: "Đang đóng ca…",
+  closedOnBehalfDone: (name: string, difference: string) => `Đã đóng ca hộ máy “${name}”. ${difference}`,
+  needsKeyOnBehalf: "Cần quyền duyệt chênh lệch két để đóng ca hộ.",
+  closedOnBehalfTitle: "Ca quản lý đã đóng hộ máy bị thu hồi",
+  closedOnBehalfRow: (name: string, counted: string, expected: string, difference: string) =>
+    `${name} · đếm ${counted}, dự kiến ${expected} · ${difference}`,
+  cashAfterCloseNote: (amount: string) =>
+    `Máy gửi nốt sau khi đóng hộ: ${amount} tiền mặt — không cộng vào số đã đóng, đối chiếu với chênh lệch.`,
+  cashAfterShiftCloseTitle: "Tiền mặt về sau khi ca đã đóng (ghi cạnh ca, không đổi số đã đóng)",
+  cashAfterShiftCloseRow: (name: string, amount: string) => `${name} · ${amount}`,
 } as const;
 
 export const VI_TRANSFERS = {

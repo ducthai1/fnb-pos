@@ -27,6 +27,12 @@ export const deviceSummarySchema = z
     branchId: uuidSchema,
     pairedAt: instantSchema,
     revokedAt: instantSchema.nullable(),
+    /**
+     * When the shift still open on this till was opened, or null: revoking such a till
+     * leaves a shift only a manager can close (and the day waits for it). Missing from an
+     * older API.
+     */
+    openShiftOpenedAt: instantSchema.nullable().optional(),
   })
   .strict();
 

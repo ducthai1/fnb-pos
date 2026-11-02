@@ -48,6 +48,27 @@ export const SERVER_COPY_CONTRACT: LocalStoreContractGroup = {
       },
     },
     {
+      name: "takes a feed with numbers missing, as compaction leaves it, and ends on the newest copies",
+      async run(harness) {
+        const { store } = await harness.open();
+        const kept = testId();
+        const gone = testId();
+        // Copies 2–8 and 10–39 of these rows were replaced, then compacted away on the server.
+        await store.applyChanges(page([change(1, order(kept, 1)), change(9, order(gone, 2))]));
+        await store.applyChanges(page([change(40, order(kept, 5))]));
+        await store.applyChanges(
+          page([{ changeSeq: "977", entity: "order", entityId: gone, snapshot: null }]),
+        );
+        assertEqual(await store.cursor(), "977", "cursor");
+        assertMatches(await store.snapshot("order", kept), { serverVersion: 5 }, "newest copy");
+        assertEqual(await store.snapshot("order", gone), null, "removed");
+        // An empty page after the gap leaves the till where it was.
+        await store.applyChanges(page([], "977"));
+        assertEqual(await store.cursor(), "977", "cursor after an empty page");
+        await store.close();
+      },
+    },
+    {
       name: "tells of a removal of a row it never held a copy of",
       async run(harness) {
         const { store } = await harness.open();

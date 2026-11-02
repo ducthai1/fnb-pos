@@ -3,6 +3,7 @@ import {
   type OrderChargeProfile,
   type OrderStatus,
   type Quantity,
+  type RefundAmounts,
   type ServiceType,
   type Vnd,
   vnd,
@@ -11,8 +12,8 @@ import type { OrderEInvoiceSnapshot } from "@fnb/contracts";
 import type pg from "pg";
 import { readOrderEInvoiceSnapshot } from "../einvoice/order-einvoice-snapshot";
 import { chargeProfileFromStored } from "./charge-profile-snapshot";
-import { readRefundAmounts } from "./refund-amounts-store";
-import { readStoredOrderLines } from "./stored-order-lines";
+import { readRefundAmounts, readRefundAmountsOf } from "./refund-amounts-store";
+import { type StoredOrderLines, readStoredOrderLines, readStoredOrderLinesOf } from "./stored-order-lines";
 
 /** An order as the server holds it: the domain's Order plus what only the document carries. */
 export interface StoredOrder {
@@ -117,20 +118,103 @@ export async function readRefundsOf(client: pg.ClientBase, saleId: string): Prom
   return refunds;
 }
 
+interface PaymentRow {
+  id: string;
+  method: string;
+  amount: string;
+  received_by_staff_id: string;
+  payment_intent_id: string | null;
+}
+
+const PAYMENT_COLUMNS = "id, method, amount, received_by_staff_id, payment_intent_id";
+
 async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<StoredOrder> {
   const lines = await readStoredOrderLines(client, row.id);
-  const payments = await client.query<{
-    id: string;
-    method: string;
-    amount: string;
-    received_by_staff_id: string;
-    payment_intent_id: string | null;
-  }>(
-    "SELECT id, method, amount, received_by_staff_id, payment_intent_id FROM payment " +
-      "WHERE order_id = $1 " +
-      "ORDER BY created_at, id",
+  const payments = await client.query<PaymentRow>(
+    `SELECT ${PAYMENT_COLUMNS} FROM payment WHERE order_id = $1 ORDER BY created_at, id`,
     [row.id],
   );
+  const refundAmounts = await readRefundAmounts(
+    client,
+    row.id,
+    row.refund_prices_include_tax,
+    row.refund_service_charge_tax_rate_bp,
+  );
+  const einvoice = row.status === "draft" ? null : await readOrderEInvoiceSnapshot(client, row.id);
+  return assembleStoredOrder(row, lines, payments.rows, refundAmounts, einvoice);
+}
+
+/**
+ * The orders by id in a fixed number of round trips, whatever their number: the orders, their
+ * lines, their payments, the amounts of any refund among them (and one invoice read for each
+ * order no longer a draft). Each comes out exactly as readStoredOrder reads it alone; ids this
+ * tenant has no order for are left out, the rest keep the order of `orderIds`.
+ */
+export async function readStoredOrdersByIds(
+  client: pg.ClientBase,
+  orderIds: readonly string[],
+): Promise<StoredOrder[]> {
+  if (orderIds.length === 0) return [];
+  const found = await client.query<OrderRow>(
+    `SELECT ${ORDER_COLUMNS} FROM sales_order WHERE id = ANY($1::uuid[])`,
+    [orderIds],
+  );
+  const byId = new Map(found.rows.map((row) => [row.id, row]));
+  const rows = orderIds.flatMap((id) => byId.get(id) ?? []);
+  return storedOrdersOf(client, rows);
+}
+
+/** The branch's drafts still open, oldest first, read as readStoredOrdersByIds reads orders. */
+export async function readOpenDraftsOfBranch(
+  client: pg.ClientBase,
+  branchId: string,
+): Promise<StoredOrder[]> {
+  const found = await client.query<OrderRow>(
+    `SELECT ${ORDER_COLUMNS} FROM sales_order WHERE branch_id = $1 AND status = 'draft' ` +
+      "ORDER BY created_at, id",
+    [branchId],
+  );
+  return storedOrdersOf(client, found.rows);
+}
+
+async function storedOrdersOf(client: pg.ClientBase, rows: readonly OrderRow[]) {
+  if (rows.length === 0) return [];
+  const ids = rows.map((row) => row.id);
+  const lines = await readStoredOrderLinesOf(client, ids);
+  const payments = await client.query<PaymentRow & { order_id: string }>(
+    `SELECT order_id, ${PAYMENT_COLUMNS} FROM payment WHERE order_id = ANY($1::uuid[]) ` +
+      "ORDER BY order_id, created_at, id",
+    [ids],
+  );
+  const paymentsByOrder = new Map<string, PaymentRow[]>(ids.map((id) => [id, []]));
+  for (const payment of payments.rows) paymentsByOrder.get(payment.order_id)?.push(payment);
+  const refunds = await readRefundAmountsOf(
+    client,
+    rows.map((row) => ({
+      orderId: row.id,
+      pricesIncludeTax: row.refund_prices_include_tax,
+      serviceChargeTaxRateBp: row.refund_service_charge_tax_rate_bp,
+    })),
+  );
+  const orders: StoredOrder[] = [];
+  for (const row of rows) {
+    const einvoice = row.status === "draft" ? null : await readOrderEInvoiceSnapshot(client, row.id);
+    const own = lines.get(row.id);
+    if (own === undefined) throw new Error(`no lines read for order ${row.id}`);
+    orders.push(
+      assembleStoredOrder(row, own, paymentsByOrder.get(row.id) ?? [], refunds.get(row.id) ?? null, einvoice),
+    );
+  }
+  return orders;
+}
+
+function assembleStoredOrder(
+  row: OrderRow,
+  lines: StoredOrderLines,
+  payments: readonly PaymentRow[],
+  refundAmounts: RefundAmounts | null,
+  einvoice: OrderEInvoiceSnapshot | null,
+): StoredOrder {
   return {
     order: {
       id: row.id,
@@ -140,12 +224,7 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
       businessDate: row.business_date,
       lines: lines.lines,
       refundOfOrderId: row.refund_of_order_id,
-      refundAmounts: await readRefundAmounts(
-        client,
-        row.id,
-        row.refund_prices_include_tax,
-        row.refund_service_charge_tax_rate_bp,
-      ),
+      refundAmounts,
       version: row.version,
     },
     branchId: row.branch_id,
@@ -162,7 +241,7 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     paidAt: row.paid_at,
     reasonCode: row.reason_code,
     chargeProfile: chargeProfileFromStored(row.charge_profile),
-    payments: payments.rows.map((payment) => ({
+    payments: payments.map((payment) => ({
       id: payment.id,
       method: payment.method,
       amount: vnd(BigInt(payment.amount)),
@@ -172,6 +251,6 @@ async function storedOrderOf(client: pg.ClientBase, row: OrderRow): Promise<Stor
     sentQuantityByLineId: lines.sentQuantityByLineId,
     sentNoteByLineId: lines.sentNoteByLineId,
     restockByLineId: lines.restockByLineId,
-    einvoice: row.status === "draft" ? null : await readOrderEInvoiceSnapshot(client, row.id),
+    einvoice,
   };
 }

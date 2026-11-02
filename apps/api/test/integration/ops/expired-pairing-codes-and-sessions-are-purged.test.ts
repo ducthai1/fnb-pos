@@ -166,9 +166,40 @@ describe("purging expired pairing codes and sessions", () => {
   });
 });
 
+/**
+ * Four copies in the shop's feed: three of one table, two made before the window and one
+ * inside it, and the only copy of another table, made before the window. Answers the ids.
+ */
+async function feedCopies(tenantId: string, branchId: string): Promise<string[]> {
+  const [table, other] = [newId(), newId()];
+  const ids = [newId(), newId(), newId(), newId()];
+  const made = [at(-RETENTION - 2 * DAY), at(-RETENTION - DAY), at(-DAY), at(-RETENTION - 3 * DAY)];
+  await withTenant(pool, tenantId, async (client) => {
+    for (const [index, id] of ids.entries()) {
+      await client.query(
+        "INSERT INTO change_log (id, tenant_id, branch_id, entity, entity_id, snapshot, created_at) " +
+          "VALUES ($1, $2, $3, 'dining_table', $4, $5, $6)",
+        [id, tenantId, branchId, index === 3 ? other : table, JSON.stringify({ name: `Bàn ${index}` }), made[index]],
+      );
+    }
+  });
+  return ids;
+}
+
+const feedIdsOf = (tenantId: string, ids: string[]) =>
+  withTenant(pool, tenantId, async (client) =>
+    (await client.query("SELECT id FROM change_log WHERE id = ANY($1) ORDER BY change_seq", [ids])).rows.map(
+      (row) => row.id,
+    ),
+  );
+
 describe("the cleanup job in the API", () => {
   it("runs a round when the app starts, on the app's clock, and stops with the app", async () => {
     const shop = await sweptShop();
+    const branchId = await withTenant(pool, shop.tenantId, async (client) =>
+      String((await client.query("SELECT id FROM branch ORDER BY name LIMIT 1")).rows[0].id),
+    );
+    const copies = await feedCopies(shop.tenantId, branchId);
     const clock = new ManualClock(NOW);
     const app = buildApp({ pool, clock });
     const rounds: unknown[] = [];
@@ -176,7 +207,11 @@ describe("the cleanup job in the API", () => {
       installCleanupJob(app, {
         pool,
         clock,
-        settings: { intervalMillis: 3_600_000, sessionRetentionMillis: RETENTION },
+        settings: {
+          intervalMillis: 3_600_000,
+          sessionRetentionMillis: RETENTION,
+          changeLogCompactAfterMillis: RETENTION,
+        },
         onRound: (report) => {
           rounds.push(report);
           resolve();
@@ -187,7 +222,12 @@ describe("the cleanup job in the API", () => {
     await app.ready();
     await firstRound;
     await app.close();
-    expect(rounds).toEqual([expect.objectContaining({ pairingCodes: 1, staffSessions: 1 })]);
+    expect(rounds).toEqual([
+      expect.objectContaining({ pairingCodes: 1, staffSessions: 1, changeLogRows: expect.any(Number) }),
+    ]);
+    expect((rounds[0] as { changeLogRows: number }).changeLogRows).toBeGreaterThanOrEqual(1);
     expect(await remaining(shop)).toEqual(kept(shop));
+    // The replaced copies older than the window went; the newest, and an old only copy, stay.
+    expect(await feedIdsOf(shop.tenantId, copies)).toEqual([copies[2], copies[3]]);
   });
 });

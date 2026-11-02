@@ -45,8 +45,11 @@ export async function chargeWhenSynced(
   plan: Parameters<typeof charge>[3],
 ): Promise<boolean> {
   if (order.state !== "open") return true;
-  // Offline, the cashier goes by what the till shows: there is nothing newer to wait for.
-  if (device.till.network.online && (await device.till.client.pendingCount()) > 0) return false;
+  // Offline, the cashier goes by what the till shows: there is nothing newer to wait for. A
+  // discount the script gave is its own copy, not the domain's, so it waits for the server's
+  // answer even offline: the app's till would show the domain's figure there.
+  const waits = device.till.network.online || order.discounted;
+  if (waits && (await device.till.client.pendingCount()) > 0) return false;
   await charge(ctx, device, order, plan);
   if (order.method === "cash" && !order.discounted && ctx.random.chance(0.04)) {
     ctx.after(ctx.random.int(5, 30), `refund ${order.id}`, () =>

@@ -28,6 +28,50 @@ export async function readRefundAmounts(
       "WHERE a.order_id = $1 ORDER BY l.position, l.id",
     [orderId],
   );
+  return refundAmountsOf(rows, pricesIncludeTax, serviceChargeTaxRateBp);
+}
+
+/** A refund as readRefundAmounts reads it; null for an order that is not one. */
+export interface RefundOrderTerms {
+  readonly orderId: string;
+  readonly pricesIncludeTax: boolean | null;
+  readonly serviceChargeTaxRateBp: number | null;
+}
+
+/**
+ * The amounts of several refunds in one round trip (none when no order is a refund), each
+ * as readRefundAmounts gives it; orders that are not refunds are left out.
+ */
+export async function readRefundAmountsOf(
+  client: pg.ClientBase,
+  orders: readonly RefundOrderTerms[],
+): Promise<Map<string, RefundAmounts>> {
+  const refunds = orders.flatMap(({ orderId, pricesIncludeTax, serviceChargeTaxRateBp }) =>
+    pricesIncludeTax === null || serviceChargeTaxRateBp === null
+      ? []
+      : [{ orderId, pricesIncludeTax, serviceChargeTaxRateBp }],
+  );
+  const found = new Map<string, RefundAmounts>();
+  if (refunds.length === 0) return found;
+  const { rows } = await client.query<AmountRow & { order_id: string }>(
+    "SELECT a.* FROM refund_line_amount a JOIN sales_order_line l ON l.id = a.line_id " +
+      "WHERE a.order_id = ANY($1::uuid[]) ORDER BY a.order_id, l.position, l.id",
+    [refunds.map((order) => order.orderId)],
+  );
+  const byOrder = new Map<string, AmountRow[]>(refunds.map((order) => [order.orderId, []]));
+  for (const row of rows) byOrder.get(row.order_id)?.push(row);
+  for (const order of refunds) {
+    const own = byOrder.get(order.orderId) ?? [];
+    found.set(order.orderId, refundAmountsOf(own, order.pricesIncludeTax, order.serviceChargeTaxRateBp));
+  }
+  return found;
+}
+
+function refundAmountsOf(
+  rows: readonly AmountRow[],
+  pricesIncludeTax: boolean,
+  serviceChargeTaxRateBp: number,
+): RefundAmounts {
   return {
     pricesIncludeTax,
     serviceChargeTaxRate: basisPoints(serviceChargeTaxRateBp),

@@ -19,7 +19,7 @@ import type { SyncCommandEnvelope, SyncCommandResult } from "./sync-wire-types";
 export const MINIMUM_SUPPORTED_DOMAIN_VERSION = "0.1.0";
 
 type Outcome =
-  | { status: "accepted"; subject: CommandSubject; shiftVersion?: number }
+  | { status: "accepted"; subject: CommandSubject; shiftVersion?: number; unchanged?: boolean }
   | { status: "rejected"; code: string; subject: CommandSubject | null }
   | { status: "retry"; code: string };
 
@@ -74,7 +74,8 @@ export async function applySyncCommand(
   const { tenantId, deviceId } = device;
   await recordOutcome(client, { tenantId, deviceId, staffId: sender.staffId }, command, result);
   await auditResentCommand(client, device, command, result);
-  if (outcome.status === "accepted" && snapshot !== null) {
+  // A command that changed nothing (a draft saved as it was) sends tills no new copy.
+  if (outcome.status === "accepted" && snapshot !== null && outcome.unchanged !== true) {
     await appendChange(client, device.tenantId, {
       branchId: device.branchId,
       entity: outcome.subject.entity,
@@ -127,6 +128,7 @@ async function outcomeOf(base: Omit<SyncCommandContext, "time" | "answer">): Pro
       status: "accepted",
       subject,
       ...(answer.shiftVersion === undefined ? {} : { shiftVersion: answer.shiftVersion }),
+      ...(answer.unchanged === true ? { unchanged: true } : {}),
     };
   } catch (error) {
     const code =

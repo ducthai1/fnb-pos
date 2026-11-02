@@ -67,7 +67,11 @@ describe("server configuration", () => {
           tillPerDevice: 60,
           trustedProxies: [],
         },
-        cleanup: { intervalMillis: 3_600_000, sessionRetentionMillis: 30 * 86_400_000 },
+        cleanup: {
+          intervalMillis: 3_600_000,
+          sessionRetentionMillis: 30 * 86_400_000,
+          changeLogCompactAfterMillis: 30 * 86_400_000,
+        },
         mediaDirectory: DEVELOPMENT_MEDIA_DIRECTORY,
         minimumPosBuild: null,
       },
@@ -90,13 +94,27 @@ describe("server configuration", () => {
       ...development,
       FNB_CLEANUP_INTERVAL_MINUTES: "15",
       FNB_SESSION_RETENTION_DAYS: "7",
+      FNB_CHANGE_LOG_COMPACT_AFTER_DAYS: "45",
     });
     expect(result.ok && result.config.cleanup).toEqual({
       intervalMillis: 900_000,
       sessionRetentionMillis: 7 * 86_400_000,
+      changeLogCompactAfterMillis: 45 * 86_400_000,
     });
     const off = readServerConfig({ ...development, FNB_CLEANUP_ENABLED: "false" });
     expect(off.ok && off.config.cleanup).toBeNull();
+  });
+
+  it("refuses to compact the change feed sooner than a day, or later than ten years", () => {
+    expect(problemsOf({ ...development, FNB_CHANGE_LOG_COMPACT_AFTER_DAYS: "0" })).toEqual([
+      "FNB_CHANGE_LOG_COMPACT_AFTER_DAYS must be at least 1",
+    ]);
+    expect(problemsOf({ ...development, FNB_CHANGE_LOG_COMPACT_AFTER_DAYS: "1.5" })).toEqual([
+      "FNB_CHANGE_LOG_COMPACT_AFTER_DAYS must be a whole number of days",
+    ]);
+    expect(problemsOf({ ...development, FNB_CHANGE_LOG_COMPACT_AFTER_DAYS: "3651" })).toEqual([
+      "FNB_CHANGE_LOG_COMPACT_AFTER_DAYS must be at most 3650",
+    ]);
   });
 
   it("refuses a retention of no days, which would delete sessions as they expire", () => {

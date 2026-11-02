@@ -1,6 +1,6 @@
 "use client";
 
-import { SendHorizontal, TabletSmartphone, Unplug } from "lucide-react";
+import { SendHorizontal, TabletSmartphone, Unplug, Wallet } from "lucide-react";
 import { useState } from "react";
 import type { Device, FlushGrant } from "../../lib/api/devices-api";
 import { failureMessage, isSignedOut } from "../../lib/errors/failure-message";
@@ -116,7 +116,15 @@ export function DevicesTable({
             setConfirming(null);
             setError(null);
           }}
-        />
+        >
+          {/* A shift left open on a revoked till only a manager can close; the day waits for it. */}
+          {confirming.openShiftOpenedAt != null && (
+            <p className="bo-revoke-shift bo-wrap" data-revoke-open-shift>
+              <Icon of={Wallet} size={18} />
+              <span>{T.revokeOpenShift(formatDateTime(confirming.openShiftOpenedAt))}</span>
+            </p>
+          )}
+        </ConfirmPanel>
       )}
       <DataTable
         label={T.title}

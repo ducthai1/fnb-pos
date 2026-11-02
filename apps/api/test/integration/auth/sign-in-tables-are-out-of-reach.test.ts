@@ -14,6 +14,7 @@ const GLOBAL_TABLES = [
   "fnb_auth.account_tenant",
   "fnb_auth.session",
   "fnb_auth.pairing_code_route",
+  "fnb_auth.swept_tenant",
 ];
 
 let app: pg.Pool;

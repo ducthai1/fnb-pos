@@ -22,10 +22,11 @@ async function countsOf(client: pg.ClientBase, shiftId: string) {
 }
 
 function closeOf(shift: StoredShift, denominations: DenominationCountSnapshot[]) {
-  const { closedByStaffId, countedCash, expectedCash, difference, openOrdersCarried } = shift;
+  const { closedByStaffId, closedByAppUserId, countedCash, expectedCash, difference } = shift;
+  const { openOrdersCarried } = shift;
   if (
     shift.status !== "closed" ||
-    closedByStaffId === null ||
+    (closedByStaffId === null && closedByAppUserId === null) ||
     countedCash === null ||
     expectedCash === null ||
     difference === null ||
@@ -35,6 +36,7 @@ function closeOf(shift: StoredShift, denominations: DenominationCountSnapshot[])
   }
   const close: ShiftCloseSnapshot = {
     closedByStaffId,
+    closedByAppUserId,
     countedCash: moneyToWire(countedCash),
     expectedCash: moneyToWire(expectedCash),
     difference: moneyToWire(difference),

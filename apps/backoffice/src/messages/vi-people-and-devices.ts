@@ -23,6 +23,8 @@ export const VI_DEVICES = {
   revokeLabel: (name: string) => `Thu hồi ${name}`,
   revokeTitle: (name: string) => `Thu hồi máy “${name}”?`,
   revokeHint: "Máy sẽ bị đăng xuất và không bán được nữa cho tới khi ghép lại bằng mã mới.",
+  revokeOpenShift: (openedAt: string) =>
+    `Máy còn ca đang mở (mở lúc ${openedAt}). Thu hồi rồi thì máy không tự đóng ca được nữa và chưa chốt được ngày. Nếu kịp, cho thu ngân đếm két và đóng ca trên máy trước. Nếu phải thu hồi ngay: sau đó bấm Cho gửi nốt để máy gửi các thao tác còn giữ, rồi vào Chốt ngày → Đóng ca hộ.`,
   revokeConfirm: "Thu hồi máy",
   revoking: "Đang thu hồi…",
   revokedDone: (name: string) => `Đã thu hồi máy “${name}”.`,
