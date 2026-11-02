@@ -47,6 +47,7 @@
 
 /* What appears in the page once asked for: a confirm, a notice, a row's panel, a form. */
 .bo-confirm,
+.bo-flush-grant,
 .bo-notice,
 .bo-data__panel > td > *,
 .bo-row-panel {

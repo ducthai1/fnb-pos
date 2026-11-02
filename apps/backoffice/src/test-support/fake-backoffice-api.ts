@@ -44,6 +44,7 @@ export function fakeBackofficeApi(overrides: Partial<BackofficeApi> = {}): Backo
     listDevices: unexpected("listDevices"),
     createPairingCode: unexpected("createPairingCode"),
     revokeDevice: unexpected("revokeDevice"),
+    createFlushGrant: unexpected("createFlushGrant"),
     listStaff: unexpected("listStaff"),
     createStaff: unexpected("createStaff"),
     updateStaff: unexpected("updateStaff"),

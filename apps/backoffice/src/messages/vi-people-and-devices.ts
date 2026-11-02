@@ -26,6 +26,15 @@ export const VI_DEVICES = {
   revokeConfirm: "Thu hồi máy",
   revoking: "Đang thu hồi…",
   revokedDone: (name: string) => `Đã thu hồi máy “${name}”.`,
+  flushGrant: "Cho gửi nốt",
+  flushGrantLabel: (name: string) => `Cho máy ${name} gửi nốt thao tác chưa gửi`,
+  flushGranting: "Đang tạo mã…",
+  flushTitle: (name: string) => `Mã cho máy “${name}” gửi nốt`,
+  flushHint:
+    "Trên máy đã thu hồi, bấm “Gửi nốt … thao tác bằng mã quản lý” rồi nhập mã này. Máy gửi một lần các thao tác còn giữ (kể cả tiền đã thu); thao tác máy chủ không nhận hiện ngay trên máy để bạn ghi lại. Máy vẫn bị thu hồi sau đó.",
+  flushExpires: (time: string) => `Chỉ dùng cho máy này, một lần, hết hạn lúc ${time}.`,
+  flushExpired: "Mã đã hết hạn. Tạo mã mới nếu máy chưa gửi xong.",
+  flushClose: "Đóng",
 } as const;
 
 export const VI_STAFF = {

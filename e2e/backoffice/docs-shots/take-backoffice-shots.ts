@@ -85,6 +85,32 @@ function sampleHappyHour(stack: SampleShopStack): Promise<string> {
 }
 
 /**
+ * A till the café revoked while it still held unsent sales: paired with a fresh code, then
+ * revoked, so its row offers the code that lets it send the rest. Made once per stack.
+ */
+const revokedTills = new Map<string, Promise<void>>();
+function sampleRevokedTill(stack: SampleShopStack): Promise<void> {
+  const made =
+    revokedTills.get(stack.apiOrigin) ??
+    (async () => {
+      const send = async (path: string, body?: object, headers: Record<string, string> = { cookie: stack.ownerCookie }) => {
+        const response = await fetch(`${stack.apiOrigin}${path}`, {
+          method: "POST",
+          headers: { ...headers, ...(body === undefined ? {} : { "content-type": "application/json" }) },
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        });
+        if (response.status >= 300) throw new Error(`${path} answered ${response.status}`);
+        return response.status === 204 ? {} : ((await response.json()) as Record<string, string>);
+      };
+      const { code } = await send("/devices/pairing-codes", { branchId: stack.shop.branchId });
+      const paired = await send("/devices/pair", { code, deviceName: "Quầy cũ tầng 2" }, {});
+      await send(`/devices/${String(paired.deviceId)}/revoke`);
+    })();
+  revokedTills.set(stack.apiOrigin, made);
+  return made;
+}
+
+/**
  * A station the sample café stopped using: one that a retired product still names, so removing
  * it archives it instead of deleting it. Made once per stack for the stations picture.
  */
@@ -154,6 +180,11 @@ const SHOTS: readonly Shot[] = [
   { name: "vai-tro-sua", path: () => "/roles", act: click(text.roles.editLabel("Thu ngân")) },
   { name: "thiet-bi", path: () => "/devices" },
   { name: "thiet-bi-ma-ghep", path: () => "/devices", act: click(text.devices.createCode) },
+  {
+    name: "thiet-bi-gui-not",
+    path: async (stack) => (await sampleRevokedTill(stack), "/devices"),
+    act: click(text.devices.flushGrantLabel("Quầy cũ tầng 2")),
+  },
   { name: "so-do-ban", path: () => "/floor" },
   {
     name: "trang-su-co",

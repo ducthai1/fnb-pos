@@ -10,12 +10,14 @@ decisions:
   - D-082
   - D-143
   - D-144
+  - D-160
 tests:
   - apps/backoffice/src/components/ui/confirm-panel.test.tsx
   - apps/backoffice/src/components/devices/devices-screen.test.tsx
   - apps/api/src/devices/pairing-code.test.ts
   - apps/api/test/integration/devices/pairing-code-single-use.test.ts
   - apps/api/test/integration/devices/revoked-device-is-rejected.test.ts
+  - apps/api/test/integration/devices/revoked-till-sends-the-rest-under-a-grant.test.ts
   - apps/api/test/integration/backoffice/branch-device-and-staff-lists.test.ts
   - e2e/backoffice/pair-a-device.spec.ts
   - e2e/pos/pair-and-pin-login.spec.ts
@@ -55,6 +57,15 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 2. Máy **không bán được nữa** cho tới khi ghép lại bằng mã mới: ở lần đồng bộ kế tiếp máy hiện màn "Máy này đã bị gỡ khỏi cửa hàng", liệt kê các thao tác chưa gửi (nếu có) và chỉ xóa dữ liệu khi người đứng máy xác nhận rồi ghép lại (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md)). Dòng chuyển sang "Đã thu hồi lúc …".
 3. Lọc **Đang dùng / Đã thu hồi**, tìm theo tên máy.
 
+### Cho máy đã thu hồi gửi nốt thao tác chưa gửi
+
+Máy bị thu hồi lúc còn thao tác chưa gửi (thường là mất mạng một lúc rồi bị thu hồi) có thể còn giữ **tiền đã thu**. Đừng để thu ngân xóa: cho máy gửi nốt một lần.
+
+1. Ở dòng của máy **Đã thu hồi**, bấm **Cho gửi nốt**. Trang hiện thẻ **Mã cho máy "…" gửi nốt** với mã 8 ký tự và giờ hết hạn ("Chỉ dùng cho máy này, một lần, hết hạn lúc …").
+2. Đọc mã cho người đứng máy: trên máy bấm **Gửi nốt N thao tác bằng mã quản lý**, gõ mã, bấm gửi (xem [Ghép máy và đăng nhập](../may-quay/01-ghep-may-va-dang-nhap.md#khi-máy-bị-thu-hồi)).
+3. Máy báo số thao tác máy chủ đã nhận. Thao tác máy chủ **không nhận** hiện ngay trên máy (tên, lý do, số tiền nếu có): ghi lại rồi làm lại trên máy khác.
+4. Bấm **Đóng** để cất thẻ mã. Máy **vẫn bị thu hồi**; muốn dùng lại thì ghép bằng mã ghép mới.
+
 ## Luật và giới hạn
 
 - **Số thứ tự máy trong chi nhánh (1–9)**: mỗi máy được cấp lúc ghép, số nhỏ nhất còn trống; chi nhánh có từ hai máy thì số gọi món của máy bắt đầu bằng số này (máy 2 gọi 201, 202…) để hai máy không gọi trùng. **Thu hồi** máy thì số trả lại, máy ghép sau lấy số đó. Trang Thiết bị chưa hiện số này; máy ghép từ trước được cấp khi nó tải lại dữ liệu khởi động.
@@ -63,7 +74,9 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 - Mỗi máy ghép với **một chi nhánh**. Muốn đổi chi nhánh: thu hồi rồi ghép lại ở chi nhánh kia.
 - Máy đã thu hồi bị máy chủ từ chối ở mọi lần gọi kế tiếp (đồng bộ, đăng nhập PIN).
 - Một địa chỉ mạng chỉ được thử ghép **10 lần mỗi phút** (chống dò mã).
-- Thu hồi không xóa đơn của máy: đơn đã đồng bộ vẫn nằm trong báo cáo. Đơn **chưa** đồng bộ trên máy bị thu hồi thì không gửi lên được nữa — đồng bộ hết trước khi thu hồi máy còn dùng được. Máy **không tự xóa** chúng: màn trên máy nêu số thao tác còn lại và người đứng máy phải xác nhận mới xóa; nếu có, hãy hỏi họ trước khi bấm.
+- **Mã cho gửi nốt**: chỉ tạo được cho máy **đã thu hồi**, chỉ dùng được trên **đúng máy đó** (máy phải trình thông tin ghép cũ của chính nó), sống **10 phút**, xong lần gửi cuối là hết dùng. Mất mạng giữa chừng thì máy gửi lại bằng cùng mã; mã hết hạn thì tạo mã mới — thao tác máy chủ đã nhận không bị ghi hai lần. Không có mã thì máy bị thu hồi (kể cả máy bị mất cắp) không gửi được gì.
+- Mỗi lần tạo mã được ghi nhật ký kiểm tra (ai tạo, cho máy nào); mỗi đợt máy gửi lên dưới mã cũng được ghi (mã nào, người tạo mã, thao tác nhận và không nhận). Thao tác gửi nốt vẫn mang tên thu ngân đã làm ra nó.
+- Thu hồi không xóa đơn của máy: đơn đã đồng bộ vẫn nằm trong báo cáo. Đơn **chưa** đồng bộ trên máy bị thu hồi chỉ gửi lên được bằng **Cho gửi nốt** ở trên — đồng bộ hết trước khi thu hồi máy còn dùng được. Máy **không tự xóa** chúng: màn trên máy nêu số thao tác còn lại và người đứng máy phải xác nhận mới xóa.
 
 ## Khi có lỗi
 
@@ -74,10 +87,12 @@ Cần quyền **Quản lý thiết bị**. Vai trò mẫu có quyền này: ch�
 | Mã đã hết hạn. Tạo mã mới nếu cần. | Tạo mã mới |
 | Mã ghép không đúng, đã hết hạn hoặc đã được dùng. (trên máy quầy) | Tạo mã mới, nhập lại |
 | Không tìm thấy thiết bị này. Tải lại danh sách. | Máy đã bị thu hồi/xử lý ở nơi khác |
+| Máy này chưa bị thu hồi: máy tự gửi thao tác lên khi có mạng, không cần mã cho gửi nốt. | Không phải lỗi: máy còn dùng được |
+| Mã đã hết hạn. Tạo mã mới nếu máy chưa gửi xong. | Bấm **Cho gửi nốt** lần nữa |
 
 ## Mất mạng thì sao
 
-Ghép máy **cần mạng** cả ở trang quản lý lẫn ở máy quầy. Máy đã ghép thì bán được khi mất mạng; lệnh thu hồi chỉ có tác dụng khi máy đó gọi lại máy chủ.
+Ghép máy và gửi nốt **cần mạng** cả ở trang quản lý lẫn ở máy quầy. Máy đã ghép thì bán được khi mất mạng; lệnh thu hồi chỉ có tác dụng khi máy đó gọi lại máy chủ.
 
 ## Chưa làm / sắp có
 

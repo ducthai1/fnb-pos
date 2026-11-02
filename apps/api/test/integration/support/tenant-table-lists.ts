@@ -21,6 +21,7 @@ export const TENANT_TABLES = [
   "day_close",
   "device",
   "device_credential",
+  "device_flush_grant",
   "device_pairing_code",
   "device_sync_state",
   "dining_table",

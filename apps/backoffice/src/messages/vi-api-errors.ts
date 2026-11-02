@@ -20,6 +20,8 @@ export const VI_API_ERRORS: Readonly<Record<string, string>> = {
   API_PERMISSION_INVALID_ACTION: "Giá trị gửi kèm quyền không hợp lệ.",
   API_BRANCH_NOT_FOUND: "Không tìm thấy chi nhánh này. Tải lại trang.",
   API_DEVICE_NOT_FOUND: "Không tìm thấy thiết bị này. Tải lại danh sách.",
+  API_DEVICE_NOT_REVOKED:
+    "Máy này chưa bị thu hồi: máy tự gửi thao tác lên khi có mạng, không cần mã cho gửi nốt.",
   API_DEVICE_PAIRING_CODE_INVALID: "Mã ghép không đúng, đã hết hạn hoặc đã được dùng.",
   API_DEVICE_UNAUTHENTICATED: "Thiết bị không còn được ghép với cửa hàng.",
   API_STAFF_PIN_FORMAT: "PIN gồm 4 đến 6 chữ số.",

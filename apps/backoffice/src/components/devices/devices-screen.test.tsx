@@ -92,6 +92,35 @@ describe("the devices of a branch", () => {
     );
   });
 
+  it("gives a revoked till a one-time code to send the rest, and offers none to a live one", async () => {
+    devices[0] = { ...devices[0]!, name: "Quầy thu ngân tầng hai — chi nhánh Bình Thạnh rất dài", revokedAt: "2026-10-20T03:00:00.000Z" };
+    devices.push({ id: "d3", name: "Quầy 3", branchId: Q1, pairedAt: "2026-10-19T01:00:00.000Z", revokedAt: null });
+    const expiresAt = new Date(Date.now() + 10 * 60_000).toISOString();
+    const createFlushGrant = mock.fn(async (deviceId: string) => ok({ code: "Q7RT4M2X", deviceId, expiresAt }));
+    await renderSignedIn(<DevicesScreen />, { listDevices, createFlushGrant });
+    const name = devices[0]!.name;
+    await screen.findByText(name);
+    expect(screen.queryByRole("button", { name: T.flushGrantLabel("Quầy 3") })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: T.flushGrantLabel(name) }));
+    const panel = await screen.findByRole("region", { name: T.flushTitle(name) });
+    expect(within(panel).getByRole("status").textContent).toBe("Q7RT4M2X");
+    expect(within(panel).getByText(T.flushExpires(formatClockTime(expiresAt)))).toBeTruthy();
+    expect(createFlushGrant).toHaveBeenCalledWith("d1");
+    fireEvent.click(within(panel).getByRole("button", { name: T.flushClose }));
+    expect(screen.queryByRole("region", { name: T.flushTitle(name) })).toBeNull();
+  });
+
+  it("says why when the API will not give a code, and shows an expired one as over", async () => {
+    devices[0] = { ...devices[0]!, revokedAt: "2026-10-20T03:00:00.000Z" };
+    let answer = refused(409, "API_DEVICE_NOT_REVOKED");
+    await renderSignedIn(<DevicesScreen />, { listDevices, createFlushGrant: async () => answer });
+    fireEvent.click(await screen.findByRole("button", { name: T.flushGrantLabel("Quầy 1") }));
+    expect(await screen.findByText(vi.errors.byCode.API_DEVICE_NOT_REVOKED ?? "")).toBeTruthy();
+    answer = ok({ code: "Q7RT4M2X", deviceId: "d1", expiresAt: new Date(Date.now() - 1000).toISOString() }) as never;
+    fireEvent.click(screen.getByRole("button", { name: T.flushGrantLabel("Quầy 1") }));
+    expect(await screen.findByText(T.flushExpired)).toBeTruthy();
+  });
+
   it("explains a role without manage_devices instead of an empty list", async () => {
     await renderSignedIn(<DevicesScreen />, {
       listDevices: async () => refused(403, "API_PERMISSION_DENIED"),

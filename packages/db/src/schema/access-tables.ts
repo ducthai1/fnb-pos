@@ -35,5 +35,19 @@ export const deviceCredential = pgTable("device_credential", {
   revokedAt: at("revoked_at"),
 });
 
+/**
+ * A manager's one-time permission for one revoked till to send the commands it still holds;
+ * spent once finished_at is set, stored as the code's SHA-256 only.
+ */
+export const deviceFlushGrant = pgTable("device_flush_grant", {
+  ...tenantRowColumns(),
+  deviceId: uuid("device_id").notNull(),
+  codeHash: text("code_hash").notNull(),
+  createdByAppUserId: uuid("created_by_app_user_id").notNull(),
+  expiresAt: at("expires_at").notNull(),
+  firstUsedAt: at("first_used_at"),
+  finishedAt: at("finished_at"),
+});
+
 /** Every table of the access schema, for typed clients and schema checks. */
-export const accessTables = { membership, devicePairingCode, deviceCredential };
+export const accessTables = { membership, devicePairingCode, deviceCredential, deviceFlushGrant };

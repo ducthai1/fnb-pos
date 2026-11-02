@@ -7,6 +7,7 @@ import {
   configValue,
   device,
   deviceCredential,
+  deviceFlushGrant,
   devicePairingCode,
   diningTable,
   drizzleFor,
@@ -82,6 +83,14 @@ export async function seedTenantGraph(pool: pg.Pool): Promise<TenantGraph> {
       id: ids.device_pairing_code,
       tenantId,
       branchId: ids.branch,
+      codeHash: randomSha256Hex(),
+      createdByAppUserId: ids.app_user,
+      expiresAt: new Date(),
+    });
+    await db.insert(deviceFlushGrant).values({
+      id: ids.device_flush_grant,
+      tenantId,
+      deviceId: ids.device,
       codeHash: randomSha256Hex(),
       createdByAppUserId: ids.app_user,
       expiresAt: new Date(),
