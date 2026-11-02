@@ -7,7 +7,7 @@ import type { DayContext } from "./day-context";
 import type { BookedOrder } from "./shop-books";
 import { sentToBar, voidUnits } from "./sim-commands";
 import type { SimDevice } from "./simulated-shop";
-import { addItems } from "./table-service";
+import { addItems, freeTables } from "./table-service";
 import { screenOf } from "./till-screen";
 
 type Unit = "kg" | "100g";
@@ -50,11 +50,6 @@ async function serverCopy(device: SimDevice, orderId: string): Promise<OrderView
   return view?.source === "server" ? (view.snapshot as unknown as OrderView) : null;
 }
 
-/** A free table neither till shows taken, booked for this incident only. */
-function freeTable(ctx: DayContext, taken: readonly string[]): string | undefined {
-  return ctx.shop.tables.find((id) => !ctx.books.seats.has(id) && !taken.includes(id));
-}
-
 /**
  * Every weighed line of an order as two tills would print it on a bill or a reprint: the
  * grams and the unit printed must be what the line was priced per and what was weighed.
@@ -88,8 +83,9 @@ async function checkBills(ctx: DayContext, devices: readonly SimDevice[], orderI
 export async function weighedTables(ctx: DayContext): Promise<boolean> {
   const handheld = ctx.device("handheld");
   const counter = ctx.device("counter-1");
-  const first = freeTable(ctx, []);
-  const second = first === undefined ? undefined : freeTable(ctx, [first]);
+  // Each till seats only a table its own floor shows free.
+  const [first] = await freeTables(ctx, handheld);
+  const second = (await freeTables(ctx, counter)).find((id) => id !== first);
   if (first === undefined || second === undefined) return false;
   const beefId = newId();
   await putBeef(ctx, beefId, "kg");
@@ -196,12 +192,14 @@ async function payBoth(ctx: DayContext, at: Across): Promise<boolean> {
   const { handheld, counter } = at;
   const orders = [at.atHandheld.order, at.atCounter.order];
   const views = await Promise.all(orders.map((order) => serverCopy(counter, order.id)));
-  if (views.some((view) => view === null) || (await handheld.till.client.pendingCount()) > 0)
+  const theirs = await Promise.all(orders.map((order) => serverCopy(handheld, order.id)));
+  // The counter charges only once it holds the copy the handheld last saved.
+  if (views.some((view, index) => view === null || view.version !== theirs[index]?.version))
     return false;
   for (const [index, order] of orders.entries()) {
     const view = views[index];
     if (view === undefined || view === null) continue;
-    // What was weighed in kilos on the old menu reached the server in 100 g: booked as stored.
+    // A line saved again after the change is priced per 100 g, its grams kept: booked as stored.
     for (const line of view.lines) {
       const weighed = ctx.books.weighed.get(line.id);
       if (weighed !== undefined && line.reversesLineId === null) {

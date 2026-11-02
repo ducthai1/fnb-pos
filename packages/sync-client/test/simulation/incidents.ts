@@ -45,7 +45,7 @@ const AT = {
   sameTable: 0.38,
   cashPastCap: 0.3,
   revokedTill: 0.2,
-  weighed: 0.46,
+  weighed: 0.6,
 } as const;
 
 /** Schedules the day's troubles; each is a task like the cashiers' own. */

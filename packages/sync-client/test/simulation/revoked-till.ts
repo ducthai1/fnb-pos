@@ -249,10 +249,23 @@ export function scheduleRevokedTill(ctx: DayContext, atMs: number): RevokedTillB
         device.shiftId = null;
       }
       device.till.network.online = true;
-      const { failure } = await device.till.client.syncOnce();
-      book.sawRevoked = failure?.code ?? null;
-      await grant();
-      ctx.tasks.push({ label: "the revoked till sends the rest", dueMs: ctx.now(), run: flush });
+      // The till finds out at its next pass that reaches the server (a backoff may delay it).
+      ctx.tasks.push({
+        label: "the revoked till sees itself revoked",
+        dueMs: ctx.now(),
+        run: async () => {
+          const { failure } = await device.till.client.syncOnce();
+          if (failure === null || failure.kind === "network") return false;
+          book.sawRevoked = failure.code ?? `${failure.kind} ${failure.status}`;
+          await grant();
+          ctx.tasks.push({
+            label: "the revoked till sends the rest",
+            dueMs: ctx.now(),
+            run: flush,
+          });
+          return true;
+        },
+      });
       return true;
     },
   });

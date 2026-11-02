@@ -115,10 +115,12 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
   for (const order of books.orders.values()) {
     const row = stored.get(order.id);
     if (row === undefined) continue;
-    if (row.status !== order.state)
+    if (row.status !== order.state) {
       say(
         `order ${order.id} (${order.openedBy} #${order.deviceOrderNo}) is ${row.status}, the shop settled it ${order.state}`,
       );
+      say(`  what the server did with order ${order.id}: ${await historyOf(order.id)}`);
+    }
     if (row.business_date !== window.businessDate)
       say(`order ${order.id} is booked to ${row.business_date}, not ${window.businessDate}`);
     if (order.state === "paid") {
