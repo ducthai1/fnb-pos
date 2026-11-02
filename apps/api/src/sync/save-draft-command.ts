@@ -10,10 +10,10 @@ import { newlyTypedPrices, productsAdding, refuseSoldOut } from "./draft-additio
 import { refuseRaisedOrderDiscount } from "./draft-discount-guard";
 import { mergeDraftLines, readVoidedLineIds } from "./draft-line-locks";
 import { insertDraftHeader, lineIdsTakenElsewhere, updateDraftHeader } from "./draft-order-writes";
-import { writeOrderLines } from "./order-line-writes";
+import { sameOrderLines, writeOrderLines } from "./order-line-writes";
 import { priceDraftLines } from "./price-draft-lines";
 import { requirePermission } from "./staff-permission-check";
-import { readStoredOrder } from "./stored-order";
+import { type StoredOrder, readStoredOrder } from "./stored-order";
 import type { SyncCommandContext } from "./sync-command-context";
 import { defineSyncCommand } from "./sync-command-definition";
 import { CommandRejection, SYNC_ERROR_CODES } from "./sync-error-codes";
@@ -69,6 +69,12 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   const adding = productsAdding(before, lines);
   await refuseSoldOut(client, device.branchId, payload.channelKey, adding, recordedAt);
   await requireTypedPrices(context, payload, newlyTypedPrices(before, lines));
+  // Saved exactly as it stands (a till resending what it shows): the order keeps its version,
+  // so another till's save over that version is not made stale by a change that never was.
+  if (existing !== null && sameHeader(existing, payload) && sameOrderLines(before, lines)) {
+    context.answer.unchanged = true;
+    return payload.orderId;
+  }
   if (existing === null) {
     const { chargeProfile } = await readDeviceOrderSettings(client, device.deviceId);
     const table =
@@ -93,6 +99,15 @@ async function saveDraft(context: SyncCommandContext, payload: SaveDraftPayload)
   const write = { tenantId: device.tenantId, orderId: payload.orderId, staffId };
   await writeOrderLines(client, write, before, lines);
   return payload.orderId;
+}
+
+/** Whether the draft's header (what updateDraftHeader writes) is already what the till sent. */
+function sameHeader(existing: StoredOrder, payload: SaveDraftPayload): boolean {
+  return (
+    existing.order.serviceType === payload.serviceType &&
+    existing.order.channelKey === payload.channelKey &&
+    existing.tableTag === payload.tableTag
+  );
 }
 
 /**

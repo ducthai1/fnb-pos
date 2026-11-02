@@ -24,6 +24,9 @@ export interface SyncCommandContext extends SyncSender {
    * command.businessDate, which only say what the till's clock showed.
    */
   readonly time: CommandTime;
-  /** What a handler adds to its answer beyond the row it was about. */
-  readonly answer: { shiftVersion?: number };
+  /**
+   * What a handler adds to its answer beyond the row it was about. `unchanged`: the command
+   * left the row as it was, so no new copy goes into the change feed.
+   */
+  readonly answer: { shiftVersion?: number; unchanged?: boolean };
 }

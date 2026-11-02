@@ -77,6 +77,17 @@ function contentOf(line: OrderLine): unknown[] {
   ];
 }
 
+/** Whether `after` is `before` exactly: the same lines, in the same places, with the same content. */
+export function sameOrderLines(before: readonly OrderLine[], after: readonly OrderLine[]): boolean {
+  return (
+    before.length === after.length &&
+    before.every((line, position) => {
+      const other = after[position];
+      return other !== undefined && other.id === line.id && sameLine(line, other);
+    })
+  );
+}
+
 function sameLine(a: OrderLine, b: OrderLine): boolean {
   const left = contentOf(a);
   const right = contentOf(b);
