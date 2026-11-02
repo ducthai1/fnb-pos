@@ -20,8 +20,8 @@ export const DISMISSAL_NOTE_REQUIRED_TYPES: ReadonlySet<string> = new Set([
 /**
  * The refused commands about an order whose setting aside also needs a manager when the
  * staff member lacks close_unpaid_table: the money or the food they stood for is given up,
- * which is what closing a table nobody paid for is. Shift commands (cash moves, closing) name
- * a shift, not an order, so they keep to the staff member's words and the audit trail.
+ * which is what closing a table nobody paid for is. Shift commands are in
+ * DISMISSAL_SHIFT_APPROVAL_TYPES.
  */
 export const DISMISSAL_APPROVAL_TYPES: ReadonlySet<string> = new Set([
   "order.pay",
@@ -30,6 +30,17 @@ export const DISMISSAL_APPROVAL_TYPES: ReadonlySet<string> = new Set([
   "payment.create_intent",
   "payment.cancel_intent",
   "payment.hand_back_excess",
+]);
+
+/**
+ * The refused shift commands whose setting aside needs open_drawer, or a manager's approval
+ * of exactly that shift: a cash move or a count the books never took is cash that went into
+ * or out of the drawer with nothing to show for it, which is what opening the drawer without
+ * a sale guards against.
+ */
+export const DISMISSAL_SHIFT_APPROVAL_TYPES: ReadonlySet<string> = new Set([
+  "shift.cash_move",
+  "shift.close",
 ]);
 
 /**
@@ -48,6 +59,8 @@ export const dismissRejectionPayloadSchema = z.object({
   reasonCode: reasonCodeSchema,
   /** What became of it, in the staff member's words; needed for "other" and for money or kitchen commands. */
   reasonNote: reasonNoteSchema.optional(),
+  /** The shift a refused shift command was about, as the till held it; one of its own. */
+  shiftId: uuidSchema.optional(),
   /** The manager's on-the-spot approval, for a command of DISMISSAL_APPROVAL_TYPES. */
   approvalId: uuidSchema.optional(),
 });

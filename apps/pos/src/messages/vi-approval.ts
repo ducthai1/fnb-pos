@@ -41,6 +41,8 @@ export const VI_APPROVAL = {
     transferTable: (from: string, to: string) => `Chuyển khách từ bàn ${from} sang bàn ${to}`,
     dismissRefused: (command: string, orderNo: number | null) =>
       `Bỏ qua lệnh bị từ chối "${command}"${orderNo === null ? "" : ` của đơn số ${orderNo}`}: tiền hoặc món của lệnh này sẽ không được ghi nhận nữa`,
+    dismissRefusedShift: (command: string) =>
+      `Bỏ qua lệnh bị từ chối "${command}" của ca này: khoản tiền vào / ra két của lệnh này sẽ không được ghi nhận`,
     closeUnpaid: (orderNo: number) =>
       `Hủy đơn số ${orderNo} chưa thu tiền (đã in tạm tính hoặc đã gửi bếp)`,
   },

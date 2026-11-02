@@ -251,6 +251,6 @@ Nút **Đổi tùy chọn** chỉ hiện ở món thường **đã gửi bếp**
 ## Chưa làm / sắp có
 
 - Chủ quán tự sửa danh sách lý do hủy/hoàn (hiện cố định, mỗi danh sách có "Lý do khác").
-- Đổi giá món tại quầy (`price_override`), tặng món (`comp_item`), mở két không bán (`open_drawer`), mở lại đơn đã trả (`reopen_paid_order`): đã có quyền trong vai trò nhưng máy quầy chưa có nút.
+- Đổi giá món tại quầy (`price_override`), tặng món (`comp_item`), mở két không bán (`open_drawer`), mở lại đơn đã trả (`reopen_paid_order`): đã có quyền trong vai trò nhưng máy quầy chưa có nút. Riêng `open_drawer` đang dùng cho việc **bỏ qua lệnh thu chi két / đóng ca bị từ chối** (xem [Mất mạng và đồng bộ](09-mat-mang-va-dong-bo.md)).
 - Hoàn tiền có nhập lại kho; hóa đơn điều chỉnh khi hoàn đơn đã xuất hóa đơn điện tử.
 - Phiếu hủy ra giấy (hiện là bản xem trước — xem [10-phieu-in.md](10-phieu-in.md)).

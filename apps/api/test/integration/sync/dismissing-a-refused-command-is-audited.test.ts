@@ -4,7 +4,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { buildApp } from "../../../src/build-app";
-import { freshTill } from "../support/shift-commands";
+import { cashMove, closeShift, freshTill } from "../support/shift-commands";
 import { approve, closeUnpaid, hireManager } from "../support/sync-approvals";
 import {
   command,
@@ -16,7 +16,7 @@ import {
   tillsClock,
 } from "../support/sync-commands";
 import { withApproval } from "../support/sync-order-commands";
-import { type SyncShop, type Till, syncShop } from "../support/sync-shop";
+import { type SyncShop, type Till, shiftOf, syncShop } from "../support/sync-shop";
 
 const info = inject("testPostgres");
 
@@ -65,6 +65,8 @@ const auditOf = (commandId: string) =>
     );
     return rows;
   });
+
+const WORDS = { reasonCode: "handled_by_hand", reasonNote: "Đã hoàn tiền mặt cho khách" };
 
 describe("setting aside a command the server refused", () => {
   it("is audited with who, what and why, against the order it was about", async () => {
@@ -116,7 +118,6 @@ describe("setting aside a command the server refused", () => {
   });
 
   describe("a command that moved money or told the kitchen", () => {
-    const WORDS = { reasonCode: "handled_by_hand", reasonNote: "Đã hoàn tiền mặt cho khách" };
     const types = [
       "order.pay",
       "order.refund",
@@ -266,9 +267,109 @@ describe("setting aside a command the server refused", () => {
       });
     });
 
-    it("leaves the shift commands to the staff member's words and the audit trail", async () => {
-      const set = dismissal("shift.cash_move", WORDS);
-      expect((await pushOne(app, till(), set.envelope)).status).toBe("accepted");
+  });
+
+  describe("a refused cash move or shift close", () => {
+    /** A close the server refused: a drawer of 1.000.000 đ counted on an empty float. */
+    async function refusedClose(from: Till = till()) {
+      const sent = closeShift(from, 1_000_000);
+      expect(await pushOne(app, from, sent)).toMatchObject({
+        status: "rejected",
+        code: "SYNC_APPROVAL_REQUIRED",
+      });
+      return { commandId: sent.commandId, shiftId: shiftOf(from) };
+    }
+    /** 900.000 đ out of the drawer, past what a cashier moves alone. */
+    async function refusedCashMove(from: Till = till()) {
+      const sent = cashMove(from, "out", 900_000);
+      expect((await pushOne(app, from, sent)).status).toBe("rejected");
+      return { commandId: sent.commandId, shiftId: shiftOf(from) };
+    }
+    const setAside = (
+      refused: { commandId: string },
+      rejectedType: string,
+      shiftId: string | undefined,
+      from: Till = till(),
+    ) =>
+      command(from, "sync.rejection_dismissed", {
+        rejectedCommandId: refused.commandId,
+        rejectedType,
+        rejectedCode: "SYNC_APPROVAL_REQUIRED",
+        ...(shiftId === undefined ? {} : { shiftId }),
+        ...WORDS,
+      });
+    const openDrawer = (shiftId: string) => ({ key: "open_drawer", subject: { shiftId } });
+    const shiftStatus = async (shiftId: string) =>
+      withTenant(pool, s.shop.tenantId, async (client) => {
+        const { rows } = await client.query("SELECT status FROM shift WHERE id = $1", [shiftId]);
+        return rows[0]?.status as string;
+      });
+
+    it("is not a cashier's alone: without a manager's approval nothing is set aside", async () => {
+      const refused = await refusedClose();
+      expect(await pushOne(app, till(), setAside(refused, "shift.close", refused.shiftId))).toMatchObject({
+        status: "rejected",
+        code: "SYNC_APPROVAL_REQUIRED",
+      });
+      expect(await auditOf(refused.commandId)).toHaveLength(0);
+    });
+
+    it("is set aside with the approval of that shift, audited against it, and the shift stays open", async () => {
+      const refused = await refusedClose();
+      const approvalId = await approve(app, till(), managerId, openDrawer(refused.shiftId));
+      const set = withApproval(setAside(refused, "shift.close", refused.shiftId), approvalId);
+      expect((await pushOne(app, till(), set)).status).toBe("accepted");
+      expect((await auditOf(refused.commandId))[0]).toMatchObject({
+        entity_kind: "shift",
+        entity_id: refused.shiftId,
+        payload: { rejectedType: "shift.close", approvalId, approvedByStaffId: managerId },
+      });
+      // The close never happened: the server's shift is open, as the till shows it once refused.
+      expect(await shiftStatus(refused.shiftId)).toBe("open");
+    });
+
+    it("is not covered by an approval of another till's shift, nor bound to another till's shift", async () => {
+      const refused = await refusedCashMove();
+      const elsewhere = shiftOf(s.tillB);
+      const approvalId = await approve(app, till(), managerId, openDrawer(elsewhere));
+      const borrowed = withApproval(setAside(refused, "shift.cash_move", refused.shiftId), approvalId);
+      expect((await pushOne(app, till(), borrowed)).status).toBe("rejected");
+      const misnamed = withApproval(setAside(refused, "shift.cash_move", elsewhere), approvalId);
+      expect(await pushOne(app, till(), misnamed)).toMatchObject({
+        status: "rejected",
+        code: "SYNC_INVALID_PAYLOAD",
+      });
+      expect(await auditOf(refused.commandId)).toHaveLength(0);
+    });
+
+    it("spends an approval once: the same approval does not set aside a second refusal", async () => {
+      const first = await refusedCashMove();
+      const second = await refusedCashMove();
+      const approvalId = await approve(app, till(), managerId, openDrawer(first.shiftId));
+      const once = withApproval(setAside(first, "shift.cash_move", first.shiftId), approvalId);
+      expect((await pushOne(app, till(), once)).status).toBe("accepted");
+      const again = withApproval(setAside(second, "shift.cash_move", second.shiftId), approvalId);
+      expect((await pushOne(app, till(), again)).status).toBe("rejected");
+    });
+
+    it("is a manager's alone, no approval spent; naming no shift, only theirs", async () => {
+      const manager = await freshTill(app, s, managerId);
+      const set = dismissal("shift.close", WORDS, undefined, manager);
+      expect((await pushOne(app, manager, set.envelope)).status).toBe("accepted");
+      expect((await auditOf(set.id))[0]?.payload).not.toHaveProperty("approvalId");
+      const cashier = dismissal("shift.cash_move", WORDS);
+      expect(await pushOne(app, till(), cashier.envelope)).toMatchObject({
+        status: "rejected",
+        code: "SYNC_APPROVAL_REQUIRED",
+      });
+    });
+
+    it("refuses a refused close passed off as a command that needs no approval", async () => {
+      const refused = await refusedClose();
+      expect(await pushOne(app, till(), setAside(refused, "order.save_draft", undefined))).toMatchObject({
+        status: "rejected",
+        code: "SYNC_INVALID_PAYLOAD",
+      });
     });
   });
 });

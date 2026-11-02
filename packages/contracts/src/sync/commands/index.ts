@@ -5,6 +5,7 @@ export {
 export {
   DISMISSAL_APPROVAL_TYPES,
   DISMISSAL_NOTE_REQUIRED_TYPES,
+  DISMISSAL_SHIFT_APPROVAL_TYPES,
   type DismissRejectionPayload,
   dismissRejectionPayloadSchema,
 } from "./dismiss-rejection-payload-schema";
