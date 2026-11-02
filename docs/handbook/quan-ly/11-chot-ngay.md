@@ -58,6 +58,9 @@ Máy bị **thu hồi** khi ca của nó còn mở thì không tự đóng ca đ
 1. Nếu máy còn thao tác chưa gửi (đơn, thanh toán lúc mất mạng): vào **Thiết bị → Cho gửi nốt** để máy gửi trước (xem [Thiết bị](07-thiet-bi.md)). Làm việc này **trước**: két dự kiến chỉ gồm những gì máy chủ đã nhận.
 2. Đếm tiền trong két của máy đó.
 3. Bấm **Đóng ca hộ**. Hộp "Đóng ca hộ máy "…"?" ghi **Két dự kiến theo máy chủ**; nhập **Tiền đếm được trong két (đ)** — tổng, số nào cũng được (tiền lẻ, tiền rách cũng cộng vào). Trang tính ngay "Thừa … / Thiếu … so với két dự kiến" hoặc "Khớp với két dự kiến."
+
+   ![Đóng ca hộ máy đã bị thu hồi](../images/quan-ly/chot-ngay-dong-ca-ho.webp)
+
 4. Bấm **Đóng ca hộ**. Trang báo "Đã đóng ca hộ máy "…". Thừa/Thiếu …" và ca chuyển sang mục **Ca quản lý đã đóng hộ máy bị thu hồi** (đếm, dự kiến, chênh lệch). Rồi chốt ngày như trên.
 
 ## Luật và giới hạn
