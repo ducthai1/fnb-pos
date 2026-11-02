@@ -20,6 +20,8 @@ export interface LineSnapshot {
   note: string | null;
   priceSource: string;
   reversesLineId: string | null;
+  /** On a line sold by weight: the unit its quantity and price are per. */
+  measureUnit?: "kg" | "100g";
 }
 
 /** An order the way the server sends it and the till shows it (the fields scenarios read). */
@@ -49,6 +51,8 @@ export interface PickedItem {
   shownUnitPrice: number;
   /** What the cashier typed for the kitchen; free text, so any characters. */
   note?: string | null;
+  /** Sold by weight: the unit `quantity` is in, as the till's menu has it (0.351 kg = 351 g). */
+  measureUnit?: "kg" | "100g";
 }
 
 export const pick = (
@@ -102,6 +106,7 @@ function linesShown(items: readonly PickedItem[]): LineSnapshot[] {
       unitPrice: item.shownUnitPrice,
       quantity: item.quantity,
       note: item.note ?? null,
+      ...(item.measureUnit === undefined ? {} : { measureUnit: item.measureUnit }),
     }),
     ...item.modifiers.map((m) =>
       line({
@@ -146,18 +151,21 @@ export function saveDraft(
     channelKey: null,
     ...(order.tableId === undefined ? {} : { tableId: order.tableId }),
     ...(order.expectedVersion === undefined ? {} : { expectedVersion: order.expectedVersion }),
-    lines: items.map(({ lineId, productId, variantId, modifiers, quantity, note }) => ({
-      lineId,
-      productId,
-      variantId,
-      quantity,
-      note: note ?? null,
-      modifiers: modifiers.map(({ groupId, optionId, quantity: count }) => ({
-        groupId,
-        optionId,
-        quantity: count,
-      })),
-    })),
+    lines: items.map(
+      ({ lineId, productId, variantId, modifiers, quantity, note, measureUnit }) => ({
+        lineId,
+        productId,
+        variantId,
+        quantity,
+        note: note ?? null,
+        ...(measureUnit === undefined ? {} : { measureUnit }),
+        modifiers: modifiers.map(({ groupId, optionId, quantity: count }) => ({
+          groupId,
+          optionId,
+          quantity: count,
+        })),
+      }),
+    ),
   };
   const shown: OrderView = {
     id: order.id,

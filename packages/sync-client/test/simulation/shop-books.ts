@@ -58,6 +58,11 @@ export class ShopBooks {
   readonly retiredTills: Till[] = [];
   /** The spare till revoked while it held sales, when that happened today. */
   revokedTill: RevokedTillBook | null = null;
+  /** Weighed lines by id: the grams sold (after any taken off), those taken off, the unit priced per. */
+  readonly weighed = new Map<string, { grams: number; voidedGrams: number; unit: "kg" | "100g" }>();
+  /** Bills of weighed tables that a till would print wrong; the weighed tables were paid. */
+  readonly weighedFindings: string[] = [];
+  weighedPaid = false;
   /** Redos of a table save that the server refused as stale in turn. */
   readonly refusedRedos = new Set<string>();
   /** Refused cash moves a cashier set aside with a manager's approval of the shift. */

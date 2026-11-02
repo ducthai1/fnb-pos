@@ -7,6 +7,7 @@ import { shownOrders } from "../support/scenario-till";
 import { checkDayReports } from "./day-report-checks";
 import type { DayRun } from "./day-runner";
 import type { BookedOrder } from "./shop-books";
+import { gramsOf } from "./weighed-tables";
 
 interface StoredLine {
   id: string;
@@ -177,6 +178,23 @@ export async function checkEndOfDay(run: DayRun): Promise<DayCheck> {
     refused += ledger.rejected;
   }
   Object.assign(facts, await checkRevokedTill(books, query, say));
+  // Weighed lines keep the grams weighed and the unit they were priced per; bills print both.
+  for (const finding of books.weighedFindings) say(`weighed: ${finding}`);
+  if (books.weighed.size > 0 && !books.weighedPaid)
+    say("weighed: the weighed tables were never paid");
+  const weighedRows = await query<{ id: string; quantity: string; measure_unit: string | null }>(
+    "SELECT id::text AS id, quantity::text AS quantity, measure_unit FROM sales_order_line WHERE id = ANY($1::uuid[])",
+    [[...books.weighed.keys()]],
+  );
+  for (const [lineId, booked] of books.weighed) {
+    const row = weighedRows.find((one) => one.id === lineId);
+    const grams = row === undefined ? null : gramsOf(row.quantity, row.measure_unit ?? "");
+    if (row?.measure_unit !== booked.unit || grams !== booked.grams + booked.voidedGrams)
+      say(
+        `weighed: line ${lineId} holds ${row?.quantity} per ${row?.measure_unit}, ${booked.grams + booked.voidedGrams} g per ${booked.unit} was weighed`,
+      );
+  }
+  facts.weighedLines = books.weighed.size;
   const meant = books.earlier.refused + books.meantToBeRefused.size;
   if (refused !== meant) say(`the server refused ${refused} commands, the script meant ${meant}`);
   const issued = books.earlier.commands + books.commandsIssued;
@@ -399,13 +417,13 @@ function checkGoods(
   for (const [lineId, item] of order.items) {
     const has = net.get(lineId);
     const short = Number(item.quantity) - (has ?? 0);
-    if (short > 0 && accounted.parked.has(lineId)) {
+    if (short > 0.0005 && accounted.parked.has(lineId)) {
       accounted.missed.set(lineId, short);
       continue;
     }
     if (has === undefined)
       say(`order ${order.id}: the line ${lineId} (${item.quantity} of ${item.productId}) is gone`);
-    else if (has !== Number(item.quantity))
+    else if (Math.round(has * 1_000) !== Math.round(Number(item.quantity) * 1_000))
       say(`order ${order.id}: line ${lineId} has ${has} units, the shop sold ${item.quantity}`);
   }
   for (const [lineId, units] of net) {

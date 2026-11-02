@@ -76,7 +76,8 @@ export async function checkDayReports(
   const unitsReported = sum(
     before.items.filter((item) => item.lineType === "item").map((item) => item.quantity),
   );
-  if (unitsReported !== unitsSold)
+  // Weighed lines sell in thousandths: the sums are compared to the gram.
+  if (Math.round(unitsReported * 1_000) !== Math.round(unitsSold * 1_000))
     say(`report: ${unitsReported} units on the item lines, the shop sold ${unitsSold}`);
   if (before.voids.count !== books.voidCount)
     say(`report: ${before.voids.count} voids, the shop made ${books.voidCount}`);

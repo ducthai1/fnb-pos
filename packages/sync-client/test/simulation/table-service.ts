@@ -28,6 +28,7 @@ export function keptItems(ctx: DayContext, view: OrderView): PickedItem[] {
         variantId: line.variantId,
         quantity: line.quantity,
         note: line.note,
+        ...(line.measureUnit === undefined ? {} : { measureUnit: line.measureUnit }),
         modifiers: view.lines
           .filter((child) => child.parentLineId === line.id && child.lineType === "modifier")
           .map((child) => ({

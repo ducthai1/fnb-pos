@@ -56,4 +56,3 @@ export async function whatTheTillHolds(store: LocalStore): Promise<Held> {
     })),
   };
 }
-
