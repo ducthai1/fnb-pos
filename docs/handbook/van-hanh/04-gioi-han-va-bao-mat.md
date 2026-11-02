@@ -8,6 +8,7 @@ decisions:
   - D-055
   - D-065
   - D-066
+  - D-166
 tests:
   - apps/api/src/security/rate-limiter.test.ts
   - apps/api/src/security/attempt-lockout.test.ts
@@ -18,6 +19,8 @@ tests:
   - apps/api/test/integration/server/api-entrypoint-limits-sign-in-attempts.test.ts
   - apps/api/test/integration/server/api-entrypoint-runs-the-cleanup-job.test.ts
   - apps/api/test/integration/ops/expired-pairing-codes-and-sessions-are-purged.test.ts
+  - apps/api/test/integration/sync/change-log-compaction-keeps-the-newest-copy.test.ts
+  - packages/sync-client/src/local-store/contract/server-copy-contract-cases.ts
 ---
 
 # Giới hạn thử, kiểm Origin và dọn dẹp định kỳ
@@ -75,8 +78,10 @@ Người vận hành đặt biến môi trường trong `/etc/fnb/fnb-api.env` (
 | Chu kỳ | mỗi 60 phút (và một lượt ngay khi API khởi động) | `FNB_CLEANUP_INTERVAL_MINUTES` |
 | Mã ghép máy | xóa khi đã hết hạn | — |
 | Phiên đăng nhập hết hạn | giữ thêm 30 ngày rồi xóa | `FNB_SESSION_RETENTION_DAYS` |
+| Nén dòng thay đổi gửi máy quầy (`change_log`) | bản sao cũ hơn 30 ngày **mà đã có bản mới hơn của cùng dòng** thì xóa | `FNB_CHANGE_LOG_COMPACT_AFTER_DAYS` |
 
 - Job xóa theo từng cửa hàng bằng role của ứng dụng (RLS vẫn áp), không đụng các bảng chỉ-thêm (nhật ký, chứng từ).
+- **Nén `change_log`**: mỗi dòng (bàn, món, đơn, ca… của một chi nhánh) luôn giữ **bản mới nhất**, kể cả bản "đã xóa"; chỉ bản cũ đã bị thay mới bị xóa. Máy quầy mất mạng lâu hơn 30 ngày khi có mạng lại vẫn nhận đủ bản mới nhất của mọi thứ đã đổi, không phải tải lại từ đầu. Xóa theo lô 500 dòng, mỗi lô một giao dịch ngắn, nên máy quầy vẫn kéo / gửi bình thường lúc job chạy; một lượt dọn tối đa 100.000 dòng mỗi cửa hàng, phần còn lại lượt sau làm tiếp. Ngoài job này không ai xóa được `change_log` (role ứng dụng không có quyền xóa; role chủ bị trigger chặn).
 - Nhiều tiến trình API cùng một database ⇒ chỉ bật job ở một tiến trình.
 
 ## Khi có lỗi

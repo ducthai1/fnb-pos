@@ -51,11 +51,14 @@ export async function startServer(
         clock: systemClock,
         settings: config.cleanup,
         onRound: (report) => {
-          const removed = report.pairingCodes + report.staffSessions + report.backofficeSessions;
+          const removed =
+            report.pairingCodes + report.staffSessions + report.backofficeSessions +
+            report.changeLogRows;
           if (removed === 0) return;
           log(
             `cleanup removed ${report.pairingCodes} pairing codes, ${report.staffSessions} ` +
-              `staff sessions, ${report.backofficeSessions} backoffice sessions`,
+              `staff sessions, ${report.backofficeSessions} backoffice sessions, ` +
+              `${report.changeLogRows} replaced change feed copies`,
           );
         },
         onError: (error) => logError(`cleanup round failed: ${maskSecrets(String(error))}`),

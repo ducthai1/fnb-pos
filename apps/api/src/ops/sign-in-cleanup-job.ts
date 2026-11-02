@@ -1,4 +1,4 @@
-import { type PurgeReport, purgeExpiredCodesAndSessions } from "@fnb/db";
+import { type PurgeReport, compactChangeLog, purgeExpiredCodesAndSessions } from "@fnb/db";
 import type { FastifyInstance } from "fastify";
 import type pg from "pg";
 import type { Clock } from "../clock";
@@ -8,13 +8,29 @@ export interface CleanupSettings {
   readonly intervalMillis: number;
   /** How long an expired session is kept, for whoever looks into a sign-in afterwards. */
   readonly sessionRetentionMillis: number;
+  /**
+   * How old a copy in the change feed must be before it may go, once a newer copy of the
+   * same row has replaced it.
+   */
+  readonly changeLogCompactAfterMillis: number;
 }
+
+/** What one round removed. */
+export interface CleanupReport extends PurgeReport {
+  /** Copies of the change feed a newer copy of the same row replaced. */
+  readonly changeLogRows: number;
+}
+
+// Short transactions while tills pull and write; a run removes at most this many per tenant
+// (the next run, an interval later, carries on).
+const CHANGE_LOG_BATCH = 500;
+const CHANGE_LOG_BATCHES_PER_TENANT = 200;
 
 export interface CleanupDependencies {
   readonly pool: pg.Pool;
   readonly clock: Clock;
   readonly settings: CleanupSettings;
-  readonly onRound?: (report: PurgeReport) => void;
+  readonly onRound?: (report: CleanupReport) => void;
   readonly onError?: (error: unknown) => void;
 }
 
@@ -25,15 +41,24 @@ export interface CleanupJob {
 
 /**
  * One round: pairing codes that have expired, and sessions (backoffice and staff) that
- * expired more than the retention ago. Expired rows are already refused at sign-in; this
- * only keeps the tables from growing for ever.
+ * expired more than the retention ago, then the change feed's old copies that a newer copy
+ * of the same row replaced. Expired rows are already refused at sign-in, and a till pulling
+ * from any cursor still gets the newest copy of each row; this only keeps the tables from
+ * growing for ever.
  */
-export function runCleanupRound(dependencies: CleanupDependencies): Promise<PurgeReport> {
+export async function runCleanupRound(dependencies: CleanupDependencies): Promise<CleanupReport> {
   const now = dependencies.clock.now().getTime();
-  return purgeExpiredCodesAndSessions(dependencies.pool, {
+  const { settings, pool } = dependencies;
+  const purged = await purgeExpiredCodesAndSessions(pool, {
     codesExpiredBefore: new Date(now),
-    sessionsExpiredBefore: new Date(now - dependencies.settings.sessionRetentionMillis),
+    sessionsExpiredBefore: new Date(now - settings.sessionRetentionMillis),
   });
+  const compacted = await compactChangeLog(pool, {
+    olderThan: new Date(now - settings.changeLogCompactAfterMillis),
+    batchSize: CHANGE_LOG_BATCH,
+    maxBatchesPerTenant: CHANGE_LOG_BATCHES_PER_TENANT,
+  });
+  return { ...purged, changeLogRows: compacted.changeLogRows };
 }
 
 /** Runs a round now and then every interval, one at a time, until stopped. */

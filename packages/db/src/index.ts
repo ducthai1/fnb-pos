@@ -30,6 +30,12 @@ export {
   purgeExpiredCodesAndSessions,
   purgeTenantCodesAndSessions,
 } from "./maintenance/purge-expired-codes-and-sessions";
+export {
+  type ChangeLogCompaction,
+  type ChangeLogCompactionReport,
+  compactChangeLog,
+  compactTenantChangeLog,
+} from "./maintenance/compact-change-log";
 export { type MigrationReport, runMigrations } from "./migrations/run-migrations";
 export { databaseUrlFor } from "./provisioning/database-url";
 export {
