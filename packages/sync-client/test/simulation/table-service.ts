@@ -28,6 +28,7 @@ export function keptItems(ctx: DayContext, view: OrderView): PickedItem[] {
         variantId: line.variantId,
         quantity: line.quantity,
         note: line.note,
+        ...(line.measureUnit === undefined ? {} : { measureUnit: line.measureUnit }),
         modifiers: view.lines
           .filter((child) => child.parentLineId === line.id && child.lineType === "modifier")
           .map((child) => ({
@@ -81,7 +82,7 @@ function scriptOf(ctx: DayContext): Step[] {
 }
 
 /** The tables the till shows as empty: the floor map is the till's own copy of the orders. */
-async function freeTables(ctx: DayContext, device: SimDevice): Promise<string[]> {
+export async function freeTables(ctx: DayContext, device: SimDevice): Promise<string[]> {
   const taken = new Set<string>();
   for (const view of await device.till.client.snapshots("order")) {
     const { status, tableId } = view.snapshot as { status?: string; tableId?: string | null };

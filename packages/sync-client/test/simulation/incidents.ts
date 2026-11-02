@@ -1,6 +1,9 @@
 import type { DayContext } from "./day-context";
 import { addItems } from "./table-service";
 import { openTill } from "./simulated-shop";
+import { cashMovePastTheCap } from "./refused-cash-move";
+import { scheduleRevokedTill } from "./revoked-till";
+import { weighedTables } from "./weighed-tables";
 
 const MINUTE = 60_000;
 
@@ -35,7 +38,15 @@ export function chooseIncidents(random: {
 }
 
 /** Where in the day (0..1) each trouble hits, so a short day and a long one meet the same ones. */
-const AT = { offline: 0.42, restart: 0.55, update: 0.72, sameTable: 0.38 } as const;
+const AT = {
+  offline: 0.42,
+  restart: 0.55,
+  update: 0.72,
+  sameTable: 0.38,
+  cashPastCap: 0.3,
+  revokedTill: 0.2,
+  weighed: 0.6,
+} as const;
 
 /** Schedules the day's troubles; each is a task like the cashiers' own. */
 export function scheduleIncidents(ctx: DayContext, choices: IncidentChoices): string[] {
@@ -84,6 +95,21 @@ export function scheduleIncidents(ctx: DayContext, choices: IncidentChoices): st
       return false;
     });
   }
+
+  // The cashier's counter: a cash move past the cap, refused, then set aside with approval.
+  task(at(AT.cashPastCap), "cash move past the cap", () =>
+    cashMovePastTheCap(ctx, ctx.device("counter-2")),
+  );
+  happened.push("refused cash move set aside with a manager's approval");
+
+  // A spare till revoked while it holds cash sales, flushed under a manager's code, paired again.
+  ctx.books.revokedTill = scheduleRevokedTill(ctx, at(AT.revokedTill));
+  if (ctx.books.revokedTill !== null)
+    happened.push(`spare till revoked and flushed (${ctx.books.revokedTill.variant})`);
+
+  // Beef sold by weight on two tables while its unit changes and one till is offline.
+  task(at(AT.weighed), "weighed tables across a unit change", () => weighedTables(ctx));
+  happened.push("weighed beef across a kg to 100 g change");
 
   if (choices.serverRestart) {
     task(at(AT.restart), "server restarts", async () => {

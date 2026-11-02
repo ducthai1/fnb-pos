@@ -30,7 +30,8 @@ export const isStaleDraft = (refused: Pick<RejectedCommand, "code" | "command">)
 
 /**
  * The items a refused draft asked for, as the cart lines that save them: a typed price with
- * the approval it carried, a weight read back into grams in the unit it was sent in.
+ * the approval it carried, a weight read back into grams in the unit it was sent in, a
+ * combo with the picks the cashier made in each of its places.
  */
 function cartAsked(menu: TillMenu, refused: Refused): CartLine[] {
   const payload = saveDraftPayloadSchema.safeParse(refused.command.payload);
@@ -50,6 +51,7 @@ function cartAsked(menu: TillMenu, refused: Refused): CartLine[] {
       modifiers: line.modifiers,
       ...entryOfStored(menu, item),
       note: line.note,
+      ...(line.comboPicks === undefined ? {} : { comboPicks: line.comboPicks }),
       ...(line.priceApprovalId === undefined ? {} : { priceApprovalId: line.priceApprovalId }),
     };
   });
@@ -90,6 +92,19 @@ export function redoneCart(
   }
   for (const line of asked.at(-1) ?? []) add(line);
   return added.length === 0 ? null : [...held, ...added];
+}
+
+/**
+ * The items a refused draft asked for that the order as the server holds it lacks: what
+ * missed the bill when the order was paid or cancelled at another till before a redo.
+ */
+export function itemsMissedBy(
+  menu: TillMenu,
+  latest: StoredOrder,
+  refused: Refused,
+): readonly CartLine[] {
+  const held = new Set(latest.lines.map((line) => line.id));
+  return cartAsked(menu, refused).filter((line) => !held.has(line.lineId));
 }
 
 /** A bar or kitchen ticket the printer took, whose recording the server refused. */

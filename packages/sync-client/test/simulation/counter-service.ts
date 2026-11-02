@@ -62,6 +62,9 @@ async function discountThenCharge(
   order: BookedOrder,
   plan: Parameters<typeof charge>[3],
 ): Promise<boolean> {
+  // The script's copy of a discount is not the domain's: it discounts only what the server
+  // will price back, so a till that lost its network waits to give it.
+  if (!device.till.network.online) return false;
   const view = await ctx.shown(device, order.id);
   if (view === null) return false;
   const given = await sendApproved(ctx, device, percentOffOrder(view, 1_000), {

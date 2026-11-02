@@ -24,12 +24,14 @@ decisions:
   - D-133
   - D-134
   - D-152
+  - D-164
 tests:
   - apps/pos/src/app/table-floor.test.tsx
   - apps/pos/src/app/table-floor-from-bootstrap.test.tsx
   - apps/pos/src/app/table-rounds.test.tsx
   - apps/pos/src/app/table-refusals.test.tsx
   - apps/pos/src/app/table-two-tills-add-at-once.test.tsx
+  - apps/pos/src/features/table-order/redo-keeps-combo-picks.test.ts
   - apps/pos/src/app/table-send-while-save-refused.test.tsx
   - apps/pos/src/app/table-payment-drawer.test.tsx
   - apps/pos/src/app/table-qr-payment.test.tsx
@@ -115,7 +117,7 @@ Bấm **Thanh toán** hoặc **F9** — cùng ngăn thanh toán như tại quầ
 ## Luật và giới hạn
 
 - **Mỗi bàn chỉ có một đơn đang mở** (máy chủ chặn). Hai máy cùng mở một bàn trống cùng lúc: máy nào lưu trước giữ bàn, máy sau được báo để mở lại đơn đang có rồi gọi thêm vào đó.
-- **Hai máy cùng thêm món vào một bàn**: máy lưu sau tự gộp lại một lần trên bản mới nhất, **giữ món của cả hai máy** (ưu tiên không mất món; một món vừa xóa có thể hiện lại, xóa lại là được). Gộp xong vẫn lệch thì máy dừng lưu và báo.
+- **Hai máy cùng thêm món vào một bàn**: máy lưu sau tự gộp lại trên bản mới nhất, **giữ món của cả hai máy** (ưu tiên không mất món; một món vừa xóa có thể hiện lại, xóa lại là được; combo giữ đúng đồ uống / bánh đã chọn, món cân giữ đúng số gam). Bàn đông, máy kia lại lưu chen vào lúc bản gộp đang lên thì máy **gộp lại lần nữa** trên bản mới hơn, **tối đa 3 lần liền**; quá 3 lần vẫn lệch thì máy dừng lưu và báo. Bàn đã được **thanh toán / hủy ở máy khác** trước khi gộp xong thì món chưa vào bill nằm ở **Cần xử lý**, ghi rõ tên món (xem trang Mất mạng và đồng bộ).
 - **Gửi bếp / pha chế ngay lúc máy khác vừa sửa bàn**: phiếu đã in ra thì máy vẫn tính là đã gửi. Khi máy gộp lại món (dòng trên), máy ghi luôn các phiếu đã in cho những món đó vào máy chủ, nên lần gửi sau **không in lại** món đã làm; mục Cần xử lý không còn dòng nào của chuyện này. Phiếu hủy món hoặc đổi ghi chú gặp tình huống này thì vẫn hiện ở Cần xử lý để người có quyền xem.
 - Món **đã gửi bếp** chỉ còn đọc: không sửa, không bớt bằng nút −; gọi thêm thì thành dòng mới; muốn bớt thì **Hủy món** (có phiếu hủy cho bếp). Máy chưa có máy in bếp (bản trong trình duyệt) cũng vậy: phiếu bếp hiện trên màn là món đã gửi bếp. Máy in bếp kẹt giấy thì món chưa gửi, bấm **Gửi bếp** lại.
 - **Đổi tùy chọn (topping, size, ghi chú) của món đã gửi bếp:** ⋯ của món → **Đổi tùy chọn** (xem [06-huy-giam-hoan-va-duyet.md](06-huy-giam-hoan-va-duyet.md)): máy hủy món cũ (xin duyệt nếu chi nhánh bắt) rồi gọi lại món với lựa chọn mới, ra phiếu hủy và phiếu gọi mới. Combo, món bán theo cân, món nhập giá tay không có nút này: hủy món rồi gọi lại.

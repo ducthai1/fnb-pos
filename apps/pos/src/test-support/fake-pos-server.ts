@@ -81,6 +81,8 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
     refuseCommandsWith: null as string | null,
     /** Commands of a type refused for good with a code, the others answered as usual. */
     refuseTypes: new Map<string, string>(),
+    /** Runs as each pushed command reaches the server, before it is answered: another till's move. */
+    beforeAnswer: null as ((command: SyncCommandEnvelope) => void) | null,
     /** The branch's change feed: change n has changeSeq n, the cursor is how many were read. */
     feed: [] as { entity: string; entityId: string; snapshot: Record<string, unknown> | null }[],
     pushed: [] as SyncCommandEnvelope[],
@@ -158,6 +160,7 @@ export function fakeServer(snapshot: BootstrapSnapshot) {
       state.calls.pushedCommands += batch.length;
       state.pushed.push(...batch);
       return batch.map((command) => {
+        state.beforeAnswer?.(command);
         const code =
           state.refuseCommandsWith ??
           state.refuseTypes.get(command.type) ??
@@ -235,11 +238,17 @@ export function fakeDependencies(
       // As the API: only a revoked till sends here, and only under a live code.
       async flushUnderGrant(code, batch, final) {
         const { state } = server;
-        if (!state.online || state.pushesHeld) throw new SyncTransportError("network", null, "offline");
+        if (!state.online || state.pushesHeld)
+          throw new SyncTransportError("network", null, "offline");
         state.flushes.push({ code, final, commands: [...batch] });
         if (state.flushRefusal !== null) throw state.flushRefusal;
         if (!state.flushCodes.has(code)) {
-          throw new SyncTransportError("http", 401, "answered 401", "API_DEVICE_FLUSH_GRANT_INVALID");
+          throw new SyncTransportError(
+            "http",
+            401,
+            "answered 401",
+            "API_DEVICE_FLUSH_GRANT_INVALID",
+          );
         }
         if (final) state.flushCodes.delete(code);
         return server.transport.pushCommands(batch);

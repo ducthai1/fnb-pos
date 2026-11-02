@@ -27,6 +27,8 @@ const sum = (values: readonly (number | string)[]) =>
 export async function checkDayReports(
   run: DayRun,
   say: (message: string) => void,
+  /** Units rung up that missed their bill and are still accounted for by a refused save. */
+  missed: ReadonlyMap<string, number> = new Map(),
 ): Promise<Record<string, unknown>> {
   const { ctx, books, window } = run;
   const { shop } = ctx;
@@ -68,13 +70,14 @@ export async function checkDayReports(
     say("report: the hours do not add up to the money collected");
   if (sum(before.payments.map((payment) => payment.sales)) !== Number(before.sales.collected))
     say("report: the payment methods do not add up to the money collected");
-  const unitsSold = sum(
-    paid.flatMap((order) => [...order.items.values()].map((item) => item.quantity)),
-  );
+  const unitsSold =
+    sum(paid.flatMap((order) => [...order.items.values()].map((item) => item.quantity))) -
+    sum([...missed.values()]);
   const unitsReported = sum(
     before.items.filter((item) => item.lineType === "item").map((item) => item.quantity),
   );
-  if (unitsReported !== unitsSold)
+  // Weighed lines sell in thousandths: the sums are compared to the gram.
+  if (Math.round(unitsReported * 1_000) !== Math.round(unitsSold * 1_000))
     say(`report: ${unitsReported} units on the item lines, the shop sold ${unitsSold}`);
   if (before.voids.count !== books.voidCount)
     say(`report: ${before.voids.count} voids, the shop made ${books.voidCount}`);

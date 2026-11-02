@@ -7,6 +7,9 @@ decisions:
   - D-149
   - D-150
   - D-159
+  - D-160
+  - D-161
+  - D-164
 tests:
   - packages/sync-client/test/scenarios/simulated-shop-day.test.ts
 ---
@@ -50,20 +53,25 @@ Khách và món sinh **ngẫu nhiên có seed**: tên món, số lượng (có c
 | Một máy **lệch giờ** (nhanh hoặc chậm tới 8 phút) cả ngày | từ đầu |
 | **Máy chủ khởi động lại** giữa giờ | ~55% |
 | **Cập nhật app giữa ca**: máy chủ đòi bản tối thiểu mới (426), lệnh nằm lại, từng máy tải lại bản mới rồi gửi tiếp | ~72% |
+| **Máy quầy bị thu hồi khi còn giữ đơn chưa gửi**: máy quầy dự phòng `counter-3` được ghép, mở ca, mất mạng, bán tiền mặt; chủ quán thu hồi máy trên trang quản lý; thu ngân đếm két, đóng ca (vẫn mất mạng); có mạng lại máy thấy mình bị thu hồi; quản lý tạo **mã cho gửi nốt**; máy gửi nốt bằng đúng hàm của màn thu hồi (`flushOutboxUnderGrant`), rồi **ghép lại thành máy mới** (xóa dữ liệu như nút "Ghép lại máy"), mở ca mới và bán tiếp. Mỗi seed rơi vào một trong ba biến thể: **đứt giữa chừng** (52 đơn, lô 100 lệnh đầu lên, lô sau rớt mạng, gửi tiếp **cùng mã**); **mã hết hạn** (quản lý tới sau 11 phút, máy chủ trả 401, quản lý tạo mã mới); **bấm thanh toán hai lần** (lần hai bị từ chối, màn thu hồi ghi lệnh không được nhận **kèm số tiền**) | ~20% |
+| **Món cân qua lần đổi đơn vị**: quản lý thêm "Bò khô xé (cân)" 450.000 ₫/kg; máy order bàn mở một bàn có 351 g, `counter-1` mở một bàn có 702 g rồi gửi pha chế; `counter-1` mất mạng (giữ thực đơn cũ "kg"); quản lý đổi món sang **100 g** (45.000 ₫/100 g) trên trang quản lý; `counter-1` (mất mạng) cân thêm **250 g theo kg** và **hủy bớt 0,351** của dòng đã gửi; máy order bàn (thực đơn mới) cân thêm **350 g = 3,5 × 100 g**; `counter-1` có mạng lại, thu cả hai bàn | ~60% |
+| **Thu chi két quá hạn mức bị từ chối**: thu ngân `counter-2` rút 900.000 ₫ (quá 500.000 ₫ một ca) mà không xin duyệt như máy bản cũ → máy chủ từ chối, tiền chưa rời két; thu ngân thử **tự bỏ qua** (máy bản cũ cho bấm) → máy chủ từ chối tiếp; quản lý duyệt *Mở két không bán hàng* **cho đúng ca đó** → bỏ qua cả hai lệnh | ~30% |
 
-Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ. Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
+Máy bị từ chối vì bàn đã có người sửa (`SYNC_ORDER_VERSION_STALE`) thì làm như app: lấy lệnh ra khỏi "Cần xử lý" rồi lưu lại phần món mình thêm lên bản mới của máy chủ; bản gộp bị từ chối nữa thì gộp lại tiếp, tối đa 3 lần (dòng kết quả in `refusedRedos`). Phiên nhân viên hết hạn thì thu ngân nhập PIN lại.
 
 ### Cuối ngày tự kiểm
 
 Mỗi mục là một lời khẳng định có câu báo rõ; **tất cả cái sai được gom lại**, không dừng ở cái đầu tiên:
 
 1. Không mất, không trùng, không thừa đơn: mọi đơn quán đã làm có trên máy chủ đúng một lần, và máy chủ không có đơn nào quán chưa làm.
-2. Mỗi đơn kết thúc đúng như quán kết thúc (trả / hủy), đúng ngày kinh doanh, có **đúng một khoản thu** khớp phương thức và số tiền, đủ món và số lượng (kể cả món đã hủy bớt); hoàn tiền trả đúng số.
+2. Mỗi đơn kết thúc đúng như quán kết thúc (trả / hủy), đúng ngày kinh doanh, có **đúng một khoản thu** khớp phương thức và số tiền, đủ món và số lượng (kể cả món đã hủy bớt); hoàn tiền trả đúng số. **Món thu ngân đã bấm mà không có trên bill** chỉ được phép khi lệnh lưu của nó **còn nằm ở "Cần xử lý"** của một máy hoặc **đã bị bỏ qua có lý do** (nhật ký `sync.rejection_dismissed`); số đó in ở `missedTheBill` và được trừ khỏi số món báo cáo phải khớp. Ngoài hai chỗ đó, món mất là lỗi.
 3. Mỗi lệnh đi **đúng một lần**: số lệnh quán phát ra = số lệnh máy chủ nhận; không lệnh nào kẹt trong hàng chờ của máy; "Cần xử lý" chỉ chứa lệnh kịch bản cố ý để bị từ chối.
 4. Mọi máy **hiển thị y hệt máy chủ** (từng đơn, từng ca; so sâu từng trường).
-5. **Két mỗi ca khớp**: số tiền thu ngân đếm theo sổ của quán (đầu ca + thu − hoàn − rút) bằng số hệ thống chờ đợi, chênh 0.
+5. **Két mỗi ca khớp**: số tiền thu ngân đếm theo sổ của quán (đầu ca + thu − hoàn − rút) bằng số hệ thống chờ đợi, chênh 0. Khoản thu chi két bị từ chối **không vào sổ két** (máy chủ không nhận lệnh nào của nó), chỉ được bỏ qua với **đúng một** dòng nhật ký gắn ca có tên người duyệt; lần thu ngân tự bỏ qua phải bị từ chối `SYNC_APPROVAL_…`.
 6. **Số gọi** không trùng giữa các máy cùng chi nhánh.
-7. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
+7. **Máy bị thu hồi**: máy thấy mình bị thu hồi (`API_DEVICE_UNAUTHENTICATED`), gửi nốt thì hàng chờ về 0; **mỗi khoản tiền mặt máy đã thu** hoặc có trên máy chủ, hoặc nằm trong danh sách "không được nhận" của màn thu hồi **đúng số tiền**; lần bấm hai lần đi đúng chiều (lần đầu nhận, lần hai từ chối); số mã quản lý tạo = số dòng nhật ký `device.flush_grant_issued`, có nhật ký `device.flushed_under_grant`; lần gửi dừng đúng như biến thể (rớt mạng / 401). Lệnh của máy cũ vẫn được đếm trong tổng lệnh của ngày.
+8. **Món cân**: mỗi dòng cân trên máy chủ giữ **đúng số gam** đã cân (350 g không thành 35 g; 250 g gõ theo kg trên thực đơn cũ thành 2,5 × 100 g) và **đúng đơn vị đã tính giá** (dòng đã gửi pha chế trước lúc đổi vẫn là kg; dòng chưa gửi mà bàn được lưu lại sau lần đổi thì máy chủ tính lại theo 100 g, giữ nguyên số gam: 0,351 kg thành 3,51 × 100 g); quầy chỉ thu bàn khi bản của nó trùng bản máy order vừa lưu; bill / in lại của **cả hai máy** (máy giữ thực đơn cũ và máy có thực đơn mới, đọc bằng hàm in của máy quầy `weighedOnSlip`) in đúng số gam và đơn vị đó; số món báo cáo so tới từng gam. Thử phá: cho máy mất mạng gửi số cân **không kèm đơn vị** (như máy bản cũ) thì bài kiểm đỏ 4 chỗ (25 g thay vì 250 g).
+9. Báo cáo ngày và chốt ngày khớp tổng các dòng (xem phần "Báo cáo" bên dưới nếu có).
 
 ## Các bước
 
@@ -93,4 +101,4 @@ Hai lỗi gặp khi dựng nằm ở "Việc phát sinh" của bảng task, kèm
 
 - Chưa có Chrome chạy giao diện máy quầy thật (tầng sau của quán giả lập).
 - Máy thu ngân (`counter-2`, `handheld`) xin quản lý duyệt qua đúng route của máy quầy cho giảm giá cả đơn, hoàn tiền, hủy món đã gửi bar, hủy đơn đã gửi bếp; mất mạng thì chờ có mạng rồi làm lại. Lỗi bấm thanh toán hai lần: lệnh trả tiền thứ hai bị máy chủ từ chối, thu ngân bỏ qua ở "Cần xử lý" bằng duyệt của quản lý (cả hai kiểm cuối ngày, số lần ghi trong dòng tóm tắt `approvals`, `dismissed`). **Chưa có** duyệt cho giá nhập tay và thu chi két / đóng ca có chênh.
-- Không có combo, món cân, món giá nhập tay, phí phục vụ, thuế khác 8% (đã ghi Backlog; menu quán giả lập đã có sẵn một combo, chỉ chưa có bán).
+- Món cân chỉ có ở sự cố đổi đơn vị (hai bàn), chưa có trong khách ngẫu nhiên. Không có combo, món giá nhập tay, phí phục vụ, thuế khác 8% (Backlog; menu quán giả lập đã có sẵn một combo, chỉ chưa có bán).

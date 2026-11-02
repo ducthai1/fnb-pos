@@ -24,7 +24,12 @@ export async function redoStaleDrafts(ctx: DayContext): Promise<void> {
     }
     if (orders.size === 0) continue;
     const screen = await screenOf(ctx, device);
-    for (const refused of refusals) screen.recorded.add(refused.command.commandId);
+    for (const refused of refusals) {
+      screen.recorded.add(refused.command.commandId);
+      // A redo refused in turn: another till changed the table again while it was on its way.
+      if (isStaleDraft(refused) && screen.memory.redos.has(refused.command.commandId))
+        ctx.books.refusedRedos.add(refused.command.commandId);
+    }
     for (const orderId of orders) {
       const before = await device.till.client.pendingCount();
       const done = await redoStaleOrder({

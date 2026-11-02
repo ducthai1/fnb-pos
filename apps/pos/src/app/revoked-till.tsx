@@ -1,5 +1,4 @@
-import { DEVICE_UNAUTHENTICATED_CODE, type SyncCommandEnvelope } from "@fnb/contracts";
-import { formatVnd, vnd } from "@fnb/domain";
+import { DEVICE_UNAUTHENTICATED_CODE } from "@fnb/contracts";
 import {
   type FlushOutcome,
   type LocalStore,
@@ -7,60 +6,10 @@ import {
   flushOutboxUnderGrant,
 } from "@fnb/sync-client";
 import { useCallback, useEffect, useState } from "react";
-import { commandNameOf } from "../messages/vi-sync-errors";
-import { refusalSentence, vi } from "../messages/vi";
-import {
-  type RefusedItem,
-  TillRevokedScreen,
-  type WaitingGroup,
-} from "../screens/pair-device/till-revoked-screen";
+import { type Held, whatTheTillHolds } from "./revoked-till-holdings";
+import { vi } from "../messages/vi";
+import { TillRevokedScreen } from "../screens/pair-device/till-revoked-screen";
 import type { DeviceCredentialStore } from "../shell-bridge/device-credential-store";
-
-/** More than any till holds; the screen counts what is there, it does not page. */
-const READ_LIMIT = 10_000;
-
-interface Held {
-  readonly waiting: readonly WaitingGroup[];
-  readonly refused: readonly RefusedItem[];
-}
-
-/** The money a payment or a refund carried, written out; null for any other command. */
-function amountOf(command: SyncCommandEnvelope): string | null {
-  const payload = (command.payload as { payments?: unknown; payouts?: unknown } | null) ?? {};
-  const rows = Array.isArray(payload.payments)
-    ? payload.payments
-    : Array.isArray(payload.payouts)
-      ? payload.payouts
-      : null;
-  if (rows === null) return null;
-  let total = 0;
-  for (const row of rows) {
-    const amount = (row as { amount?: unknown } | null)?.amount;
-    if (typeof amount === "number" && Number.isSafeInteger(amount)) total += amount;
-  }
-  return formatVnd(vnd(total));
-}
-
-async function whatTheTillHolds(store: LocalStore): Promise<Held> {
-  const [pending, refused] = await Promise.all([
-    store.pendingCommands(READ_LIMIT),
-    store.rejectedCommands(),
-  ]);
-  const counts = new Map<string, number>();
-  for (const command of pending) {
-    const name = commandNameOf(command.type);
-    counts.set(name, (counts.get(name) ?? 0) + 1);
-  }
-  return {
-    waiting: [...counts].map(([name, count]) => ({ name, count })),
-    refused: refused.map((rejected) => ({
-      id: rejected.command.commandId,
-      name: commandNameOf(rejected.command.type),
-      sentence: refusalSentence(rejected.command.type, rejected.code),
-      amount: amountOf(rejected.command),
-    })),
-  };
-}
 
 /** What the till says when a flush stopped short; null when the outbox went up whole. */
 function flushFailure(outcome: FlushOutcome): string | null {

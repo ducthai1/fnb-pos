@@ -7,6 +7,7 @@ audience:
 screens:
   - needs-attention
 decisions:
+  - D-164
   - D-163
   - D-008
   - D-021
@@ -40,6 +41,7 @@ tests:
   - apps/pos/src/app/server-restored-under-the-till.test.tsx
   - apps/pos/src/app/settled-qr-needs-attention.test.tsx
   - apps/pos/src/features/sync/redo-refused-draft.test.ts
+  - apps/pos/src/app/table-two-tills-add-at-once.test.tsx
   - apps/pos/src/features/sync/rejection-routes.test.ts
   - apps/api/test/integration/sync/dismissing-a-refused-command-is-audited.test.ts
   - apps/api/test/integration/sync/cancel-after-voiding-sent-items-in-passes.test.ts
@@ -91,7 +93,7 @@ Máy quầy **bán được khi mất mạng**. Mọi thao tác (lưu đơn, thu
    ![Cần xử lý](../images/may-quay/needs-attention.webp)
 
 3. Làm theo câu giải thích. Mỗi lệnh có các nút hợp với nó (nút nào không hợp thì không hiện):
-   - **Lưu lại trên bản mới của đơn** — cho đơn bàn mà máy khác đã sửa trước (bản của máy này bị máy chủ từ chối). Máy lấy bản mới của đơn từ máy chủ, giữ mọi món máy chủ có, thêm món máy này vừa gọi mà máy chủ chưa có rồi lưu lại. Lưu được hoặc máy chủ đã có đủ món thì lệnh rơi khỏi danh sách. Đơn đã được trả / hủy ở máy khác thì máy không lưu thêm món được, nói rõ như vậy: mở đơn mới cho các món cần, hoặc **Bỏ qua lệnh này**.
+   - **Lưu lại trên bản mới của đơn** — cho đơn bàn mà máy khác đã sửa trước (bản của máy này bị máy chủ từ chối). Máy lấy bản mới của đơn từ máy chủ, giữ mọi món máy chủ có, thêm món máy này vừa gọi mà máy chủ chưa có rồi lưu lại. Lưu được hoặc máy chủ đã có đủ món thì lệnh rơi khỏi danh sách. Đơn đã được trả / hủy ở máy khác thì máy không lưu thêm món được: ngay dưới lệnh máy ghi "Đơn đã được trả hoặc hủy ở máy khác nên không lưu thêm món được…" kèm **"Món chưa vào đơn: 1 × Trà sữa trân châu."** (món cân ghi số gam), không cần bấm gì mới thấy. Thu thêm của khách nếu còn kịp (mở đơn mới cho các món đó), hoặc **Bỏ qua lệnh này** và ghi đã xử lý ra sao.
    - **Mở đơn / bàn** — cho lệnh nói về một đơn còn là nháp trên máy: thoát danh sách, máy mở đơn đó (đơn quầy trở lại giỏ hàng, đơn bàn mở sơ đồ bàn) để sửa rồi lưu lại.
    - **Mở đơn, xin duyệt rồi gửi lại** — khi máy chủ từ chối vì thiếu hoặc sai lần duyệt của quản lý (ví dụ **Hủy đơn** một đơn mà máy khác đã in tạm tính, máy này chưa biết). Mở đơn rồi làm lại **Hủy đơn**: lần này máy biết đơn đã in tạm tính nên xin quản lý duyệt trước khi gửi.
    - **Đóng đơn bằng QR đã nhận** — cho đơn khách **đã chuyển khoản QR đủ** mà máy lại ghi thu tiền mặt (trả lại tiền mặt cho khách trước).

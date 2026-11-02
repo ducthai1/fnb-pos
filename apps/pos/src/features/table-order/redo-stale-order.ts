@@ -2,12 +2,7 @@ import type { RejectedCommand, SyncClient } from "@fnb/sync-client";
 import type { TillMenu } from "../menu/till-menu";
 import { serverCopyOf } from "../order/server-copy";
 import type { TillPlace } from "../order/till-command";
-import {
-  isStaleDraft,
-  redoDraftCommands,
-  redoneCart,
-  refusedTickets,
-} from "./redo-stale-draft";
+import { isStaleDraft, redoDraftCommands, redoneCart, refusedTickets } from "./redo-stale-draft";
 
 export type RedoClient = Pick<
   SyncClient,
@@ -22,15 +17,30 @@ export interface RedoMemory {
   readonly redos: Set<string>;
   /** Tickets whose recording was refused and has been queued again after a redo. */
   readonly recordedAgain: Set<string>;
+  /** How many redos stand behind each redo the till saved: 1 for a redo of the cashier's own save. */
+  readonly depth: Map<string, number>;
 }
 
 export const newRedoMemory = (): RedoMemory => ({
   taken: new Set(),
   redos: new Set(),
   recordedAgain: new Set(),
+  depth: new Map(),
 });
 
-/** A refused draft this till recorded and has not dealt with yet. */
+/**
+ * How many times in a row a table's items are saved again over a newer copy before the
+ * refusal is left for the cashier to read: two tills busy at one table may beat each other
+ * more than once, while a server that refuses every save must not be answered for ever.
+ */
+export const MOST_REDOS_IN_A_ROW = 3;
+
+const depthOf = (memory: RedoMemory, commandId: string) => memory.depth.get(commandId) ?? 0;
+
+/**
+ * A refused draft this till recorded and has not dealt with yet: the cashier's own save, or
+ * a redo refused in turn while fewer than MOST_REDOS_IN_A_ROW redos stand behind it.
+ */
 export const waitingForRedo = (
   refused: RejectedCommand,
   recorded: ReadonlySet<string>,
@@ -38,7 +48,7 @@ export const waitingForRedo = (
 ): boolean =>
   recorded.has(refused.command.commandId) &&
   isStaleDraft(refused) &&
-  !memory.redos.has(refused.command.commandId) &&
+  depthOf(memory, refused.command.commandId) < MOST_REDOS_IN_A_ROW &&
   !memory.taken.has(refused.command.commandId);
 
 /** The till saved its refused drafts again over the order another till changed. */
@@ -48,7 +58,7 @@ export interface DraftRedone {
 }
 
 /**
- * Saves a table's refused drafts again, once, over the order as the server holds it now:
+ * Saves a table's refused drafts again over the order as the server holds it now:
  * waits (up to `waitMs`) until none of the till's commands on the order waits, so the redo
  * knows every answer. Records the tickets the stations already hold for the redone items
  * behind it, and takes the refusals it answers off the till's list. Null: nothing was redone
@@ -99,6 +109,8 @@ export async function redoStaleOrder(input: {
   if (draft === undefined) return null;
   recorded.add(draft.commandId);
   memory.redos.add(draft.commandId);
+  const behind = Math.max(...refused.map((entry) => depthOf(memory, entry.command.commandId)));
+  memory.depth.set(draft.commandId, behind + 1);
   await client.enqueue(draft);
   for (const record of records) {
     recorded.add(record.commandId);

@@ -18,10 +18,11 @@ export type { DraftRedone } from "./redo-stale-order";
 
 /**
  * Drafts of the till's tables that the server refused because another till changed the
- * order first are saved again, once, over the order as the server holds it then (see
+ * order first are saved again over the order as the server holds it then (see
  * redoStaleOrder). Runs for the whole floor, so a waiter who went back to the floor loses
- * nothing either. A redo the server refuses too is not redone: it shows as a refusal like
- * any other.
+ * nothing either. A redo the server refuses as stale too is redone over the newer copy, up to
+ * MOST_REDOS_IN_A_ROW times; past that, or once the order is paid or cancelled elsewhere, it
+ * shows as a refusal like any other.
  */
 export function useStaleDraftRedo(
   client: RedoClient,
@@ -87,7 +88,8 @@ export function useStaleDraftRedo(
    */
   const shows = useMemo(
     () => (refused: RejectedCommand, all: readonly RejectedCommand[]) => {
-      if (isStaleDraft(refused)) return redos.has(refused.command.commandId);
+      if (isStaleDraft(refused))
+        return redos.has(refused.command.commandId) && !waitingForRedo(refused, recorded, memory);
       if (handedOverTicket(refused) === null) return true;
       if (recordedAgain.has(refused.command.commandId)) return false;
       // Held back while the redo is due or running; once it found nothing to add the items
@@ -100,7 +102,7 @@ export function useStaleDraftRedo(
           !taken.has(entry.command.commandId),
       );
     },
-    [redos, recordedAgain, busy, taken],
+    [redos, recordedAgain, busy, taken, recorded, memory],
   );
   return { redone, shows };
 }
