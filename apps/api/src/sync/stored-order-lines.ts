@@ -51,6 +51,27 @@ export async function readStoredOrderLines(
     "SELECT * FROM sales_order_line WHERE order_id = $1 ORDER BY position, id",
     [orderId],
   );
+  return storedLinesOf(rows);
+}
+
+/**
+ * The lines of several orders in one round trip, each order's in the order readStoredOrderLines
+ * gives them; an order with no lines has an empty entry.
+ */
+export async function readStoredOrderLinesOf(
+  client: pg.ClientBase,
+  orderIds: readonly string[],
+): Promise<Map<string, StoredOrderLines>> {
+  const { rows } = await client.query<LineRow & { order_id: string }>(
+    "SELECT * FROM sales_order_line WHERE order_id = ANY($1::uuid[]) ORDER BY order_id, position, id",
+    [orderIds],
+  );
+  const byOrder = new Map<string, LineRow[]>(orderIds.map((id) => [id, []]));
+  for (const row of rows) byOrder.get(row.order_id)?.push(row);
+  return new Map([...byOrder].map(([id, lines]) => [id, storedLinesOf(lines)]));
+}
+
+function storedLinesOf(rows: readonly LineRow[]): StoredOrderLines {
   const restock = new Map<string, boolean>();
   for (const row of rows) if (row.restock !== null) restock.set(row.id, row.restock);
   return {
